@@ -97,6 +97,19 @@ Every workflow must fit one primary class.
 
 Do not leave a completed branch-specific experiment automatic merely because its trigger is technically correct. With a large workflow catalog, a correct trigger on a closed question is still CI waste. A closed experiment must either become a durable invariant, become manual-only, or be removed.
 
+### ART-4K pinned original-emulator cache across PR boundaries (November 3, 2026)
+
+Two separate source-registered original MesenCE PR jobs, [#41597352185](https://github.com/gamesbyian/UR-Recomp/actions/runs/41597352185) and [#41605614082](https://github.com/gamesbyian/UR-Recomp/actions/runs/41605614082), spent **509 and 524 seconds** compiling the same pinned MesenCE commit and Lua-subport patch. Subsequent jobs within the first PR reused its own cache and occupied **56–66 seconds total**. GitHub's [cache scope documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching) explains why a cache written by one PR cannot be restored by a sibling PR, whereas a cache written on the default branch can.
+
+The [main-only cache seed](../.github/workflows/art4k-mesence-main-cache-seed.yml) now calls the **same source-owned** [original emulator build workflow](../.github/workflows/art4k-live-original-mesen-ppu-raw.yml) with `seed_only: true`: it builds MesenCE from its pinned source and patch on Ubuntu 22.04 but runs no game ROM, PPU capture, original-state tests or art artifact upload. It publishes a default-branch GitHub Actions cache for future, different PRs. The cache key incorporates Linux OS/architecture, pinned revision, patch version and SHA-256 hashes of the actual patch and repository cache-verifier code. The binary and all runtime dependencies are independently SHA-256 inventoried by [cache receipt verifier](../tools/art/mesence_cache_receipt.py), which refuses altered files, redirected dependencies, unexpected files and absent/invalid ELF executable. The self-hashed receipt is not a signature: trust comes from main's restricted cache writer boundary, and the original gameplay evidence remains bound to the actual executed emulator and source capture.
+
+The capture workflow uses separate `actions/cache/restore` and `actions/cache/save` operations, **saving the verified build before the exploratory original capture**. A later capture failure therefore does not discard an otherwise valid nine-minute emulator build. Every actual original-game PR or manual capture still verifies the exact canonical ROM, executes MesenCE and requires a valid source-owned PPU/screen manifest; a cache hit never earns art or original/native fidelity credit.
+
+**Main-push scope preserves the ordinary no-self-trigger rule:** the cache-seeding workflow watches the updated shared emulator workflow, exact patch and receipt-verifier source. The initial integration changes that shared workflow and therefore creates the first trusted default-branch cache without watching the seeder's own path. Editing only the seeder config does not burn a 5–9 minute Mesen compilation. The capture workflow itself has no main-push trigger. The research/capture workflow itself has **no main-push trigger**. Do not generalize this pattern to ordinary completed experiments, asset changes, screenshots or product tests.
+
+Qualification requires green source-unit/hygiene tests and actual original MesenCE run before merging, a successful exact-main cache seed, then a later *different* PR demonstrably restoring the main cache with a valid source/byte receipt. The 509–524-second duplication is measured; the expected future saving is a **hypothesis until a sibling PR actually restores the new cache**. Undo the seeder if it causes repeated unproductive builds or fails source validation.
+**Reusing the same pinned cache in existing manual consumers:** The dormant [MesenCE ordinary two-player reference workflow](../.github/workflows/mesence-two-player-reference.yml) and [synchronized racer-composition workflow](../.github/workflows/racer-composition-mesen.yml) compile the exact same source SHA, Lua subport patch and Ubuntu 22.04 build flags. They now consume the **same validated main cache key**, verify all cached executable/dependency bytes and their pinned patch/source identity, and save a newly built cache before potentially failing original-ROM experiment assertions. Both remain strictly **manual-only**; no additional CI producer or run is triggered by this change. Their real original-game replay/semantic/occupied-source checks remain mandatory. Because these are dormant/opt-in workflows, source-level equivalence does not assert a newly executed cross-workflow cache hit; verify it the next time one is genuinely needed, rather than dispatching an artificial full original-emulator run just to prove a cache optimization.
+
 ## Workflow lifecycle and default posture
 
 A new workflow is **manual by default**. Automatic execution is something a workflow earns after its result protects a current, durable repository invariant.
@@ -276,6 +289,25 @@ owner before merge; the read-only source contract test guards retention of
 the reusable QA route. The earlier measured 10.63 direct-job runner-minutes
 is a historical opportunity, not yet a measured saving.
 
+
+**2026-11-03 HP product source filter refinement:** The owner HP current-source
+product build previously watched every file under tests/input (129 fixtures),
+tests/native (230 test files), native/reference and every framework-research
+patch. The actual canonical Windows producer uses native/product,
+native/presentation and native/title, two stock replay scripts, and the
+two additional test inputs plus native-test helper required by its
+optional tournament acceptance. It stages only the snesrecomp patch
+family for Windows; other emulator patch families have different
+research consumers. The HP main-push trigger now watches those exact
+inputs rather than reserving a physical Windows build on unrelated
+native-test/input/emulator-patch edits. The generic tooling/unit and
+specialist research workflows continue to validate their own changed
+files; no Windows product test itself was removed. This is a source
+dependency audit and trigger correction, not a claim of measured
+post-rollout saved runner time. Verify subsequent eligible gameplay
+merges still dispatch full hosted and HP Windows acceptance, and that
+irrelevant fixture-only merges do not; revert the narrowing if an
+actual consumed dependency is discovered outside the named paths.
 
 Use this pattern instead:
 

@@ -25,6 +25,27 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertNotIn("HP_MEMORY_RECENT_EXHAUSTION", source)
         self.assertNotIn("HP_MEMORY_COMMIT_INSUFFICIENT", source)
 
+    def test_hosted_candidate_validates_hp_compiler_profile_without_hp_access(self):
+        source = WORKFLOW.read_text(encoding="utf-8")
+        caller = (ROOT / ".github" / "workflows"
+                  / "qa05-qa09-windows-candidate.yml").read_text(encoding="utf-8")
+        # One existing hosted package build exercises owner-specific compiler
+        # options. No second job or access to the owner's machine is created.
+        self.assertIn("test_hp_compiler_profile: true", caller)
+        self.assertIn("uses: ./.github/workflows/windows-native-smoke.yml", caller)
+        self.assertNotIn("run_on_hp: true", caller)
+        self.assertIn("      test_hp_compiler_profile:", source)
+        self.assertIn("        default: false", source.split("      test_hp_compiler_profile:", 1)[1].split("      run_tournament_acceptance:", 1)[0])
+        self.assertIn('if [[ "${{ inputs.run_on_hp || inputs.test_hp_compiler_profile }}" == "true" ]]; then',
+                      source)
+        self.assertIn("UR_COMPILER_PROFILE jobs=$HP_BUILD_JOBS", source)
+        self.assertIn('if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then\n'
+                      '            printf \'phase,timestamp_utc', source)
+        self.assertIn("runs-on: ${{ inputs.run_on_hp &&", source)
+        self.assertIn("github.ref == 'refs/heads/main'", source)
+        self.assertIn("github.event_name == 'push' || github.event_name == 'workflow_dispatch'", source)
+        self.assertNotIn("self-hosted", caller)
+
     def test_start_and_cleanup_are_hp_only_and_bound_to_artifact(self):
         source = WORKFLOW.read_text(encoding="utf-8")
         monitor = "tools/devnode_benchmark/monitor_hp_commit.ps1"
@@ -88,6 +109,35 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertNotIn("Get-Process", script)
         self.assertNotIn("Get-Counter", script)
 
+    def test_optional_cpu_window_counter_averages_full_sampling_intervals(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        # Preserve the historical coarse WMI percentage alongside a
+        # ten-second time-integrated host-wide counter, not process activity.
+        self.assertIn("cpu_load_pct_est,logical_processors,cpu_pct_window_avg", source)
+        self.assertIn("[System.Diagnostics.PerformanceCounter]::new(", source)
+        self.assertIn("'Processor', '% Processor Time', '_Total'", source)
+        self.assertIn("[void]$cpuWindowCounter.NextValue()", source)
+        self.assertIn("$cpuWindowWarmup = $true", source)
+        self.assertIn("$cpuWindowWarmup = $false", source)
+        self.assertIn("No interval has elapsed at the initial sample", source)
+        self.assertIn("ToString('F1', [System.Globalization.CultureInfo]::InvariantCulture)", source)
+        self.assertIn("cpu_pct_window_avg -match '^(100(\\.0)?|[0-9]{1,2}(\\.[0-9])?)$'", source)
+        self.assertIn("HP_CPU_WINDOW_SUMMARY", source)
+        self.assertIn("HP_COMPILE_CPU_WINDOW_SUMMARY", source)
+        self.assertIn("unavailable=no_valid_interval_samples", source)
+        self.assertIn("missing legacy WMI must not hide valid 10s CPU", source)
+        # Interval aggregation follows the legacy WMI if/else block,
+        # instead of hiding inside the WMI-success-only branch.
+        self.assertLess(source.index("unavailable=no_valid_cpu_samples"),
+                        source.index("$compileWindowRows = @($cpuWindowRows"))
+        self.assertIn("if ($null -ne $cpuWindowCounter)", source)
+        self.assertIn("$cpuWindowCounter = $null", source)
+        self.assertIn("Get-CimInstance Win32_Processor", source)
+        self.assertNotIn("Get-Counter", source)
+        self.assertNotIn("Get-Process", source)
+        self.assertNotRegex(source, r"\bWin32_Process\b")
+        self.assertNotIn("Stop-Process", source)
+
     def test_sampler_does_not_expose_local_user_activity(self):
         script = SCRIPT.read_text(encoding="utf-8")
         for expected in (
@@ -109,6 +159,34 @@ class CanonicalHpMonitorTests(unittest.TestCase):
         self.assertNotIn("Select-String", script)
         self.assertNotIn("Get-Content", script)
         self.assertNotIn("Stop-Process", script)
+
+
+    def test_telemetry_export_is_independent_bounded_and_never_uploads_partial_csv(self):
+        script = SCRIPT.read_text(encoding="utf-8")
+        hp = (ROOT / ".github/workflows/owner-hp-main-windows-smoke.yml").read_text(encoding="utf-8")
+        self.assertIn("HP_MONITOR_EXPORT=passed attempts=", script)
+        self.assertIn("HP_MONITOR_EXPORT=unavailable_original_retained", script)
+        self.assertIn("HP_MONITOR_EXPORT=unavailable_original_retained stage={0} attempts=3", script)
+        self.assertIn("([IO.File]::ReadAllLines($partial))[0]", script)
+        self.assertNotIn("[IO.File]::ReadLines($partial) | Select-Object -First 1", script)
+        for stage in ("existing_export", "copy", "header", "publish"):
+            self.assertIn(f"$stage = '{stage}'", script)
+        self.assertIn("$failureStage = $stage", script)
+        self.assertNotIn("Write-Output $_", script)
+        self.assertIn("HP_MONITOR_EXPORT=unavailable_missing_runner_temp", script)
+        self.assertIn("foreach ($attempt in 1..3)", script)
+        self.assertIn("Start-Sleep -Milliseconds 250", script)
+        self.assertIn("hp-commit-pressure.csv.partial", script)
+        self.assertIn("Move-Item -LiteralPath $partial -Destination $export -ErrorAction Stop", script)
+        self.assertIn("Remove-Item -LiteralPath $partial -ErrorAction SilentlyContinue", script)
+        self.assertLess(script.index("HP_MONITOR_SUMMARY unavailable_but_original_retained"),
+                        script.index("HP_MONITOR_EXPORT=passed"))
+        self.assertNotIn('      - "tools/devnode_benchmark/**"', hp)
+        for required in ("prepare_sdl3_cache.py", "verify_hp_ninja.py",
+                         "prepare_python.ps1", "prepare_rust.ps1"):
+            self.assertIn(f'      - "tools/devnode_benchmark/{required}"', hp)
+        self.assertNotIn('      - "tools/devnode_benchmark/monitor_hp_commit.ps1"', hp)
+
 
 
 if __name__ == "__main__":

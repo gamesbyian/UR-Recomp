@@ -1,0 +1,71 @@
+{
+  "schema": "UR-RACER-ORIGINAL-HOLDOUT-NEAR-DUPLICATE-RETAINED/1",
+  "source_run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41288948385",
+  "source_artifact_id": 13075794190,
+  "full_sha256_of_source_cluster_report": "4e494fb81fbd20b52c0363ab32bd1f97adb5d333189c070fe0abb6988af2119b",
+  "full_sha256_of_source_wheel_holdout_report": "aa86e13348875a768351d926a2daa913c3428732e92c2f38f135bbeadf53398c",
+  "original_corpus_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "source_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_source_binary_mask_count": 35,
+  "heldout_exact_mask_count": 19,
+  "note": "The visual-similarity thresholds were explored AFTER the original frozen wheel 1.00/1.10 geometry holdout outcome. These connected 2D source-mask groups are NOT independently verified original 3D camera views or semantic pose families.",
+  "thresholds": {
+    "0.8": {
+      "cluster_count": 3,
+      "cluster_sizes": [
+        16,
+        2,
+        1
+      ],
+      "equal_cluster_mean_baseline_iou": 0.36811356,
+      "equal_cluster_mean_wider_iou": 0.3998558,
+      "equal_cluster_wider_wins": 3,
+      "equal_cluster_wider_losses": 0
+    },
+    "0.85": {
+      "cluster_count": 4,
+      "cluster_sizes": [
+        16,
+        1,
+        1,
+        1
+      ],
+      "equal_cluster_mean_baseline_iou": 0.36248927,
+      "equal_cluster_mean_wider_iou": 0.39494598,
+      "equal_cluster_wider_wins": 4,
+      "equal_cluster_wider_losses": 0
+    },
+    "0.9": {
+      "cluster_count": 4,
+      "cluster_sizes": [
+        16,
+        1,
+        1,
+        1
+      ],
+      "equal_cluster_mean_baseline_iou": 0.36248927,
+      "equal_cluster_mean_wider_iou": 0.39494598,
+      "equal_cluster_wider_wins": 4,
+      "equal_cluster_wider_losses": 0
+    },
+    "0.95": {
+      "cluster_count": 6,
+      "cluster_sizes": [
+        10,
+        3,
+        3,
+        1,
+        1,
+        1
+      ],
+      "equal_cluster_mean_baseline_iou": 0.37134048,
+      "equal_cluster_mean_wider_iou": 0.40415138,
+      "equal_cluster_wider_wins": 6,
+      "equal_cluster_wider_losses": 0
+    }
+  },
+  "original_3d_camera_verified": false,
+  "original_sprite_to_experimental_glb_pose_mapped": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false
+}

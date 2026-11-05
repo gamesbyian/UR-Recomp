@@ -1,0 +1,192 @@
+{
+  "schema": "UR-RACER-UNPAIRED-POSE-SIMILARITY-EVIDENCE/1",
+  "date_utc": "2026-11-01",
+  "purpose": "Exploratory five source-authored GLBs versus ten distinct original binary masks; NOT source→rig pose registration.",
+  "model_evidence": {
+    "github_actions_run_id": 41259476190,
+    "artifact_id": 13063969312,
+    "model_source_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+    "model_source_scad_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+    "glb_sha256": {
+      "upright": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+      "pedal": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+      "wheelie": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+      "stunt": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+      "bank": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59"
+    }
+  },
+  "source_evidence": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_guest_frames": "1205..1220",
+    "original_frame_observations": 32,
+    "unique_binary_source_silhouettes": 10,
+    "source_alpha_mask_format": "64x64, SHA256 of 4096 bytes of 0/1 for alpha>0, row major"
+  },
+  "camera": {
+    "type": "provisional fixed orthographic side",
+    "right_world": [
+      1,
+      0,
+      0
+    ],
+    "up_world": [
+      0,
+      0,
+      1
+    ],
+    "vertical_pixels_per_model_unit": 9.5,
+    "source_pixel_aspect": "7:6",
+    "registered_anchor_p1_1205_x2y2": [
+      67,
+      76
+    ],
+    "camera_registered_to_all_source_frames": false,
+    "automatic_per_source_alignment": false
+  },
+  "original_shape_rows": [
+    {
+      "source_first_observation": "p1:1205",
+      "original_binary_mask_sha256": "82b4155857009195897841b503bb93c7fa0cb99b28c768d10b51c9c966e25d01",
+      "original_frame_repetitions": 4,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.5828877,
+        "pedal": 0.584,
+        "wheelie": 0.23760331,
+        "stunt": 0.16500994,
+        "bank": 0.60540541
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p1:1207",
+      "original_binary_mask_sha256": "60b6b81ab1e34fd7aadb5925d845526942537d52877a3954bf0c381257b9da8e",
+      "original_frame_repetitions": 6,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.49618321,
+        "pedal": 0.51282051,
+        "wheelie": 0.22427984,
+        "stunt": 0.1547619,
+        "bank": 0.53246753
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p1:1215",
+      "original_binary_mask_sha256": "2f8b18390026809d7f7b7667b2d1c4f3e85e76aa7a9cac99f100bb23931bfbfa",
+      "original_frame_repetitions": 2,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.56728232,
+        "pedal": 0.56842105,
+        "wheelie": 0.26260504,
+        "stunt": 0.19512195,
+        "bank": 0.6284153
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p1:1217",
+      "original_binary_mask_sha256": "29116a98624302652f774e8bab44e62c5a82b71aa48957db181feba1eeec4d40",
+      "original_frame_repetitions": 2,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.51139241,
+        "pedal": 0.50502513,
+        "wheelie": 0.32166302,
+        "stunt": 0.21106557,
+        "bank": 0.53589744
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p1:1219",
+      "original_binary_mask_sha256": "ea9a96054948fc6a2071d63f23461d62eb716464ea67385a7aa51cb8e1effec7",
+      "original_frame_repetitions": 1,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.45232274,
+        "pedal": 0.44309927,
+        "wheelie": 0.38799076,
+        "stunt": 0.21991701,
+        "bank": 0.47160494
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p1:1220",
+      "original_binary_mask_sha256": "fe6744f8d9462a0326a9b81fb8eff1a8fce906907daa12fadcd7205558376e2a",
+      "original_frame_repetitions": 1,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.45208845,
+        "pedal": 0.44282238,
+        "wheelie": 0.39393939,
+        "stunt": 0.22129436,
+        "bank": 0.47512438
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p2:1205",
+      "original_binary_mask_sha256": "a599de387ce36d696313d34f3ced7eec3d4f6f43a338e8bd021005deadb715b0",
+      "original_frame_repetitions": 10,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.37558685,
+        "pedal": 0.36744186,
+        "wheelie": 0.37268519,
+        "stunt": 0.22621564,
+        "bank": 0.40669856
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p2:1215",
+      "original_binary_mask_sha256": "312bf146d502f63ef7045b6dc15768c42c2ac61923929193aa01571945aa97c2",
+      "original_frame_repetitions": 3,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.41288783,
+        "pedal": 0.40758294,
+        "wheelie": 0.39953271,
+        "stunt": 0.23368421,
+        "bank": 0.4176611
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p2:1218",
+      "original_binary_mask_sha256": "d5e6da925b33b41576a05217d8c7a56a9a42b57ea98fe7ec78dbf65642c0b1d5",
+      "original_frame_repetitions": 1,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.4480198,
+        "pedal": 0.43872549,
+        "wheelie": 0.39294118,
+        "stunt": 0.22151899,
+        "bank": 0.47117794
+      },
+      "highest_unpaired_iou_pose": "bank"
+    },
+    {
+      "source_first_observation": "p2:1219",
+      "original_binary_mask_sha256": "c531aeae39f777e7fbcf3043f5f5ff6e60ba4a1d0f21af84c639ae09e275af2d",
+      "original_frame_repetitions": 2,
+      "unpaired_iou_by_experimental_3d_pose": {
+        "upright": 0.51282051,
+        "pedal": 0.50636132,
+        "wheelie": 0.32666667,
+        "stunt": 0.21413721,
+        "bank": 0.53367876
+      },
+      "highest_unpaired_iou_pose": "bank"
+    }
+  ],
+  "equal_unique_source_shape_weighted_mean_iou": {
+    "upright": 0.48114718,
+    "pedal": 0.47763,
+    "wheelie": 0.33199071,
+    "stunt": 0.20627268,
+    "bank": 0.50781314
+  },
+  "interpretation": "bank has the highest binary IoU for all 10 original silhouettes at this ONE P1:1205 provisional camera; this is a metric/projection preference, not evidence that all 10 source frames are banks. No source→rig mapping is inferred.",
+  "authentic_1994_source_to_2026_3d_pose_mapping_verified": false,
+  "novel_3d_camera_verified": false,
+  "withheld_animation_family_evaluated": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false,
+  "original_images_or_models_committed_to_repo": false
+}

@@ -1,0 +1,418 @@
+{
+  "schema": "UR-ART4K-LIVE40-ORIGINAL-SCREEN-ORIENTED-COMPONENT-REVIEW/1",
+  "actual_original_USA_ROM_source_zip_sha256": "709fbc2a1cd94b888d8ae0d43894c42c5d455bd968f6bc11f26e710f44e2788f",
+  "source_artifact_id": 13217381754,
+  "orientation_basis": "completed original screen: red horizontally mirrored, blue unmirrored",
+  "exemplar_algorithm": "source-alpha medoid per exact-tile component; max-distance contrast for size>=4; deterministic tie by tick then blue/red",
+  "source_history_fit_and_withheld_unchanged": true,
+  "new_live_source_fit_or_holdout_roles_assigned": false,
+  "exemplars_prospectively_blind_to_2026_GLB_scores": false,
+  "original_1994_pose_labels_verified": false,
+  "original_source_3D_geometry_camera_bones_verified": false,
+  "source_to_experimental_3D_GLb_pose_mapping_verified": false,
+  "owner_likeness_approved": false,
+  "historical_source_content_components": [
+    {
+      "size": 9,
+      "members": [
+        [
+          1601,
+          "blue"
+        ],
+        [
+          1607,
+          "red"
+        ],
+        [
+          1618,
+          "red"
+        ],
+        [
+          1631,
+          "red"
+        ],
+        [
+          1648,
+          "red"
+        ],
+        [
+          1809,
+          "red"
+        ],
+        [
+          1852,
+          "red"
+        ],
+        [
+          2072,
+          "red"
+        ],
+        [
+          2139,
+          "red"
+        ]
+      ],
+      "medoid": [
+        1631,
+        "red"
+      ],
+      "contrast": [
+        1601,
+        "blue"
+      ],
+      "mean_pairwise_visible_alpha_iou": 0.5784349,
+      "min_pairwise_visible_alpha_iou": 0.19848771,
+      "medoid_average_visible_alpha_iou": 0.66234055,
+      "source_content_connection": "historical_fit_tile_connected_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 8,
+      "members": [
+        [
+          1607,
+          "blue"
+        ],
+        [
+          1618,
+          "blue"
+        ],
+        [
+          1631,
+          "blue"
+        ],
+        [
+          1731,
+          "blue"
+        ],
+        [
+          1768,
+          "blue"
+        ],
+        [
+          1768,
+          "red"
+        ],
+        [
+          2139,
+          "blue"
+        ],
+        [
+          2210,
+          "red"
+        ]
+      ],
+      "medoid": [
+        1607,
+        "blue"
+      ],
+      "contrast": [
+        1768,
+        "red"
+      ],
+      "mean_pairwise_visible_alpha_iou": 0.5301494,
+      "min_pairwise_visible_alpha_iou": 0.22404372,
+      "medoid_average_visible_alpha_iou": 0.61590685,
+      "source_content_connection": "historical_fit_tile_connected_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 4,
+      "members": [
+        [
+          1648,
+          "blue"
+        ],
+        [
+          1671,
+          "blue"
+        ],
+        [
+          1700,
+          "blue"
+        ],
+        [
+          2011,
+          "blue"
+        ]
+      ],
+      "medoid": [
+        1700,
+        "blue"
+      ],
+      "contrast": [
+        1648,
+        "blue"
+      ],
+      "mean_pairwise_visible_alpha_iou": 0.94434076,
+      "min_pairwise_visible_alpha_iou": 0.92749245,
+      "medoid_average_visible_alpha_iou": 0.94943608,
+      "source_content_connection": "historical_tile_disjoint_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 4,
+      "members": [
+        [
+          1671,
+          "red"
+        ],
+        [
+          1700,
+          "red"
+        ],
+        [
+          1731,
+          "red"
+        ],
+        [
+          2283,
+          "blue"
+        ]
+      ],
+      "medoid": [
+        1700,
+        "red"
+      ],
+      "contrast": [
+        2283,
+        "blue"
+      ],
+      "mean_pairwise_visible_alpha_iou": 0.54068146,
+      "min_pairwise_visible_alpha_iou": 0.14900662,
+      "medoid_average_visible_alpha_iou": 0.67425723,
+      "source_content_connection": "historical_tile_disjoint_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 3,
+      "members": [
+        [
+          1852,
+          "blue"
+        ],
+        [
+          1899,
+          "blue"
+        ],
+        [
+          2210,
+          "blue"
+        ]
+      ],
+      "medoid": [
+        1899,
+        "blue"
+      ],
+      "contrast": null,
+      "mean_pairwise_visible_alpha_iou": 0.82224514,
+      "min_pairwise_visible_alpha_iou": 0.76701571,
+      "medoid_average_visible_alpha_iou": 0.84985986,
+      "source_content_connection": "historical_fit_tile_connected_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 3,
+      "members": [
+        [
+          2011,
+          "red"
+        ],
+        [
+          2072,
+          "blue"
+        ],
+        [
+          2362,
+          "red"
+        ]
+      ],
+      "medoid": [
+        2072,
+        "blue"
+      ],
+      "contrast": null,
+      "mean_pairwise_visible_alpha_iou": 0.77371435,
+      "min_pairwise_visible_alpha_iou": 0.72237197,
+      "medoid_average_visible_alpha_iou": 0.79938555,
+      "source_content_connection": "historical_fit_tile_connected_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 2,
+      "members": [
+        [
+          1899,
+          "red"
+        ],
+        [
+          2362,
+          "blue"
+        ]
+      ],
+      "medoid": [
+        1899,
+        "red"
+      ],
+      "contrast": null,
+      "mean_pairwise_visible_alpha_iou": 0.3503055,
+      "min_pairwise_visible_alpha_iou": 0.3503055,
+      "medoid_average_visible_alpha_iou": 0.3503055,
+      "source_content_connection": "historical_fit_tile_connected_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 2,
+      "members": [
+        [
+          2283,
+          "red"
+        ],
+        [
+          2445,
+          "red"
+        ]
+      ],
+      "medoid": [
+        2283,
+        "red"
+      ],
+      "contrast": null,
+      "mean_pairwise_visible_alpha_iou": 0.97204969,
+      "min_pairwise_visible_alpha_iou": 0.97204969,
+      "medoid_average_visible_alpha_iou": 0.97204969,
+      "source_content_connection": "historical_fit_tile_connected_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 1,
+      "members": [
+        [
+          1809,
+          "blue"
+        ]
+      ],
+      "medoid": [
+        1809,
+        "blue"
+      ],
+      "contrast": null,
+      "mean_pairwise_visible_alpha_iou": null,
+      "min_pairwise_visible_alpha_iou": null,
+      "medoid_average_visible_alpha_iou": 1,
+      "source_content_connection": "historical_fit_tile_connected_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 1,
+      "members": [
+        [
+          1952,
+          "red"
+        ]
+      ],
+      "medoid": [
+        1952,
+        "red"
+      ],
+      "contrast": null,
+      "mean_pairwise_visible_alpha_iou": null,
+      "min_pairwise_visible_alpha_iou": null,
+      "medoid_average_visible_alpha_iou": 1,
+      "source_content_connection": "historical_fit_tile_connected_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    },
+    {
+      "size": 1,
+      "members": [
+        [
+          2445,
+          "blue"
+        ]
+      ],
+      "medoid": [
+        2445,
+        "blue"
+      ],
+      "contrast": null,
+      "mean_pairwise_visible_alpha_iou": null,
+      "min_pairwise_visible_alpha_iou": null,
+      "medoid_average_visible_alpha_iou": 1,
+      "source_content_connection": "historical_tile_disjoint_review_only",
+      "diagnostic_red_display_horizontal_mirror": true
+    }
+  ],
+  "screen_oriented_review_exemplars": [
+    [
+      1601,
+      "blue"
+    ],
+    [
+      1607,
+      "blue"
+    ],
+    [
+      1631,
+      "red"
+    ],
+    [
+      1648,
+      "blue"
+    ],
+    [
+      1700,
+      "blue"
+    ],
+    [
+      1700,
+      "red"
+    ],
+    [
+      1768,
+      "red"
+    ],
+    [
+      1809,
+      "blue"
+    ],
+    [
+      1899,
+      "blue"
+    ],
+    [
+      1899,
+      "red"
+    ],
+    [
+      1952,
+      "red"
+    ],
+    [
+      2072,
+      "blue"
+    ],
+    [
+      2283,
+      "blue"
+    ],
+    [
+      2283,
+      "red"
+    ],
+    [
+      2445,
+      "blue"
+    ]
+  ],
+  "summary": {
+    "actual_original_sprite_observations": 40,
+    "historical_fit_examples_protected": 1,
+    "historical_withheld_examples_protected": 1,
+    "unclassified_new_source_observations": 38,
+    "exact_tile_connected_components": 11,
+    "content_independent_reference_only_groups": 3,
+    "screen_oriented_review_exemplars": 15,
+    "exemplar_mean_pairwise_alpha_iou": 0.41781196,
+    "exemplar_min_pairwise_alpha_iou": 0.09493671
+  }
+}

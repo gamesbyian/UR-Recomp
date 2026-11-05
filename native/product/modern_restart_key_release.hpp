@@ -21,15 +21,17 @@ struct ModernRestartKeyFilterResult {
 constexpr ModernRestartKeyFilterResult modern_restart_key_filter(
     ModernRestartKeyRelease state,
     bool physical_return_held,
-    std::uint32_t inputs) noexcept {
+    std::uint32_t inputs,
+    std::uint32_t start_bit = 0x1000u) noexcept {
     if (!state.awaiting_return_release) return {state, inputs};
     // After SDL reports key-up, the framework's mapped word can still
     // contain the old Start level. Require both physical release AND a
     // sampled zero Start bit before permitting a subsequent new press.
-    constexpr std::uint32_t kStart = 0x1000u;
-    if (!physical_return_held && !(inputs & kStart))
+    // P1 receives the shifted SNES word (Start 0x1000), while P2 is
+    // intercepted before its raw 12-bit word is shifted (Start 0x0100).
+    if (!physical_return_held && !(inputs & start_bit))
         return {{false}, inputs};
-    return {state, inputs & ~kStart};
+    return {state, inputs & ~start_bit};
 }
 
 }  // namespace ur::product

@@ -1,0 +1,26 @@
+{
+  "schema": "ur-racer-model-review/1",
+  "version": "No published candidate",
+  "model_url": null,
+  "candidate_sha256": null,
+  "source_commit": null,
+  "likeness_approved": false,
+  "notes": "Publication must fill URLs only after verifying exporter last-attempt success, current-success pointer, and matching immutable GLB/receipt hashes. Missing means no claimed current model.",
+  "poses": {
+    "upright": {
+      "url": null
+    },
+    "pedal": {
+      "url": null
+    },
+    "wheelie": {
+      "url": null
+    },
+    "stunt": {
+      "url": null
+    },
+    "bank": {
+      "url": null
+    }
+  }
+}

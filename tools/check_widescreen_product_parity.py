@@ -14,6 +14,7 @@ captured at the same script checkpoint in matched stock and widened runs.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import struct
 from pathlib import Path
@@ -21,8 +22,10 @@ from typing import Any
 
 try:
     from tools.evidence_contract import assertion, make_envelope
+    from tools.art.no_replace_report import publish_text_once
 except ModuleNotFoundError:
     from evidence_contract import assertion, make_envelope
+    from art.no_replace_report import publish_text_once
 
 # Guest +8 lane surfaces (docs/WIDESCREEN-RECONNAISSANCE.md): the shared
 # descriptor slot table at $0399..$03E0 and the strip staging buffer that the
@@ -30,27 +33,39 @@ except ModuleNotFoundError:
 # P1/P2 staging as well).
 ALLOWED_WRAM_RANGES = ((0x0399, 0x03E0), (0x0433, 0x04B6))
 
-# Bytes that differ between otherwise matched native runs regardless of
-# Widescreen. They are reported, never counted as leaks.
-#   $0069: accumulator written by 82:8082 through the $0063 long pointer;
-#          already run-variant between matched native routes before any
-#          input divergence (RESEARCH-LEDGER R-SEED-018).
+# Known cross-run variant, retained separately from other leak diagnostics.
+# $0069 differed before the B-button intervention in R-SEED-018, which proves
+# only that the B pulse did not cause it. The same address is identified as the
+# sound-transfer counter in CPU/APU research (#1689). Neither observation proves
+# downstream semantic irrelevance to audio. Do not let a difference here pass
+# strict WIDE-07 WRAM parity without a separately reviewed consumer witness.
 RUN_VARIANT_WRAM = (0x0069,)
 
 
-def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
+def _read_bmp_with_identity(path: Path) -> tuple[int, int, list[bytes], dict[str, Any]]:
     raw = path.read_bytes()
     if raw[:2] != b"BM" or len(raw) < 54:
         raise ValueError(f"{path}: not a BMP")
+    declared_size = struct.unpack_from("<I", raw, 2)[0]
+    dib_size = struct.unpack_from("<I", raw, 14)[0]
     offset = struct.unpack_from("<I", raw, 10)[0]
     width = struct.unpack_from("<i", raw, 18)[0]
     height_signed = struct.unpack_from("<i", raw, 22)[0]
+    planes = struct.unpack_from("<H", raw, 26)[0]
     bpp = struct.unpack_from("<H", raw, 28)[0]
-    if bpp not in (24, 32):
-        raise ValueError(f"{path}: unsupported {bpp}-bit BMP")
+    compression = struct.unpack_from("<I", raw, 30)[0]
+    # Empty, compressed, malformed or truncated captures must never pass a
+    # source-centre parity check merely because both decoded rows are empty.
+    if (dib_size < 40 or 14 + dib_size > len(raw) or
+        width <= 0 or height_signed in (0, -(1 << 31)) or
+        planes != 1 or bpp not in (24, 32) or compression != 0 or
+        offset < 14 + dib_size or declared_size != len(raw)):
+        raise ValueError(f"{path}: invalid BMP geometry or header")
     height = abs(height_signed)
     bytes_pp = bpp // 8
     stride = (width * bytes_pp + 3) & ~3
+    if offset + height * stride > len(raw):
+        raise ValueError(f"{path}: truncated BMP pixels")
     rows = []
     for y in range(height):
         src_y = y if height_signed < 0 else height - 1 - y
@@ -58,17 +73,47 @@ def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
         row = raw[start:start + width * bytes_pp]
         # Normalise to 3-byte BGR so 24/32-bit captures compare equal.
         rows.append(b"".join(row[i:i + 3] for i in range(0, len(row), bytes_pp)))
+    return width, height, rows, {"sha256": hashlib.sha256(raw).hexdigest(), "size": len(raw)}
+
+
+def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
+    width, height, rows, _ = _read_bmp_with_identity(path)
     return width, height, rows
 
 
+
+def _margin_summary(rows: list[bytes]) -> dict[str, Any]:
+    """Describe normalized side pixels; never infer genuine world extension."""
+    payload = b"".join(rows)
+    if len(payload) % 3:
+        raise ValueError("invalid normalized margin RGB payload")
+    nonblack = sum(payload[i:i + 3] != b"\x00\x00\x00"
+                   for i in range(0, len(payload), 3))
+    return {
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "nonblack_pixels": nonblack,
+        "total_pixels": len(payload) // 3,
+    }
+
+
+def _margin_activity(wrows: list[bytes], offset: int, stock_width: int) -> dict[str, Any]:
+    """Evidence-selection hints only: colour/motion do not prove camera or tiles."""
+    return {
+        "left": _margin_summary([row[:offset * 3] for row in wrows]),
+        "right": _margin_summary([row[(offset + stock_width) * 3:] for row in wrows]),
+        "interpretation": "descriptive_only_not_source_world_or_camera_tile_proof",
+    }
+
+
 def compare_center(stock: Path, wide: Path) -> dict[str, Any]:
-    sw, sh, srows = read_bmp(stock)
-    ww, wh, wrows = read_bmp(wide)
+    sw, sh, srows, stock_id = _read_bmp_with_identity(stock)
+    ww, wh, wrows, wide_id = _read_bmp_with_identity(wide)
     result: dict[str, Any] = {
         "stock_geometry": [sw, sh],
         "wide_geometry": [ww, wh],
+        "input_identities": {"stock": stock_id, "wide": wide_id},
     }
-    if sh != wh or ww < sw or (ww - sw) % 2:
+    if sh != wh or ww <= sw or (ww - sw) % 2:
         result["comparable"] = False
         return result
     off = (ww - sw) // 2
@@ -88,7 +133,8 @@ def compare_center(stock: Path, wide: Path) -> dict[str, Any]:
                     bbox = [min(bbox[0], x), min(bbox[1], y),
                             max(bbox[2], x), max(bbox[3], y)]
     result.update({"comparable": True, "center_offset": off,
-                   "differing_pixels": diffs, "bbox": bbox})
+                   "differing_pixels": diffs, "bbox": bbox,
+                   "margin_activity": _margin_activity(wrows, off, sw)})
     return result
 
 
@@ -113,6 +159,11 @@ def compare_wram(stock: Path, wide: Path) -> dict[str, Any]:
             leaks.append(addr)
     return {
         "sizes": [len(a), len(b)],
+        "input_identities": {
+            "stock": {"sha256": hashlib.sha256(a).hexdigest(), "size": len(a)},
+            "wide": {"sha256": hashlib.sha256(b).hexdigest(), "size": len(b)},
+        },
+        "complete_wram_images": len(a) == 0x20000 and len(b) == 0x20000,
         "lane_differences": lane,
         "run_variant_differences": [f"0x{x:05X}" for x in run_variant],
         "leaked_bytes": len(leaks),
@@ -120,28 +171,82 @@ def compare_wram(stock: Path, wide: Path) -> dict[str, Any]:
     }
 
 
+
+def _require_distinct_capture_files(pairs: list[tuple[str, Path, Path, Path, Path]]) -> None:
+    """Reject one physical capture file supplied for two independent roles.
+
+    Byte-identical WRAM from separately retained captures is legitimate; a
+    repeated pathname, symlink or hardlink to the *same file* is not a second
+    source observation.  Check all roles across all checkpoint tags, not just
+    the four-hash tuple, which can change when only one reused role changes.
+    """
+    seen_files: list[tuple[str, Path]] = []
+    for tag, stock_fb, wide_fb, stock_wram, wide_wram in pairs:
+        for role, path in (("stock_fb", stock_fb), ("wide_fb", wide_fb),
+                           ("stock_wram", stock_wram), ("wide_wram", wide_wram)):
+            for prior_role, prior_path in seen_files:
+                if path.samefile(prior_path):
+                    raise ValueError(f"capture source reused: {tag}/{role} aliases {prior_role}")
+            seen_files.append((f"{tag}/{role}", path))
+
+
 def check(pairs: list[tuple[str, Path, Path, Path, Path]]) -> dict[str, Any]:
+    if not pairs:
+        raise ValueError("at least one real checkpoint pair is required")
+    tags = [pair[0] for pair in pairs]
+    if any(not isinstance(tag, str) or not tag.strip() for tag in tags):
+        raise ValueError("checkpoint tags must be nonempty strings")
+    if len(tags) != len(set(tags)):
+        raise ValueError("duplicate checkpoint tag cannot identify distinct evidence")
+    seen_inputs: set[tuple[str, ...]] = set()
     checks = []
     metrics: dict[str, Any] = {}
     for tag, stock_fb, wide_fb, stock_wram, wide_wram in pairs:
         center = compare_center(stock_fb, wide_fb)
+        # Only the canonical stock/wide source rasters qualify this envelope.
+        # A perfectly matched 1x1 or cropped BMP is not a WIDE-07 witness.
+        center["expected_source_geometry"] = (
+            center.get("stock_geometry") == [256, 224]
+            and center.get("wide_geometry") == [342, 224]
+        )
         wram = compare_wram(stock_wram, wide_wram)
-        metrics[tag] = {"center": center, "wram": wram}
+        fingerprint = tuple(
+            section["input_identities"][side]["sha256"]
+            for section in (center, wram) for side in ("stock", "wide")
+        )
+        if fingerprint in seen_inputs:
+            raise ValueError("identical capture bytes reused under different checkpoint tags")
+        seen_inputs.add(fingerprint)
+        # Passing centre/WRAM noninterference never certifies that either
+        # side strip contains genuine camera-scrolled source-world tiles.
+        metrics[tag] = {
+            "center": center, "wram": wram,
+            "world_extension_verified": False,
+        }
         checks.append(assertion(
             f"{tag}-center-matches-stock",
-            center.get("comparable") is True and center.get("differing_pixels") == 0,
+            center["expected_source_geometry"] is True
+            and center.get("comparable") is True
+            and center.get("differing_pixels") == 0,
             center,
         ))
         checks.append(assertion(
             f"{tag}-wram-confined-to-guest-lane",
-            wram["sizes"][0] == wram["sizes"][1] and wram["leaked_bytes"] == 0,
+            wram["complete_wram_images"] and wram["leaked_bytes"] == 0
+            and not wram["run_variant_differences"],
             wram,
         ))
+    # Preserve the existing exact four-hash duplicate diagnostic first, then
+    # reject partial file aliases before publishing an accepted envelope.
+    _require_distinct_capture_files(pairs)
     return make_envelope(
         evidence_type="widescreen-product-parity",
         producer="tools/check_widescreen_product_parity.py",
         subject={"checkpoints": [p[0] for p in pairs]},
-        inputs={"allowed_wram_ranges": [[f"0x{lo:04X}", f"0x{hi:04X}"] for lo, hi in ALLOWED_WRAM_RANGES]},
+        inputs={
+            "allowed_wram_ranges": [[f"0x{lo:04X}", f"0x{hi:04X}"] for lo, hi in ALLOWED_WRAM_RANGES],
+            "acceptance_scope": "stock-centre and WRAM noninterference only; world extension not assessed",
+        },
         metrics=metrics,
         assertions=checks,
     )
@@ -165,7 +270,7 @@ def main() -> int:
     rendered = json.dumps(envelope, indent=2) + "\n"
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(rendered)
+        publish_text_once(args.out, rendered)
     print(rendered, end="")
     return 0 if envelope["outcome"] == "accepted" else 1
 

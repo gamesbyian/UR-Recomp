@@ -1,4 +1,6 @@
 name: QA-05/09 Windows candidate package
+# Unit-test-only edits are fully exercised by the tooling-unit-tests workflow;
+# this Windows package job does not execute those Python test modules.
 
 # PR-only validation for the frontend shipping lane. The existing Windows
 # package workflow remains main-push-only for the distributable release;
@@ -10,12 +12,25 @@ on:
     paths:
       - ".github/workflows/qa05-qa09-windows-candidate.yml"
       - ".github/workflows/windows-native-smoke.yml"
+      - "tools/devnode_benchmark/prepare_sdl3_cache.py"
+      # Compiler generator/job-count changes need actual hosted Windows PE,
+      # package/QA parity before the trusted-main HP machine can trial them.
+      - "tools/devnode_benchmark/verify_hp_ninja.py"
+      - "tools/ci/ninja_package_canary.cmd"
       - "native/product/uniracers_modern_host.cpp"
       - "native/product/modern_restart_key_release.hpp"
       - "tools/qa09_windows_root_pad_probe.py"
       # Real Win32/SDL QA-05 acceptance changes must exercise their own
       # hosted Windows route before merge, not just a Linux source test.
       - "tools/ci/qa05_restart_attempt.sh"
+      - "tools/ci/windows_package_race_result.sh"
+      # Only hosted package-acceptance consumers should trigger this job.
+      # The HP-only science caller is never enabled on a PR candidate.
+      - "tools/ci/hp_windows_isolated_boot_fanout.sh"
+      - "tools/ci/hosted_windows_isolated_boot_fanout.sh"
+      - "tools/ci/windows_package_special_path.sh"
+      - "tools/ci/windows_package_readonly_unicode.sh"
+      - "tools/ci/windows_package_default_appdata.sh"
       - "tools/capture_modern_restart_audio.py"
       - "tools/capture_modern_resume_audio.py"
       - "tools/capture_modern_paused_audio.py"
@@ -36,3 +51,8 @@ jobs:
   windows-candidate:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     uses: ./.github/workflows/windows-native-smoke.yml
+    with:
+      # Exercise owner HP compiler properties on a hosted Windows VM.
+      # The reusable run_on_hp input stays false: no PR can reach the
+      # personal runner or run HP-only setup/telemetry steps.
+      test_hp_compiler_profile: true

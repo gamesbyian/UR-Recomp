@@ -36,10 +36,12 @@ jobs:
 
       - name: Restore pinned MesenCE binary cache
         id: mesence-cache
-        uses: actions/cache@v4
+        # Exact verified main-scoped cache is shared with ART-4K, while
+        # any new PR/manual miss still compiles the original pinned source.
+        uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/mesence-cache
-          key: mesence-linux-x64-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}
+          key: mesence-linux-x64-v3-${{ runner.os }}-${{ runner.arch }}-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}-${{ hashFiles('tools/art/mesence_cache_receipt.py', 'third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch') }}
 
       - name: Fetch pinned MesenCE source
         if: steps.mesence-cache.outputs.cache-hit != 'true'
@@ -77,6 +79,33 @@ jobs:
           rm -rf "$RUNNER_TEMP/mesence-cache"
           mkdir -p "$RUNNER_TEMP/mesence-cache"
           cp -a "$PUBLISH/." "$RUNNER_TEMP/mesence-cache/"
+
+      - name: Verify source-bound MesenCE cache before original replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          mode=seal
+          if [[ "${{ steps.mesence-cache.outputs.cache-hit }}" == "true" ]]; then
+            mode=verify
+          fi
+          python3 tools/art/mesence_cache_receipt.py "$mode" \
+            --cache "$RUNNER_TEMP/mesence-cache" \
+            --revision "$MESENCE_REVISION" \
+            --patch "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch"
+          if [[ "$mode" == "seal" ]]; then
+            python3 tools/art/mesence_cache_receipt.py verify \
+              --cache "$RUNNER_TEMP/mesence-cache" \
+              --revision "$MESENCE_REVISION" \
+              --patch "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch"
+          fi
+
+      - name: Save verified pinned MesenCE build
+        # Only on cache miss, before original-ROM replay/capture assertions.
+        if: ${{ steps.mesence-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/mesence-cache
+          key: mesence-linux-x64-v3-${{ runner.os }}-${{ runner.arch }}-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}-${{ hashFiles('tools/art/mesence_cache_receipt.py', 'third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch') }}
 
       - name: Capture one exact composition invocation
         shell: bash

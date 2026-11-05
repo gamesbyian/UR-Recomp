@@ -1,7 +1,7 @@
 {
   "schema": "ur-v2-review-pointer/1",
-  "previous": "docs/progress/v2-review-checkpoint-20261028T2305.json",
-  "interval": "docs/progress/v2-review-interval-20261028T2305.json",
-  "reviewed_main_sha": "ed562fd45d954949f285ec142d3440eac75032cb",
-  "note": "DATA-05 source-earned same-PE actual non-ACP Win32 integration accepted: frozen v2 55% bounded, 13% independent; zero accepted USA event/release gate, physical hardware held."
+  "previous": "docs/progress/v2-review-checkpoint-20261031T0924.json",
+  "interval": "docs/progress/v2-review-interval-20261031T0924.json",
+  "reviewed_main_sha": "82111a8cbc690d729a16355d35fc35b3621200f3",
+  "note": "Proposed bounded ONE-03 independent audit, 56% bounded/14% audited after distinct review and full CI; other 85 merges unclassified. 0/45 USA, 0/12 release. Not current-main release acceptance."
 }

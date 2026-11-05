@@ -1,0 +1,269 @@
+{
+  "schema": "UR-RACER-REAL-VIEWER-GLB-BASELINE/1",
+  "observation_date_utc": "2026-11-01",
+  "status": "source_and_all_five_viewer_GLB_file_sha_verified; one_provisional_fixed_camera; original_1994_pose_map_NOT_verified",
+  "provenance": {
+    "repo": "gamesbyian/UR-Recomp",
+    "existing_viewer_pr": 2938,
+    "glb_authoring_draft_pr": 2832,
+    "github_actions_run_id": 41259476190,
+    "github_actions_artifact_id": 13063969312,
+    "github_actions_artifact_name": "ur-experimental-model-review-actual-glbs",
+    "github_actions_artifact_zip_sha256": "1088445987fd11fb5c6f0c66d8ca3db6712a6e239df6273bfa892c899dcf6fd1",
+    "github_actions_artifact_expires_at": "2026-11-15T01:06:38Z",
+    "source_model_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+    "source_model_scad_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+    "viewer_schema": "ur-racer-model-review/1",
+    "original_sprite_rail_schema": "ur-racer-original-sprite-reference/1",
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_p1_frame1205_retained_png_sha256": "7b606c922d4953f82765ad03295b971d31bc7432bcfc1f41bd1cb2c03063a847",
+    "original_p1_frame1205_source_rgba_sha256": "8320d64d1efb85f25928135cf2d849a804b74d166f5c26018cabcd6cfbcaf29b"
+  },
+  "source_reference_deduplication": {
+    "frame_observations": 32,
+    "retained_original_png_filenames": 14,
+    "unique_original_decoded_rgba": 10,
+    "unique_original_binary_silhouettes": 10,
+    "source_p1_unique_silhouettes": 6,
+    "source_p2_unique_silhouettes": 4,
+    "camera_independent_3d_views_verified": 0
+  },
+  "camera": {
+    "basis_right_world": [
+      1,
+      0,
+      0
+    ],
+    "basis_up_world": [
+      0,
+      0,
+      1
+    ],
+    "origin_world": [
+      0,
+      0,
+      0
+    ],
+    "type": "fixed-side-orthographic-provisional",
+    "source_pixel_aspect": "7:6",
+    "logical_pixels_per_model_unit_vertical": 9.5,
+    "source_alpha_anchor_x2_y2": [
+      67,
+      76
+    ],
+    "original_world_camera_recovered": false,
+    "per_pose_auto_fit": false,
+    "pixel_comparison": "binary alpha downsampled at 4x per-source-logical-pixel centre"
+  },
+  "first_source_test": {
+    "player": "p1",
+    "guest_frame": 1205,
+    "opaque_original_pixels": 325,
+    "source_pose_to_2026_named_rig_pose_mapping_verified": false,
+    "interpretation": "upright is a reasonable manually selected baseline; all other named-GLB comparisons use the same original source frame only as an illustrative diagnostic, not source authentic pose matching"
+  },
+  "verified_original_2026_GLBS": [
+    {
+      "pose": "upright",
+      "glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+      "candidate_projection_png_sha256": "3e85c8e192479413dd49df6694ad9a6db6296e85e682390380ac3f0624a0eb12",
+      "scene_graph_nodes": 22,
+      "child_material_meshes": 16,
+      "five_parent_parts_verified": true,
+      "triangles": 28860,
+      "approx_world_bbox_minmax": [
+        [
+          -1,
+          -0.52,
+          0
+        ],
+        [
+          1.01,
+          0.51,
+          3.669
+        ]
+      ],
+      "source_frame1205_illustrative_binary_iou": 0.5828877,
+      "source_frame1205_illustrative_boundary_chamfer_physical_pixels": 0.92199627,
+      "source_frame1205_illustrative_xor_pixels": 156,
+      "candidate_opaque_source_logical_pixels": 267,
+      "candidate_bbox_source_logical_xyxy": [
+        26,
+        4,
+        41,
+        37
+      ]
+    },
+    {
+      "pose": "pedal",
+      "glb_sha256": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+      "candidate_projection_png_sha256": "bef6625ec422ccd3e218e589c112e9fe810d65f1075275eb08a9fbfebb2bb926",
+      "scene_graph_nodes": 22,
+      "child_material_meshes": 16,
+      "five_parent_parts_verified": true,
+      "triangles": 28820,
+      "approx_world_bbox_minmax": [
+        [
+          -1,
+          -0.52,
+          0
+        ],
+        [
+          1,
+          0.51,
+          3.741
+        ]
+      ],
+      "source_frame1205_illustrative_binary_iou": 0.584,
+      "source_frame1205_illustrative_boundary_chamfer_physical_pixels": 0.929591,
+      "source_frame1205_illustrative_xor_pixels": 156,
+      "candidate_opaque_source_logical_pixels": 269,
+      "candidate_bbox_source_logical_xyxy": [
+        26,
+        3,
+        41,
+        37
+      ]
+    },
+    {
+      "pose": "wheelie",
+      "glb_sha256": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+      "candidate_projection_png_sha256": "2360106facb66294fbebc2c935e0b152b41867b345faf39349daa9e613cefd3a",
+      "scene_graph_nodes": 22,
+      "child_material_meshes": 16,
+      "five_parent_parts_verified": true,
+      "triangles": 28836,
+      "approx_world_bbox_minmax": [
+        [
+          -2.527,
+          -0.52,
+          0.043
+        ],
+        [
+          0.53,
+          0.51,
+          3.684
+        ]
+      ],
+      "source_frame1205_illustrative_binary_iou": 0.23760331,
+      "source_frame1205_illustrative_boundary_chamfer_physical_pixels": 2.35132607,
+      "source_frame1205_illustrative_xor_pixels": 369,
+      "candidate_opaque_source_logical_pixels": 274,
+      "candidate_bbox_source_logical_xyxy": [
+        13,
+        4,
+        37,
+        37
+      ]
+    },
+    {
+      "pose": "stunt",
+      "glb_sha256": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+      "candidate_projection_png_sha256": "661b59955f3cc5102f2a94ccc40a1f040c4dc9903b5ed55b6b49acca21635e6a",
+      "scene_graph_nodes": 22,
+      "child_material_meshes": 16,
+      "five_parent_parts_verified": true,
+      "triangles": 28828,
+      "approx_world_bbox_minmax": [
+        [
+          -2.083,
+          -0.52,
+          0.031
+        ],
+        [
+          1.613,
+          0.51,
+          3.314
+        ]
+      ],
+      "source_frame1205_illustrative_binary_iou": 0.16500994,
+      "source_frame1205_illustrative_boundary_chamfer_physical_pixels": 3.62963076,
+      "source_frame1205_illustrative_xor_pixels": 420,
+      "candidate_opaque_source_logical_pixels": 261,
+      "candidate_bbox_source_logical_xyxy": [
+        17,
+        7,
+        46,
+        37
+      ]
+    },
+    {
+      "pose": "bank",
+      "glb_sha256": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59",
+      "candidate_projection_png_sha256": "8231367c5aae75d929cc002367d37c9dc835cfab712db0ccd406dbd4f3ee1180",
+      "scene_graph_nodes": 22,
+      "child_material_meshes": 16,
+      "five_parent_parts_verified": true,
+      "triangles": 28852,
+      "approx_world_bbox_minmax": [
+        [
+          -1.041,
+          -0.967,
+          -0.002
+        ],
+        [
+          0.964,
+          0.355,
+          3.658
+        ]
+      ],
+      "source_frame1205_illustrative_binary_iou": 0.60540541,
+      "source_frame1205_illustrative_boundary_chamfer_physical_pixels": 0.8833801,
+      "source_frame1205_illustrative_xor_pixels": 146,
+      "candidate_opaque_source_logical_pixels": 269,
+      "candidate_bbox_source_logical_xyxy": [
+        26,
+        4,
+        41,
+        37
+      ]
+    }
+  ],
+  "research_conclusions": {
+    "real_upright_GLb_binary_iou_equals_previous_source_module_assembly_baseline": true,
+    "comparison_with_previous_pilot": "0.58288770 on same authentic source P1 1205 with same provisional camera; previous authoring module-split mesh and actual published 16-material GLB project to same 64px binary alpha, as expected.",
+    "source_3d_pose_mapping_verified": false,
+    "heldout_pose_family_tested": false,
+    "owner_likeness_approved": false,
+    "shipping_art_approved": false,
+    "source_images_or_GLbs_committed_to_repo": false
+  },
+  "source_region_diagnostic": {
+    "source_frame": "P1:1205",
+    "model_pose": "upright",
+    "camera_vertical_scale": 9.5,
+    "source_opaque_pixel_count": 325,
+    "model_opaque_pixel_count": 267,
+    "model_missing_source_pixels": 107,
+    "model_excess_pixels": 49,
+    "model_part_opaque_pixels_before_union": {
+      "tire": 124,
+      "rim_and_hub": 70,
+      "fork_and_frame": 46,
+      "pedals": 14,
+      "saddle": 56
+    },
+    "missing_source_pixels_y_lt_15": 44,
+    "excess_model_pixels_y_lt_15": 26,
+    "missing_source_pixels_y_ge_25": 44,
+    "excess_model_pixels_y_ge_25": 10,
+    "non_additivity_note": "Part occupancy overlaps; individual part counts cannot be summed to yield assembled silhouette occupancy.",
+    "interpretation": "Both upper saddle and lower wheel/fork area contribute; no isolated part edit can be declared the solution."
+  },
+  "real_GLB_saddle_span_ablation": {
+    "model": "real 16-material GLB, same five-parent scene, upright pose",
+    "original_model_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+    "method": "Transform *only* real world-space saddle child vertices along model X, anchored at the source-authored saddle pivot x=0.04, by fixed factor. This reproduces a bounded geometric parameter candidate and does not mutate published GLB or claim production rig export.",
+    "raw_model_unmodified": true,
+    "camera_status": "provisional",
+    "saddle_1x_camera_9_5_iou": 0.5828877,
+    "saddle_1_4_camera_9_5_iou": 0.6015625,
+    "saddle_1_4_camera_9_4_iou": 0.62269129,
+    "saddle_1_4_camera_9_3_iou": 0.62169312,
+    "saddle_1_4_camera_9_4_boundary_chamfer_px": 0.91112337,
+    "saddle_1x_camera_9_4_boundary_chamfer_px": 0.89045218,
+    "interesting_tradeoff": "Saddle expansion improves single-source mask IoU but worsens boundary Chamfer at camera9.4, so cannot select geometry on IoU alone.",
+    "heldout_pose_family_tested": false,
+    "owner_likeness_approved": false
+  }
+}

@@ -234,3 +234,9 @@ dialog::backdrop{background:#101922ce}
  .actions button,.actions a{font-size:.74rem}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Related 3D research lives inside this exact site build, not another Pages root. */
+.laboratory-link{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 12px;
+  border-bottom:1.5px dashed var(--frame);background:#fff9dc}
+.laboratory-link a{display:inline-flex;min-height:44px;align-items:center;font-weight:850}
+.laboratory-link span{font-size:12px;color:var(--ink-soft)}

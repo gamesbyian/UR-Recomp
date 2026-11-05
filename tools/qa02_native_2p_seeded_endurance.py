@@ -9,6 +9,7 @@ full-course completion, physical pads, or a Baldosa Windows release witness.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
@@ -36,6 +37,16 @@ OBSERVATION_FILE = ROOT / "tests/input/two-player-first-race-observe.script"
 BASE_CHECK = "two-player-both-post-1620"
 FIRST_PROBE = "endurance-1740"
 MASKS = (0x080, 0x040, 0x100, 0x180, 0x140, 0x080, 0x040)
+
+
+class GuestProcessError(RuntimeError):
+    """Typed guest failure, captured before potentially private output is sliced."""
+
+    def __init__(self, category: str, message: str):
+        if category not in {"guest_timeout", "guest_nonzero_exit"}:
+            raise ValueError("invalid guest failure category")
+        super().__init__(message)
+        self.failure_category = category
 
 
 def sha256(path: Path) -> str:
@@ -156,6 +167,12 @@ def observe(dumps: Path) -> dict[str, str]:
     return observed
 
 
+def guest_command(exe: Path, rom: Path, config: Path, script: Path,
+                  *, windows: bool) -> list[str]:
+    args = [str(exe), str(rom), "--config", str(config), "--script", str(script)]
+    return args if windows else ["xvfb-run", "-a", *args]
+
+
 def execute(exe: Path, rom: Path, control: Path, script: Path,
             root: Path, timeout: int, *, runtime_log: Path | None = None,
             observe_result: bool = True) -> dict[str, str]:
@@ -178,12 +195,18 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
         "SNESRECOMP_INPUT_FILE": str(control),
         "SNESRECOMP_DUMP_DIR": str(root / "dumps"),
     })
-    cmd = ["xvfb-run", "-a", str(exe), str(rom), "--config", str(config), "--script", str(script)]
+    # Reuse the exact native fixture and guest oracle on both OS families.
+    # The HP uses its verified static SDL3 Windows offscreen driver; Linux
+    # retains the long-standing xvfb-run path and unchanged guest behavior.
+    windows = os.name == "nt"
+    if windows:
+        env["SDL_VIDEODRIVER"] = "offscreen"
+    cmd = guest_command(exe, rom, config, script, windows=windows)
     try:
         done = subprocess.run(cmd, cwd=root, env=env, capture_output=True,
                               text=True, errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"real guest process timeout ({timeout}s)") from exc
+        raise GuestProcessError("guest_timeout", f"real guest process timeout ({timeout}s)") from exc
     # Optional source/oracle diagnostic. The original shared endurance
     # producer's return value and behaviour remain unchanged when omitted.
     # Persist the raw script f=N completion receipts even on guest failure.
@@ -192,14 +215,17 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
             raise ValueError("refuse to overwrite prior native runtime transcript")
         runtime_log.write_text(done.stdout + "\n" + done.stderr, encoding="utf-8")
     if done.returncode != 0:
-        raise RuntimeError(f"guest exited {done.returncode}; "
-                           f"stdout/stderr tail={(done.stdout + done.stderr)[-900:]}")
+        raise GuestProcessError("guest_nonzero_exit", f"guest exited {done.returncode}; "
+                                f"stdout/stderr tail={(done.stdout + done.stderr)[-900:]}")
     # Callers with their own dump schedule verify their own checkpoints.
     return observe(root / "dumps") if observe_result else {}
 
 
 def trial(exe: Path, rom: Path, source_input: str, generated_script: str,
-          root: Path, seed: int, timeout: int) -> dict:
+          root: Path, seed: int, timeout: int, *,
+          parallel_variants: int = 1) -> dict:
+    if type(parallel_variants) is not int or parallel_variants not in (1, 2):
+        raise ValueError("unsupported variant concurrency")
     if root.exists():
         raise ValueError("trial root exists")
     root.mkdir(parents=True)
@@ -220,10 +246,25 @@ def trial(exe: Path, rom: Path, source_input: str, generated_script: str,
         raise ValueError("same-seed treatment changed between replicas")
     if len(set((inputs["treatment"], inputs["mute-p1"], inputs["mute-p2"]))) != 3:
         raise ValueError("counterfactuals did not alter independent seats")
+    variants = ("treatment", "repeat", "mute-p1", "mute-p2")
     results = {}
-    for variant in ("treatment", "repeat", "mute-p1", "mute-p2"):
-        results[variant] = execute(exe, rom, input_files[variant], script,
-                                   root / variant, timeout)
+    if parallel_variants == 1:
+        for variant in variants:
+            results[variant] = execute(exe, rom, input_files[variant], script,
+                                       root / variant, timeout)
+    else:
+        # Only read-only executable/ROM/script bytes are shared. Every
+        # native process owns a fresh config, controller, user-data and dump.
+        # The context joins ALL children even if one future fails. Partial
+        # four-process cases never earn source-owned acceptance.
+        with ThreadPoolExecutor(max_workers=parallel_variants) as pool:
+            futures = {
+                variant: pool.submit(execute, exe, rom, input_files[variant],
+                                     script, root / variant, timeout)
+                for variant in variants
+            }
+            for variant in variants:
+                results[variant] = futures[variant].result()
     a = results["treatment"]
     if a != results["repeat"]:
         first = next((name for name in a if a[name] != results["repeat"].get(name)), "?")
@@ -248,39 +289,74 @@ def trial(exe: Path, rom: Path, source_input: str, generated_script: str,
 
 def run_shard(*, exe: Path, rom: Path, source_sha: str,
               shard: int, base_seed: int, minutes: int, max_cases: int,
-              timeout: int, work: Path) -> dict:
+              timeout: int, work: Path, wall_seconds: int | None = None,
+              parallel_variants: int = 1) -> dict:
+    if type(parallel_variants) is not int or parallel_variants not in (1, 2):
+        raise ValueError("unsupported variant concurrency")
     if shard not in SHARDS or minutes not in BUDGETS or not 10 <= max_cases <= 5000:
         raise ValueError("unsafe cohort bounds")
     if type(base_seed) is not int or not 0 <= base_seed <= 100000000:
         raise ValueError("unsafe seed")
     if not 10 <= timeout <= 180:
         raise ValueError("unsafe individual native process deadline")
+    if wall_seconds is not None and not 120 <= wall_seconds <= minutes * 60:
+        raise ValueError("unsafe shortened unattended research budget")
     if work.exists():
         raise ValueError("refuse reused trial root")
     proof = identity(exe, rom, source_sha)
     prefix, script = base_source()
     generated_script = render_script(script)
     work.mkdir(parents=True)
-    deadline = time.monotonic() + minutes * 60
+    deadline = time.monotonic() + (wall_seconds if wall_seconds is not None else minutes * 60)
     start = time.monotonic()
     successes, failures = [], []
     seen_inputs = set()
+    successful_case_durations = []
     attempted = 0
     while attempted < max_cases and (attempted == 0 or time.monotonic() < deadline):
+        remaining = deadline - time.monotonic()
+        if wall_seconds is not None and attempted > 0 and remaining < 60:
+            break
+        # Do not start another four-process case when the remaining horizon
+        # is already shorter than 125% of the slowest completed case. The
+        # first scheduled HP run completed two healthy-looking cases, then
+        # shortened the next guest deadline below its observed runtime and
+        # recorded budget censoring as a possible gameplay invariant failure.
+        # This guard is advisory: unforeseen slowdowns still fail closed.
+        if (wall_seconds is not None and successful_case_durations
+                and remaining < max(60, 1.25 * max(successful_case_durations))):
+            break
+        # Four serial guest waves ordinarily; two when trusted HP science
+        # opts into paired isolated variants. Preserve historical /4 by
+        # default and stop before a too-short deadline manufactures failure.
+        guest_waves = 4 // parallel_variants
+        case_timeout = (timeout if wall_seconds is None else
+                        max(10, min(timeout, int(max(0, remaining) / guest_waves))))
         trial_index = attempted
         seed = base_seed + shard * 1000003 + trial_index
         path = work / f"trial-{trial_index:04d}"
         attempted += 1
+        case_started = time.monotonic()
         try:
-            row = trial(exe, rom, prefix, generated_script, path, seed, timeout)
+            if parallel_variants == 1:
+                row = trial(exe, rom, prefix, generated_script, path, seed, case_timeout)
+            else:
+                row = trial(exe, rom, prefix, generated_script, path, seed,
+                            case_timeout, parallel_variants=parallel_variants)
             if row["input_sha256"] in seen_inputs:
                 raise ValueError("campaign created duplicate input stream")
             seen_inputs.add(row["input_sha256"])
             successes.append(row)
+            successful_case_durations.append(time.monotonic() - case_started)
             shutil.rmtree(path)
         except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired) as exc:
+            # Preserve the producer-owned enum before the private diagnostic
+            # tail is truncated. The enum never includes stdout/stderr paths.
+            category = (exc.failure_category if isinstance(exc, GuestProcessError)
+                        else "unclassified")
             failures.append({"trial_index": trial_index, "seed": seed,
-                             "kind": type(exc).__name__, "error": str(exc)[-700:]})
+                             "kind": type(exc).__name__, "error": str(exc)[-700:],
+                             "failure_category": category})
             if len(failures) >= 2:
                 break
     elapsed = round(time.monotonic() - start, 3)
@@ -301,6 +377,8 @@ def run_shard(*, exe: Path, rom: Path, source_sha: str,
                   "guest WRAM determinism/control ablation. Not original/native "
                   "parity, a real pad, finished course or Windows shipping build."),
     }
+    if wall_seconds is not None:
+        record["wall_seconds_budget"] = wall_seconds
     record["receipt_sha256"] = hash_object(record)
     return record
 
@@ -413,6 +491,8 @@ def main() -> int:
     for name in ("source_sha","shard","base_seed","minutes","max_cases","timeout"):
         run.add_argument("--" + name.replace("_", "-"), required=True,
                          type=str if name=="source_sha" else int)
+    run.add_argument("--wall-seconds", type=int, default=None,
+                     help="Shorten scheduled runs within their nominal budget")
     agg = modes.add_parser("aggregate")
     for name in ("results","out","summary"):
         agg.add_argument("--"+name, type=Path, required=True)
@@ -424,7 +504,8 @@ def main() -> int:
         row = run_shard(
             exe=args.exe.resolve(), rom=args.rom.resolve(), source_sha=args.source_sha,
             shard=args.shard, base_seed=args.base_seed, minutes=args.minutes,
-            max_cases=args.max_cases, timeout=args.timeout, work=args.work)
+            max_cases=args.max_cases, timeout=args.timeout, work=args.work,
+            wall_seconds=args.wall_seconds)
         save(args.out, row)
         print(f"shard={row['shard']} {row['disposition']} {row['passed_cases']} "
               f"unique input plans / {row['total_real_native_processes']} native processes")

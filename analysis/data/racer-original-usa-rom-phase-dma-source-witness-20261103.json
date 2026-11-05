@@ -1,0 +1,553 @@
+{
+  "authentic_original_ROM_opcode_anchors": {
+    "angle_64_state_mask": {
+      "actual_machine_instruction_byte_length": 6,
+      "actual_machine_instruction_hex": "293f008d490f",
+      "headerless_rom_byte_offset": 127060,
+      "original_snes_pc": "83:F054",
+      "source_rom_byte_range_sha256": "7689904ebe816d8a8160725c6702bdffab5f720c22e482dc0097701470c95a57"
+    },
+    "modulo_24_original_rider_phase": {
+      "actual_machine_instruction_byte_length": 31,
+      "actual_machine_instruction_hex": "ad830f186500c90000300bc91800300c38e9180080f01869180080ea8d830f",
+      "headerless_rom_byte_offset": 126547,
+      "original_snes_pc": "83:EE53",
+      "source_rom_byte_range_sha256": "49e9ac2c4dfbbaab5475177d053ff8fec3ae61d30ad238d40172919a2dcec312"
+    },
+    "nmi_dma_pending_guard_and_mode": {
+      "actual_machine_instruction_byte_length": 33,
+      "actual_machine_instruction_hex": "e220c210ad0603d0034c96d19c06039c0b42a9808d1521a9018d0043a9188d0143",
+      "headerless_rom_byte_offset": 80043,
+      "original_snes_pc": "82:B8AB",
+      "source_rom_byte_range_sha256": "bc40ed483edb127161abbaccd5ac5960dd34f20a57d4c41df586a93d2dc0ab1d"
+    },
+    "nmi_trigger_dma_and_32byte_transfer": {
+      "actual_machine_instruction_byte_length": 8,
+      "actual_machine_instruction_hex": "a2018e0b428c0543",
+      "headerless_rom_byte_offset": 80130,
+      "original_snes_pc": "82:B902",
+      "source_rom_byte_range_sha256": "f43df941743628d933bfec9f2a08d47c93ebd9ed9dee737d3426924b6c604d4f"
+    },
+    "nmi_vram_destination_selects_second_800_word_region": {
+      "actual_machine_instruction_byte_length": 14,
+      "actual_machine_instruction_hex": "ade916898000f0036900088d1621",
+      "headerless_rom_byte_offset": 80116,
+      "original_snes_pc": "82:B8F4",
+      "source_rom_byte_range_sha256": "cde6f3f1a60ef666df827420f81e371b53e5b32136ef8bfdd5a78e40bf0f0095"
+    },
+    "nmi_wram_source_to_snes_dma_regs": {
+      "actual_machine_instruction_byte_length": 17,
+      "actual_machine_instruction_hex": "aea11510034c92d18e0443ad45168d0243",
+      "headerless_rom_byte_offset": 80099,
+      "original_snes_pc": "82:B8E3",
+      "source_rom_byte_range_sha256": "00efaac4f3b3acd5cd372c86dd1945351cd403dd1302cd7dea04e65702386a47"
+    },
+    "phase_times_64_plus_presentation_offset": {
+      "actual_machine_instruction_byte_length": 17,
+      "actual_machine_instruction_hex": "ad830f0a0a0a0a0a0a18690000186d770f",
+      "headerless_rom_byte_offset": 126681,
+      "original_snes_pc": "83:EED9",
+      "source_rom_byte_range_sha256": "29bdc2cc1cc011497947855833644b2591beea7d66c0aa26dbe049d7999fff39"
+    },
+    "presented_frame_three_byte_rom_pointer": {
+      "actual_machine_instruction_byte_length": 12,
+      "actual_machine_instruction_hex": "e21085000a18650018690080",
+      "headerless_rom_byte_offset": 127638,
+      "original_snes_pc": "83:F296",
+      "source_rom_byte_range_sha256": "16f1c3933a9d8e80d9c910360d0f7443a036b4a1329181cb8e0d46fd6f15539c"
+    },
+    "queue_wram_dma_source_address": {
+      "actual_machine_instruction_byte_length": 16,
+      "actual_machine_instruction_hex": "994516a52a29fc004a4a69270099a115",
+      "headerless_rom_byte_offset": 127514,
+      "original_snes_pc": "83:F21A",
+      "source_rom_byte_range_sha256": "f79679bc120fd54962714f0a40d26a841ac88468dd86ef469956ba60560aa159"
+    },
+    "queue_wram_vram_destination": {
+      "actual_machine_instruction_byte_length": 20,
+      "actual_machine_instruction_hex": "99e916c8c84628ca30034cddf1a5266920008526",
+      "headerless_rom_byte_offset": 127595,
+      "original_snes_pc": "83:F26B",
+      "source_rom_byte_range_sha256": "0ff61d133119bdb10ea11a73dc241e485973a262de0e0a3cb5a59051eba221c7"
+    },
+    "rider_animation_calls_phase_update": {
+      "actual_machine_instruction_byte_length": 7,
+      "actual_machine_instruction_hex": "2010efc220e210",
+      "headerless_rom_byte_offset": 126259,
+      "original_snes_pc": "83:ED33",
+      "source_rom_byte_range_sha256": "21d29c9af33e4c95eca24fdf71085d4e8480555056c285ce428f93f03dd97da0"
+    },
+    "tile_destination_seed_word_6000": {
+      "actual_machine_instruction_byte_length": 5,
+      "actual_machine_instruction_hex": "a000608426",
+      "headerless_rom_byte_offset": 127368,
+      "original_snes_pc": "83:F188",
+      "source_rom_byte_range_sha256": "980490a741b8e6d32beb101a7c3a9c94b1570a6653597dab5113ac77514efcd8"
+    },
+    "tile_dma_end_sentinel_pending": {
+      "actual_machine_instruction_byte_length": 20,
+      "actual_machine_instruction_hex": "a9ffff99a115a50a49ffff8d7d0ca0018c060360",
+      "headerless_rom_byte_offset": 127618,
+      "original_snes_pc": "83:F282",
+      "source_rom_byte_range_sha256": "dc0859398c4043fdfef1bc7b22b85f1e3f2299078a439c6926cec8963751af53"
+    },
+    "two_player_rider_presentation_ids": {
+      "actual_machine_instruction_byte_length": 12,
+      "actual_machine_instruction_hex": "ace90f8c0002aceb0f8c0402",
+      "headerless_rom_byte_offset": 127191,
+      "original_snes_pc": "83:F0D7",
+      "source_rom_byte_range_sha256": "f9a4fa06c893c35a02922626d87cb8cec880c99e6edf65ebc8b73bbda71b797b"
+    }
+  },
+  "example_queued_dest_bit7_6080_to_effective_blue_6880_word": 26752,
+  "example_queued_dest_red_6000_to_effective_word": 24576,
+  "independently_executed_Mesen24_source_zip_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "original_1994_3D_mesh_camera_joint_angles_recovered": false,
+  "original_24_and_64_state_axes_are_representation_indices_not_degrees": true,
+  "original_CPU_writer_or_DMA_trigger_PC_captured_at_runtime": false,
+  "original_DMA_queue_values_at_any_captured_tick_measured": false,
+  "original_NMI_DMA_channel_registers": [
+    "4300",
+    "4301",
+    "4302",
+    "4304",
+    "4305",
+    "420B",
+    "2115",
+    "2116"
+  ],
+  "original_NMI_bit_7_of_queue_dest_adds_vram_words": 2048,
+  "original_NMI_normal_dma_transfer_bytes_per_entry": 32,
+  "original_OAM_OBSEL_register_measurement_repeated_every_new_tick": false,
+  "original_USA_ROM_size_bytes": 2097152,
+  "original_source_Mesen_bridge_ticks": [
+    1601,
+    1602,
+    1603,
+    1604,
+    1605,
+    1606,
+    1607,
+    1608,
+    1609,
+    1610,
+    1611,
+    1612,
+    1613,
+    1614,
+    1615,
+    1616,
+    1617,
+    1618,
+    1619,
+    1620,
+    1621,
+    1622,
+    1623,
+    1624
+  ],
+  "original_tile_dma_destination_word_queue_WRAM": "7E:16E9",
+  "original_tile_dma_pending_flag_WRAM": "7E:0306",
+  "original_tile_dma_source_address_queue_WRAM": "7E:1645",
+  "original_tile_dma_source_bank_queue_WRAM": "7E:15A1",
+  "per_real_original_source_racer": {
+    "blue": {
+      "actual_held_oam_positions": [
+        {
+          "oam_x": 82,
+          "oam_y": 151,
+          "tick": 1601
+        },
+        {
+          "oam_x": 83,
+          "oam_y": 151,
+          "tick": 1602
+        },
+        {
+          "oam_x": 84,
+          "oam_y": 151,
+          "tick": 1603
+        },
+        {
+          "oam_x": 85,
+          "oam_y": 151,
+          "tick": 1604
+        },
+        {
+          "oam_x": 86,
+          "oam_y": 151,
+          "tick": 1605
+        },
+        {
+          "oam_x": 87,
+          "oam_y": 151,
+          "tick": 1606
+        },
+        {
+          "oam_x": 88,
+          "oam_y": 151,
+          "tick": 1607
+        },
+        {
+          "oam_x": 89,
+          "oam_y": 151,
+          "tick": 1608
+        },
+        {
+          "oam_x": 90,
+          "oam_y": 151,
+          "tick": 1609
+        },
+        {
+          "oam_x": 91,
+          "oam_y": 151,
+          "tick": 1610
+        },
+        {
+          "oam_x": 92,
+          "oam_y": 151,
+          "tick": 1611
+        },
+        {
+          "oam_x": 93,
+          "oam_y": 151,
+          "tick": 1612
+        },
+        {
+          "oam_x": 94,
+          "oam_y": 151,
+          "tick": 1613
+        },
+        {
+          "oam_x": 95,
+          "oam_y": 151,
+          "tick": 1614
+        },
+        {
+          "oam_x": 96,
+          "oam_y": 151,
+          "tick": 1615
+        },
+        {
+          "oam_x": 97,
+          "oam_y": 151,
+          "tick": 1616
+        },
+        {
+          "oam_x": 98,
+          "oam_y": 151,
+          "tick": 1617
+        },
+        {
+          "oam_x": 99,
+          "oam_y": 151,
+          "tick": 1618
+        },
+        {
+          "oam_x": 100,
+          "oam_y": 151,
+          "tick": 1619
+        },
+        {
+          "oam_x": 101,
+          "oam_y": 151,
+          "tick": 1620
+        },
+        {
+          "oam_x": 102,
+          "oam_y": 151,
+          "tick": 1621
+        },
+        {
+          "oam_x": 103,
+          "oam_y": 151,
+          "tick": 1622
+        },
+        {
+          "oam_x": 104,
+          "oam_y": 151,
+          "tick": 1623
+        },
+        {
+          "oam_x": 105,
+          "oam_y": 151,
+          "tick": 1624
+        }
+      ],
+      "actual_source_original_vram_tile_address_words": [
+        26752,
+        26768,
+        26784,
+        26800,
+        26816,
+        26832,
+        26848,
+        26864,
+        27008,
+        27024,
+        27040,
+        27056,
+        27072,
+        27088,
+        27104,
+        27120,
+        27264,
+        27280,
+        27296,
+        27312,
+        27328,
+        27344,
+        27360,
+        27376,
+        27520,
+        27536,
+        27552,
+        27568,
+        27584,
+        27600,
+        27616,
+        27632,
+        27776,
+        27792,
+        27808,
+        27824,
+        27840,
+        27856,
+        27872,
+        27888,
+        28032,
+        28048,
+        28064,
+        28080,
+        28096,
+        28112,
+        28128,
+        28144,
+        28288,
+        28304,
+        28320,
+        28336,
+        28352,
+        28368,
+        28384,
+        28400,
+        28544,
+        28560,
+        28576,
+        28592,
+        28608,
+        28624,
+        28640,
+        28656
+      ],
+      "observed_source_OAM_slot": 96,
+      "original_fixed_oam_tileword9": 136,
+      "original_fixed_sprite_palette_id": 4,
+      "original_source_vram_addresses_in_queue_writer_sixteen_k_word_region": true,
+      "source_vram_first_word": 26752,
+      "source_vram_last_word": 28656
+    },
+    "red": {
+      "actual_held_oam_positions": [
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1601
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1602
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1603
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1604
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1605
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1606
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1607
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1608
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1609
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1610
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1611
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1612
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1613
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1614
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1615
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1616
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1617
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1618
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1619
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1620
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1621
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1622
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1623
+        },
+        {
+          "oam_x": 48,
+          "oam_y": 48,
+          "tick": 1624
+        }
+      ],
+      "actual_source_original_vram_tile_address_words": [
+        24576,
+        24592,
+        24608,
+        24624,
+        24640,
+        24656,
+        24672,
+        24688,
+        24832,
+        24848,
+        24864,
+        24880,
+        24896,
+        24912,
+        24928,
+        24944,
+        25088,
+        25104,
+        25120,
+        25136,
+        25152,
+        25168,
+        25184,
+        25200,
+        25344,
+        25360,
+        25376,
+        25392,
+        25408,
+        25424,
+        25440,
+        25456,
+        25600,
+        25616,
+        25632,
+        25648,
+        25664,
+        25680,
+        25696,
+        25712,
+        25856,
+        25872,
+        25888,
+        25904,
+        25920,
+        25936,
+        25952,
+        25968,
+        26112,
+        26128,
+        26144,
+        26160,
+        26176,
+        26192,
+        26208,
+        26224,
+        26368,
+        26384,
+        26400,
+        26416,
+        26432,
+        26448,
+        26464,
+        26480
+      ],
+      "observed_source_OAM_slot": 97,
+      "original_fixed_oam_tileword9": 0,
+      "original_fixed_sprite_palette_id": 3,
+      "original_source_vram_addresses_in_queue_writer_sixteen_k_word_region": true,
+      "source_vram_first_word": 24576,
+      "source_vram_last_word": 26480
+    }
+  },
+  "real_observed_source_vram_destinations_are_from_two_provisional_banks": true,
+  "retail_original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "rider_angle_index_modulus_from_original_ROM": 64,
+  "rider_presentation_phase_modulus_from_original_ROM": 24,
+  "schema": "UR-ART4K-RETAIL-ROM-STATIC-RIDER-PHASE-DMA-TO-EXECUTED-PPU/1",
+  "source_24_phase_times_64_with_additional_presentation_offset_not_proven_physical_poses": true
+}

@@ -20,7 +20,6 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             '      - "tools/verify_rom.py"',
             '      - "tools/check_result_screen_time.py"',
             '      - "tests/input/ui-race-result-route.script"',
-            '      - "tests/unit/test_assemble_windows_package.py"',
             '      - "reference/roms/retail/Uniracers_USA.sfc"',
             '      - "native/product/**"',
             '      - "native/presentation/**"',
@@ -59,6 +58,18 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         definition = host.index("bool request_desktop_quit() {")
         self.assertLess(declaration, acceptance)
         self.assertLess(acceptance, definition)
+
+    def test_qa05_hosted_bounded_hold_does_not_change_hp_or_main_acceptance(self) -> None:
+        needle = "UR_QA05_CAPTURE_HOLD_SECONDS: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}"
+        self.assertIn(needle, self.text)
+        # A main-branch workflow_dispatch must not activate the
+        # PR-only trial even when test_hp_compiler_profile is true.
+        self.assertIn("github.event_name == 'pull_request'", needle)
+        self.assertIn("UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}", self.text)
+        self.assertIn("WINDOWS_QA05_DEFAULT_RETURN_AUDIO=5/5", self.text)
+        self.assertIn('bash "$WORKER" "$attempt" "$LAUNCHER_WIN" "$SCRIPT_WIN"', self.text)
+        self.assertIn('      - "tools/capture_modern_restart_audio.py"', self.text)
+        self.assertIn('      - "tools/ci/qa05_restart_attempt.sh"', self.text)
 
     def test_private_package_is_verified_but_only_evidence_is_uploaded(self) -> None:
         # Internal Windows package and its verifier must still be exercised,
@@ -157,9 +168,13 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         self.assertNotIn("python -m zipfile -e", self.text)
 
     def test_real_released_game_boots_under_cmd_special_paths(self) -> None:
-        start = self.text.index("- name: Real packaged game under CMD-special paths")
-        end = self.text.index("- name: Normal Windows APPDATA clean-user launch", start)
-        acceptance = self.text[start:end]
+        # Acceptance implementation moved into the exact script shared by
+        # hosted serial CI and HP isolated concurrent routing. Assert the
+        # workflow still invokes it, then inspect that script's real checks.
+        self.assertIn("run: bash tools/ci/windows_package_special_path.sh", self.text)
+        acceptance = (ROOT / "tools/ci/windows_package_special_path.sh").read_text(
+            encoding="utf-8"
+        )
         # Not a synthetic executable or a new workflow: the same ZIP,
         # shipped PowerShell verifier and actual guest input script.
         for marker in (
@@ -184,9 +199,10 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
     def test_default_appdata_launch_has_no_explicit_root_override(self) -> None:
         # The ordinary player path must be exercised separately from the
         # explicit-root tests, with a disposable profile and unrelated cwd.
-        start = self.text.index("- name: Normal Windows APPDATA clean-user launch")
-        end = self.text.index("- name: Extracted-package race-result acceptance", start)
-        default_boot = self.text[start:end]
+        self.assertIn("run: bash tools/ci/windows_package_default_appdata.sh", self.text)
+        default_boot = (ROOT / "tools/ci/windows_package_default_appdata.sh").read_text(
+            encoding="utf-8"
+        )
         for marker in (
             'APPDATA_DIR="$RUNNER_TEMP/default player roaming data"',
             'DEFAULT_USER_DATA="$APPDATA_DIR/gamesbyian/UR-Recomp"',

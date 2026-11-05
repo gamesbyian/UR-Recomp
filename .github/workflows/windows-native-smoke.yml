@@ -7,6 +7,12 @@ name: Windows native build and boot smoke
 # then boots the canonical ROM to the main menu and replays the race-result
 # route headlessly. The Visual Studio ClangCL toolset is used because the
 # framework relies on GCC/Clang attributes that MSVC's cl.exe rejects.
+# Python unit-only test modules are likewise executed by complete tooling
+# PR CI, not by the packaged Windows game. Keep executable/QA/fixture changes
+# on the actual Windows producer paths; omit changes only in test assertions.
+# HP-only seeded science source and schedule changes run full tooling CI plus
+# the independent trusted-main HP research caller; ordinary product Windows
+# push has hp_seeded_2p disabled and cannot test that separate research mode.
 
 on:
   # PR changes to this workflow are tested once by the QA-05/09 reusable
@@ -22,6 +28,31 @@ on:
         type: boolean
         required: false
         default: false
+      test_hp_compiler_profile:
+        description: "On hosted Windows, compile using HP project settings without reserving owner runner"
+        type: boolean
+        required: false
+        default: false
+      hp_ninja_canary:
+        description: "Manual trusted-main HP-only Ninja generator trial; default remains VS 2022"
+        type: boolean
+        required: false
+        default: false
+      hp_ninja_auto:
+        description: "Trusted main HP automatic verified Ninja selection; fallback remains VS"
+        type: boolean
+        required: false
+        default: false
+      hp_seeded_2p:
+        description: "Scheduled/manual main-only owner HP unique seeded native 2P research"
+        type: boolean
+        required: false
+        default: false
+      hp_research_wall_seconds:
+        description: 'Source-owned HP 2P research horizon; 600 only for trusted manual dispatch'
+        type: string
+        required: false
+        default: '360'
       run_tournament_acceptance:
         description: "Opt-in independently nominated same-run packaged tournament acceptance"
         type: boolean
@@ -39,6 +70,14 @@ on:
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "tools/bootstrap_toolchain.py"
+      - "tools/devnode_benchmark/prepare_sdl3_cache.py"
+      - "tools/devnode_benchmark/verify_hp_ninja.py"
+      - "tools/ci/ninja_package_canary.cmd"
+      - "tools/ci/hp_windows_isolated_boot_fanout.sh"
+      - "tools/ci/hosted_windows_isolated_boot_fanout.sh"
+      - "tools/ci/windows_package_special_path.sh"
+      - "tools/ci/windows_package_readonly_unicode.sh"
+      - "tools/ci/windows_package_default_appdata.sh"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-title-input-filter.patch"
       - "tools/patches/snesrecomp-source-gamepad-hook.patch"
@@ -52,17 +91,19 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/ci/qa05_restart_attempt.sh"
-      - "tests/unit/test_hp_qa05_parallel_policy.py"
+      - "tools/capture_modern_restart_audio.py"
+      - "tools/capture_modern_resume_audio.py"
+      - "tools/capture_modern_paused_audio.py"
+      - "tools/analyze_sdl_audio_envelope.py"
+      - "tools/qa05_restart_input_guard.py"
+      - "tests/input/audio-modern-restart.script"
+      - "tools/ci/windows_package_race_result.sh"
       - "tools/assemble_windows_package.py"
       - "tools/Test-URRecompPortable.ps1"
       - "tools/check_windows_portable_binary.py"
       - "tools/verify_rom.py"
       - "tools/check_result_screen_time.py"
       - "tests/input/ui-race-result-route.script"
-      - "tests/unit/test_assemble_windows_package.py"
-      - "tests/unit/test_windows_package_streaming_bounds.py"
-      - "tests/unit/test_windows_clean_machine_verifier_policy.py"
-      - "tests/unit/test_windows_portable_binary.py"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "native/product/**"
       - "native/presentation/**"
@@ -91,7 +132,26 @@ jobs:
       (!inputs.run_on_hp ||
        (github.repository == 'gamesbyian/UR-Recomp' &&
         github.ref == 'refs/heads/main' &&
-        (github.event_name == 'push' || github.event_name == 'workflow_dispatch')))
+        (github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+         (github.event_name == 'schedule' && inputs.hp_seeded_2p)))) &&
+      (!inputs.hp_ninja_canary ||
+       (inputs.run_on_hp &&
+        github.repository == 'gamesbyian/UR-Recomp' &&
+        github.ref == 'refs/heads/main' &&
+        github.event_name == 'workflow_dispatch')) &&
+      (!inputs.hp_ninja_auto ||
+       (inputs.run_on_hp &&
+        github.repository == 'gamesbyian/UR-Recomp' &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'push' ||
+         (inputs.hp_seeded_2p &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'))))) &&
+      (!inputs.hp_seeded_2p ||
+       (inputs.run_on_hp &&
+        github.repository == 'gamesbyian/UR-Recomp' &&
+        github.ref == 'refs/heads/main' &&
+        (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'))) &&
+      !(inputs.hp_ninja_auto && inputs.hp_ninja_canary)
     runs-on: ${{ inputs.run_on_hp && fromJSON('["self-hosted","Windows","X64"]') || 'windows-2022' }}
     timeout-minutes: ${{ inputs.run_on_hp && 45 || inputs.run_tournament_acceptance && 45 || 20 }}
     env:
@@ -117,7 +177,7 @@ jobs:
         run: git config --global core.autocrlf false
 
       - name: Check out project
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         env:
           GIT_CONFIG_COUNT: '1'
           GIT_CONFIG_KEY_0: core.autocrlf
@@ -130,7 +190,7 @@ jobs:
           set -euo pipefail
           git -c core.autocrlf=false -c core.eol=lf checkout-index --force --all
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         if: ${{ !inputs.run_on_hp }}
         with:
           python-version: "3.12"
@@ -143,7 +203,9 @@ jobs:
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_python.ps1
 
       - name: Verify owner HP ClangCL toolset
-        if: inputs.run_on_hp
+        # Product CI proves the separate compiler preflight. The source-built
+        # science executable's real Ninja/ClangCL compile remains mandatory.
+        if: ${{ inputs.run_on_hp && (!inputs.hp_seeded_2p || inputs.run_tournament_acceptance) }}
         shell: cmd
         run: |
           cmake -S tools/devnode_benchmark -B "%RUNNER_TEMP%\ur-clangcl-preflight" -G "Visual Studio 17 2022" -A x64 -T ClangCL
@@ -163,8 +225,17 @@ jobs:
 
       - name: Verify canonical ROM and package contracts
         run: |
+          set -euo pipefail
+          # Source/ROM integrity cannot be reused; check every science job.
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary tests.unit.test_windows_clean_machine_verifier_policy
+          # The four standalone package-policy unit modules already run in
+          # ready-PR CI and normal Windows product smoke. Actual science
+          # still builds/verifies a fresh portable ZIP and boots its extract.
+          if [[ "${{ inputs.hp_seeded_2p }}" != "true" || "${{ inputs.run_tournament_acceptance }}" == "true" ]]; then
+            python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary tests.unit.test_windows_clean_machine_verifier_policy
+          else
+            echo "HP_SCIENCE_PACKAGE_UNIT_REUSE=product_ci_kept_source_rom_and_zip_verified_here"
+          fi
 
       - name: Restore pinned toolchain text directly from Git object bytes
         if: inputs.run_on_hp
@@ -271,10 +342,117 @@ jobs:
           test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
           test -f .tools/src/snesrecomp/runner/runner.cmake
 
+      # Static SDL3 accounts for roughly 88 seconds of the recent 220s
+      # HP build. A source/toolchain-keyed local install can be reused; the
+      # hosted HP-profile job proves this actual package/link route on PRs.
+      # No personal runner is assigned to PRs. HP provisioning failures fall
+      # back to the existing per-candidate source build.
+      # Hosted Windows runners are disposable, but every PR need not rebuild
+      # the same pinned static SDL3. Restore only an optimization candidate:
+      # prepare_sdl3_cache.py ALWAYS recomputes actual SDK/compiler/source
+      # fingerprints and validates every staged byte before exposing SDL3_DIR.
+      # HP owns a separate machine-local cache; never transfer PR bytes there.
+      # Main push is the trusted cache seed that brand-new sibling PRs
+      # can read. PR-created caches are scoped to refs/pull/N/merge and do
+      # not warm other PRs. Never execute this on owner HP or any PR.
+      # Crucially, prepare writes to a PRIVATE receipt, NOT $GITHUB_ENV:
+      # main's canonical game still builds original source SDL3 itself.
+      - name: Restore hosted main-branch SDL3 seed
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.run_on_hp && !inputs.test_hp_compiler_profile }}
+        id: main-sdl3-cache
+        # Cache transport failure is not a shipping-build failure.
+        continue-on-error: true
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ${{ runner.temp }}/ur-sdl3-canary-cache
+          key: ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-main-${{ github.run_id }}
+          restore-keys: |
+            ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-
+
+      - name: Validate isolated hosted main SDL3 seed
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.run_on_hp && !inputs.test_hp_compiler_profile }}
+        id: main-sdl3-prepared
+        shell: bash
+        # This is a performance optimization; an unavailable seed must not
+        # block the independent source-built canonical Windows acceptance.
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python tools/devnode_benchmark/prepare_sdl3_cache.py \
+            --source "$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
+            --archive "$GITHUB_WORKSPACE/third_party/archives/SDL3-3.4.10.tar.gz" \
+            --cache-root "$RUNNER_TEMP/ur-sdl3-canary-cache" \
+            --github-env "$RUNNER_TEMP/hosted-main-sdl3-private.env" \
+            --github-output "$GITHUB_OUTPUT" \
+            --jobs 4 --required
+          echo "HOSTED_MAIN_SDL3_SEED=verified_only; game_build=canonical_source"
+
+      - name: Save verified hosted main-branch SDL3 seed
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.run_on_hp && !inputs.test_hp_compiler_profile && steps.main-sdl3-prepared.outcome == 'success' && (steps.main-sdl3-prepared.outputs.cache-state == 'miss' || steps.main-sdl3-prepared.outputs.cache-state == 'recovered') }}
+        continue-on-error: true
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ${{ runner.temp }}/ur-sdl3-canary-cache
+          key: ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-main-${{ github.run_id }}
+
+      - name: Restore hosted Windows verified SDL3 candidate
+        if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile }}
+        id: hosted-sdl3-cache
+        uses: actions/cache/restore@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ${{ runner.temp }}/ur-sdl3-canary-cache
+          key: ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-${{ github.run_id }}
+          restore-keys: |
+            ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-
+
+      - name: Prepare source-pinned static SDL3 cache (HP and hosted canary)
+        if: ${{ inputs.run_on_hp || inputs.test_hp_compiler_profile }}
+        id: hosted-sdl3-prepared
+        shell: bash
+        run: |
+          set -euo pipefail
+          cache_root="$RUNNER_TEMP/ur-sdl3-canary-cache"
+          mode=(--required)
+          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
+            cache_root="$RUNNER_WORKSPACE/../.ur-recomp-hp-sdl3-cache"
+            mode=(--hp)
+          fi
+          python tools/devnode_benchmark/prepare_sdl3_cache.py \
+            --source "$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
+            --archive "$GITHUB_WORKSPACE/third_party/archives/SDL3-3.4.10.tar.gz" \
+            --cache-root "$cache_root" \
+            --github-env "$GITHUB_ENV" \
+            --github-output "$GITHUB_OUTPUT" \
+            --jobs 6 "${mode[@]}"
+
+      # Commit the verified *small install only*, not temporary SDL3 build
+      # objects or any product/ROM output. Save BEFORE lengthy Windows QA:
+      # a later superseded PR run can still warm its successor.
+      - name: Save hosted Windows verified SDL3 candidate
+        if: ${{ !inputs.run_on_hp && inputs.test_hp_compiler_profile && (steps.hosted-sdl3-prepared.outputs.cache-state == 'miss' || steps.hosted-sdl3-prepared.outputs.cache-state == 'recovered') }}
+        uses: actions/cache/save@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        with:
+          path: ${{ runner.temp }}/ur-sdl3-canary-cache
+          key: ur-sdl3-hosted-v2-${{ runner.os }}-${{ hashFiles('third_party/archives/SDL3-3.4.10.tar.gz', 'tools/devnode_benchmark/prepare_sdl3_cache.py') }}-${{ github.run_id }}
+
       - name: Prepare pinned Rust/Cargo for owner HP
         if: inputs.run_on_hp
         shell: cmd
         run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/devnode_benchmark/prepare_rust.ps1
+
+      # A compiled Rust tool for the exact staged framework can be reused on
+      # consecutive trusted-main science jobs. Generated C is still rebuilt from
+      # the verified ROM. On a cache fault, the upstream generator compiles it.
+      # Do not extend this shortcut to product/main/hosted qualification.
+      - name: Prepare trusted HP native analyzer cache (science only)
+        if: ${{ inputs.run_on_hp && inputs.hp_seeded_2p && !inputs.run_tournament_acceptance }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/devnode_benchmark/prepare_native_analyzer_cache.py \
+            --framework "$GITHUB_WORKSPACE/.tools/src/snesrecomp" \
+            --cache-root "$RUNNER_WORKSPACE/../.ur-recomp-hp-native-analyzer-cache" \
+            --github-env "$GITHUB_ENV"
 
       - name: Scaffold and generate
         run: |
@@ -314,23 +492,76 @@ jobs:
           WS="$(cygpath -m "$GITHUB_WORKSPACE")"
           FRAMEWORK="$WS/.tools/src/snesrecomp"
           ROOT="$(cygpath -m "$RUNNER_TEMP")/ur-recomp-build/UniracersSNESRecomp"
-          cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
-            -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL3 \
-            -DSNESRECOMP_SDL3_FETCH=ON \
-            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
-            -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
-          # Six physical CPU cores on the HP: test six native MSBuild workers
-          # against previously measured four-worker runtime. The hosted
-          # candidate remains four-way and all QA is otherwise identical.
+          # A manifest-verified static package must resolve via
+          # find_package; otherwise retain the canonical source-FetchContent.
+          SDL3_ARGS=(-DSNESRECOMP_SDL3_FETCH=ON)
+          if [[ -n "${UR_SDL3_PREBUILT_DIR:-}" ]]; then
+            SDL3_ARGS=(-DSNESRECOMP_SDL3_FETCH=OFF "-DSDL3_DIR=$UR_SDL3_PREBUILT_DIR")
+            echo "HP_SDL3_PACKAGE=verified_static_install"
+          else
+            echo "HP_SDL3_PACKAGE=canonical_source_build"
+          fi
+          HP_NINJA_SELECTED=0
+          if [[ "${{ inputs.hp_ninja_canary }}" == "true" ]]; then
+            # A deliberate owner trial must fail closed when its prerequisite
+            # is missing. Never silently turn a manual Ninja trial into VS.
+            [[ "${{ inputs.run_on_hp }}" == "true" ]] || { echo "HP_NINJA_CANARY=refused_not_hp" >&2; exit 2; }
+            [[ -n "${UR_SDL3_PREBUILT_DIR:-}" ]] || { echo "HP_NINJA_CANARY=no_verified_sdl3" >&2; exit 2; }
+            python tools/devnode_benchmark/verify_hp_ninja.py
+            HP_NINJA_SELECTED=1
+            echo "HP_NINJA_CANARY=trusted_main_manual_source_bound"
+          elif [[ "${{ inputs.hp_ninja_auto }}" == "true" ]]; then
+            # Automatic use is strictly trusted-main push. Never let a
+            # missing/tampered tool or unavailable SDL cache disable the
+            # owner's established canonical VS build and product checks.
+            if [[ -z "${UR_SDL3_PREBUILT_DIR:-}" ]]; then
+              echo "HP_NINJA_AUTO=vs_fallback reason=missing_verified_sdl3"
+            elif [[ "${{ inputs.hp_seeded_2p }}" == "true" ]] &&
+                 python tools/devnode_benchmark/verify_hp_ninja.py --allow-trusted-main-schedule; then
+              HP_NINJA_SELECTED=1
+              echo "HP_NINJA_AUTO=verified_source_bound"
+            elif [[ "${{ inputs.hp_seeded_2p }}" != "true" ]] &&
+                 python tools/devnode_benchmark/verify_hp_ninja.py --allow-trusted-main-push; then
+              HP_NINJA_SELECTED=1
+              echo "HP_NINJA_AUTO=verified_source_bound"
+            else
+              echo "HP_NINJA_AUTO=vs_fallback reason=owner_ninja_preflight_unavailable"
+            fi
+          fi
+          if [[ "$HP_NINJA_SELECTED" == "1" ]]; then
+            export UR_NINJA_ROOT="$ROOT" UR_NINJA_FRAMEWORK="$FRAMEWORK" UR_NINJA_WS="$WS"
+            export UR_HP_NINJA_CANARY=1 UR_HP_NINJA_DIR="C:/DevNode/runner-tools/Ninja/v1.13.2"
+          else
+            cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
+              -DSNESRECOMP_ROOT="$FRAMEWORK" \
+              -DSNESRECOMP_SDL_BACKEND=SDL3 \
+              "${SDL3_ARGS[@]}" \
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
+              -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          fi
+          # The hosted PR candidate intentionally compiles using the SAME
+          # build settings as the owner HP. Otherwise an HP-only compiler
+          # experiment can pass hosted tests but fail after merge (MTT/PCH
+          # incident #2875). The runner itself always stays hosted on PRs.
+          # Keep any future HP compiler properties gated by this combined
+          # expression, while HP telemetry remains strictly HP-runner-only.
           HP_BUILD_JOBS=4
-          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
+          if [[ "${{ inputs.run_on_hp || inputs.test_hp_compiler_profile }}" == "true" ]]; then
             HP_BUILD_JOBS=6
+          fi
+          echo "UR_COMPILER_PROFILE jobs=$HP_BUILD_JOBS hosted_hp_profile=${{ inputs.test_hp_compiler_profile }}"
+          if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
             printf 'phase,timestamp_utc\n' > "$RUNNER_TEMP/hp-compile-phase.csv"
             printf 'build_start,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_start"
           fi
-          cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
+          if [[ "$HP_NINJA_SELECTED" == "1" ]]; then
+            # Include Ninja configure and compile within a single measured phase.
+            echo "HP_NINJA_COMPILE_WINDOW=configure_plus_build"
+            MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*' cmd.exe /d /c "$(cygpath -w "$GITHUB_WORKSPACE/tools/ci/ninja_package_canary.cmd")"
+          else
+            cmake --build "$ROOT/build" --config Release --parallel "$HP_BUILD_JOBS"
+          fi
           if [[ "${{ inputs.run_on_hp }}" == "true" ]]; then
             printf 'build_end,%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$RUNNER_TEMP/hp-compile-phase.csv"
             echo "HP_COMPILE_PROBE jobs=$HP_BUILD_JOBS phase=build_end"
@@ -522,232 +753,46 @@ jobs:
             --archive "$PACKAGE_ARCHIVE"
           echo "WINDOWS_PACKAGE_USER_DATA_ANCHOR ok"
 
+      - name: HP bounded independent offscreen package boot fanout
+        # Product/explicit tournament acceptance retains the three isolated
+        # packaged-app boots. Science already requires one clean extracted
+        # package boot and 32 separate real native game launches from eight
+        # workers; repeated packaged boot isolation belongs to product CI.
+        # The full original helper remains unchanged, fail-closed on product.
+        if: ${{ inputs.run_on_hp && (!inputs.hp_seeded_2p || inputs.run_tournament_acceptance) }}
+        run: bash tools/ci/hp_windows_isolated_boot_fanout.sh
+
+      - name: Hosted bounded independent offscreen package boot fanout
+        # Actual same-source acceptance scripts, isolated roots and strict join.
+        # HP stays main-only; hosted manual dispatch remains serial.
+        if: ${{ !inputs.run_on_hp && ((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
+        run: bash tools/ci/hosted_windows_isolated_boot_fanout.sh
+
       - name: Real packaged game under CMD-special paths
-        run: |
-          set -euo pipefail
-          # Invoke the exact shipped verifier in launch mode. It uses native
-          # Expand-Archive internally and boots the actual product executable.
-          # This catches path quoting failures that a harmless cmd stub cannot.
-          SPECIAL_EXTRACT="$RUNNER_TEMP/package & bang! (installed)"
-          SPECIAL_DUMPS="$RUNNER_TEMP/package-special-path-dumps"
-          test ! -e "$SPECIAL_EXTRACT"
-          mkdir -p "$SPECIAL_DUMPS"
-          VERIFIER_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tools/Test-URRecompPortable.ps1")"
-          ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
-          CHECKSUM_WIN="$(cygpath -w "$PACKAGE_ARCHIVE_CHECKSUM")"
-          EXTRACT_WIN="$(cygpath -w "$SPECIAL_EXTRACT")"
-          SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
-          DUMPS_WIN="$(cygpath -w "$SPECIAL_DUMPS")"
-          SDL_VIDEODRIVER=offscreen \
-          SDL_AUDIODRIVER=dummy \
-          SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
-            timeout 300 powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass \
-              -File "$VERIFIER_WIN" -Archive "$ARCHIVE_WIN" \
-              -Checksum "$CHECKSUM_WIN" -Destination "$EXTRACT_WIN" \
-              -InputScript "$SCRIPT_WIN" \
-              | tee "$RUNNER_TEMP/package-special-path-verifier.log"
-          grep -Fq "UR_PORTABLE_REAL_WINDOWS_LAUNCH_EXITED_OK" "$RUNNER_TEMP/package-special-path-verifier.log"
-          grep -Fq "UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK" "$RUNNER_TEMP/package-special-path-verifier.log"
-
-          SPECIAL_PACKAGE="$SPECIAL_EXTRACT/UR-Recomp-Windows-x64"
-          SPECIAL_USER="$SPECIAL_EXTRACT/isolated-user-data"
-          SPECIAL_CALLER="$SPECIAL_EXTRACT/unrelated launch working directory"
-          PACKAGE_WIN="$(cygpath -w "$SPECIAL_PACKAGE")"
-          USER_WIN="$(cygpath -w "$SPECIAL_USER")"
-          STARTUP_LOG="$SPECIAL_USER/diagnostics/startup.log"
-          test -f "$STARTUP_LOG"
-          grep -Fq "package_root=$PACKAGE_WIN" "$STARTUP_LOG"
-          grep -Fq "user_data_root=$USER_WIN" "$STARTUP_LOG"
-          grep -Fq "process_exit=0" "$STARTUP_LOG"
-          test ! -e "$SPECIAL_CALLER/config.ini"
-          test ! -e "$SPECIAL_CALLER/keybinds.ini"
-          test ! -e "$SPECIAL_CALLER/saves"
-          test ! -e "$SPECIAL_PACKAGE/config.ini"
-          test ! -e "$SPECIAL_PACKAGE/saves"
-          python - "$SPECIAL_DUMPS/package-main-menu.wram.bin" <<'PY'
-          from pathlib import Path
-          import sys
-          wram = Path(sys.argv[1]).read_bytes()
-          assert wram[0x9F] == 0xD7, "special-path packaged main menu not reached"
-          print("WINDOWS_PACKAGE_SPECIAL_PATH_MAIN_MENU ok")
-          PY
-          python tools/assemble_windows_package.py verify --package "$SPECIAL_PACKAGE"
-          echo "WINDOWS_PACKAGE_SPECIAL_PATH_ISOLATION ok"
-
+        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
+        run: bash tools/ci/windows_package_special_path.sh
       - name: Read-only portable directory and Unicode user-data cold boots
-        run: |
-          # Quoted PowerShell source is intentionally literal at the Bash boundary.
-          set -euo pipefail
-          # Exercise the actual extracted shipping launcher twice. Deny NTFS
-          # writes to the disposable install tree, not merely its file attributes;
-          # user data must remain writable at a separate non-ASCII Windows path.
-          RO_PACKAGE="$RUNNER_TEMP/read-only portable/UR-Recomp-Windows-x64"
-          RO_USER="$RUNNER_TEMP/portable user café 雪"
-          RO_CALLER="$RUNNER_TEMP/read-only unrelated caller"
-          RO_DUMPS="$RUNNER_TEMP/read-only portable dumps"
-          test ! -e "$RO_PACKAGE"
-          test ! -e "$RO_USER"
-          mkdir -p "$(dirname "$RO_PACKAGE")" "$RO_CALLER" "$RO_DUMPS"
-          cp -R "$TEST_PACKAGE" "$RO_PACKAGE"
-          RO_PACKAGE_WIN="$(cygpath -w "$RO_PACKAGE")"
-          export RO_PACKAGE_WIN
-          RO_USER_WIN="$(cygpath -w "$RO_USER")"
-          RO_SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
-          export RO_SCRIPT_WIN
-          RO_DUMPS_WIN="$(cygpath -w "$RO_DUMPS")"
-
-          cleanup_readonly() {
-            # PowerShell $ variables are literal source in the outer Bash process.
-          # shellcheck disable=SC2016
-          powershell.exe -NoProfile -NonInteractive -Command '
-              $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-              & icacls.exe $env:RO_PACKAGE_WIN /remove:d ("*" + $sid) /T | Out-Null
-              exit $LASTEXITCODE
-            ' || true
-          }
-          trap cleanup_readonly EXIT
-          # PowerShell $ variables are literal source in the outer Bash process.
-          # shellcheck disable=SC2016
-          powershell.exe -NoProfile -NonInteractive -Command '
-            $ErrorActionPreference = "Stop"
-            $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-            & icacls.exe $env:RO_PACKAGE_WIN /deny ("*" + $sid + ":(WD,AD,WA,WEA)") /T | Out-Null
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            try {
-              [IO.File]::WriteAllText((Join-Path $env:RO_PACKAGE_WIN "write-probe.txt"), "unexpected")
-              throw "Install tree unexpectedly writable"
-            } catch [System.UnauthorizedAccessException] {
-              Write-Output "WINDOWS_READONLY_INSTALL_DENIAL_VERIFIED"
-            }
-          '
-          for boot in 1 2; do
-            # Require each launch to produce its own fresh main-menu witness.
-            rm -f "$RO_DUMPS/package-main-menu.wram.bin"
-            set +e
-            (
-              cd "$RO_CALLER"
-              # PowerShell $env references remain literal until the child command.
-              # shellcheck disable=SC2016
-              SDL_VIDEODRIVER=offscreen \
-              SDL_AUDIODRIVER=dummy \
-              SNESRECOMP_DUMP_DIR="$RO_DUMPS_WIN" \
-              UR_RECOMP_USER_DATA_ROOT="$RO_USER_WIN" \
-                timeout 300 powershell.exe -NoProfile -NonInteractive -Command \
-                  '& (Join-Path $env:RO_PACKAGE_WIN "run-uniracers.cmd") --script $env:RO_SCRIPT_WIN; exit $LASTEXITCODE' \
-                  >"$RUNNER_TEMP/read-only-unicode-boot-$boot.log" 2>&1
-            )
-            RO_RC=$?
-            set -e
-            cat "$RUNNER_TEMP/read-only-unicode-boot-$boot.log"
-            test "$RO_RC" -eq 0
-            grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/read-only-unicode-boot-$boot.log"
-            test -s "$RO_DUMPS/package-main-menu.wram.bin"
-            python - "$RO_DUMPS/package-main-menu.wram.bin" <<'PY'
-          from pathlib import Path
-          import sys
-          wram = Path(sys.argv[1]).read_bytes()
-          assert wram[0x9F] == 0xD7, "read-only Unicode-path boot missed main menu"
-          PY
-            test -f "$RO_USER/config.ini"
-            test -f "$RO_USER/keybinds.ini"
-            test -f "$RO_USER/mod-state.toml"
-            test -d "$RO_USER/saves"
-            test ! -e "$RO_PACKAGE/config.ini"
-            test ! -e "$RO_PACKAGE/keybinds.ini"
-            test ! -e "$RO_PACKAGE/saves"
-            test ! -e "$RO_CALLER/config.ini"
-            python tools/assemble_windows_package.py verify --package "$RO_PACKAGE"
-            if [ "$boot" -eq 1 ]; then
-              FIRST_CONFIG_SHA="$(sha256sum "$RO_USER/config.ini" | cut -d' ' -f1)"
-              FIRST_KEYS_SHA="$(sha256sum "$RO_USER/keybinds.ini" | cut -d' ' -f1)"
-            fi
-          done
-          test "$FIRST_CONFIG_SHA" = "$(sha256sum "$RO_USER/config.ini" | cut -d' ' -f1)"
-          test "$FIRST_KEYS_SHA" = "$(sha256sum "$RO_USER/keybinds.ini" | cut -d' ' -f1)"
-          echo "WINDOWS_READONLY_UNICODE_TWO_COLD_BOOTS ok"
-
+        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
+        run: bash tools/ci/windows_package_readonly_unicode.sh
       - name: Normal Windows APPDATA clean-user launch
-        run: |
-          set -euo pipefail
-          # Exercise a player launch with NO explicit UR_RECOMP_USER_DATA_ROOT.
-          # The normal profile Roaming root is authoritative for first boot.
-          APPDATA_DIR="$RUNNER_TEMP/default player roaming data"
-          DEFAULT_USER_DATA="$APPDATA_DIR/gamesbyian/UR-Recomp"
-          DEFAULT_CALLER="$RUNNER_TEMP/default launch caller"
-          DEFAULT_DUMPS="$RUNNER_TEMP/default appdata boot dumps"
-          mkdir -p "$APPDATA_DIR" "$DEFAULT_CALLER" "$DEFAULT_DUMPS"
-          test ! -e "$DEFAULT_USER_DATA"
-          APPDATA_WIN="$(cygpath -w "$APPDATA_DIR")"
-          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
-          SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
-          DUMPS_WIN="$(cygpath -w "$DEFAULT_DUMPS")"
-          DEFAULT_USER_WIN="$(cygpath -w "$DEFAULT_USER_DATA")"
-
-          set +e
-          (
-            cd "$DEFAULT_CALLER"
-            env -u UR_RECOMP_USER_DATA_ROOT \
-              APPDATA="$APPDATA_WIN" \
-              SDL_VIDEODRIVER=offscreen \
-              SDL_AUDIODRIVER=dummy \
-              SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
-                timeout 300 powershell.exe -NoProfile -Command \
-                  "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
-                  >"$RUNNER_TEMP/package-default-appdata-boot.log" 2>&1
-          )
-          RC=$?
-          set -e
-          cat "$RUNNER_TEMP/package-default-appdata-boot.log"
-          test "$RC" -eq 0
-          python - "$DEFAULT_DUMPS/package-main-menu.wram.bin" <<'PY'
-          import pathlib, sys
-          wram = pathlib.Path(sys.argv[1]).read_bytes()
-          assert wram[0x9F] == 0xD7, "default APPDATA packaged main menu not reached"
-          print("WINDOWS_PACKAGE_DEFAULT_APPDATA_MAIN_MENU ok")
-          PY
-          test -f "$DEFAULT_USER_DATA/config.ini"
-          test -f "$DEFAULT_USER_DATA/keybinds.ini"
-          test -f "$DEFAULT_USER_DATA/mod-state.toml"
-          test -d "$DEFAULT_USER_DATA/saves"
-          test ! -e "$TEST_PACKAGE/config.ini"
-          test ! -e "$TEST_PACKAGE/saves"
-          test ! -e "$DEFAULT_CALLER/config.ini"
-          grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-default-appdata-boot.log"
-          grep -Fq "$DEFAULT_USER_WIN" "$RUNNER_TEMP/package-default-appdata-boot.log"
-          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
-          echo "WINDOWS_PACKAGE_DEFAULT_APPDATA_ROOT ok"
-
+        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
+        run: bash tools/ci/windows_package_default_appdata.sh
       - name: Extracted-package race-result acceptance
-        run: |
-          set -euo pipefail
-          DUMPS="$RUNNER_TEMP/package-race-result-dumps"
-          mkdir -p "$DUMPS"
-          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
-          USER_DATA_WIN="$(cygpath -w "$PACKAGE_USER_DATA")"
-          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/ui-race-result-route.script")"
-          DUMPS_WIN="$(cygpath -w "$DUMPS")"
+        # On HP this exact witness runs concurrently with isolated QA-05
+        # within a single owned step, then joins before package refresh.
+        # Hosted serial acceptance is otherwise unchanged.
+        # Verified hosted PR and source-bound hosted main-push runs overlap
+        # the unchanged offscreen race check with five SERIAL real Win32 QA-05
+        # checks. Manual hosted dispatch still proves the legacy serial route.
+        if: ${{ !inputs.run_on_hp && !((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) }}
+        run: bash tools/ci/windows_package_race_result.sh
 
-          set +e
-          SDL_VIDEODRIVER=offscreen \
-          SDL_AUDIODRIVER=dummy \
-          SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
-          UR_RECOMP_USER_DATA_ROOT="$USER_DATA_WIN" \
-            timeout 600 powershell.exe -NoProfile -Command \
-              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
-              >"$RUNNER_TEMP/package-race-result.log" 2>&1
-          RC=$?
-          set -e
-          tail -n 50 "$RUNNER_TEMP/package-race-result.log"
-          test "$RC" -eq 0
-          python tools/check_result_screen_time.py \
-            --dump-dir "$DUMPS" \
-            --checkpoint race-results
-          grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-race-result.log"
-          grep -Fq "$USER_DATA_WIN" "$RUNNER_TEMP/package-race-result.log"
-          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
-          echo "WINDOWS_PACKAGE_RACE_RESULT ok"
-
+      # For repeat seeded HP research the verified build, clean-package boot,
+      # and independent offscreen boot fanout still run. Product-specific
+      # Win32/audio/user-data journeys run in regular Windows acceptance or
+      # an expressly nominated tournament campaign, not on every seed batch.
       - name: Extracted-package Win32 window and default renderer smoke
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           # Offscreen SDL boot validates deterministic game progress but never
@@ -792,6 +837,7 @@ jobs:
           echo "WINDOWS_PACKAGE_WIN32_RENDERER ok"
 
       - name: QA-09 packaged Windows controller-only root and modal return
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/qa09-root-user"
@@ -811,17 +857,45 @@ jobs:
           echo "WINDOWS_QA09_ROOT_PACKAGE=passed"
 
       - name: QA-05 packaged Windows default-Return Restart audio and Start-input witness
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         # An HP service desktop can have uniquely PID-owned, non-visible SDL
         # windows. Only its isolated diagnostic uses real Win32 messages there.
-        # Hosted/visible UI acceptance stays strictly serial and unchanged.
+        # Hosted/visible UI acceptance remains five serial real Win32 sessions.
         env:
           UR_QA05_ALLOW_HIDDEN_WINDOW: ${{ inputs.run_on_hp && '1' || '0' }}
           UR_QA05_HP_PARALLEL_PILOT: ${{ inputs.run_on_hp && '1' || '0' }}
+          UR_QA05_HOSTED_RACE_OVERLAP_PILOT: ${{ !inputs.run_on_hp && ((github.event_name == 'pull_request' && inputs.test_hp_compiler_profile) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && !inputs.test_hp_compiler_profile)) && '1' || '0' }}
+          # Source-owned trial ONLY for hosted PR compiler-profile acceptance.
+          # Default main/owner-HP original 4+4-second audio holds unchanged.
+          # Real Win32 Down/Enter, PCM silence/audibility, Start 12-word
+          # oracle and FIVE fresh sessions remain mandatory in all modes.
+          UR_QA05_CAPTURE_HOLD_SECONDS: ${{ github.event_name == 'pull_request' && !inputs.run_on_hp && inputs.test_hp_compiler_profile && '3' || '4' }}
         run: |
           set -euo pipefail
           LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"
           SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
           WORKER="tools/ci/qa05_restart_attempt.sh"
+          RACE_PID=''
+          if [[ "$UR_QA05_HP_PARALLEL_PILOT" == '1' || "$UR_QA05_HOSTED_RACE_OVERLAP_PILOT" == '1' ]]; then
+            # Both jobs consume the already-verified immutable package.
+            # Race uses offscreen SDL/dummy audio and PACKAGE_USER_DATA;
+            # QA-05 owns separate per-attempt user roots, PCM and HWNDs.
+            bash tools/ci/windows_package_race_result.sh \
+              >"$RUNNER_TEMP/hp-race-overlap.log" 2>&1 &
+            RACE_PID="$!"
+            hp_race_cleanup() {
+              if [[ -n "$RACE_PID" ]]; then
+                # Never SIGTERM only the Bash parent: it could orphan the
+                # 600-second timeout/PowerShell/SDL descendant and permit
+                # post-failure writes to authoritative result evidence.
+                # Join the bounded race script even after an early QA-05
+                # failure. The original step exit status remains nonzero.
+                wait "$RACE_PID" || true
+              fi
+            }
+            trap hp_race_cleanup EXIT
+            echo "HP_RACE_OVERLAP=started"
+          fi
           if [[ "$UR_QA05_HP_PARALLEL_PILOT" == '1' ]]; then
             # Each child has separate Win32 PID/HWND ownership, SDL PCM,
             # user-data root, report and guest capture. Share only the
@@ -841,6 +915,23 @@ jobs:
               attempt=$((idx + 1))
               cat "$RUNNER_TEMP/qa05-parallel-$attempt.log"
             done
+            # Wait for the independent offscreen race witness before ANY
+            # serial fallback, package refresh or subsequent QA stage.
+            # Failure cannot silently earn a concurrency acceptance marker:
+            # redo the original race contract serially on cleared evidence.
+            race_rc=0
+            wait "$RACE_PID" || race_rc=$?
+            RACE_PID=''
+            trap - EXIT
+            cat "$RUNNER_TEMP/hp-race-overlap.log"
+            if [[ "$race_rc" -ne 0 ]]; then
+              echo "HP_RACE_OVERLAP=failed; serial fallback required"
+              echo "HP concurrent race witness failed; retrying authoritative serial race-result acceptance." >> "$GITHUB_STEP_SUMMARY"
+              bash tools/ci/windows_package_race_result.sh
+              echo "HP_RACE_OVERLAP=serial_fallback_passed"
+            else
+              echo "HP_RACE_OVERLAP=passed"
+            fi
             if [[ "$parallel_failed" -ne 0 ]]; then
               # Keep release QA truthful: a failed parallel experiment earns
               # no concurrent 5/5 claim. Reestablish the historical 5/5
@@ -858,10 +949,28 @@ jobs:
             for attempt in 1 2 3 4 5; do
               bash "$WORKER" "$attempt" "$LAUNCHER_WIN" "$SCRIPT_WIN"
             done
+            if [[ "$UR_QA05_HOSTED_RACE_OVERLAP_PILOT" == '1' ]]; then
+              # The real visible HWND and audio attempts stayed serial.
+              # Join the separate offscreen race before package refresh.
+              race_rc=0
+              wait "$RACE_PID" || race_rc=$?
+              RACE_PID=''
+              trap - EXIT
+              cat "$RUNNER_TEMP/hp-race-overlap.log"
+              if [[ "$race_rc" -ne 0 ]]; then
+                echo "HOSTED_RACE_OVERLAP=failed; serial fallback required"
+                echo "Hosted race overlap failed; rerunning original race-result acceptance serially." >> "$GITHUB_STEP_SUMMARY"
+                bash tools/ci/windows_package_race_result.sh
+                echo "HOSTED_RACE_OVERLAP=serial_fallback_passed"
+              else
+                echo "HOSTED_RACE_OVERLAP=passed"
+              fi
+            fi
           fi
           echo "WINDOWS_QA05_DEFAULT_RETURN_AUDIO=5/5"
 
       - name: Package refresh preserves user data
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           # Quoted PowerShell strings are intentionally passed without Bash expansion.
           set -euo pipefail
@@ -957,6 +1066,7 @@ jobs:
           echo "WINDOWS_PACKAGE_REFRESH_USER_DATA_PRESERVED ok"
 
       - name: Legacy portable state migrates once
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           LEGACY="$RUNNER_TEMP/package-legacy"
@@ -1079,6 +1189,7 @@ jobs:
           echo "WINDOWS_PACKAGE_LEGACY_MIGRATION ok"
 
       - name: Boot to main menu
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           DUMPS="$RUNNER_TEMP/boot-dumps"
@@ -1101,6 +1212,7 @@ jobs:
           PY
 
       - name: Representative package startup diagnostics
+        if: ${{ !inputs.hp_seeded_2p || inputs.run_tournament_acceptance }}
         run: |
           set -euo pipefail
           assert_bounded_startup_log() {
@@ -1385,6 +1497,17 @@ jobs:
             | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
           python tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"
 
+      - name: HP unattended real two-player seeded gameplay research
+        if: inputs.hp_seeded_2p
+        env:
+          UR_HP_RESEARCH_WALL_SECONDS: ${{ inputs.hp_research_wall_seconds }}
+        run: |
+          set -euo pipefail
+          python -m tools.hp_seeded_2p_research \
+            --exe "$EXE" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --receipt "$RUNNER_TEMP/hp-seeded-2p-research-receipt.json"
+
       # Stop the observer on success *or* failure. The numeric CSV remains in
       # the runner workspace even when Windows freezes before artifact upload.
       - name: Preserve HP resource telemetry
@@ -1403,12 +1526,13 @@ jobs:
 
       - name: Upload Windows evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: windows-native-smoke
           path: |
             ${{ runner.temp }}/*.log
             ${{ runner.temp }}/hp-commit-pressure.csv
+            ${{ runner.temp }}/hp-seeded-2p-research-receipt.json
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
             ${{ runner.temp }}/package-boot-dumps/

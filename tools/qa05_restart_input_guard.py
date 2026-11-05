@@ -12,14 +12,110 @@ import re
 
 EXPECTED_SAMPLES = 12  # g_restart_input_probe_remaining in the native host.
 GUEST_START = 0x1000
+P2_GUEST_START = 0x0100  # Unshifted 12-bit second-player word.
 PROBE = re.compile(
     r"(?m)^UR_RESTART_INPUT raw=([0-9A-Fa-f]+) guest=([0-9A-Fa-f]+) "
     r"return_held=([01]) release_waiting=([01]) host_owned=([01]) "
     r"remaining=([0-9]+)$"
 )
+P2_PROBE = re.compile(
+    r"(?m)^UR_RESTART_INPUT_P2 raw=([0-9A-Fa-f]+) guest=([0-9A-Fa-f]+) "
+    r"return_held=([01]) release_waiting=([01]) remaining=([0-9]+)"
+    r"(?: pre_restart=([0-9A-Fa-f]+) post_restart=([0-9A-Fa-f]+))?$"
+)
 
 
-def validate_restart_guest_input(log: str) -> int:
+def validate_restart_p2_guest_input(
+        log: str, *, require_raw_start_witness: bool = False) -> int:
+    """Validate P2 when present; allow old P1-only retained logs.
+
+    A P1-only log cannot establish P2 coverage. New native producers emit
+    both probes, so every P2 line must parse and the complete P2 countdown
+    must exclude its raw 12-bit Start from the guest word. The optional strict
+    mode additionally demands a non-vacuous raw P2 Start while Return is held
+    and the release latch is active; default mode retains P1-only log support.
+    """
+    emitted = [line for line in log.splitlines()
+               if line.startswith("UR_RESTART_INPUT_P2")]
+    if not emitted:
+        if require_raw_start_witness:
+            raise ValueError('P2 raw Start/held Return witness absent')
+        return 0
+    probes = list(P2_PROBE.finditer(log))
+    if len(emitted) != len(probes):
+        raise ValueError(
+            f"malformed UR_RESTART_INPUT_P2 diagnostic: "
+            f"{len(emitted)} emitted, {len(probes)} parsed"
+        )
+    if len(probes) != EXPECTED_SAMPLES:
+        raise ValueError(
+            f"expected {EXPECTED_SAMPLES} P2 post-Restart guest-word samples, "
+            f"observed {len(probes)}"
+        )
+    saw_held_raw_start = False
+    previous_waiting = None
+    for index, match in enumerate(probes):
+        raw, guest, held, waiting, remaining, pre_restart, post_restart = match.groups()
+        # Raw P2 Start is logged before the tournament filter. Guest P2
+        # Start is logged after both Restart and root-host filtering. A
+        # strict witness needs the actual intermediate words to prove that
+        # the Restart latch, rather than either neighbour, suppressed Start.
+        if require_raw_start_witness and (pre_restart is None or post_restart is None):
+            raise ValueError("source-bound P2 pre/post Restart diagnostics absent")
+        if (pre_restart is not None and post_restart is not None
+                and int(pre_restart, 16) & P2_GUEST_START
+                and waiting == '1' and int(post_restart, 16) & P2_GUEST_START):
+            raise ValueError(
+                f"P2 post-Restart sample {index + 1}: Restart filter failed to suppress Start")
+        if (int(raw, 16) & P2_GUEST_START and pre_restart is not None
+                and int(pre_restart, 16) & P2_GUEST_START
+                and post_restart is not None
+                and not int(post_restart, 16) & P2_GUEST_START
+                and held == '1' and waiting == '1'):
+            saw_held_raw_start = True
+        expected_remaining = EXPECTED_SAMPLES - index - 1
+        if int(remaining) != expected_remaining:
+            raise ValueError(
+                f"P2 post-Restart sample {index + 1}: expected remaining="
+                f"{expected_remaining}, observed {remaining}"
+            )
+        # The tournament P2 filter runs BEFORE the Restart latch. A raw
+        # Start can still be high after that filter has suppressed it. Use
+        # the actual pre-Restart word when present: if physical Return is up
+        # and Start did not reach the Restart latch, the latch MUST clear.
+        # Historical non-strict logs lack that word and retain the weaker
+        # raw-input fallback. The first sample has no known predecessor.
+        if previous_waiting is not None:
+            start_at_restart = bool(int(
+                pre_restart if pre_restart is not None else raw, 16
+            ) & P2_GUEST_START)
+            reported_waiting = waiting == '1'
+            impossible = (
+                (not previous_waiting and reported_waiting)
+                or (previous_waiting and held == '1' and not reported_waiting)
+                or (previous_waiting and held == '0' and not start_at_restart
+                    and reported_waiting)
+            )
+            if impossible:
+                raise ValueError(
+                    f"P2 post-Restart sample {index + 1}: release latch "
+                    f"transition inconsistent (previous_waiting="
+                    f"{int(previous_waiting)}, raw={raw}, return_held={held}, "
+                    f"reported_waiting={waiting})")
+        previous_waiting = waiting == '1'
+        if int(guest, 16) & P2_GUEST_START:
+            raise ValueError(
+                f"P2 post-Restart sample {index + 1}: guest Start leaked "
+                f"(raw={raw}, guest={guest}, return_held={held}, "
+                f"release_waiting={waiting})"
+            )
+    if require_raw_start_witness and not saw_held_raw_start:
+        raise ValueError('P2 raw Start/held Return witness absent at Restart filter')
+    return len(probes)
+
+
+def validate_restart_guest_input(
+        log: str, *, require_p2_start_witness: bool = False) -> int:
     """Reject missing/partial samples and *any* leaked Start in the probe window.
 
     `release_waiting` is diagnostic only: an early-disarmed latch must not
@@ -28,8 +124,13 @@ def validate_restart_guest_input(log: str) -> int:
     # A malformed probe must not disappear from the evidence merely because
     # the strict regex cannot parse it. Otherwise twelve valid lines plus a
     # truncated or corrupt guest=1000 line would falsely pass this oracle.
+    # The P2 namespace is separately parsed below. All other lines claiming
+    # the P1 diagnostic prefix must count, including missing separators,
+    # truncated words and unexpected seat suffixes. Counting only the exact
+    # prefix with a space would silently discard malformed extra P1 records.
     emitted = [line for line in log.splitlines()
-               if line.startswith("UR_RESTART_INPUT")]
+               if line.startswith("UR_RESTART_INPUT")
+               and not line.startswith("UR_RESTART_INPUT_P2")]
     probes = list(PROBE.finditer(log))
     if len(emitted) != len(probes):
         raise ValueError(
@@ -55,17 +156,26 @@ def validate_restart_guest_input(log: str) -> int:
                 f"(raw={raw}, guest={guest}, return_held={held}, "
                 f"release_waiting={waiting}, host_owned={host_owned})"
             )
+    validate_restart_p2_guest_input(
+        log, require_raw_start_witness=require_p2_start_witness)
     return len(probes)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("log", type=Path, help="Native packaged-Windows Restart log")
+    parser.add_argument(
+        '--require-p2-start-witness', action='store_true',
+        help='For a real two-seat Restart acceptance, require observed raw P2 Start while Return is held and its release latch is active')
     args = parser.parse_args()
+    log = args.log.read_text(encoding="utf-8", errors="replace")
     count = validate_restart_guest_input(
-        args.log.read_text(encoding="utf-8", errors="replace")
-    )
+        log, require_p2_start_witness=args.require_p2_start_witness)
     print(f"UR_QA05_RESTART_GUEST_WORD=passed samples={count}")
+    p2_count = validate_restart_p2_guest_input(
+        log, require_raw_start_witness=args.require_p2_start_witness)
+    if p2_count:
+        print(f"UR_QA05_RESTART_P2_GUEST_WORD=passed samples={p2_count}")
     return 0
 
 

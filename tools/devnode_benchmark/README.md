@@ -1,3 +1,6 @@
+> **October 30 update:** The October 29 comparison below is historical. The
+> exact-main HP Windows build passed in [run #41122361691](https://github.com/gamesbyian/UR-Recomp/actions/runs/41122361691), including 5/5 QA-05 and concurrent race-result. Its 220-second compile interval averaged 21.2% host CPU; static SDL3 occupied about 88 seconds. This does not meet physical H01–H07 or original/native release-gate acceptance.
+
 # Owner HP Windows runner diagnostic
 
 This manual-only workflow compares a **real repository-owned C++ Tour regression** and three Windows Python unit-test modules on the owner's permanent Windows 10 HP runner and a hosted `windows-2022` reference.
@@ -17,3 +20,95 @@ The benchmark runs the identical source test executable with CMake's **Visual St
 The service account lacks permission to create Windows symbolic links (WinError 1314). The affected symbolic-link negative test now reports an explicit **skip** without skipping separate archive, executable identity, or revision validation. Native launcher CWD comparisons use Windows case-insensitive path normalization.
 
 All results are diagnostics only: **no playable-game, original/native parity, physical machine, release-QA or artifact acceptance credit**. Do not redirect release-critical workflows merely because this small test passes. Source hashes and artifact receipts in the Actions runs remain authoritative; do not publish ROMs or user save data.
+
+
+## HP reusable static SDL3 install canary
+
+The exact native build currently recompiles SDL3 on every fresh generated
+Windows game build. The opt-in/preflighted helper
+tools/devnode_benchmark/prepare_sdl3_cache.py builds a local source-derived
+**static** SDL3 install with the same ClangCL, VS 2022, static CRT and release
+configuration. It writes a manifest containing SHA-256 of every installed
+file. An immutable identity includes the canonical source archive, the fully
+staged SDL3 source tree, ClangCL/MSBuild/CMake binaries, SDK version set and
+compiler recipe. Changed source/toolchain yields a different cache entry;
+tampered, incomplete or DLL-bearing entries are rejected.
+
+The HP main-only route uses persistent runner-local storage under the
+workspace parent, outside the temporary project generation directory. A
+failure preparing this cache leaves the existing source-FetchContent compile
+enabled. The hosted Windows PR candidate with test_hp_compiler_profile=true
+requires a valid cache-assisted build and reruns package and product checks.
+No PR can reserve the owner's HP. A selected valid install must resolve
+with find_package(SDL3 CONFIG), with source fallback disabled so a wrong
+import cannot silently pass.
+
+Current decision gate: first pass the **hosted final-head canary**, then
+observe a cold HP run and a same-key warm HP run with the exact executable,
+package and QA checks, compare wall time/CPU/memory to #41122361691, and only
+then claim a measured saving. The first cache cold build costs work and disk
+space; unchanged product acceptance rules and the separate 4K/physical
+release checks remain in force.
+
+### Recovering a corrupt local SDL3 cache safely
+
+A cache entry is a derived private build product, addressed by one 24-hex
+source/toolchain fingerprint. A corrupted entry previously forced all subsequent
+HP builds onto the slower source fallback. The recovery helper now atomically
+moves **only that direct-key private directory** to a uniquely named quarantine
+sibling, deletes that derived copy, and builds a new exact-source install.
+It refuses arbitrary path names, files, symbolic links and Windows directory
+junctions, including nested reparse points.
+
+If a rename/deletion is blocked, the current HP build uses the existing
+source fallback. The next run can reconstruct the now-free key. An interrupted
+deletion can leave an `.invalid-KEY-NONCE` sibling as diagnostic evidence;
+quarantines never count as valid caches.
+
+`HP_SDL3_CACHE=recovered` indicates recovery plus completed fresh static
+install; this is a cache **miss**, not an instantaneous hit or release gate.
+The helper never changes user folders, global installs, runner registration,
+Windows pagefile/power policy, or any source/build acceptance rule.
+
+### Linker/SDK content-sentinel fingerprint (v2 opt-in rollout)
+
+The original v1 cache identity included staged SDL3 bytes, ClangCL, MSBuild,
+CMake, build recipe and Windows SDK version names. It did not detect an
+**in-place change of bytes under an unchanged MSVC/SDK version folder**.
+
+The v2 cache identity adds a bounded SHA-256 inventory of link-relevant
+MSVC/CRT and Windows SDK paths across all installed SDK/toolset version
+directories: vcruntime/yvals headers, static libcmt/libcpmt, link/lib
+utilities, ucrt/Windows headers, core ucrt/kernel/user/gdi libraries,
+and VS LLVM lld-link where present. Missing candidates are explicit
+`absent` sentinels, and a missing/changed/redirected selected byte changes
+the cache key or fails closed. This is a high-sensitivity **sentinel** set,
+not a claim of hashing every SDK header or library. It does not change
+the compiler, static CRT, CMake options, original game binary, or QA.
+
+The new recipe version **deliberately invalidates all v1 cache hits**
+once. The first trusted HP main run recompiles the pinned static SDL3
+library and validates the same complete PE/package/gameplay tests; a
+subsequent same-key run is expected to hit. Do not compare that cold
+install cost to a v1 warm run as evidence of a speed regression.
+Repeated same-version sentinel changes must cause independent cache
+misses. Avoid adding unbounded filesystem walking or whole-SDK hashing
+that would spend the measured warm-cache savings on provenance overhead.
+
+### No reparse-point directory traversal
+
+Source-tree fingerprinting and cache-install manifest verification now walk each
+directory explicitly and reject every symbolic link and Windows junction before
+descent, including unexpected extra directories and redirected ancestors. The
+former `rglob("*") if is_file()` filter could omit an added directory link,
+leaving it outside the source fingerprint or installed-file manifest even
+though the cache directory had changed.
+
+The safer iterator produces the same sorted regular-file paths and SHA-256
+identity for an unchanged legitimate source/install tree; no recipe or toolchain
+fingerprint version bump is required. A redirected tree fails closed before
+any package is exported. On the trusted HP, cache provisioning can still use
+the existing canonical source-build fallback, subject to the same unchanged
+portable package/QA acceptance rules. Directory-link negative tests run on
+environments with symlink permission, while real Windows junction semantics
+are guarded by `Path.is_junction()` where available.

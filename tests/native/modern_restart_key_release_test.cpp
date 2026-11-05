@@ -33,4 +33,29 @@ int main() {
     assert(modern_restart_key_filter({true}, true, left).inputs == left);
     static_assert(modern_restart_key_filter({true}, true, start).inputs == 0u);
     static_assert(modern_restart_key_filter({true}, false, start).inputs == 0u);
+
+    // P2's raw 12-bit keyboard word uses Start=0x0100, not P1's
+    // post-shift 0x1000. Return confirms the host Restart for both seats.
+    constexpr std::uint32_t p2_start = 0x0100u;
+    constexpr std::uint32_t p2_right = 0x0010u;
+    auto p2 = ModernRestartKeyRelease{true};
+    auto p2_filtered = modern_restart_key_filter(
+        p2, true, p2_start | p2_right, p2_start);
+    assert(p2_filtered.inputs == p2_right);
+    assert(p2_filtered.state.awaiting_return_release);
+    p2_filtered = modern_restart_key_filter(
+        p2_filtered.state, false, p2_start | p2_right, p2_start);
+    assert(p2_filtered.inputs == p2_right);
+    assert(p2_filtered.state.awaiting_return_release);
+    p2_filtered = modern_restart_key_filter(
+        p2_filtered.state, false, p2_right, p2_start);
+    assert(p2_filtered.inputs == p2_right);
+    assert(!p2_filtered.state.awaiting_return_release);
+    p2_filtered = modern_restart_key_filter(
+        p2_filtered.state, false, p2_start | p2_right, p2_start);
+    assert(p2_filtered.inputs == (p2_start | p2_right));
+    static_assert(modern_restart_key_filter(
+        {true}, true, 0x0110u, 0x0100u).inputs == 0x0010u);
+    static_assert(modern_restart_key_filter(
+        {}, true, 0x0110u, 0x0100u).inputs == 0x0110u);
 }

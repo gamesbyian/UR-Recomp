@@ -57,6 +57,20 @@ static void stream_view(const uint8_t* wram, uint16_t* vram, uint16_t base,
 }
 
 int main(void) {
+    /* WIDE-07: no first-frame wrong-world margin publication. A one-frame
+     * stream edge recovers, while two gross mismatches force recalibration. */
+    {
+        unsigned bad = 0;
+        assert(ur_ws_mismatch_transition(0, 8, &bad) == 1 && bad == 0);
+        assert(ur_ws_mismatch_transition(8, 8, &bad) == 1 && bad == 0);
+        assert(ur_ws_mismatch_transition(9, 8, &bad) == 0 && bad == 1);
+        assert(ur_ws_mismatch_transition(8, 8, &bad) == 1 && bad == 0);
+        assert(ur_ws_mismatch_transition(200, 8, &bad) == 0 && bad == 1);
+        assert(ur_ws_mismatch_transition(200, 8, &bad) == -1 && bad == 0);
+        assert(ur_ws_mismatch_transition(0, 8, &bad) == 1 && bad == 0);
+        assert(ur_ws_mismatch_transition(-1, 8, &bad) == -1);
+        assert(ur_ws_mismatch_transition(9, 8, NULL) == -1);
+    }
     uint8_t* wram = build_wram();
     uint16_t* vram = calloc(0x8000, sizeof(uint16_t));
     assert(vram);
@@ -161,9 +175,34 @@ int main(void) {
         assert(bands[1].scroll_y == 0xA1 && bands[1].map_base_word == 0x1C00);
         assert(ur_ws_parse_bg1_bands(t, bands, 1) == 0);
 
+        /* BG1SC's two low bits select 64x32/32x64/64x64 maps.
+         * The current calibration assumes 32x32 VRAM wrapping. A valid
+         * 32x32 split must remain accepted; unsupported map sizes in
+         * either viewport must fail closed, not alias another tilemap. */
+        for (unsigned size = 1; size <= 3; size++) {
+            t[UR_WS_BG1_SC_TABLE + 1] = (uint8_t)(0x0C | size);
+            assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
+            t[UR_WS_BG1_SC_TABLE + 1] = 0x0C;
+            t[UR_WS_BG1_SC_TABLE + 3] = (uint8_t)(0x1C | size);
+            assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
+            t[UR_WS_BG1_SC_TABLE + 3] = 0x1C;
+            assert(ur_ws_parse_bg1_bands(t, bands, 2) == 2);
+        }
+
         t[UR_WS_BG1_SC_TABLE + 2] = 0x02; /* misaligned line counts */
         assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
         t[UR_WS_BG1_SC_TABLE + 2] = 0x01;
+
+        /* If only one HDMA stream ends, reject the incomplete band
+         * instead of accepting the preceding band as a false 1P view. */
+        t[UR_WS_BG1_SC_TABLE + 2] = 0x00;
+        assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
+        t[UR_WS_BG1_SC_TABLE + 2] = 0x01;
+        t[UR_WS_BG1_SCROLL_TABLE + 5] = 0x00;
+        assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);
+        t[UR_WS_BG1_SCROLL_TABLE + 5] = 0x01;
+        assert(ur_ws_parse_bg1_bands(t, bands, 2) == 2);
+
         t[UR_WS_BG1_SCROLL_TABLE] = 0xF0; /* repeat mode */
         t[UR_WS_BG1_SC_TABLE] = 0xF0;
         assert(ur_ws_parse_bg1_bands(t, bands, 2) == 0);

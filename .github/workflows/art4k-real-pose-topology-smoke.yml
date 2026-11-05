@@ -1,0 +1,65 @@
+name: ART-4K real five-pose GLB topology smoke
+on:
+  pull_request:
+    paths:
+      - "tools/art/audit_art4k_real_pose_topology.py"
+      - "tests/unit/test_audit_art4k_real_pose_topology.py"
+      - ".github/workflows/art4k-real-pose-topology-smoke.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: art4k-five-real-glb-topology-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-original-experimental-glb-topology:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install bounded real GLB decoder, no new model export
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5 trimesh==4.11.1
+      - name: Restore existing source-hash-pinned 2026 five-pose artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ur-experimental-model-review-actual-glbs
+          run-id: 41259476190
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/art4k-original-model
+      - name: Audit the five actual GLB material mesh topologies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/art/audit_art4k_real_pose_topology.py \
+            --model-review-dir "$RUNNER_TEMP/art4k-original-model/real-model-site/model-review" \
+            --out "$RUNNER_TEMP/art4k-real-pose-topology.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          row=json.loads((Path(os.environ["RUNNER_TEMP"])/"art4k-real-pose-topology.json").read_text())
+          c=row["comparison"]
+          assert c["source_material_mesh_count"]==16
+          assert c["all_five_vertex_counts_stable_meshes"]==15
+          assert c["all_five_local_positions_identical_meshes"]==9
+          assert c["all_five_face_index_arrays_stable_meshes"]==10
+          assert c["all_five_world_matrices_identical_meshes"]==0
+          assert c["all_material_meshes_safe_for_naive_glb_vertex_morph"] is False
+          assert row["original_1994_rig_or_animation_recovered"] is False
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+              out.write("### Actual source-SHA-bound five static experimental GLBs\n\n")
+              out.write("15/16 constant vertex counts, 10/16 stable triangle indexes; ")
+              out.write("direct mesh-by-index morph not supported. No 1994 pose identity.\n")
+          PY
+      - name: Retain real-model numeric source/topology receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: art4k-five-real-glb-topology
+          path: ${{ runner.temp }}/art4k-real-pose-topology.json
+          if-no-files-found: error
+          retention-days: 30

@@ -27,13 +27,12 @@ on:
       - "tools/patches/snesrecomp-dynamic-native-widescreen.patch"
       - "tools/build_display_geometry_review.py"
       - "tools/analyze_display_active_height.py"
-      - "tests/unit/test_analyze_display_active_height.py"
-      - "tests/unit/test_check_ppm.py"
+      # Python unit-only assertions run the complete tooling suite.
+      # Their source producers remain included; no native smoke for tests-only edits.
       - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_ws_margins.*"
       - "tests/native/uniracers_ws_margins_test.c"
-      - "tests/unit/test_uniracers_ws_margins_c.py"
       - "tools/patches/snesrecomp-ws-shadow-split-band.patch"
       - "tests/input/reach-first-race.script"
       - "tests/native/run_modern_root_acceptance.sh"

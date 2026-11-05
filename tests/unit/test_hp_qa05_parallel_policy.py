@@ -125,7 +125,7 @@ class HpQa05ParallelPolicyTests(unittest.TestCase):
             with self.subTest(path=path):
                 source = path.read_text(encoding="utf-8")
                 self.assertIn('      - "tools/ci/qa05_restart_attempt.sh"', source)
-                self.assertIn('      - "tests/unit/test_hp_qa05_parallel_policy.py"', source)
+                self.assertNotIn('      - "tests/unit/test_hp_qa05_parallel_policy.py"', source)
 
 
 if __name__ == "__main__":

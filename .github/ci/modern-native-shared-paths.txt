@@ -57,21 +57,8 @@ tests/native/modern_results_navigation_test.cpp
 tests/native/modern_tour_continue_test.cpp
 tests/native/multiplayer_match_pair_check.cpp
 tests/native/run_modern_results_navigation_acceptance.sh
-tests/unit/test_completed_run_browser_cpp.py
-tests/unit/test_completed_run_catalog_cpp.py
-tests/unit/test_completed_run_ghost_cpp.py
-tests/unit/test_completed_run_ghost_frame_cpp.py
-tests/unit/test_completed_run_ghost_policy_cpp.py
-tests/unit/test_completed_run_ghost_projection_cpp.py
-tests/unit/test_completed_run_ghost_racer_selector_cpp.py
-tests/unit/test_completed_run_ghost_raster_cpp.py
-tests/unit/test_completed_run_ghost_trace_cpp.py
-tests/unit/test_completed_run_ghost_world_sample_cpp.py
-tests/unit/test_completed_run_presentation_cpp.py
-tests/unit/test_completed_run_replay_cpp.py
-tests/unit/test_completed_run_store_cpp.py
-tests/unit/test_modern_results_navigation_cpp.py
-tests/unit/test_modern_results_navigation_host_contract.py
+# Python-only C++ assertion wrappers are covered by the complete tooling
+# unit suite. Keep native producers and acceptance executors above routed.
 tools/bootstrap_toolchain.py
 tools/patch_modern_product_host.py
 tools/patches/snesrecomp-frame-input-observation.patch

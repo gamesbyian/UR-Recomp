@@ -1,0 +1,62 @@
+{
+  "schema": "UR-ART4K-REAL-HOSTED-CHROMATIC-AXIS-EVIDENCE/1",
+  "date_utc": "2026-11-01",
+  "source_corpus_artifact_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41280281930/artifacts/13072358512",
+  "source_artifact_zip_sha256": "219c611bf644eefd4803de5bf5001e78abec315d13388dbf9d7d4e13b69c6a0a",
+  "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_source_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "frozen_source_split_sha256": "a85718f5171c9ba0cf39b4557e9fd91057175508de7b83a9d73adfac6063b825",
+  "original_source_verified_binary_silhouette_groups": 35,
+  "source_representation_count": 59,
+  "independent_binary_groups_by_role": {
+    "fit": 16,
+    "withheld_candidate": 19
+  },
+  "assay": "red chroma P1 R>=64,R>2G,R>2B; blue chroma P2 B>=64,B>2G,B>2R; eigenvector from original 64x64 source pixel coordinates (x versus positive screen-down y). No semantic 3D mesh part segmentation",
+  "original_source_chromatic_axis_by_role_and_player": {
+    "fit_p1": {
+      "original_representation_count": 20,
+      "independent_binary_source_shapes": 12,
+      "mean_screen_axis_degrees": 0.948333,
+      "minimum_screen_axis_degrees": -22.398,
+      "maximum_screen_axis_degrees": 22.228
+    },
+    "fit_p2": {
+      "original_representation_count": 20,
+      "independent_binary_source_shapes": 10,
+      "mean_screen_axis_degrees": -1.3163,
+      "minimum_screen_axis_degrees": -21.873,
+      "maximum_screen_axis_degrees": 43.218
+    },
+    "withheld_p1": {
+      "original_representation_count": 16,
+      "independent_binary_source_shapes": 16,
+      "mean_screen_axis_degrees": 39.809375,
+      "minimum_screen_axis_degrees": 38.474,
+      "maximum_screen_axis_degrees": 41.006,
+      "pca_major_variance_fraction_range": [
+        0.93962,
+        0.95854
+      ]
+    },
+    "withheld_p2": {
+      "original_representation_count": 3,
+      "independent_binary_source_shapes": 3,
+      "mean_screen_axis_degrees": 16.99,
+      "minimum_screen_axis_degrees": -31.156,
+      "maximum_screen_axis_degrees": 43.218
+    }
+  },
+  "exact_chromatic_source_mask_shared_across_fit_and_withheld": "10ec956ef676bdfb5adc91af7df2a9896b75f499746d81e885def3ed9234a479",
+  "cross_role_same_chromatic_mask_original_binary_shapes": {
+    "fit": "e20c732a60a6f3af9317532797046a46f77acb00736200724657df5650a9a2d5",
+    "withheld": "7de56a60120d3c077f613f35b28aeae89658c504b4413aa16e67067d5fe833a6"
+  },
+  "interpretation": "Source-authenticated colour-region projected orientations reveal P1 original withheld poses are a narrow diagonal ~40-degree family; older first-family has near-upright or opposite tilts. Differing whole-raster binary masks can still share identical chromatic body-region masks; a shape-disjoint 2D holdout is NOT a semantically novel pose or verified independent 3D view.",
+  "original_1994_physical_3d_camera_identified": false,
+  "original_3d_lean_or_pose_angle_recovered": false,
+  "pixel_indicator_is_authentic_original_3d_body_geometry": false,
+  "independent_original_3d_camera_heldout": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false
+}

@@ -1,0 +1,85 @@
+{
+  "schema": "UR-ART4K-REAL-SOURCE-WHEEL-FORK-2X2-PINNED-SUMMARY/1",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "real_run_id": 41362035377,
+  "actual_numeric_artifact_id": 13105567229,
+  "numeric_zip_sha256": "614b003f586e8f6147322792d53da9be3b15be0a0adf9c893950c1a9889c94a1",
+  "full_source_report_sha256": "cabf78c1e54c02911f7d7c27f210c74e2e0492acf76cb3ab7beaa9bea871611c",
+  "source_GLB_original_fork_sha256": "ffa14324c10c50b68400fbfab4285d893b248d081a50361c01d09937dd03bc04",
+  "source_GLB_1p4_fork_sha256": "5531438b95c97dc0508790247aa3f5889f7c0d96d9079ba2970529cb1e05fa53",
+  "original_source_2D_binary_masks": 35,
+  "src_2D_disconnected_mask_count": 19,
+  "candidates": [
+    "fork1.0_wheel1.0",
+    "fork1.0_wheel1.1",
+    "fork1.4_wheel1.0",
+    "fork1.4_wheel1.1"
+  ],
+  "heldout_source_2D_19": {
+    "fork1p0_wheel1p0": {
+      "iou": 0.38192089,
+      "boundary_chamfer": 3.07819813
+    },
+    "fork1p0_wheel1p1": {
+      "iou": 0.41491323,
+      "boundary_chamfer": 2.96055248
+    },
+    "fork1p4_wheel1p0": {
+      "iou": 0.38824958,
+      "boundary_chamfer": 3.08501689
+    },
+    "fork1p4_wheel1p1": {
+      "iou": 0.42076398,
+      "boundary_chamfer": 2.97186444,
+      "wins_vs_wheel_only": 19,
+      "losses_vs_wheel_only": 0,
+      "delta_iou_vs_wheel_only": 0.00585074
+    }
+  },
+  "all_35_original_2D": {
+    "fork1p0_wheel1p0": {
+      "iou": 0.46002071,
+      "boundary_chamfer": 2.21000258
+    },
+    "fork1p0_wheel1p1": {
+      "iou": 0.49030377,
+      "boundary_chamfer": 2.12007021
+    },
+    "fork1p4_wheel1p0": {
+      "iou": 0.46835083,
+      "boundary_chamfer": 2.21154999
+    },
+    "fork1p4_wheel1p1": {
+      "iou": 0.49816283,
+      "boundary_chamfer": 2.12214899,
+      "wins_vs_wheel_only": 35,
+      "delta_iou_vs_wheel_only": 0.00785906
+    }
+  },
+  "limitations": {
+    "compared_original_source_shapes_not_1994_independent_3D_views": true,
+    "reused_35_2D_masks_already_inspected_when_selecting_candidates": true,
+    "fixed_provisional_source_camera": true,
+    "authentic_original_1994_3D_camera_and_pose_mapping": false,
+    "physical_1994_wheel_track_contact_recovered": false,
+    "source_rig_default_changed": false,
+    "owner_character_likeness_approved": false,
+    "shipping_art_approved": false
+  },
+  "recommendation": "Combined 1.4 fork and 1.10 wheel has highest absolute IoU on the 19 SHA-disjoint original 2D masks, but its signed factorial interaction is negative on all 35 masks, and physical-pixel boundary Chamfer slightly worsens versus wheel-only. Keep source rig/default unchanged; use optional A/B and independently inspect original-scale silhouette, edges, contact and likeness before any art approval.",
+  "independent_posthoc_factorial_contrast_from_retained_report": {
+    "formula": "both - wheel_only - fork_only + unchanged",
+    "source": "independent per-mask re-evaluation of original 35-mask report; historical report hash above remains unchanged",
+    "source_disconnected_19": {
+      "mean_iou_interaction": -0.00047794,
+      "positive_mask_count": 0,
+      "negative_mask_count": 19
+    },
+    "all_known_35": {
+      "mean_iou_interaction": -0.00047105,
+      "positive_mask_count": 0,
+      "negative_mask_count": 35
+    },
+    "conclusion": "highest absolute IoU but subadditive crossed effects; no positive synergy or art acceptance"
+  }
+}

@@ -2,6 +2,8 @@
 
 **Status: visual direction reset, 2026-10-10.** Project-owner review of recruitment footage rejects the current procedural 4× HD unicycles as an acceptable visual realization of the original characters. They may be technically correct test assets but **are not approved as finished Remastered character art**. This decision is prospective and does not erase historical pose/hash approvals or evidence of technical correctness. Do not assert that visual likeness has been accepted because `analysis/data/racer-hd-art-approval*.json` says `shipping_art_approved: true`; those artifacts document the *prior* review under a narrower rubric.
 
+**Inverse-graphics engineering companion (2026-10-31):** [source-registered technical specification](HD-RACER-INVERSE-GRAPHICS-SPEC.md) and [executable delivery plan](HD-RACER-INVERSE-GRAPHICS-PLAN.md). These reuse the original-source reference tooling and the existing unapproved shared GLB blockout from draft #2832; they do not override this visual veto or award likeness approval.
+
 ## Target
 
 The target is **recognizably the same charming, rounded, pre-rendered 3D unicycle characters** from the original game's prominent, large-scale presentations: the animated original title/menu imagery where applicable, original packaging, manual and period promotional material, interpreted with ROM gameplay sprites. These have character and mass. Making a mechanically plausible contemporary bicycle, a minimalist icon, or a detailed pixel-art tracing misses that identity.

@@ -1,0 +1,99 @@
+{
+  "schema": "UR-ART4K-REAL-SCAD-ORIGINAL-ROM-MASS-HOLDOUT-RECEIPT/1",
+  "source_run_id": 41360120641,
+  "artifact_id": 13105170134,
+  "numeric_archive_sha256": "e477845b3957b1adb8b7277b85065d9b2c5d252800bdcf5caa28b5985a79680a",
+  "full_report_sha256": "7b1b0bef1106a2b11dc6d5b4997babc9e0b974889b9c2f2479944a277ef732f7",
+  "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "scad_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "original_masks": 35,
+  "original_training_family_10_mask_default_mean_iou": 0.57255469,
+  "preselected_frame_mass_factors": [
+    1,
+    1.4,
+    2
+  ],
+  "per_family": {
+    "prior_fit_component_16": [
+      {
+        "mass": 1,
+        "mean_iou": 0.55276425,
+        "chamfer": 1.17902036,
+        "wins": 0,
+        "losses": 0
+      },
+      {
+        "mass": 1.4,
+        "mean_iou": 0.56347107,
+        "chamfer": 1.17430805,
+        "wins": 16,
+        "losses": 0
+      },
+      {
+        "mass": 2,
+        "mean_iou": 0.5655327,
+        "chamfer": 1.17075647,
+        "wins": 11,
+        "losses": 5
+      }
+    ],
+    "withheld_19_sha_disjoint_2d_masks": [
+      {
+        "mass": 1,
+        "mean_iou": 0.38192089,
+        "chamfer": 3.07819813,
+        "wins": 0,
+        "losses": 0
+      },
+      {
+        "mass": 1.4,
+        "mean_iou": 0.38824958,
+        "chamfer": 3.08501689,
+        "wins": 19,
+        "losses": 0
+      },
+      {
+        "mass": 2,
+        "mean_iou": 0.3732569,
+        "chamfer": 3.05194882,
+        "wins": 0,
+        "losses": 19
+      }
+    ],
+    "all_35": [
+      {
+        "mass": 1,
+        "mean_iou": 0.46002071,
+        "chamfer": 2.21000258,
+        "wins": 0,
+        "losses": 0
+      },
+      {
+        "mass": 1.4,
+        "mean_iou": 0.46835083,
+        "chamfer": 2.21154999,
+        "wins": 35,
+        "losses": 0
+      },
+      {
+        "mass": 2,
+        "mean_iou": 0.46115441,
+        "chamfer": 2.19197518,
+        "wins": 11,
+        "losses": 24
+      }
+    ]
+  },
+  "caveats": {
+    "actual_2026_OpenSCAD_five_source_parts_exported": true,
+    "original_1994_source_pngs_authenticated": true,
+    "candidate_selected_on_original_training_family": true,
+    "withheld_masks_disjoint_by_binary_sha": true,
+    "independent_original_1994_camera_views_established": false,
+    "physical_ground_contact_recovered": false,
+    "original_3D_rig_pose_mapping_verified": false,
+    "canonical_2026_rig_modified": false,
+    "owner_likeness_approved": false,
+    "shipping_art_approved": false
+  }
+}

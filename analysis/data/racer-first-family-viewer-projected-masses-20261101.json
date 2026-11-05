@@ -1,0 +1,163 @@
+{
+  "schema": "UR-RACER-FIRST-FAMILY-VIEWER-ARTIFACT-PROJECTED-MASS-BASELINE/1",
+  "date_utc": "2026-11-01",
+  "source_artifact": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41259476190/artifacts/13063969312",
+  "source_extracted_from": "real-model-site/model-review/sprites.json and all 14 original sprite PNG assets",
+  "original_sprite_rail_sha256": "523f5a99388f6f63791d3516907c9a8fa771b7467f7feb61e20378485820509d",
+  "source_usa_rom_sha256_declared_in_authenticated_rail": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "verified_original_png_file_sha_against_rail": true,
+  "source_manifest_authentication_authority": "Merged #2938/#2944; this local analysis checked the exact 32 rail frame references and SHA of their 14 named PNGs. It did not reextract the ROM.",
+  "original_logical_raster": [
+    64,
+    64
+  ],
+  "original_pixel_aspect": "7:6",
+  "first_family_guest_frames": [
+    1205,
+    1220
+  ],
+  "source_observations": 32,
+  "unique_original_binary_masks": 10,
+  "independent_masks_per_player": {
+    "p1": 6,
+    "p2": 4
+  },
+  "source_window_rows_inclusive": {
+    "putative_saddle_upper": [
+      0,
+      9
+    ],
+    "putative_wheel_lower": [
+      22,
+      38
+    ]
+  },
+  "equal_shape_mean_source_ratios": {
+    "p1": {
+      "upper_width_over_lower_height": 1.086601,
+      "lower_width_over_lower_height": 1.235294,
+      "upper_center_x_minus_lower_center_x_over_lower_height": -0.154412,
+      "lower_center_y_minus_upper_center_y_over_lower_height": 1.431372,
+      "intermass_clear_rows_over_lower_height": 0.705882
+    },
+    "p2": {
+      "upper_width_over_lower_height": 1.080882,
+      "lower_width_over_lower_height": 1.235294,
+      "upper_center_x_minus_lower_center_x_over_lower_height": 0.128676,
+      "lower_center_y_minus_upper_center_y_over_lower_height": 1.397059,
+      "intermass_clear_rows_over_lower_height": 0.705882
+    }
+  },
+  "candidate_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+  "candidate_geometry_source_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "candidate_unapproved_static_2026_world_xz_part_bounds": {
+    "tire": [
+      -1,
+      0,
+      1,
+      2
+    ],
+    "saddle": [
+      -0.9689,
+      3.0505,
+      1.00957,
+      3.66948
+    ]
+  },
+  "candidate_ideal_xz_side_projection_ratios": {
+    "saddle_width_over_tire_diameter": 0.989245,
+    "tire_width_over_tire_height": 1,
+    "saddle_to_tire_vertical_center_separation_over_tire_diameter": 1.18,
+    "saddle_to_tire_vertical_clearance_over_tire_diameter": 0.52526
+  },
+  "comparison_limit": "1994 raster 7:6 projected occupancy slices and ideal side-orthographic 2026 model bounds are non-equivalent sources; camera, original 3D part segmentation and pose identity unknown. These differences are hypotheses, not fit errors in a known shared camera.",
+  "authentic_original_3d_camera_identified": false,
+  "original_frame_to_blockout_pose_mapped": false,
+  "independent_other_original_pose_family_holdout_tested": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false,
+  "next_action": "Test locked camera hypotheses against a genuinely separate ROM pose family before editing wheel aspect, saddle offset or part pivots.",
+  "candidate_experimental_2026_model_glb": "real-model-site/model-review/assets/d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1/upright-efdc8425f252b4a0.glb",
+  "source_registration_note": "Original raster PNGs SHA-rechecked against the previously authenticated real-model viewer sprite rail; project checkout CLI separately rechecks full original stock/registry provenance via existing corpus builder.",
+  "locked_camera_ablation": {
+    "source": "Real SHA-verified 2026 upright 16-mesh GLB with original 10 distinct P1/P2 64px binary source masks; exact fixed side projection uses 9.5 logical vertical px/world unit, original source anchor [67,76] half-pixels, horizontal 6/7 correction, source-registered bottom-alpha X shifts; no per-frame crop or fitted pose",
+    "original_source_contact_alignment": "Every source shape shifted only by independently registered bottom-alpha anchor delta in exact logical pixels; equivalent to existing source-registered pose matrix.",
+    "source_pose_to_glb_pose_mapping_verified": false,
+    "wheel_and_rim_only_scale_world_x": {
+      "0.90": {
+        "mean_iou": 0.5293868,
+        "worst_iou": 0.43576826,
+        "model_opaque_logical_px": 249
+      },
+      "1.00": {
+        "mean_iou": 0.57255469,
+        "worst_iou": 0.47607053,
+        "model_opaque_logical_px": 267
+      },
+      "1.05": {
+        "mean_iou": 0.59453184,
+        "worst_iou": 0.49748744,
+        "model_opaque_logical_px": 277
+      },
+      "1.10": {
+        "mean_iou": 0.59883507,
+        "worst_iou": 0.50123457,
+        "model_opaque_logical_px": 289
+      },
+      "1.15": {
+        "mean_iou": 0.55958054,
+        "worst_iou": 0.47215496,
+        "model_opaque_logical_px": 289
+      },
+      "1.20": {
+        "mean_iou": 0.53307955,
+        "worst_iou": 0.44941176,
+        "model_opaque_logical_px": 297
+      },
+      "1.25": {
+        "mean_iou": 0.51693964,
+        "worst_iou": 0.4372093,
+        "model_opaque_logical_px": 299
+      },
+      "1.30": {
+        "mean_iou": 0.51407376,
+        "worst_iou": 0.43820225,
+        "model_opaque_logical_px": 321
+      }
+    },
+    "whole_model_camera_horizontal_factor_no_geometry_change": {
+      "0.8571428571428571": {
+        "mean_iou": 0.57255469,
+        "model_opaque_logical_px": 267
+      },
+      "1.0": {
+        "mean_iou": 0.55147386,
+        "model_opaque_logical_px": 305
+      },
+      "1.1666666666666667": {
+        "mean_iou": 0.47328884,
+        "model_opaque_logical_px": 369
+      }
+    },
+    "note": "The one-model first-family upright-only fit supports a bounded wheel/rim geometry hypothesis relative to a global camera stretch; no independent original family held out, 1994 3D pose/camera authenticity or approval. This is not a shipping mesh or automatic parameter selection.",
+    "per_player_silhouette_mean_by_wheel_factor": {
+      "1.00": {
+        "p1": 0.58607617,
+        "p2": 0.55227247
+      },
+      "1.05": {
+        "p1": 0.60788672,
+        "p2": 0.57449953
+      },
+      "1.10": {
+        "p1": 0.61264834,
+        "p2": 0.57811516
+      },
+      "1.15": {
+        "p1": 0.57259866,
+        "p2": 0.54005335
+      }
+    },
+    "per_player_warning": "Both player sets were examined during factor exploration; P2 must NOT be falsely labelled held-out. A distinct additional original source family must be frozen and evaluated before refitting canonical wheel geometry."
+  }
+}

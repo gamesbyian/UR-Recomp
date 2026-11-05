@@ -1,0 +1,267 @@
+{
+  "schema": "UR-ART4K-LIVE40-FROZEN-ORIGINAL-SOURCE-TILE-CONTENT-NOVELTY/1",
+  "original_live_Mesen_source_run_id": 41605614082,
+  "original_live_Mesen_source_artifact_id": 13217381754,
+  "original_live_Mesen_source_zip_sha256": "709fbc2a1cd94b888d8ae0d43894c42c5d455bd968f6bc11f26e710f44e2788f",
+  "historical_original_corpus_artifact_id": 13194096004,
+  "historical_original_corpus_zip_sha256": "82e913865dfb5ab7936d27257651efa5b6d4ae1906eb1b33c2ea87fe1366fc9c",
+  "historical_original_index_census_artifact_id": 13183968725,
+  "historical_original_index_census_zip_sha256": "82775dd1fb96486a61d4e93f73ea081ef3a19ddf3cb34a22cd82084efcfc1d34",
+  "historical_original_tile_lineage_artifact_id": 13194250673,
+  "historical_original_tile_lineage_zip_sha256": "aed5a4a0a206800f335001f24c664b4fa5d243ddffd9ec6dd346f14913aa63fc",
+  "historical_original_holdout_artifact_id": 13193992845,
+  "historical_original_holdout_zip_sha256": "a6622c7b37159a1a558868b2908f1d95950f6c6bf9f1d42aa5230d06cd2b587a",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "historical_verified_representations": 59,
+  "historical_4bpp_planes": 35,
+  "historical_nonblank_unique_tiles": 250,
+  "historical_nonblank_shared_pair_count": 170,
+  "frozen_historical_role_counts": {
+    "fit": 16,
+    "withheld": 19,
+    "strict_six": 6
+  },
+  "new_live_40_source_summary": {
+    "source_frames": 40,
+    "known_historical_fit": 1,
+    "known_historical_withheld": 1,
+    "new_unclassified": 38,
+    "new_sharing_at_least_one_historical_fit_tile": 29,
+    "new_sharing_at_least_one_historical_withheld_tile": 0,
+    "new_sharing_no_historical_tile": 9,
+    "new_union_distinct_nonblank_tiles": 307,
+    "new_tile_contents_absent_in_historical_corpus": 247,
+    "all_live_40_source_pairs_sharing_content": 86,
+    "new_index_plane_tile_connected_components": 11,
+    "new_components_with_no_fit_or_withheld_tile_connection": 3
+  },
+  "live_new_38_content_components": [
+    {
+      "source_ticks_and_racers": [
+        [
+          1601,
+          "blue"
+        ],
+        [
+          1607,
+          "red"
+        ],
+        [
+          1618,
+          "red"
+        ],
+        [
+          1631,
+          "red"
+        ],
+        [
+          1648,
+          "red"
+        ],
+        [
+          1809,
+          "red"
+        ],
+        [
+          1852,
+          "red"
+        ],
+        [
+          2072,
+          "red"
+        ],
+        [
+          2139,
+          "red"
+        ]
+      ],
+      "shares_precommitted_fit_tile": true,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          1607,
+          "blue"
+        ],
+        [
+          1618,
+          "blue"
+        ],
+        [
+          1631,
+          "blue"
+        ],
+        [
+          1731,
+          "blue"
+        ],
+        [
+          1768,
+          "blue"
+        ],
+        [
+          1768,
+          "red"
+        ],
+        [
+          2139,
+          "blue"
+        ],
+        [
+          2210,
+          "red"
+        ]
+      ],
+      "shares_precommitted_fit_tile": true,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          1648,
+          "blue"
+        ],
+        [
+          1671,
+          "blue"
+        ],
+        [
+          1700,
+          "blue"
+        ],
+        [
+          2011,
+          "blue"
+        ]
+      ],
+      "shares_precommitted_fit_tile": false,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          1671,
+          "red"
+        ],
+        [
+          1700,
+          "red"
+        ],
+        [
+          1731,
+          "red"
+        ],
+        [
+          2283,
+          "blue"
+        ]
+      ],
+      "shares_precommitted_fit_tile": false,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          1852,
+          "blue"
+        ],
+        [
+          1899,
+          "blue"
+        ],
+        [
+          2210,
+          "blue"
+        ]
+      ],
+      "shares_precommitted_fit_tile": true,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          2011,
+          "red"
+        ],
+        [
+          2072,
+          "blue"
+        ],
+        [
+          2362,
+          "red"
+        ]
+      ],
+      "shares_precommitted_fit_tile": true,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          1899,
+          "red"
+        ],
+        [
+          2362,
+          "blue"
+        ]
+      ],
+      "shares_precommitted_fit_tile": true,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          2283,
+          "red"
+        ],
+        [
+          2445,
+          "red"
+        ]
+      ],
+      "shares_precommitted_fit_tile": true,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          1809,
+          "blue"
+        ]
+      ],
+      "shares_precommitted_fit_tile": true,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          1952,
+          "red"
+        ]
+      ],
+      "shares_precommitted_fit_tile": true,
+      "shares_precommitted_withheld_tile": false
+    },
+    {
+      "source_ticks_and_racers": [
+        [
+          2445,
+          "blue"
+        ]
+      ],
+      "shares_precommitted_fit_tile": false,
+      "shares_precommitted_withheld_tile": false
+    }
+  ],
+  "source_history_59_original_RGBA_to_exact_source_4bpp_indices_recovered_by_independent_SHA": true,
+  "historical_35_original_4bpp_source_exact_170_pair_tile_lineage_reproduced": true,
+  "historic_source_2D_plane_exact_reuse_for_red1601_withheld_and_blue1952_fit": true,
+  "historical_fit_or_withheld_index_membership_modified": false,
+  "new_live_sources_assigned_a_fitting_or_holdout_role": false,
+  "original_1994_three_dimensional_pose_labels_recovered": false,
+  "source_to_experimental_2026_GLb_pose_alignment_verified": false,
+  "owner_likeness_approved": false,
+  "interpretation": "Exact nonblank 8x8 source tile identity is content provenance, not an original 3D joint/pose or genuine blind holdout. All 38 new source plane identities remain unclassified. Nine novel planes in three connected groups (4/4/1) share no nonblank tiles with frozen 35-plane history. Future validation requires a preregistered new model and independent pose evidence; historical/inspected GLB scores are retrospective."
+}

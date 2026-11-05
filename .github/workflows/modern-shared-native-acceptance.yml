@@ -258,6 +258,7 @@ jobs:
             ${{ runner.temp }}/ghost-target-profile/profile-save/host-profile.txt
             ${{ runner.temp }}/ghost-target-profile/*-dumps/*.wram.bin
           if-no-files-found: ignore
+          retention-days: 14
 
 
   profile-panel:
@@ -429,6 +430,7 @@ jobs:
             ${{ runner.temp }}/modern-profile-panel/host-state-v6.txt
             ${{ runner.temp }}/modern-profile-panel/dumps/*.wram.bin
           if-no-files-found: ignore
+          retention-days: 14
 
   results-navigation:
     needs: build
@@ -584,6 +586,7 @@ jobs:
           path: |
             ${{ runner.temp }}/capture.log
             ${{ runner.temp }}/acceptance-dumps/
+          retention-days: 14
 
 
 

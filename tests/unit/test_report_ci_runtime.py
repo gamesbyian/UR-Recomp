@@ -1,10 +1,62 @@
 import unittest
 from datetime import datetime, timezone
+from pathlib import Path
 
-from tools.report_ci_runtime import summarize, markdown, job_parallelism_profile
+from tools.report_ci_runtime import (
+    summarize, markdown, job_parallelism_profile, untrusted_job_completion_time,
+    step_bucket, needs_job_detail,
+)
 
 
 class CiRuntimeReportTest(unittest.TestCase):
+    def test_wholly_skipped_workflow_preserves_run_without_job_api_request(self):
+        # Recent live repository run history contained 46 whole-workflow
+        # skips among 100 records. None executed a runner; the run census
+        # remains complete, while per-run job API calls should be avoided.
+        self.assertFalse(needs_job_detail(
+            {"status": "completed", "conclusion": "skipped"}))
+        for run in (
+            {"status": "completed", "conclusion": "success"},
+            {"status": "completed", "conclusion": "failure"},
+            {"status": "completed", "conclusion": "cancelled"},
+            {"status": "in_progress", "conclusion": "skipped"},
+            {"status": "queued", "conclusion": None},
+            {"status": "completed"},
+            {},
+        ):
+            with self.subTest(run=run):
+                self.assertTrue(needs_job_detail(run))
+        workflow = (Path(__file__).resolve().parents[2]
+                    / ".github/workflows/ci-runtime-report.yml").read_text(
+                        encoding="utf-8")
+        scope = workflow.split(
+            "      - name: Export job and step timings", 1)[1].split(
+            "      - name: Build measured runtime report", 1)[0]
+        self.assertIn("from tools.report_ci_runtime import needs_job_detail", scope)
+        self.assertIn("if not needs_job_detail(run):", scope)
+        self.assertIn('return {"run_id": run_id, "jobs": []}', scope)
+        self.assertIn("list(pool.map(fetch_jobs, population))", scope)
+        self.assertIn("one or more API requests each", scope)
+
+        # The data reducer must retain the skipped event in its numerator,
+        # rather than silently making the sampled run population appear
+        # smaller after the job-detail request is suppressed.
+        skipped = {"id": 17, "name": "Comment dispatch", "event": "issue_comment",
+                   "status": "completed", "conclusion": "skipped",
+                   "created_at": "2026-10-30T01:00:00Z",
+                   "run_started_at": "2026-10-30T01:00:00Z",
+                   "updated_at": "2026-10-30T01:00:01Z"}
+        report = summarize(
+            {"workflow_runs": [skipped], "total_count": 1},
+            72, datetime(2026, 10, 31, tzinfo=timezone.utc),
+            jobs_payload={"runs": [{"run_id": 17, "jobs": []}]},
+        )
+        self.assertEqual(report["included_runs"], 1)
+        self.assertEqual(report["workflows"][0]["runs"], 1)
+        self.assertEqual(report["workflows"][0]["events"], {"issue_comment": 1})
+        self.assertEqual(report["workflows"][0]["runner_seconds"], 0)
+        self.assertEqual(report["workflows"][0]["jobs"], 0)
+
     def test_groups_and_sorts_by_total_runtime(self):
         payload = {"workflow_runs": [
             {"id": 1, "name":"A","status":"completed","conclusion":"success","created_at":"2026-10-03T00:00:00Z","run_started_at":"2026-10-03T00:00:00Z","updated_at":"2026-10-03T00:10:00Z"},
@@ -81,6 +133,37 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["total_wall_seconds"], 600)
         self.assertEqual(row["avg_wall_seconds"], 600)
         self.assertEqual(row["max_wall_seconds"], 600)
+
+    def test_hosted_sdl3_cache_preparation_is_measured_as_dependency(self):
+        # A ~110-second static SDL3 preparation step previously disappeared
+        # into the "other" bucket of the cost/critical-path report. Measure
+        # restore and save overhead with the same dependency boundary.
+        for step in (
+            "Restore hosted Windows verified SDL3 candidate",
+            "Prepare source-pinned static SDL3 cache (HP and hosted canary)",
+            "Save hosted Windows verified SDL3 candidate",
+            # Actual 2026-10-31 main-push #41170106640 seed step names.
+            "Restore hosted main-branch SDL3 seed",
+            "Validate isolated hosted main SDL3 seed",
+            "Save verified hosted main-branch SDL3 seed",
+        ):
+            with self.subTest(step=step):
+                self.assertEqual(step_bucket(step), "dependency")
+        self.assertEqual(step_bucket("Configure and build (Visual Studio, ClangCL, SDL3)"),
+                         "build")
+        self.assertEqual(step_bucket("QA-05 packaged Windows Restart audio witness"),
+                         "execution")
+        self.assertEqual(step_bucket("QA-09 packaged Windows controller root witness"),
+                         "execution")
+        self.assertEqual(step_bucket("Prove deterministic route acceptance"),
+                         "execution")
+        # Previous substring detection for "apt" wrongly matched cAPTure,
+        # causing a genuine capture/execution to be charged to dependencies.
+        self.assertEqual(step_bucket("Capture native frame evidence"), "execution")
+        self.assertEqual(step_bucket("apt-get install dependencies"), "dependency")
+        self.assertEqual(step_bucket("apt update"), "dependency")
+        self.assertEqual(step_bucket("Unrelated main-branch SDL3 seed audit"), "other")
+        self.assertEqual(step_bucket("Unrelated housekeeping"), "other")
 
     def test_reports_queue_and_step_buckets(self):
         payload = {"workflow_runs": [{
@@ -215,6 +298,57 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["mean_active_jobs"], 0)
         self.assertEqual(row["peak_active_jobs"], 0)
 
+
+    def test_dst_repeated_hour_never_adds_phantom_runner_hour(self):
+        # Actual HP Actions #41286835360: the source-owned final step/log
+        # ended 08:10Z, but Actions job completed_at/updated_at said 09:10Z.
+        # Keep valid science-step timing and distinguish invalid job/run wall.
+        run = {"id": 41286835360, "name": "HP science",
+               "status": "completed", "conclusion": "success",
+               "created_at": "2026-11-01T07:57:39Z",
+               "run_started_at": "2026-11-01T07:57:39Z",
+               "updated_at": "2026-11-01T09:10:52Z"}
+        job = {"started_at": "2026-11-01T07:57:43Z",
+               "completed_at": "2026-11-01T09:10:52Z",
+               "conclusion": "success",
+               "steps": [
+                   {"name": "HP unattended real two-player seeded gameplay research",
+                    "started_at": "2026-11-01T08:03:08Z",
+                    "completed_at": "2026-11-01T08:10:40Z"},
+                   {"name": "Post job cleanup", "started_at": "2026-11-01T08:10:44Z",
+                    "completed_at": "2026-11-01T08:10:48Z"},
+               ]}
+        now = datetime(2026, 11, 1, 8, 11, tzinfo=timezone.utc)
+        self.assertTrue(untrusted_job_completion_time(job))
+        self.assertIsNone(job_parallelism_profile([job]))
+        report = summarize({"workflow_runs": [run], "total_count": 1},
+                           24, now,
+                           {"runs": [{"run_id": run["id"], "jobs": [job]}]})
+        result = report["workflows"][0]
+        self.assertEqual(result["runs"], 1)
+        self.assertEqual(result["timed_completed_runs"], 0)
+        self.assertEqual(result["completed_runs_missing_wall_timing"], 1)
+        self.assertEqual(result["runner_seconds"], 0)
+        self.assertEqual(result["runs_missing_job_timing"], 1)
+        self.assertEqual(result["untrusted_job_completion_timestamps"], 1)
+        self.assertEqual(result["untrusted_run_completion_timestamps"], 1)
+        self.assertIn("Timestamp anomalies excluded: 1 job interval(s)", markdown(report))
+        # The same bogus hour remains recognizable after the wall clock
+        # catches up. A real bounded end immediately after cleanup is fine.
+        later = summarize({"workflow_runs": [run], "total_count": 1},
+                          24, datetime(2026, 11, 1, 12, tzinfo=timezone.utc),
+                          {"runs": [{"run_id": run["id"], "jobs": [job]}]})
+        self.assertEqual(later["workflows"][0]["runner_seconds"], 0)
+        good_run = dict(run, updated_at="2026-11-01T08:10:52Z")
+        good_job = dict(job, completed_at="2026-11-01T08:10:52Z")
+        self.assertFalse(untrusted_job_completion_time(good_job))
+        valid = summarize({"workflow_runs": [good_run], "total_count": 1},
+                          24, now, {"runs": [{"run_id": run["id"],
+                                             "jobs": [good_job]}]})["workflows"][0]
+        self.assertEqual(valid["untrusted_job_completion_timestamps"], 0)
+        self.assertEqual(valid["untrusted_run_completion_timestamps"], 0)
+        self.assertEqual(valid["timed_completed_runs"], 1)
+        self.assertEqual(valid["runner_seconds"], 789)
 
     def test_detects_close_same_source_cross_workflow_builds_only(self):
         source = "a" * 40

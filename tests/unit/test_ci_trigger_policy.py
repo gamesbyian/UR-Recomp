@@ -687,6 +687,33 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn("cmake --build", routes)
         self.assertIn("widescreen-4x3-candidates", routes)
 
+    def test_native_smoke_avoids_python_unit_only_edits_but_keeps_producers(self):
+        native = (WORKFLOWS / "native-build-smoke.yml").read_text(
+            encoding="utf-8")
+        tooling = (WORKFLOWS / "tooling-unit-tests.yml").read_text(
+            encoding="utf-8")
+        native_pr = _block(native, "pull_request")
+        tooling_pr = _block(tooling, "pull_request")
+        self.assertIn('      - "tests/unit/**"', tooling_pr)
+        # The native workflow does not run Python unittest. Its real
+        # executable/source contracts must still invalidate native smoke.
+        for source in (
+            "tools/analyze_display_active_height.py",
+            "tools/check_ppm.py",
+            "native/title/uniracers_ws_margins.*",
+            "tests/native/uniracers_ws_margins_test.c",
+            ".github/workflows/native-build-smoke.yml",
+        ):
+            with self.subTest(source=source):
+                self.assertIn('      - "' + source + '"', native_pr)
+        for test in (
+            "tests/unit/test_analyze_display_active_height.py",
+            "tests/unit/test_check_ppm.py",
+            "tests/unit/test_uniracers_ws_margins_c.py",
+        ):
+            with self.subTest(test=test):
+                self.assertNotIn('      - "' + test + '"', native_pr)
+
     def test_native_build_smoke_stays_fast_and_bounded(self):
         text = (WORKFLOWS / "native-build-smoke.yml").read_text()
         self.assertIn("    timeout-minutes: 15", text)
@@ -949,6 +976,71 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertRegex(text, r"(?m)^permissions:\n  contents: read[ \t]*$")
         self.assertNotRegex(text, r"(?m)^  contents: write[ \t]*$")
 
+    def test_hp_seeded_research_edits_only_invalidate_actual_science(self):
+        # Negative route census: a normal hosted Windows PR candidate or
+        # product main-push smoke never enables the HP-only science input.
+        # Rebuilding the unchanged Windows game cannot test these scripts.
+        research_only = (
+            "tools/hp_seeded_2p_research.py",
+            "tools/qa02_native_2p_seeded_endurance.py",
+            "tests/unit/test_hp_seeded_2p_research.py",
+            ".github/workflows/owner-hp-seeded-2p-research.yml",
+        )
+        for filename, marker, end in (
+            ("owner-hp-main-windows-smoke.yml", "  push:\n", "\n  workflow_dispatch:"),
+            ("windows-native-smoke.yml", "  push:\n", "\nconcurrency:"),
+            ("qa05-qa09-windows-candidate.yml", "  pull_request:\n", "\n  workflow_dispatch:"),
+        ):
+            source = (WORKFLOWS / filename).read_text(encoding="utf-8")
+            segment = source.split(marker, 1)[1].split(end, 1)[0]
+            for path in research_only:
+                with self.subTest(workflow=filename, path=path):
+                    self.assertNotIn(f'      - "{path}"', segment)
+            # Product packaging and original source acceptance must remain.
+            if filename != "qa05-qa09-windows-candidate.yml":
+                self.assertIn('      - ".github/workflows/windows-native-smoke.yml"', segment)
+            else:
+                self.assertIn('      - ".github/workflows/qa05-qa09-windows-candidate.yml"', segment)
+
+        science = (WORKFLOWS / "owner-hp-seeded-2p-research.yml").read_text()
+        self.assertIn("cron: '11,41 * * * *'", science)
+        self.assertIn("hp_seeded_2p: true", science)
+        self.assertIn("run_on_hp: true", science)
+        self.assertIn("github.ref == 'refs/heads/main'", science)
+        full = (WORKFLOWS / "tooling-unit-tests.yml").read_text()
+        for path in ('"tools/**"', '"tests/unit/**"', '".github/workflows/**"'):
+            self.assertIn(path, full)
+        self.assertIn("      - name: Verify canonical ROM and package contracts",
+                      (WORKFLOWS / "windows-native-smoke.yml").read_text())
+
+    def test_windows_package_triggers_exclude_python_unit_only_changes(self):
+        # Python unit tests execute in tooling, not in the Windows package.
+        # Test-only edits must keep the full tooling suite but not rebuild an
+        # unchanged game. All actual package executors and inputs stay active.
+        workflows = (
+            ("windows-native-smoke.yml", "  push:\n", "\nconcurrency:"),
+            ("owner-hp-main-windows-smoke.yml", "  push:\n", "\n  workflow_dispatch:"),
+            ("qa05-qa09-windows-candidate.yml", "  pull_request:\n", "\n  workflow_dispatch:"),
+        )
+        for filename, start, end in workflows:
+            text = (WORKFLOWS / filename).read_text(encoding="utf-8")
+            trigger = text.split(start, 1)[1].split(end, 1)[0]
+            self.assertNotIn('      - "tests/unit/', trigger, filename)
+            self.assertIn('      - ".github/workflows/windows-native-smoke.yml"',
+                          trigger, filename)
+            self.assertIn('      - "tools/ci/qa05_restart_attempt.sh"', trigger)
+            self.assertIn('      - "tools/capture_modern_restart_audio.py"', trigger)
+            self.assertIn('      - "tools/ci/windows_package_race_result.sh"', trigger)
+
+        full = (WORKFLOWS / "tooling-unit-tests.yml").read_text()
+        self.assertIn('      - "tests/unit/**"', full)
+        self.assertIn('      - "tools/**"', full)
+        self.assertIn('      - ".github/workflows/**"', full)
+        smoke = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        for path in ("native/product/**", "native/presentation/**",
+                     "native/title/**", "reference/roms/retail/Uniracers_USA.sfc"):
+            self.assertIn('      - "' + path + '"', smoke)
+
     def test_hp_source_current_smoke_covers_exact_executed_windows_consumers(self):
         # A change in the actual packaging, renderer, QA or evidence tools
         # invalidates the HP's existing Windows result, even without native
@@ -963,15 +1055,9 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "tools/qa05_restart_input_guard.py",
             "tools/capture_modern_restart_audio.py",
             "tools/ci/qa05_restart_attempt.sh",
-            "tests/unit/test_hp_qa05_parallel_policy.py",
             "tools/capture_modern_resume_audio.py",
             "tools/ci/stage_windows_smoke_romfree_exe.py",
             "tools/ci/check_windows_smoke_upload_policy.py",
-            "tests/unit/test_stage_windows_smoke_romfree_exe.py",
-            "tests/unit/test_assemble_windows_package.py",
-            "tests/unit/test_windows_package_streaming_bounds.py",
-            "tests/unit/test_windows_clean_machine_verifier_policy.py",
-            "tests/unit/test_windows_portable_binary.py",
         ):
             with self.subTest(path=path):
                 self.assertIn(f'      - "{path}"', hp)
@@ -993,12 +1079,53 @@ class CiTriggerPolicyTest(unittest.TestCase):
                 entry = f'      - "{path}"'
                 self.assertIn(entry, hosted)
                 self.assertIn(entry, hp)
-        # HP already watches all scripted input, but hosted PR routing is
-        # deliberately narrow so the required audio script is named.
+        # HP and hosted now watch the *actual* packaged QA scripts, not
+        # 129 unrelated research input fixtures.
         self.assertIn('      - "tests/input/audio-modern-restart.script"', hosted)
-        self.assertIn('      - "tests/input/**"', hp)
+        self.assertIn('      - "tests/input/audio-modern-restart.script"', hp)
+        self.assertIn('      - "tests/input/ui-race-result-route.script"', hp)
+        self.assertNotIn('      - "tests/input/**"', hp)
         self.assertNotIn('      - "tools/**"', hosted)
         self.assertNotIn('      - "tools/**"', hp)
+
+    def test_hp_product_build_triggers_match_actual_package_and_optional_qa_inputs(self):
+        hp = (WORKFLOWS / "owner-hp-main-windows-smoke.yml").read_text()
+        windows = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        tournament = (Path("tests/native/run_windows_local_tournament_package_acceptance.sh")
+                      .read_text())
+        toolchain = (Path("tools/toolchain-entries/snesrecomp.json").read_text())
+        # Changes to any native shipping product code invalidate HP Windows.
+        for path in ("native/product/**", "native/presentation/**",
+                     "native/title/**"):
+            self.assertIn(f'      - "{path}"', hp)
+        for forbidden in ('      - "native/**"', '      - "tests/input/**"',
+                          '      - "tests/native/**"', '      - "tools/patches/**"'):
+            self.assertNotIn(forbidden, hp)
+        # These real named scripts are consumed by the ordinary shipping
+        # package acceptance, including its installed Windows guest binary.
+        for path in ("tests/input/audio-modern-restart.script",
+                     "tests/input/ui-race-result-route.script"):
+            self.assertIn(path, windows)
+            self.assertIn(f'      - "{path}"', hp)
+        # Preserve optional tournament inputs and helper, rather than
+        # weakening its explicit main-only opt-in acceptance contract.
+        self.assertIn("tests/native/run_windows_local_tournament_package_acceptance.sh", windows)
+        for path in ("tests/input/two-player-joined-records-acceptance.input",
+                     "tests/input/two-player-records-acceptance.script"):
+            self.assertIn(path, tournament)
+            self.assertIn(f'      - "{path}"', hp)
+        for path in ("tests/native/run_windows_local_tournament_package_acceptance.sh",
+                     "tests/native/assert_absent_grep.sh",
+                     "tests/native/run_modern_root_acceptance.sh"):
+            self.assertIn(f'      - "{path}"', hp)
+        # The snesrecomp toolchain owns the Windows framework patch stack;
+        # experimental patches for other emulators must not reserve HP.
+        self.assertIn('      - "tools/patches/snesrecomp-*.patch"', hp)
+        self.assertIn("tools/patches/snesrecomp-input-file.patch", toolchain)
+        self.assertIn("tools/patches/snesrecomp-ws-shadow-split-band.patch", toolchain)
+        for unrelated in ("tools/patches/snes9x-", "tools/patches/snes2asm-",
+                          "tools/patches/wla-", "tools/patches/bsnes-"):
+            self.assertNotIn(f'      - "{unrelated}', hp)
 
     def test_windows_reusable_callers_do_not_cancel_one_another(self):
         # Only the QA wrapper now triggers when smoke YAML changes on a
@@ -1028,9 +1155,20 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("github.repository == 'gamesbyian/UR-Recomp'", text)
         self.assertIn("github.ref == 'refs/heads/main'", text)
         self.assertIn(
-            "(github.event_name == 'push' || github.event_name == 'workflow_dispatch')",
+            "(github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||",
             text,
         )
+        self.assertIn(
+            "(github.event_name == 'schedule' && inputs.hp_seeded_2p)",
+            text,
+        )
+        self.assertIn("(!inputs.hp_seeded_2p ||", text)
+        self.assertIn("github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'", text)
+        research = (WORKFLOWS / "owner-hp-seeded-2p-research.yml").read_text()
+        self.assertIn("github.ref == 'refs/heads/main'", research)
+        self.assertIn("run_on_hp: true", research)
+        self.assertIn("hp_seeded_2p: true", research)
+        self.assertNotIn("  pull_request:", research)
         hp = (WORKFLOWS / "owner-hp-main-windows-smoke.yml").read_text()
         self.assertIn("cancel-in-progress: false", hp)
         self.assertIn("run_on_hp: true", hp)

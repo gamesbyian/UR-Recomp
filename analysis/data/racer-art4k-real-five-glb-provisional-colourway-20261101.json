@@ -1,0 +1,67 @@
+{
+  "schema": "ur-art4k-real-viewer-provisional-colourway-evidence/1",
+  "recorded_utc": "2026-11-01",
+  "source_artifact": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41259476190/artifacts/13063969312",
+  "source_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "source_model_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "viewer_manifest_sha256": "fa1d25475de9c6f997855d9aed5067f26d6afe39124ccccdf0b1ce95af1e9a1d",
+  "original_colour_evidence": "tools/art/ORIGINAL-RACER-COLOURWAY-SOURCE.md",
+  "original_material_evidence": "tools/art/EXPERIMENTAL-GLB-MATERIAL-IDENTITY.md",
+  "p1_provisional_rgba": [
+    211,
+    43,
+    47,
+    255
+  ],
+  "p2_unchanged_rgba": [
+    28,
+    89,
+    222,
+    255
+  ],
+  "algorithm": "One COLOR_0 accessor and its min/max metadata altered; every other glTF structure and BIN byte fingerprinted identically.",
+  "verification": "Actual five original 16-material GLBs. Locally independently reloaded P1/P2 with Trimesh; all named mesh vertices, faces, vertex normals, and all node-world matrices and mesh assignments matched exactly.",
+  "original_3d_camera_identified": false,
+  "original_sprite_to_blockout_pose_mapped": false,
+  "original_material_albedo_recovered": false,
+  "heldout_source_pose_family_verified": false,
+  "original_character_likeness_approved": false,
+  "shipping_art_approved": false,
+  "poses": {
+    "upright": {
+      "source_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+      "p1_provisional_glb_sha256": "49c958d4b368552dc9c022f086435523218c7445ccfbc1ce7488208d6571ddad",
+      "p2_byte_exact_glb_sha256": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+      "non_colour_payload_sha256": "c016dff59f7b73caa6e9402508acc535cca0b2b6b1a6c3e2d7e9e6e86ab443d3",
+      "trimesh_geometry_normals_and_graph_identical": true
+    },
+    "pedal": {
+      "source_glb_sha256": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+      "p1_provisional_glb_sha256": "2298b74a375ab7659a2b9e53f78fa379eab3d2f9540a170427b6769a297e6479",
+      "p2_byte_exact_glb_sha256": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+      "non_colour_payload_sha256": "2eac63238be301498d509465dc59995a096477cdab46cd944a4bb9445bf4783b",
+      "trimesh_geometry_normals_and_graph_identical": true
+    },
+    "wheelie": {
+      "source_glb_sha256": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+      "p1_provisional_glb_sha256": "5ca7e341525c74a6a98546ddb339daacc41dcad00a4f723e5a4dea2e431d8366",
+      "p2_byte_exact_glb_sha256": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+      "non_colour_payload_sha256": "f4aa4897f0029c17d8dae8329d28d2966decff86e90d3be622b286792a9cc08e",
+      "trimesh_geometry_normals_and_graph_identical": true
+    },
+    "stunt": {
+      "source_glb_sha256": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+      "p1_provisional_glb_sha256": "529b89cf2a8e042ee63c547ad39e68c7be101ee1387a3160d9aa1b8c3db3510b",
+      "p2_byte_exact_glb_sha256": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+      "non_colour_payload_sha256": "2e001c9f1b2216377ceacc0d23fd22b9dcefba19b8e518615197f361ca52218e",
+      "trimesh_geometry_normals_and_graph_identical": true
+    },
+    "bank": {
+      "source_glb_sha256": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59",
+      "p1_provisional_glb_sha256": "9ed8946fc4766db24f3f0a616e1500fa8dfe5f85cbc70946d9f6c9aa2ed8f575",
+      "p2_byte_exact_glb_sha256": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59",
+      "non_colour_payload_sha256": "47da8522889a8516f39686ece7b9cc69adc2d7a08f1ebfccbd6863bc28b3ddb6",
+      "trimesh_geometry_normals_and_graph_identical": true
+    }
+  }
+}

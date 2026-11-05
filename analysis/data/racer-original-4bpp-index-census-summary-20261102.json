@@ -1,0 +1,111 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-4BPP-INDEX-CENSUS-SUMMARY/1",
+  "evidence_run_id": 41537961500,
+  "evidence_artifact_id": 13183968725,
+  "verified_full_report_sha256": "b6f59fc5f9030b44ca9345bf308e5df83901f8b9534a6f33b215fa39f8e3079e",
+  "source_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "historical_registry_sha256": "05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad",
+  "representations": 59,
+  "unique_rgba": 41,
+  "unique_silhouettes": 35,
+  "unique_palette_index_planes": 35,
+  "different_index_plane_for_identical_rgba": 0,
+  "different_index_plane_for_identical_binary_mask": 0,
+  "per_index_unique_silhouette_population": {
+    "1": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 2079,
+      "wheel_disc_min": 593,
+      "wheel_disc_max": 598
+    },
+    "2": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 111,
+      "wheel_disc_min": 53,
+      "wheel_disc_max": 54
+    },
+    "3": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 1685,
+      "wheel_disc_min": 289,
+      "wheel_disc_max": 298
+    },
+    "4": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 415,
+      "wheel_disc_min": 254,
+      "wheel_disc_max": 257
+    },
+    "5": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 2299,
+      "wheel_disc_min": 523,
+      "wheel_disc_max": 528
+    },
+    "6": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 402,
+      "wheel_disc_min": 232,
+      "wheel_disc_max": 236
+    },
+    "7": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 486,
+      "wheel_disc_min": 353,
+      "wheel_disc_max": 353
+    },
+    "8": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 1163,
+      "wheel_disc_min": 263,
+      "wheel_disc_max": 263
+    },
+    "9": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 523,
+      "wheel_disc_min": 264,
+      "wheel_disc_max": 266
+    },
+    "10": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 993,
+      "wheel_disc_min": 569,
+      "wheel_disc_max": 580
+    },
+    "11": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 330,
+      "wheel_disc_min": 196,
+      "wheel_disc_max": 197
+    },
+    "12": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 539,
+      "wheel_disc_min": 351,
+      "wheel_disc_max": 355
+    },
+    "13": {
+      "observed_in_unique_planes": 27,
+      "total_pixels": 44,
+      "wheel_disc_min": 23,
+      "wheel_disc_max": 23
+    },
+    "14": {
+      "observed_in_unique_planes": 35,
+      "total_pixels": 217,
+      "wheel_disc_min": 117,
+      "wheel_disc_max": 117
+    },
+    "15": {
+      "observed_in_unique_planes": 26,
+      "total_pixels": 42,
+      "wheel_disc_min": 24,
+      "wheel_disc_max": 24
+    }
+  },
+  "wheel_disc_interpretation": "Original 2D radius-7 raster hypothesis, not 1994 recovered 3D wheel/axle",
+  "original_3d_part_identity_verified": false,
+  "original_live_ppu_sequence_verified": false,
+  "owner_likeness_approved": false
+}

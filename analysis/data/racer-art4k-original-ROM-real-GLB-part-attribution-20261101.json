@@ -1,0 +1,141 @@
+{
+  "schema": "UR-ART4K-REAL-2026-GLB-FIVE-PART-ALPHA-ATTRIBUTION-LOCAL-CROSSCHECK/1",
+  "authentic_original_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_2026_GLb_sha256": "ffa14324c10c50b68400fbfab4285d893b248d081a50361c01d09937dd03bc04",
+  "source_2026_fork_1p4_GLb_sha256": "5531438b95c97dc0508790247aa3f5889f7c0d96d9079ba2970529cb1e05fa53",
+  "original_binary_masks": 35,
+  "source_original_connected_first_family_mask_count": 16,
+  "source_other_SHA_disjoint_2D_masks": 19,
+  "exact_4x_frozen_camera_registered_7_to_6": true,
+  "actual_independent_local_source_program_sha256": "3975aa73b0407695962cb724e6950d1ff3a4b51be8400cb2c24f3d96",
+  "actual_local_complete_per_mask_numeric_json_sha256": "1ca267e60bec48872bf048a546d77a1ba7f880fa7d6c0d0287f601987e0e1ca9",
+  "per_shape_IoU_reproduced_exactly_against_existing_original_ROM_crossed_report": true,
+  "normal_full_model_mean_IoU": 0.46002071,
+  "combined_full_model_mean_IoU": 0.49816283,
+  "metrics_definition": "Leaving one canonical 2026 model part out, its uniquely visible alpha pixels are those disappearing from the full projected silhouette. True/false positives are classified against the 1994 original 2D alpha, not original semantic part ownership. No per-source camera or geometric re-fit.",
+  "variants": {
+    "unchanged": {
+      "all35": {
+        "tire": {
+          "true_positive_lost": 2955,
+          "false_positive_removed": 405,
+          "mean_IoU_delta_without_part": -0.20135741,
+          "source_mask_wins_without_part": 0
+        },
+        "rim_and_hub": {
+          "true_positive_lost": 1159,
+          "false_positive_removed": 171,
+          "mean_IoU_delta_without_part": -0.07699369,
+          "source_mask_wins_without_part": 0
+        },
+        "pedals": {
+          "true_positive_lost": 252,
+          "false_positive_removed": 98,
+          "mean_IoU_delta_without_part": -0.0145942,
+          "source_mask_wins_without_part": 0
+        },
+        "saddle": {
+          "true_positive_lost": 524,
+          "false_positive_removed": 1296,
+          "mean_IoU_delta_without_part": -0.00074023,
+          "source_mask_wins_without_part": 21
+        },
+        "fork_and_frame": {
+          "true_positive_lost": 298,
+          "false_positive_removed": 787,
+          "mean_IoU_delta_without_part": 0.00218537,
+          "source_mask_wins_without_part": 27
+        }
+      },
+      "original_fit_connected_16": {
+        "saddle": {
+          "true_positive_lost": 523,
+          "false_positive_removed": 309,
+          "mean_IoU_delta_without_part": -0.064458
+        },
+        "fork_and_frame": {
+          "true_positive_lost": 219,
+          "false_positive_removed": 277,
+          "mean_IoU_delta_without_part": -0.01338
+        }
+      },
+      "SHA_disjoint_19": {
+        "saddle": {
+          "true_positive_lost": 1,
+          "false_positive_removed": 987,
+          "mean_IoU_delta_without_part": 0.052917
+        },
+        "fork_and_frame": {
+          "true_positive_lost": 79,
+          "false_positive_removed": 510,
+          "mean_IoU_delta_without_part": 0.015293
+        }
+      }
+    },
+    "combined_fork_1p4_wheel_1p1": {
+      "all35": {
+        "tire": {
+          "true_positive_lost": 2994,
+          "false_positive_removed": 646,
+          "mean_IoU_delta_without_part": -0.19175619,
+          "source_mask_wins_without_part": 0
+        },
+        "rim_and_hub": {
+          "true_positive_lost": 1617,
+          "false_positive_removed": 133,
+          "mean_IoU_delta_without_part": -0.10724848,
+          "source_mask_wins_without_part": 0
+        },
+        "pedals": {
+          "true_positive_lost": 262,
+          "false_positive_removed": 88,
+          "mean_IoU_delta_without_part": -0.01480825,
+          "source_mask_wins_without_part": 0
+        },
+        "saddle": {
+          "true_positive_lost": 482,
+          "false_positive_removed": 1233,
+          "mean_IoU_delta_without_part": 0.00399798,
+          "source_mask_wins_without_part": 23
+        },
+        "fork_and_frame": {
+          "true_positive_lost": 485,
+          "false_positive_removed": 950,
+          "mean_IoU_delta_without_part": -0.0039267,
+          "source_mask_wins_without_part": 26
+        }
+      },
+      "original_fit_connected_16": {
+        "saddle": {
+          "true_positive_lost": 481,
+          "false_positive_removed": 303,
+          "mean_IoU_delta_without_part": -0.054151
+        },
+        "fork_and_frame": {
+          "true_positive_lost": 316,
+          "false_positive_removed": 340,
+          "mean_IoU_delta_without_part": -0.022149
+        }
+      },
+      "SHA_disjoint_19": {
+        "saddle": {
+          "true_positive_lost": 1,
+          "false_positive_removed": 930,
+          "mean_IoU_delta_without_part": 0.052966
+        },
+        "fork_and_frame": {
+          "true_positive_lost": 169,
+          "false_positive_removed": 610,
+          "mean_IoU_delta_without_part": 0.011418
+        }
+      }
+    }
+  },
+  "conclusion": "The source-model upright saddle carries essentially no uniquely visible authentic-source true-positive pixels on the 19 SHA-distinct nonfit 2D masks, while contributing hundreds of false-positive pixels. This cannot prove a saddle geometry fault because model upright is UNPAIRED to these original semantic animation families. The first-source family has a very different saddle attribution. Prioritize source state/3D pose registration and independently verified camera/silhouette sources before destructive saddle removal or geometry overfitting.",
+  "source_original_1994_sprite_parts_segmentation_verified": false,
+  "source_original_1994_3D_pose_matching_verified": false,
+  "source_original_1994_camera_recovered": false,
+  "actual_2026_default_model_modified": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false
+}

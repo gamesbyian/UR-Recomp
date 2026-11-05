@@ -1,4 +1,6 @@
 name: HP current-source native Windows smoke
+# Unit-test-only edits are fully exercised by the tooling-unit-tests workflow;
+# this Windows package job does not execute those Python test modules.
 
 # Reuse the canonical Windows smoke rather than maintaining a second product
 # build script. The owner explicitly prefers using HP capacity continuously.
@@ -10,9 +12,23 @@ on:
       - main
     paths:
       - ".github/workflows/windows-native-smoke.yml"
-      - "native/**"
-      - "tests/input/**"
-      - "tests/native/**"
+      # Shipping native sources; native/reference is diagnostic-only and
+      # never linked into the canonical Windows product.
+      - "native/product/**"
+      - "native/presentation/**"
+      - "native/title/**"
+      # Exact stock input scripts executed by the normal Windows package.
+      - "tests/input/audio-modern-restart.script"
+      - "tests/input/ui-race-result-route.script"
+      # Optional same-run packaged tournament acceptance uses these exact
+      # inputs; retain them even though that journey is manual-only.
+      - "tests/input/two-player-joined-records-acceptance.input"
+      - "tests/input/two-player-records-acceptance.script"
+      # These are the only native-test shell consumers on the canonical
+      # Windows route (including the optional tournament's shared helper).
+      - "tests/native/run_windows_local_tournament_package_acceptance.sh"
+      - "tests/native/assert_absent_grep.sh"
+      - "tests/native/run_modern_root_acceptance.sh"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
       # Actual executable/packaging/QA consumers in the shared Windows smoke.
@@ -26,27 +42,45 @@ on:
       - "tools/qa05_restart_input_guard.py"
       - "tools/capture_modern_restart_audio.py"
       - "tools/ci/qa05_restart_attempt.sh"
-      - "tests/unit/test_hp_qa05_parallel_policy.py"
+      - "tools/ci/windows_package_race_result.sh"
+      - "tools/ci/hp_windows_isolated_boot_fanout.sh"
+      # HP-only research edits are checked by complete tooling CI and the
+      # next source-bound scheduled HP science run, not a redundant ordinary
+      # main-push product smoke without hp_seeded_2p enabled.
+      - "tools/ci/windows_package_special_path.sh"
+      - "tools/ci/windows_package_readonly_unicode.sh"
+      - "tools/ci/windows_package_default_appdata.sh"
       - "tools/capture_modern_resume_audio.py"
       # These two helpers are also imported by the real QA-05 capture.
       - "tools/capture_modern_paused_audio.py"
       - "tools/analyze_sdl_audio_envelope.py"
       - "tools/ci/stage_windows_smoke_romfree_exe.py"
       - "tools/ci/check_windows_smoke_upload_policy.py"
-      - "tests/unit/test_stage_windows_smoke_romfree_exe.py"
-      - "tests/unit/test_assemble_windows_package.py"
-      - "tests/unit/test_windows_package_streaming_bounds.py"
-      - "tests/unit/test_windows_clean_machine_verifier_policy.py"
-      - "tests/unit/test_windows_portable_binary.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/devnode_benchmark/**"
-      - "tools/patches/**"
+      - "tools/devnode_benchmark/prepare_sdl3_cache.py"
+      - "tools/devnode_benchmark/verify_hp_ninja.py"
+      - "tools/ci/ninja_package_canary.cmd"
+      # The core Windows workflow executes these two HP provisioning scripts.
+      # Monitoring-only edits are covered by hosted PowerShell parse/unit
+      # checks and the next scheduled source-bound HP science run. They do
+      # not invalidate the shipped executable or warrant a full HP build.
+      - "tools/devnode_benchmark/prepare_python.ps1"
+      - "tools/devnode_benchmark/prepare_rust.ps1"
+      # The Windows toolchain manifests consume the snesrecomp patch stack.
+      # snes9x/bsnes/snes2asm/WLA experimental patches are not game inputs.
+      - "tools/patches/snesrecomp-*.patch"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/sdl3.json"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "third_party/archives/**"
       - "reference/roms/retail/Uniracers_USA.sfc"
   workflow_dispatch:
+    inputs:
+      ninja_trial:
+        description: "Explicit main-only HP Ninja full-package trial; requires one-click verified tool installation"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -60,3 +94,8 @@ jobs:
     uses: ./.github/workflows/windows-native-smoke.yml
     with:
       run_on_hp: true
+      hp_ninja_canary: ${{ github.event_name == 'workflow_dispatch' && inputs.ninja_trial }}
+      # Automatic main builds prefer the verified installed Ninja tool, while
+      # preserving source-FetchContent/Visual Studio if its preflight is absent.
+      # Manual dispatch remains VS by default or strict Ninja trial by request.
+      hp_ninja_auto: ${{ github.event_name == 'push' }}

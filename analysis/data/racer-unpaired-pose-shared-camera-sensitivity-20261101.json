@@ -1,0 +1,182 @@
+{
+  "schema": "UR-RACER-UNPAIRED-POSE-SHARED-CAMERA-SENSITIVITY/1",
+  "date_utc": "2026-11-01",
+  "reference": "analysis/data/racer-unpaired-real-glb-pose-matrix-20261101.json",
+  "source_glb_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "source_original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_binary_source_mask_groups": 10,
+  "original_temporal_frame_observations": 32,
+  "fixed_camera_except_vertical_model_scale": {
+    "type": "orthographic",
+    "right_world": [
+      1,
+      0,
+      0
+    ],
+    "up_world": [
+      0,
+      0,
+      1
+    ],
+    "origin_world": [
+      0,
+      0,
+      0
+    ],
+    "anchor_original_source_x2_y2": [
+      67,
+      76
+    ],
+    "snes_physical_pixel_aspect": "7:6",
+    "per_frame_camera_auto_recenter": false,
+    "per_pose_camera_auto_recenter": false
+  },
+  "test_parameter": "logical source vertical pixels per 2026 model world unit",
+  "source_mask_weighting": "Each of 10 unique original binary source masks weighted once, regardless of repeated frame holds or palette.",
+  "rendering": "Five verified real 16-material GLBs projected for each global scale; 4x source centre alpha sampling, fixed 64x64 grid and IoU ranking.",
+  "scale_rows": [
+    {
+      "vertical_pixels_per_model_unit": 9,
+      "equal_original_mask_weight_mean_iou": {
+        "upright": 0.45215474,
+        "pedal": 0.45414343,
+        "wheelie": 0.33498937,
+        "stunt": 0.20491785,
+        "bank": 0.45741402
+      },
+      "per_shape_max_iou_winner_counts": {
+        "upright": 1,
+        "pedal": 3,
+        "wheelie": 1,
+        "stunt": 0,
+        "bank": 5
+      }
+    },
+    {
+      "vertical_pixels_per_model_unit": 9.2,
+      "equal_original_mask_weight_mean_iou": {
+        "upright": 0.46753366,
+        "pedal": 0.46182652,
+        "wheelie": 0.33745043,
+        "stunt": 0.20112656,
+        "bank": 0.48752933
+      },
+      "per_shape_max_iou_winner_counts": {
+        "upright": 0,
+        "pedal": 0,
+        "wheelie": 0,
+        "stunt": 0,
+        "bank": 10
+      }
+    },
+    {
+      "vertical_pixels_per_model_unit": 9.3,
+      "equal_original_mask_weight_mean_iou": {
+        "upright": 0.48747993,
+        "pedal": 0.47694619,
+        "wheelie": 0.33297954,
+        "stunt": 0.20684099,
+        "bank": 0.49231925
+      },
+      "per_shape_max_iou_winner_counts": {
+        "upright": 6,
+        "pedal": 0,
+        "wheelie": 0,
+        "stunt": 0,
+        "bank": 4
+      }
+    },
+    {
+      "vertical_pixels_per_model_unit": 9.4,
+      "equal_original_mask_weight_mean_iou": {
+        "upright": 0.4889177,
+        "pedal": 0.47749597,
+        "wheelie": 0.33091437,
+        "stunt": 0.20548228,
+        "bank": 0.50645561
+      },
+      "per_shape_max_iou_winner_counts": {
+        "upright": 1,
+        "pedal": 0,
+        "wheelie": 0,
+        "stunt": 0,
+        "bank": 9
+      }
+    },
+    {
+      "vertical_pixels_per_model_unit": 9.5,
+      "equal_original_mask_weight_mean_iou": {
+        "upright": 0.48114718,
+        "pedal": 0.47762999,
+        "wheelie": 0.33199071,
+        "stunt": 0.20627268,
+        "bank": 0.50781314
+      },
+      "per_shape_max_iou_winner_counts": {
+        "upright": 0,
+        "pedal": 0,
+        "wheelie": 0,
+        "stunt": 0,
+        "bank": 10
+      }
+    },
+    {
+      "vertical_pixels_per_model_unit": 9.6,
+      "equal_original_mask_weight_mean_iou": {
+        "upright": 0.48233346,
+        "pedal": 0.47398165,
+        "wheelie": 0.32892443,
+        "stunt": 0.21042131,
+        "bank": 0.51606028
+      },
+      "per_shape_max_iou_winner_counts": {
+        "upright": 0,
+        "pedal": 0,
+        "wheelie": 0,
+        "stunt": 0,
+        "bank": 10
+      }
+    },
+    {
+      "vertical_pixels_per_model_unit": 9.8,
+      "equal_original_mask_weight_mean_iou": {
+        "upright": 0.45889153,
+        "pedal": 0.45795171,
+        "wheelie": 0.32265983,
+        "stunt": 0.21746506,
+        "bank": 0.51448929
+      },
+      "per_shape_max_iou_winner_counts": {
+        "upright": 0,
+        "pedal": 0,
+        "wheelie": 0,
+        "stunt": 0,
+        "bank": 10
+      }
+    },
+    {
+      "vertical_pixels_per_model_unit": 10,
+      "equal_original_mask_weight_mean_iou": {
+        "upright": 0.43628593,
+        "pedal": 0.44263812,
+        "wheelie": 0.3175859,
+        "stunt": 0.21856841,
+        "bank": 0.49556073
+      },
+      "per_shape_max_iou_winner_counts": {
+        "upright": 0,
+        "pedal": 0,
+        "wheelie": 0,
+        "stunt": 0,
+        "bank": 10
+      }
+    }
+  ],
+  "source_pose_matching_authenticated": false,
+  "original_1994_3d_camera_recovered": false,
+  "independent_animation_family_holdout_tested": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false,
+  "finding": "Under scale 9.5 'bank' wins all 10 source silhouettes; at scale 9.3, 'upright' wins 6 and 'bank' wins 4 although bank's equal-mask mean remains slightly higher (0.49231925 vs 0.48747993). Therefore pose identity ranking is unstable to ~2.1% shared-camera scale adjustment; no source-to-2026 pose assignment from IoU rank is justified.",
+  "limitation": "The camera is original-P1-frame1205 provisional, NOT independently calibrated to every source frame or P2. Source-to-rig pose family unknown. This is a sensitivity/identifiability diagnostic, not physically correct camera recovery."
+}

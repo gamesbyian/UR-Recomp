@@ -1,0 +1,91 @@
+{
+  "schema": "UR-RACER-REAL-GLB-RIG-CONTINUITY-BASELINE/1",
+  "source_verified_viewer_actions_run": 41259476190,
+  "source_verified_viewer_artifact_id": 13063969312,
+  "source_model_commit": "d061cddcdbac9b2b5ac137d0d721b63f92dc3ec1",
+  "source_model_scad_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "glb_sha256_by_pose": {
+    "upright": "efdc8425f252b4a0218d140d087c6cc923689589e0cf74cc6333d722182595f5",
+    "pedal": "f692277bb9bf215ccc97bc89f44d28378a43ddc9aa45843c4f0ab30e8747db53",
+    "wheelie": "859b985d8fc51f994e5e42fd64bc871d493249285454ec836b415ec833f33c27",
+    "stunt": "d3375cf4d44d973ca7b4308bfff5b3646087a37d206a2746792c8083483f3212",
+    "bank": "50d56b4f702ad655929c17e5cbc4e281386cf6b2fb2cd80e71d0a2e6b672fd59"
+  },
+  "glTF_animation_channel_count_by_pose": {
+    "upright": 0,
+    "pedal": 0,
+    "wheelie": 0,
+    "stunt": 0,
+    "bank": 0
+  },
+  "glTF_skin_count_by_pose": {
+    "upright": 0,
+    "pedal": 0,
+    "wheelie": 0,
+    "stunt": 0,
+    "bank": 0
+  },
+  "glTF_mesh_count_by_pose": {
+    "upright": 16,
+    "pedal": 16,
+    "wheelie": 16,
+    "stunt": 16,
+    "bank": 16
+  },
+  "glTF_node_count_by_pose": {
+    "upright": 22,
+    "pedal": 22,
+    "wheelie": 22,
+    "stunt": 22,
+    "bank": 22
+  },
+  "part_parent_names": [
+    "tire",
+    "rim_and_hub",
+    "fork_and_frame",
+    "pedals",
+    "saddle"
+  ],
+  "material_split_mesh_count": 16,
+  "local_geometry_sha_identical_across_all_five_pose_count": 9,
+  "local_geometry_sha_identical_components": [
+    "tire__material_0",
+    "tire__material_1",
+    "rim_and_hub__material_0",
+    "rim_and_hub__material_1",
+    "rim_and_hub__material_3",
+    "rim_and_hub__material_4",
+    "fork_and_frame__material_1",
+    "fork_and_frame__material_2",
+    "fork_and_frame__material_3"
+  ],
+  "local_mesh_varies_with_pose_count": 7,
+  "local_mesh_variation_components": [
+    "rim_and_hub__material_2",
+    "fork_and_frame__material_0",
+    "pedals__material_0",
+    "pedals__material_1",
+    "pedals__material_2",
+    "saddle__material_0",
+    "saddle__material_1"
+  ],
+  "pose_sensitive_triangle_count_component_names": [
+    "pedals__material_0"
+  ],
+  "pedals_material_0_triangle_count_by_pose": {
+    "upright": 1320,
+    "pedal": 1280,
+    "wheelie": 1296,
+    "stunt": 1288,
+    "bank": 1312
+  },
+  "notes": [
+    "Changes in local geometry may be legitimate pose-authored rotations or material CSG triangulation; not a direct proof of geometric drift or visible defects.",
+    "Five separate GLBs are static snapshots, and no GLB defines glTF embedded animation or skinning.",
+    "All source files are checked against the published viewer manifest; original source-1994 sprite-to-rig pose mapping remains unproven."
+  ],
+  "original_1994_3d_model_recovered": false,
+  "source_camera_or_pose_mapping_verified": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false
+}

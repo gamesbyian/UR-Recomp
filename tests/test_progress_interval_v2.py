@@ -29,9 +29,9 @@ class ProgressIntervalV2Tests(unittest.TestCase):
                          round(r["current_product_percent"] - r["previous_product_percent"], 3))
         self.assertEqual(r["reviewed_merge_count"],self.interval["observed_merge_count"])
         self.assertEqual(sum(r["merged_work_mix"].values()),r["reviewed_merge_count"])
-        self.assertEqual(r["reviewed_merge_sample_count"], 23)
-        self.assertEqual(r["unclassified_merge_count"], 0)
-        self.assertEqual(r["merged_work_mix"].get("unclassified", 0), 0)
+        self.assertLess(r["reviewed_merge_sample_count"], r["reviewed_merge_count"])
+        self.assertGreater(r["unclassified_merge_count"], 0)
+        self.assertEqual(r["merged_work_mix"].get("unclassified"), r["unclassified_merge_count"])
         self.assertEqual(r["current_independent_audit_percent"],
                          round(sum(c["weight_units"] for c in self.inv["criteria"]
                                    if c["audit_state"] == "independent_reviewed") * 100/4500,3))
@@ -46,7 +46,7 @@ class ProgressIntervalV2Tests(unittest.TestCase):
             self.score(sha="a"*40)
     def test_new_unreported_criterion_promotion_rejected(self):
         inv=copy.deepcopy(self.inv)
-        row=next(c for c in inv["criteria"] if c["id"]=="ONE-03")
+        row=next(c for c in inv["criteria"] if c["id"]=="ONE-09")
         row["status"]="bounded_verified"
         row["audit_state"]="inherited_pr_screening"
         row["evidence"]=["https://github.com/gamesbyian/UR-Recomp/pull/2494"]
@@ -54,21 +54,21 @@ class ProgressIntervalV2Tests(unittest.TestCase):
             self.score(inventory=inv)
     def test_declared_promotion_awards_one_point(self):
         inv=copy.deepcopy(self.inv)
-        row=next(c for c in inv["criteria"] if c["id"]=="ONE-03")
+        row=next(c for c in inv["criteria"] if c["id"]=="ONE-09")
         row["status"]="bounded_verified"
         row["audit_state"]="inherited_pr_screening"
         row["evidence"]=["https://github.com/gamesbyian/UR-Recomp/pull/2494"]
         interval=copy.deepcopy(self.interval)
         interval["criterion_changes"].append({
-            "id":"ONE-03","before":"unverified","after":"bounded_verified",
+            "id":"ONE-09","before":"unverified","after":"bounded_verified",
             "audit_before":"pending","audit_after":"inherited_pr_screening",
             "evidence":["https://github.com/gamesbyian/UR-Recomp/pull/2494"],
             "reason":"Positive fixture: verified hypothetical complete requirement, not a production claim"})
         r=self.score(inventory=inv, interval=interval)
         self.assertEqual(r["interval_product_delta_points"],
                          self.score()["interval_product_delta_points"] + 1.0)
+        self.assertIn("ONE-09", r["newly_verified"])
         self.assertIn("ONE-03", r["newly_verified"])
-        self.assertIn("DATA-05", r["newly_verified"])
     def test_positive_gate_counter_without_formal_delta_rejected(self):
         ledger=copy.deepcopy(self.ledger)
         next(x for x in ledger["gates"] if x["id"]=="QA-04")["status"]="passed"
@@ -89,6 +89,7 @@ class ProgressIntervalV2Tests(unittest.TestCase):
             self.score(interval=interval)
         interval=copy.deepcopy(self.interval)
         interval["merge_records"]=interval["merge_records"][:2]
+        interval["merge_records_scope"]="exhaustive"
         with self.assertRaisesRegex(ValueError,"Exhaustive interval"):
             self.score(interval=interval)
         interval=copy.deepcopy(self.interval)

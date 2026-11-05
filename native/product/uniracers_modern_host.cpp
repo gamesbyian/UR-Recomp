@@ -227,7 +227,11 @@ ur::product::ModernHostInputReleaseLatch g_root_p2_input_release_latch;
 // sampled Return. The physical key-up, not a guessed guest-frame delay,
 // releases this additional default Return -> SNES Start barrier.
 ur::product::ModernRestartKeyRelease g_restart_return_release;
+// P2's keyboard word is unshifted (Start=0x0100); keep its release state
+// independent of the P1 shifted guest word (Start=0x1000).
+ur::product::ModernRestartKeyRelease g_restart_return_release_p2;
 unsigned g_restart_input_probe_remaining = 0;
+unsigned g_restart_p2_input_probe_remaining = 0;
 unsigned g_fast_repeat_acceptance_frames;
 bool g_fast_repeat_acceptance_fired;
 bool g_ghost_target_acceptance_fired;
@@ -7258,7 +7262,13 @@ extern "C" void ur_uniracers_modern_prepare_frame(
         ur::presentation::racer_hd_prepare_frame(
             0, 0, frame_width, frame_height);
     }
-    if (!authentic_16x9_view_enabled()) return;
+    // Retire the previous wide frame's world-shadow registration when the
+    // user switches back to Original; otherwise it remains active across
+    // stock frames because no WsShadowFrame() is called on that path.
+    if (!authentic_16x9_view_enabled()) {
+        ur_ws_margins_prepare_frame(0, 0);
+        return;
+    }
 
     const auto plan = ur::product::resolve_16x9_output_composition(
         ur::product::resolve_output_geometry_representation(false),
@@ -8536,12 +8546,16 @@ extern "C" int ur_uniracers_modern_system_key_down(
         // fresh guest Start, even if the first restored sample is delayed.
         if (restarting) {
             g_restart_return_release.awaiting_return_release = true;
+            g_restart_return_release_p2.awaiting_return_release = true;
             g_restart_input_probe_remaining = 12;
+            g_restart_p2_input_probe_remaining = 12;
         }
         const bool handled = activate_pause_selection();
         if (restarting && !handled) {
             g_restart_return_release = {};
+            g_restart_return_release_p2 = {};
             g_restart_input_probe_remaining = 0;
+            g_restart_p2_input_probe_remaining = 0;
         }
         // A failed pause action (including settings persistence) remains
         // host-owned; the modal still consumes this Confirm edge.
@@ -9283,10 +9297,20 @@ extern "C" uint32_t ur_uniracers_modern_filter_second_player_input(
         g_tournament_p2_guest_input = {};
         return inputs;
     }
+    const std::uint32_t raw_p2_word = inputs;
     const auto filtered = ur::product::tournament_p2_guest_filter(
         g_tournament_p2_guest_input, g_local_tournament_panel_visible,
         inputs);
     g_tournament_p2_guest_input = filtered.state;
+    // P2 keyboard Start defaults to Return too. Its unshifted 12-bit word
+    // uses 0x0100, so the P1-only 0x1000 barrier cannot protect a 2P
+    // Restart. Keep the two physical-release latches independent.
+    const auto* keys = SDL_GetKeyboardState(nullptr);
+    const bool return_held = keys &&
+        (keys[SDL_SCANCODE_RETURN] || keys[SDL_SCANCODE_KP_ENTER]);
+    const auto restart_filtered = ur::product::modern_restart_key_filter(
+        g_restart_return_release_p2, return_held, filtered.inputs, 0x0100u);
+    g_restart_return_release_p2 = restart_filtered.state;
     // Protect the entire D7 host shell, including nested profile/options/
     // records modals and the queued stock 1P/2P entry. Keep this separate
     // from tournament P2 ownership, which remains authoritative on 0x3D.
@@ -9297,8 +9321,24 @@ extern "C" uint32_t ur_uniracers_modern_filter_second_player_input(
          g_frontend_records_open || g_tour_action_visible ||
          host_subview_visible() || onboarding_surface_active());
     const auto owned = ur::product::modern_host_input_filter(
-        g_root_p2_input_release_latch, root_owned, filtered.inputs);
+        g_root_p2_input_release_latch, root_owned, restart_filtered.inputs);
     g_root_p2_input_release_latch = owned.latch;
+    if (g_restart_p2_input_probe_remaining != 0) {
+        --g_restart_p2_input_probe_remaining;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(stderr,
+                "UR_RESTART_INPUT_P2 raw=%04X guest=%04X return_held=%d "
+                "release_waiting=%d remaining=%u pre_restart=%04X post_restart=%04X\n",
+                static_cast<unsigned>(raw_p2_word),
+                static_cast<unsigned>(owned.inputs),
+                return_held ? 1 : 0,
+                g_restart_return_release_p2.awaiting_return_release ? 1 : 0,
+                g_restart_p2_input_probe_remaining,
+                static_cast<unsigned>(filtered.inputs),
+                static_cast<unsigned>(restart_filtered.inputs));
+            std::fflush(stderr);
+        }
+    }
     return owned.inputs;
 }
 

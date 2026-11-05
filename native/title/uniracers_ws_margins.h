@@ -37,6 +37,13 @@ enum {
 int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
                       uint16_t* out);
 
+/* Transition for an already-calibrated BG1 band. Return 1 to present,
+ * 0 to suppress THIS frame but retain calibration, or -1 to invalidate
+ * after two consecutive >limit mismatches (or invalid input). Never publish
+ * old-world margins on the first grossly mismatched source viewport. */
+int ur_ws_mismatch_transition(int mismatches, int max_mismatches,
+                              unsigned* consecutive_bad_frames);
+
 /* Find the course cell shown at BG1 tile (scroll_x >> 4, scroll_y >> 4) for
  * the screen lines [first_line, first_line + line_count). `vram` is the
  * 64 KiB PPU VRAM and `map_base_word` that band's BG1 32x32 tilemap base.

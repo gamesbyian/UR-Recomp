@@ -1,0 +1,95 @@
+{
+  "schema": "UR-ART4K-FROZEN-ORIGINAL-TILE-DISJOINT-HOLDOUT-SUMMARY/1",
+  "actual_SHA_bound_source_workflow_run": 41556181251,
+  "actual_SHA_bound_source_workflow_artifact_id": 13193992845,
+  "full_authentic_report_sha256": "22cc8cd44d3e33ea535494ce12f12ae62ec536c60344fe3c4460d5d74ee5e178",
+  "full_authentic_report_bytes": 12714,
+  "original_source_manifest_sha256": "e26193f767d22280ab65b0549e707fa05ef246a903a4cebd47411f75726dc66e",
+  "original_tile_lineage_report_sha256": "cccb78328307003b3f8148aa20ef7cca27c905e77610be2b3ffd1aa7e7d5f33f",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "historical_registry_sha256": "05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad",
+  "authored_source_windows": 27,
+  "fit_connected_authored_source_windows": 8,
+  "unique_original_index_planes": 35,
+  "fit_original_index_plane_sha256": [
+    "2c7ed1261a4f0d73a556e61122dae07649ab1f689977322dce031f31568971e7",
+    "35d4e64ddfe3cf2732423cd7df1ef36cda9a7914ffcf113b60cb03c501b2ab4d",
+    "36d368e5d30f0501467d32f6bbd55a2f300924f8ad72256c584c3db7353b73d8",
+    "41513c5afebbd03c9c742d7718ea460324c64d88b84374280a4337e2a9e4b3c9",
+    "44b059d929a434e92d85d7f4b55cec55063e9978ffd86a8599eea8c5f29691fb",
+    "544929ff98bfe2438a754e1c3849e927f98ed340004e5cc677c70f5ae4b5def5",
+    "65e0eb0f9837aea101171d1bfceb1f22d2621e81bc13cc600cee5e3619199097",
+    "73376d8ddbc25f397f98607529582a32c67eb4905a7a97d22f86a5b50b1c2dc1",
+    "76b51d4891ee9612d9dc3328eeb27e998c92c2e77422de9ef188f5589e5085ce",
+    "8d21f1ca3517ed17d30c504ec7dbc9fdb6dff8efca92d79ca6d387fb1e74aa96",
+    "915f9c675950c764e62971c5e65a9fcddeb21ab0b1148775dd4168b6e511275e",
+    "b2b526921e895941d8bb1d8de523967697c9eb75249235eabfa0ea2ed92cf9c6",
+    "d191615a7df266b71d0093f81db31ba4182c726e4aad0f15f07bedf3d39073b6",
+    "d8c44864c113da2644547c42dc5642219a26b2ced316c370d7ab0050cbfcf719",
+    "def7333fce70806b3d66f3099cebc7f43542b12fc23cbb91b4ac989299db418b",
+    "e5ba23815516f13a2cdab7374b636643fc99cbeda5c2b19a6085d31bf337ad05"
+  ],
+  "withheld_original_index_plane_sha256": [
+    "003a66ad814592e611b0faa621f7271565c4e4cf0a925c28531bf59d6ba492f5",
+    "1eb0029539b4760569a866f6a6e5bb367d88498e36b5dab1e829f9ac695e9341",
+    "3b46e0003c11fa5066501c9b270b67d044aa309e583b3ec90716116c4d799f1e",
+    "48f62cfd10a30973fc3d7f0f386e99b410cab38c6371b04df514502a973782f6",
+    "6e55e9466981b469c7029df436a20b5a6ad28decc1510ef038787dfc6caed909",
+    "7f8b328b9488199d181e3e69a71a0d38aa0ed93438e3df4134594205f369d090",
+    "93a1edd58652c4d842907acd53a01429ff062ca37da628e342c00fd2e9ead3ef",
+    "9b56d826108753b167dda6fb654440547c404cce975d35c9d1d844d7c4502347",
+    "9d65701f73af83f8477d8e52fbc63ba40424faeafd96565f7a2b2b41c4a77086",
+    "a7bcda6e43f0ecbc382395f2a8561a579c8601635ef12722a2ac122a65738e3b",
+    "af1a15843dbe8ec11809d03e45c74abe52a2eeaa4361f25f086e020f7909af1b",
+    "bc1c6f0dcb21b919d049b0e64948370fa233552fdd7f474984f33d4d57669d42",
+    "d3fad4f0c5eca33772f91a7428b4314397c6ec82e4fa6444ace181eaf1c5d059",
+    "d92801ba7a6f6f4e63139fe657f65ebe81caa3ad0c971b715f6249dd60771423",
+    "d97c664fab33cac3ee166d40bf7421bc6f39ad9f5bdc405d86390fea40b33d33",
+    "e51a78459f17c9f1c1adc66c61d43c00b46d62980a3e2ddc8131b6c596aacc35",
+    "f42b7881da2c5b9f579e73cdc9a7a90ed99d0712e5cf88c91d4842df68afee1d",
+    "f4cae973bc8649c5a08381623f7b7c31c9be04fb5e9e258b1354843601a343ba",
+    "f81992cb1830b414f127e956a3180fdd1456c14e85e4caf3becea7dc6c47f059"
+  ],
+  "strictly_tile_disjoint_withheld_index_plane_sha256": [
+    "3b46e0003c11fa5066501c9b270b67d044aa309e583b3ec90716116c4d799f1e",
+    "9b56d826108753b167dda6fb654440547c404cce975d35c9d1d844d7c4502347",
+    "9d65701f73af83f8477d8e52fbc63ba40424faeafd96565f7a2b2b41c4a77086",
+    "d92801ba7a6f6f4e63139fe657f65ebe81caa3ad0c971b715f6249dd60771423",
+    "d97c664fab33cac3ee166d40bf7421bc6f39ad9f5bdc405d86390fea40b33d33",
+    "f4cae973bc8649c5a08381623f7b7c31c9be04fb5e9e258b1354843601a343ba"
+  ],
+  "strictly_tile_disjoint_withheld_original_registry_representation_ids": {
+    "3b46e0003c11fa5066501c9b270b67d044aa309e583b3ec90716116c4d799f1e": [
+      "ordinary-racer-0x0139-p1-broader-frequency-reference"
+    ],
+    "9b56d826108753b167dda6fb654440547c404cce975d35c9d1d844d7c4502347": [
+      "ordinary-racer-0x00B9-p1-broader-frequency-reference"
+    ],
+    "9d65701f73af83f8477d8e52fbc63ba40424faeafd96565f7a2b2b41c4a77086": [
+      "ordinary-racer-0x01B9-p1-broader-frequency-reference"
+    ],
+    "d92801ba7a6f6f4e63139fe657f65ebe81caa3ad0c971b715f6249dd60771423": [
+      "ordinary-racer-0x02B9-p1-broader-frequency-reference"
+    ],
+    "d97c664fab33cac3ee166d40bf7421bc6f39ad9f5bdc405d86390fea40b33d33": [
+      "ordinary-racer-0x04B9-p1-broader-frequency-reference"
+    ],
+    "f4cae973bc8649c5a08381623f7b7c31c9be04fb5e9e258b1354843601a343ba": [
+      "ordinary-racer-0x0546-p2-companion-0EB2-broader-frequency-reference"
+    ]
+  },
+  "fit_to_withheld_exact_nonblank_tile_pair_histogram": {
+    "0": 291,
+    "1": 12,
+    "7": 1
+  },
+  "source_4bpp_planes_in_fit": 16,
+  "source_4bpp_planes_in_withheld": 19,
+  "fit_to_withheld_pairs_total": 304,
+  "fit_to_withheld_pairs_with_any_nonblank_tile_overlap": 13,
+  "fit_to_withheld_planes_with_zero_nonblank_tile_overlap": 6,
+  "source_original_live_PPU_timing_verified": false,
+  "source_original_three_dimensional_pose_or_camera_verified": false,
+  "experimental_GLb_pose_correspondence_verified": false,
+  "owner_likeness_approved": false
+}

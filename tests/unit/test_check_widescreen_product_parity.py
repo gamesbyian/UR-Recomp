@@ -1,3 +1,4 @@
+import hashlib
 import struct
 import tempfile
 import unittest
@@ -59,6 +60,73 @@ class WidescreenProductParityTests(unittest.TestCase):
         self.assertEqual(result["differing_pixels"], 1)
         self.assertEqual(result["bbox"], [250, 5, 250, 5])
 
+
+    def test_empty_or_truncated_bmp_cannot_pass_center_parity(self):
+        stock = self.root / "stock.bmp"
+        wide = self.root / "wide.bmp"
+        write_bmp(stock, 256, 8, stock_pixel)
+        write_bmp(wide, 342, 8, lambda x, y: stock_pixel(x - 43, y))
+        self.assertEqual(compare_center(stock, wide)["differing_pixels"], 0)
+        self.assertFalse(compare_center(stock, stock)["comparable"])
+
+        # Both files contain plausible BMP headers but no pixels.
+        for path in (stock, wide):
+            write_bmp(path, 0, 0, stock_pixel)
+        with self.assertRaisesRegex(ValueError, "invalid BMP"):
+            compare_center(stock, wide)
+
+        write_bmp(stock, 256, 8, stock_pixel)
+        write_bmp(wide, 342, 8, lambda x, y: stock_pixel(x - 43, y))
+        raw = wide.read_bytes()[:-3]
+        # Make the header length agree with the truncated file, so the
+        # pixel-payload check rather than header-size check must catch it.
+        wide.write_bytes(raw[:2] + struct.pack("<I", len(raw)) + raw[6:])
+        with self.assertRaisesRegex(ValueError, "truncated BMP pixels"):
+            compare_center(stock, wide)
+
+        write_bmp(wide, 342, 8, lambda x, y: stock_pixel(x - 43, y))
+        raw = bytearray(wide.read_bytes())
+        struct.pack_into("<I", raw, 30, 1)  # compressed BMP, unsupported
+        wide.write_bytes(raw)
+        with self.assertRaisesRegex(ValueError, "invalid BMP"):
+            compare_center(stock, wide)
+
+    def test_equal_short_or_empty_wram_cannot_pass_parity(self):
+        write_bmp(self.root / "s.fb.bmp", 256, 4, stock_pixel)
+        write_bmp(self.root / "w.fb.bmp", 342, 4,
+                  lambda x, y: stock_pixel(x - 43, y))
+        pair = ("cp", self.root / "s.fb.bmp", self.root / "w.fb.bmp",
+                self.root / "s.wram.bin", self.root / "w.wram.bin")
+        for size in (0, 0x10000):
+            for path in (self.root / "s.wram.bin", self.root / "w.wram.bin"):
+                path.write_bytes(bytes(size))
+            report = check([pair])
+            self.assertEqual(report["outcome"], "rejected")
+            self.assertFalse(compare_wram(pair[3], pair[4])["complete_wram_images"])
+
+    def test_wrong_source_geometry_cannot_claim_parity(self):
+        stock = self.root / "s.fb.bmp"
+        wide = self.root / "w.fb.bmp"
+        a = self.root / "s.wram.bin"
+        b = self.root / "w.wram.bin"
+        a.write_bytes(bytes(0x20000))
+        b.write_bytes(bytes(0x20000))
+        pair = ("cp", stock, wide, a, b)
+        # Each pair has a genuinely identical centre and complete equal WRAM.
+        # The old check accepted all three as WIDE-07 parity evidence.
+        for sw, sh, ww, wh in ((1, 1, 3, 1),
+                               (256, 8, 342, 8),
+                               (256, 224, 344, 224)):
+            with self.subTest(geometry=(sw, sh, ww, wh)):
+                write_bmp(stock, sw, sh, stock_pixel)
+                offset = (ww - sw) // 2
+                write_bmp(wide, ww, wh,
+                          lambda x, y: stock_pixel(x - offset, y))
+                self.assertEqual(compare_center(stock, wide)["differing_pixels"], 0)
+                report = check([pair])
+                self.assertEqual(report["outcome"], "rejected")
+                self.assertFalse(report["metrics"]["cp"]["center"]["expected_source_geometry"])
+
     def test_wram_lane_allowed_but_leak_rejected(self):
         a = bytearray(0x20000)
         b = bytearray(a)
@@ -80,9 +148,79 @@ class WidescreenProductParityTests(unittest.TestCase):
         self.assertEqual(leak["leaked_bytes"], 1)
         self.assertEqual(leak["first_leaks"], ["0x02049"])
 
+    def test_run_variant_sound_counter_does_not_pass_strict_parity(self):
+        # R-SEED-018 only established that $0069 differed before a B pulse.
+        # It did not establish that this sound-transfer byte has no consumers.
+        stock = self.root / "s.fb.bmp"
+        wide = self.root / "w.fb.bmp"
+        a = self.root / "s.wram.bin"
+        b = self.root / "w.wram.bin"
+        write_bmp(stock, 256, 224, stock_pixel)
+        write_bmp(wide, 342, 224, lambda x, y: stock_pixel(x - 43, y))
+        a.write_bytes(bytes(0x20000))
+        variant = bytearray(0x20000)
+        variant[0x0069] = 1
+        b.write_bytes(variant)
+        pair = ("sound-counter", stock, wide, a, b)
+        report = check([pair])
+        self.assertEqual(report["outcome"], "rejected")
+        wram = report["metrics"]["sound-counter"]["wram"]
+        self.assertTrue(wram["complete_wram_images"])
+        self.assertEqual(wram["leaked_bytes"], 0)
+        self.assertEqual(wram["run_variant_differences"], ["0x00069"])
+        # Exact equality still qualifies when the source centre and full
+        # 128-KiB WRAM images match.
+        b.write_bytes(bytes(0x20000))
+        self.assertEqual(check([pair])["outcome"], "accepted")
+
+    def test_report_binds_exact_capture_bytes(self):
+        stock = self.root / "s.fb.bmp"
+        wide = self.root / "w.fb.bmp"
+        a = self.root / "s.wram.bin"
+        b = self.root / "w.wram.bin"
+        write_bmp(stock, 256, 224, stock_pixel)
+        write_bmp(wide, 342, 224, lambda x, y: stock_pixel(x - 43, y))
+        a.write_bytes(bytes(0x20000))
+        b.write_bytes(bytes(0x20000))
+        pair = ("frame-100", stock, wide, a, b)
+        report = check([pair])
+        self.assertEqual(report["outcome"], "accepted")
+        metrics = report["metrics"]["frame-100"]
+        for section, paths in (("center", (stock, wide)), ("wram", (a, b))):
+            for side, path in zip(("stock", "wide"), paths):
+                identity = metrics[section]["input_identities"][side]
+                self.assertEqual(identity["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
+                self.assertEqual(identity["size"], path.stat().st_size)
+        original_hash = metrics["center"]["input_identities"]["wide"]["sha256"]
+        # Change only a widened margin: centre parity remains true, but the
+        # evidence identity must change with the actual consumed capture.
+        write_bmp(wide, 342, 224, lambda x, y: (9, 8, 7) if x < 43 else stock_pixel(x - 43, y))
+        updated = check([pair])
+        self.assertEqual(updated["outcome"], "accepted")
+        self.assertNotEqual(updated["metrics"]["frame-100"]["center"]["input_identities"]["wide"]["sha256"], original_hash)
+
+    def test_empty_duplicate_and_reused_checkpoints_fail_closed(self):
+        with self.assertRaisesRegex(ValueError, "at least one"):
+            check([])
+        stock = self.root / "s.fb.bmp"
+        wide = self.root / "w.fb.bmp"
+        a = self.root / "s.wram.bin"
+        b = self.root / "w.wram.bin"
+        write_bmp(stock, 256, 224, stock_pixel)
+        write_bmp(wide, 342, 224, lambda x, y: stock_pixel(x - 43, y))
+        a.write_bytes(bytes(0x20000))
+        b.write_bytes(bytes(0x20000))
+        pair = ("frame-100", stock, wide, a, b)
+        with self.assertRaisesRegex(ValueError, "duplicate checkpoint tag"):
+            check([pair, pair])
+        with self.assertRaisesRegex(ValueError, "identical capture bytes reused"):
+            check([pair, ("frame-200", stock, wide, a, b)])
+        with self.assertRaisesRegex(ValueError, "nonempty strings"):
+            check([("", stock, wide, a, b)])
+
     def test_envelope_outcome(self):
-        write_bmp(self.root / "s.fb.bmp", 256, 4, stock_pixel)
-        write_bmp(self.root / "w.fb.bmp", 342, 4, lambda x, y: stock_pixel(x - 43, y))
+        write_bmp(self.root / "s.fb.bmp", 256, 224, stock_pixel)
+        write_bmp(self.root / "w.fb.bmp", 342, 224, lambda x, y: stock_pixel(x - 43, y))
         (self.root / "s.wram.bin").write_bytes(bytes(0x20000))
         (self.root / "w.wram.bin").write_bytes(bytes(0x20000))
         pair = ("cp", self.root / "s.fb.bmp", self.root / "w.fb.bmp",

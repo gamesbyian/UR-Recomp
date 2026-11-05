@@ -1,0 +1,32 @@
+name: ART-4K pinned MesenCE default-branch cache seed
+
+# PR caches are scoped to refs/pull/N/merge, inaccessible to sibling PRs.
+# This main-only caller produces a trusted default-branch cache, never a
+# game ROM, raw PPU capture, emulator acceptance artifact, or 4K art credit.
+# Source capture workflow's same integration commit seeds main initially;
+# do not self-trigger when only this cache-seeder config changes.
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/art4k-live-original-mesen-ppu-raw.yml"
+      - "tools/art/mesence_cache_receipt.py"
+      - "third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: art4k-mesence-cache-seed-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  seed:
+    if: >-
+      github.repository == 'gamesbyian/UR-Recomp' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    uses: ./.github/workflows/art4k-live-original-mesen-ppu-raw.yml
+    with:
+      seed_only: true

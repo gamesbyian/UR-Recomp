@@ -1,0 +1,161 @@
+"""ROM-free source SNES OBJ tile/colour and deterministic screen-match controls."""
+import unittest
+from tools.art.audit_original_mesen_obj_screen_pixels import (
+    bgr555_to_rgb, colour_5_to_8, decode_source_obj, tile_from_vram,
+    best_opaque_matches, p6_screen, FRAME_SIZE,
+)
+
+
+def fixture(*,flipped=False,large=False,second=False):
+    vram=bytearray(65536)
+    cgram=bytearray(512)
+    # The first source tile in the selected OBJ page contains an opaque
+    # red index-1 pixel at local (0,0) and no other painted pixels.
+    word=0x6000+(0x1000 if second else 0)
+    vram[2*word]=0x80
+    cgram[2*129]=31
+    row={
+       "oam_slot":96,
+       "source_oam_tile_word9":0x100 if second else 0,
+       "source_obj_palette_id0_to7":0,
+       "source_obj_size_select_large":large,
+       "source_obj_hflip":flipped,
+       "source_obj_vflip":False,
+    }
+    return row,bytes(vram),bytes(cgram)
+
+
+class SourceOriginalObjMatchTests(unittest.TestCase):
+    def test_exact_mesen_five_bit_colour(self):
+        self.assertEqual([colour_5_to_8(v) for v in (0,1,16,31)],
+                         [0,8,132,255])
+        self.assertEqual(bgr555_to_rgb(31),(255,0,0))
+        self.assertEqual(bgr555_to_rgb(31<<10),(0,0,255))
+        for bad in (-1,32,True,2.5):
+            with self.subTest(value=bad),self.assertRaisesRegex(ValueError,"five-bit"):
+                colour_5_to_8(bad)
+
+    def test_raw_VRAM_is_byte_addressed_but_upstream_obj_is_word_addressed(self):
+        row,vram,cgram=fixture()
+        tile=tile_from_vram(vram,0x6000)
+        self.assertEqual(tile[0],1)
+        self.assertTrue(all(x==0 for x in tile[1:]))
+        with self.assertRaisesRegex(ValueError,"65536"):
+            tile_from_vram(vram[:-1],0x6000)
+
+    def test_mode4_small_sprite_palette_alpha_and_horizontal_flip(self):
+        row,vram,cgram=fixture()
+        obj=decode_source_obj(row,vram,cgram,oam_mode=4,obj_base=0x6000,
+                              second_table_offset=0x1000)
+        self.assertEqual(obj["size"],16)
+        self.assertEqual(obj["opaque_count"],1)
+        self.assertEqual(sum(obj["alpha_mask"]),1)
+        self.assertEqual(obj["alpha_mask"][0],1)
+        self.assertEqual(obj["alpha_mask"][1],0)
+        self.assertEqual(obj["plane"][0],1)
+        self.assertEqual(obj["rgba"][:4],bytes([255,0,0,255]))
+        self.assertEqual(obj["rgba"][4:8],bytes(4))
+        row["source_obj_hflip"]=True
+        flipped=decode_source_obj(row,vram,cgram,oam_mode=4,obj_base=0x6000,
+                                  second_table_offset=0x1000)
+        self.assertEqual(flipped["plane"][15],1)
+        self.assertEqual(flipped["plane"][0],0)
+        self.assertEqual(flipped["opaque_count"],1)
+
+    def test_second_obj_tile_table_bit_and_large_sprite(self):
+        row,vram,cgram=fixture(second=True,large=True)
+        obj=decode_source_obj(row,vram,cgram,oam_mode=4,obj_base=0x6000,
+                              second_table_offset=0x1000)
+        self.assertEqual(obj["size"],64)
+        self.assertEqual(obj["opaque_count"],1)
+        self.assertEqual(obj["plane"][0],1)
+
+    def test_unverified_original_mode_or_base_must_fail(self):
+        row,vram,cgram=fixture()
+        for args in ({'oam_mode':0,'obj_base':0x6000,'second_table_offset':0x1000},
+                     {'oam_mode':4,'obj_base':0x3000,'second_table_offset':0x1000},
+                     {'oam_mode':4,'obj_base':0x6000,'second_table_offset':0}):
+            with self.subTest(args=args),self.assertRaisesRegex(ValueError,"OBSEL"):
+                decode_source_obj(row,vram,cgram,**args)
+
+    def test_synthetic_opaque_pixel_colour_registration_and_decoy(self):
+        row,vram,cgram=fixture()
+        obj=decode_source_obj(row,vram,cgram,oam_mode=4,obj_base=0x6000,
+                              second_table_offset=0x1000)
+        rgb=bytearray(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
+        pos=3*(47*256+104)
+        rgb[pos:pos+3]=bytes([255,0,0])
+        result=best_opaque_matches(obj,bytes(rgb),upper=True)
+        self.assertTrue(result["complete_pixel_match"])
+        self.assertEqual((result["source_screen_x"],result["source_screen_y"]),(104,47))
+        rival=best_opaque_matches(obj,bytes(rgb),upper=False)
+        self.assertFalse(rival["complete_pixel_match"])
+        with self.assertRaisesRegex(ValueError,"screen RGB"):
+            best_opaque_matches(obj,b"",upper=True)
+
+    def test_postcountdown_red_sprite_may_be_outside_countdown_x_search(self):
+        # The historical countdown matching window X=76..170 excludes a
+        # plausible post-countdown screen origin at X=48. Broader search must
+        # be explicitly requested, leaving historical evidence unchanged.
+        row,vram,cgram=fixture()
+        obj=decode_source_obj(row,vram,cgram,oam_mode=4,obj_base=0x6000,
+                              second_table_offset=0x1000)
+        rgb=bytearray(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
+        pixel=3*(47*FRAME_SIZE[0]+48)
+        rgb[pixel:pixel+3]=bytes([255,0,0])
+        original=best_opaque_matches(obj,bytes(rgb),upper=True)
+        self.assertFalse(original["complete_pixel_match"])
+        wider=best_opaque_matches(
+            obj,bytes(rgb),upper=True,horizontal_origin_bounds=(0,192))
+        self.assertTrue(wider["complete_pixel_match"])
+        self.assertEqual((wider["source_screen_x"],wider["source_screen_y"]),(48,47))
+        self.assertTrue(best_opaque_matches(
+            obj,bytes(rgb),upper=True,horizontal_origin_bounds=(48,48)
+        )["complete_pixel_match"])
+
+    def test_diagnostic_horizontal_bounds_are_strict_and_screen_bounded(self):
+        row,vram,cgram=fixture()
+        obj=decode_source_obj(row,vram,cgram,oam_mode=4,obj_base=0x6000,
+                              second_table_offset=0x1000)
+        screen=bytes(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
+        invalid=((True,20),(10,False),(1.0,20),[0,192],(11,10),
+                 (-1,20),(0,241),(0,256),(),(1,2,3))
+        for bounds in invalid:
+            with self.subTest(bounds=bounds),self.assertRaisesRegex(
+                    ValueError,"horizontal origin bounds"):
+                best_opaque_matches(
+                    obj,screen,upper=True,horizontal_origin_bounds=bounds)
+
+    def test_strict_source_ppm_header(self):
+        valid=b"P6\n256 239\n255\n"+bytes(FRAME_SIZE[0]*FRAME_SIZE[1]*3)
+        self.assertEqual(len(p6_screen(valid)),256*239*3)
+        for bad in (valid[:-1],b"P3"+valid[2:],valid+b"x"):
+            with self.assertRaisesRegex(ValueError,"256x239"):
+                p6_screen(bad)
+
+
+    def test_exact_authenticated_source_obj_colour_receipt_keeps_3D_unverified(self):
+        import json
+        from pathlib import Path
+        root=Path(__file__).resolve().parents[2]
+        receipt=json.loads((root/"analysis/data/racer-original-mesen-two-racer-obj-screen-exact-match-20261103.json").read_text())
+        self.assertEqual(receipt["live_original_emulator_original_capture_run"],41574463232)
+        self.assertEqual(receipt["independent_4bpp_to_original_screen_proof_run"],41585156448)
+        self.assertTrue(receipt["original_2D_OBJ_to_completed_screen_exact_opaque_colour_correspondence_verified"])
+        self.assertFalse(receipt["original_per_scanline_OAM_writes_verified"])
+        self.assertFalse(receipt["original_source_3D_mesh_bones_or_camera_verified"])
+        alpha=receipt["source_two_original_racer_2D_binary_alpha_overlap"]
+        self.assertEqual((alpha["intersection_pixels"],alpha["union_pixels"]),(278,372))
+        self.assertEqual((alpha["blue_only_pixels"],alpha["red_only_pixels"]),(45,49))
+        self.assertFalse(alpha["original_2D_alpha_silhouettes_identical"])
+        for slot,colour,xy,n in ((96,"blue",[104,160],323),(97,"red",[104,47],327)):
+            row=next(r for r in receipt["actual_source_sprite_candidates"] if r["slot"]==slot)
+            self.assertEqual(row["coloured_racer"],colour)
+            self.assertEqual(row["source_screen_top_left"],xy)
+            self.assertEqual(row["opaque_pixel_exact_RGB_matches"],n)
+            self.assertEqual(row["opaque_pixel_count"],n)
+            self.assertLess(row["source_opposite_viewport_max_RGB_matches"],n)
+
+
+if __name__=="__main__":
+    unittest.main()

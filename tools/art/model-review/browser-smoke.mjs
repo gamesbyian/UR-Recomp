@@ -105,6 +105,21 @@ try{
    if(!document.querySelector('#viewport canvas'))issues.push('no WebGL canvas');
    if(!q('parts').textContent.includes('tire'))issues.push('no glTF part');
    if(!q('sourceInfo').textContent.includes('frame 1205'))issues.push('missing original provenance');
+   const manualLink=q('manualFigureLink');
+   if(!manualLink||manualLink.getAttribute('href')!=='./manual-landmarks.html')
+    issues.push('no local source printed-manual annotator link');
+   else{
+    if(manualLink.getBoundingClientRect().height<12)
+      issues.push('original manual annotator link hidden');
+    const downloaded=await fetch(manualLink.href);
+    const page=downloaded.ok?await downloaded.text():'';
+    if(!downloaded.ok||!page.includes('manual_landmark_marking.mjs')||
+       !page.includes('No images are uploaded'))
+      issues.push('local manual PNG annotation page not published');
+    const pureHelper=await fetch('./manual_landmark_marking.mjs');
+    if(!pureHelper.ok||!(await pureHelper.text()).includes('source_pdf_sha256'))
+      issues.push('mobile manual source annotation helper not published');
+   }
    const sourceBeforePrintViews=q('sourceInfo').textContent;
    for(const [label,page] of [['Print fork','14'],['Print hub','15']]){
     const choice=[...q('views').querySelectorAll('button')].find(b=>b.textContent===label);

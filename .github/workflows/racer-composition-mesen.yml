@@ -129,7 +129,7 @@ jobs:
           if [[ "${{ inputs.trace_rider_state }}" == "true" ]]; then
             trace+=(--trace-rider-state)
           fi
-          timeout 240s xvfb-run -a             python3 tools/capture_racer_composition_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --advance-frames "${{ inputs.advance_frames || 1218 }}"               "${trace[@]}"               --json-out "$RUNNER_TEMP/racer-composition-mesen.json"               --md-out "$RUNNER_TEMP/racer-composition-mesen.md"
+          timeout 240s xvfb-run -a             python3 tools/capture_racer_composition_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --advance-frames "${{ inputs.advance_frames }}"               "${trace[@]}"               --json-out "$RUNNER_TEMP/racer-composition-mesen.json"               --md-out "$RUNNER_TEMP/racer-composition-mesen.md"
           cat "$RUNNER_TEMP/racer-composition-mesen.md"
 
       - name: Require synchronized mask and occupied-source agreement

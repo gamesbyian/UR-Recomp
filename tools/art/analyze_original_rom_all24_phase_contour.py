@@ -28,7 +28,7 @@ PHASES=tuple(range(24))
 FROZEN_FOUR=(0,6,12,18)
 
 
-def summarize(phase_records:dict[int,dict])->dict:
+def summarize(phase_records:dict[int,dict],*,enforce_original_four_golden:bool=True)->dict:
     if (not isinstance(phase_records,dict) or set(phase_records)!=set(PHASES)):
         raise ValueError("exactly all 24 original ROM phase consensus records required")
     decoded={n:_phase(phase_records[n]) for n in PHASES}
@@ -75,7 +75,7 @@ def summarize(phase_records:dict[int,dict])->dict:
                     for i in range(N))
     four_vary=sum(int(four_any[i] and not four_all[i]) for i in range(N))
     # Actual 1994 source numerical golden from GHA #41990764973.
-    if (sum(valid),sum(four_all),sum(four_any),sum(four_core),four_vary)!=(
+    if enforce_original_four_golden and (sum(valid),sum(four_all),sum(four_any),sum(four_core),four_vary)!=(
             3008,291,304,164,13):
         raise ValueError("source four-phase original-ROM contour golden changed")
     adjacent={}

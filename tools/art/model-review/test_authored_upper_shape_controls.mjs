@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {SOURCE_STEM,SOURCE_STEM_LENGTH,SADDLE_HEIGHT,SHAPE_MODES,sourceShapeIntervention} from './authored_upper_shape_controls.mjs';
 
 test('five fixed source-authored upper-model visual preview hypotheses',()=>{
- assert.deepEqual(SHAPE_MODES,['original','saddle-up','saddle-down','frame-short','frame-long']);
+ assert.deepEqual(SHAPE_MODES,['original','saddle-up','saddle-down','frame-short','frame-long','saddle-narrow','saddle-wide']);
  assert.deepEqual(sourceShapeIntervention('original').offset,[0,0,0]);
  assert.ok(Math.abs(Math.hypot(...SOURCE_STEM)/SOURCE_STEM_LENGTH-1)<1e-12);
  for(const [name,sign] of [['saddle-up',1],['saddle-down',-1]]){
@@ -20,6 +20,13 @@ test('five fixed source-authored upper-model visual preview hypotheses',()=>{
   assert.equal(p.offset[0],0);
   assert.ok(Math.abs(p.offset[2]-SADDLE_HEIGHT*(scale-1))<1e-12);
  }
+ for(const [name,factor] of [['saddle-narrow',.9],['saddle-wide',1.1]]){
+  const p=sourceShapeIntervention(name);
+  assert.equal(p.saddleSpan,factor);
+  assert.equal(p.stroke,0);assert.equal(p.stretch,1);
+  assert.deepEqual(p.offset,[0,0,0]);
+ }
+ assert.equal(sourceShapeIntervention('original').saddleSpan,1);
  for(const invalid of [null,undefined,{},true,'fake','0.12']){
   assert.throws(()=>sourceShapeIntervention(invalid),/unknown/);
  }

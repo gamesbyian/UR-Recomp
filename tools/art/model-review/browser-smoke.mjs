@@ -349,8 +349,14 @@ try{
        const long=upperPreview('frame-long');
        if(short===long||short===initial||long===initial)
          issues.push('frame stretch failed to translate actual 2026 saddle mount');
+       const narrow=upperPreview('saddle-narrow');
+       if(status.dataset.saddleSpan!=='0.90'||narrow!==initial)
+         issues.push('real saddle contour 0.90 shape changed original mount');
+       const wide=upperPreview('saddle-wide');
+       if(status.dataset.saddleSpan!=='1.10'||wide!==initial)
+         issues.push('real saddle contour 1.10 shape changed original mount');
        upperPreview('original');
-       if(status.dataset.saddlePosition!==initial)
+       if(status.dataset.saddlePosition!==initial||status.dataset.saddleSpan!=='1.00')
          issues.push('upper-shape preview failed to restore saddle parent exactly');
        q('frameHinge').value='20';
        q('frameHinge').dispatchEvent(new Event('change',{bubbles:true}));
@@ -543,6 +549,20 @@ try{
      throw Error('provisional red model pixels not exactly restored');
    writeFileSync(join(out,'model-review-p1-red-412.png'),redFrame);
    writeFileSync(join(out,'model-review-p2-blue-412.png'),restoredBlue);
+   const setSaddle=async(mode)=>evaluate("(()=>{const q=document.getElementById('upperShape');if(q.disabled)return false;q.value='"+mode+"';q.dispatchEvent(new Event('change',{bubbles:true}));return q.value==='"+mode+"'&&document.getElementById('upperShapeStatus').dataset.mode==='"+mode+"'})()");
+   if(!await setSaddle('saddle-narrow'))throw Error('real GLB narrow saddle contour unavailable');
+   const narrowFrame=await capture();
+   if(!await setSaddle('saddle-wide'))throw Error('real GLB wide saddle contour unavailable');
+   const wideFrame=await capture();
+   if(!await setSaddle('original'))throw Error('real GLB original saddle contour restoration unavailable');
+   const exactSaddleRestored=await capture();
+   if(originalPaint.equals(narrowFrame)||originalPaint.equals(wideFrame)||
+      narrowFrame.equals(wideFrame))
+     throw Error('real saddle contour hypotheses failed to change source GLB viewport pixels');
+   if(!originalPaint.equals(exactSaddleRestored))
+     throw Error('saddle contour preview did not restore exact original GLB canvas pixels');
+   writeFileSync(join(out,'model-review-saddle-narrow-412.png'),narrowFrame);
+   writeFileSync(join(out,'model-review-saddle-wide-412.png'),wideFrame);
    await evaluate("window.__urArt4kVisualReadback.resume()");
   }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);

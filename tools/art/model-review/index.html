@@ -36,8 +36,10 @@ border-radius:8px;border:1px solid #465573}
 <option value="saddle-down">Saddle −0.12 model units along stem</option>
 <option value="frame-short">Upper frame shortened 4%</option>
 <option value="frame-long">Upper frame lengthened 4%</option>
+<option value="saddle-narrow">Saddle contour 10% narrower</option>
+<option value="saddle-wide">Saddle contour 10% wider</option>
 </select><div id="upperShapeStatus" class="tiny" role="status">Requires the published verified five-part model.</div>
-<div class="tiny">Reversible source-authored 2026 shape preview, distinct from the original 1994 sprite rail. Only one offset or stretch at a time; requires frame hinge 0°. Geometry and GLB files are never saved or modified.</div></div>
+<div class="tiny">Reversible source-authored 2026 shape preview, distinct from the original 1994 sprite rail. Only one saddle position, frame stretch or saddle contour variation at a time; requires frame hinge 0°. Geometry and GLB files are never saved or modified.</div></div>
 <div class="group"><h2>Direct-drive wheel phase</h2><label for="wheelDrive">Experimental wheel/spoke synchronisation</label><select id="wheelDrive" disabled><option value="0">Original source spokes</option><option value="1">Follow authored pedal phase</option></select><div id="wheelDriveStatus" class="tiny" role="status">Requires the original SHA-verified 2026 experimental five-part model.</div><div class="tiny">Reversible tire and rim parent rotation only. Pedals, fork, saddle and material meshes stay unchanged. No authentic 1994 wheel timing or likeness claimed.</div></div>
 <div class="group"><h2>Experimental continuous crank</h2><label for="crankScrub">Source-authored crank cycle · <output id="crankStep">0/64</output></label><input id="crankScrub" class="crank-scrub" type="range" min="0" max="64" step="1" value="0" disabled><div id="crankStatus" class="tiny" role="status">A published source-verified five-part GLB is required. This controls only 2026 authored mechanics.</div><div class="tiny">Each of 64 steps advances the wheel and pedals by 11.25°. This grid deliberately avoids the old spoke-symmetry alias. It is not observed original-game frame timing.</div></div>
 <div class="group"><h2>Experimental model colourway</h2>
@@ -284,7 +286,7 @@ function updateCrankScrubStatus(){
 
 function restoreUpperShape(){
  if(!upperShapeState)return;
- for(const {mesh,geometry} of upperShapeState.fork){
+ for(const {mesh,geometry} of [...upperShapeState.fork,...upperShapeState.saddleMeshes]){
   if(mesh.geometry!==geometry){const temporary=mesh.geometry;mesh.geometry=geometry;temporary?.dispose();}
  }
  upperShapeState.saddle.position.copy(upperShapeState.saddlePosition);
@@ -309,7 +311,20 @@ function captureUpperShape(origin){
   }
   meshes.push({mesh,geometry:mesh.geometry});
  }
- return {saddle,saddlePosition:saddle.position.clone(),fork:meshes};
+ const saddleMeshes=[];
+ for(let i=0;i<2;i++){
+  const mesh=current.getObjectByName('saddle__material_'+i);
+  const attr=mesh?.geometry?.getAttribute('position');
+  if(!mesh?.isMesh||mesh.parent!==saddle||!attr||attr.itemSize!==3||
+     !Number.isInteger(attr.count)||attr.count===0||
+     saddleMeshes.some(x=>x.geometry===mesh.geometry)||
+     meshes.some(x=>x.geometry===mesh.geometry))return null;
+  for(let k=0;k<attr.count;k++){
+   if(![attr.getX(k),attr.getY(k),attr.getZ(k)].every(Number.isFinite))return null;
+  }
+  saddleMeshes.push({mesh,geometry:mesh.geometry});
+ }
+ return {saddle,saddlePosition:saddle.position.clone(),fork:meshes,saddleMeshes};
 }
 function applyUpperShape(mode){
  if(!upperShapeState||frameHinge!==0)throw Error('real published model and neutral frame hinge required');
@@ -320,6 +335,14 @@ function applyUpperShape(mode){
    for(const {mesh,geometry} of upperShapeState.fork){
     const clone=geometry.clone(),pos=clone.getAttribute('position');
     for(let i=0;i<pos.count;i++)pos.setZ(i,pos.getZ(i)*proposal.stretch);
+    pos.needsUpdate=true;clone.computeVertexNormals();clone.computeBoundingBox();clone.computeBoundingSphere();
+    mesh.geometry=clone;
+   }
+  }
+  if(proposal.saddleSpan!==1){
+   for(const {mesh,geometry} of upperShapeState.saddleMeshes){
+    const clone=geometry.clone(),pos=clone.getAttribute('position');
+    for(let i=0;i<pos.count;i++)pos.setX(i,pos.getX(i)*proposal.saddleSpan);
     pos.needsUpdate=true;clone.computeVertexNormals();clone.computeBoundingBox();clone.computeBoundingSphere();
     mesh.geometry=clone;
    }
@@ -335,13 +358,14 @@ function updateUpperShapeStatus(origin=''){
  $('upperShape').disabled=!usable;$('upperShape').value=usable?upperShapeMode:'original';
  const status=$('upperShapeStatus');
  status.dataset.mode=upperShapeMode;
+ status.dataset.saddleSpan=upperShapeState?sourceShapeIntervention(upperShapeMode).saddleSpan.toFixed(2):'';
  status.dataset.saddlePosition=upperShapeState?
    upperShapeState.saddle.position.toArray().map(x=>x.toFixed(9)).join(','):'';
  status.textContent=!upperShapeState?'Requires the published verified 2026 five-parent/16-material model.':
   (frameHinge!==0?'Set the frame hinge to 0° to inspect these independent source-authored shapes.':
    upperShapeMode==='original'?'Unchanged original 2026 authoring shape.':
    'Temporary '+upperShapeMode+' source-authored 2026 geometry inspection.')+
-  ' No original 1994 speed or saddle stroke law recovered. '+
+  ' No original 1994 speed, saddle stroke or saddle 3D contour recovered. No original 1994 speed or saddle stroke law recovered. '+
   (origin.startsWith('local ')?'Uploaded models are not source-qualified.':
     'Earlier 48-frame scientific metrics refer only to their exact independent GLB render experiment.');
 }

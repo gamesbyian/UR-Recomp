@@ -26,7 +26,7 @@ class OriginalSixteenVersusTwentyFourPhaseTests(unittest.TestCase):
         self.assertEqual(set(scores["lag_results"]),{str(i) for i in LAGS})
         sixteen=scores["lag_results"]["16"]
         self.assertEqual(sixteen["source_exact_4bpp_index_match_fraction"],1.)
-        self.assertEqual(sixteen["source_phase_support_alpha_iou"],1.)
+        self.assertEqual(sixteen["phase_support_alpha_iou"],1.)
         self.assertTrue(all(sixteen["source_exact_4bpp_index_matches"]>
                             scores["lag_results"][str(lag)][
                                 "source_exact_4bpp_index_matches"]

@@ -25,7 +25,7 @@ SCHEMA = "UR-RACER-LIKENESS-LANDMARKS/1"
 REPORT_SCHEMA = "UR-RACER-LIKENESS-PROJECTED-MEASURES/1"
 SOURCE_KINDS = {
     "original-gameplay", "original-title", "official-packaging",
-    "period-promotional", "artist-blockout",
+    "period-promotional", "official-manual", "artist-blockout",
 }
 VIEW_ANGLES = {"side", "three-quarter", "front", "unknown"}
 PIXEL_ASPECT = {"square": 1.0, "snes_7_6": 7.0 / 6.0}

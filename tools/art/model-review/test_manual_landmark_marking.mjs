@@ -56,6 +56,7 @@ test("partial fork/crown measurement stays partial; invisible wheel ratio not in
  assert.ok(!("wheel" in report.annotations[0].visible_points));
  assert.ok("wheel" in report.annotations[0].unmeasurable);
  assert.equal(report.annotations[0].pixel_uncertainty,2.5);
+ assert.throws(()=>buildAnnotations(r,{[id]:draft},"UNANNOTATED",2.5),/reviewer/);
 });
 test("untouched/incomplete/forged/manual-1994-camera claims are rejected",()=>{
  const r=receipt(),id=FIGURES[1].id;

@@ -2,42 +2,47 @@
 
 **Status:** bounded, read-only baseline for [collective qualification plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md), **not** a P2/P3 success claim, new CI gate, product acceptance or permission to run PR code on the owner's HP.
 
-**Exact selection:** all GitHub Actions runs **created** from `2026-10-29T08:14:05Z` through `2026-11-05T08:14:05Z` inclusive; repository `gamesbyian/UR-Recomp`. Read-only collection used the owner's already authenticated `gh api`, with no runner/cron changes. All run listings for the three job-timed workflows below were paginated completely. The measurement read each cancelled run's `/actions/runs/{id}/jobs?per_page=100` response, rejected incomplete or inverted job timing, and summed `completed_at - started_at` for **every started job within a cancelled run**, including jobs that had already succeeded when the overall run was cancelled. A separate column counts time only for jobs whose individual conclusion was `cancelled`.
+**Exact selection:** all GitHub Actions runs **created** from `2026-10-29T08:14:05Z` through `2026-11-05T08:14:05Z` inclusive; repository `gamesbyian/UR-Recomp`. Read-only collection used the owner's already authenticated `gh api`, with no runner/cron changes. Run totals were independently read for each of six workflow IDs; **cancelled** run populations were exhaustively enumerated using the API's `status=cancelled` filter, avoiding the unfiltered 1,000-result pagination limit. The measurement read each cancelled run's `/actions/runs/{id}/jobs?per_page=100` response, rejected incomplete job inventories, excluded *and counted* inverted timestamp intervals, and summed `completed_at - started_at` for all **valid-timestamp started jobs within a cancelled run**, including jobs that had already succeeded when the workflow was cancelled. A separate column counts time only for jobs whose individual conclusion was `cancelled`. Values are a lower bound where job intervals were invalid.
 
-## Three fully enumerated high-cost workflows
+## Five completely enumerated cancellation populations (sixth has zero)
 
-| Workflow (Actions workflow ID) | Runs | Cancelled runs | Cancelled runs with at least one started job | Started jobs inside cancelled runs | Runner-min in cancelled runs | Runner-min in jobs concluded cancelled |
+| Workflow (Actions workflow ID) | Runs | Cancelled runs | Cancelled runs with valid started jobs | Valid started-job spans | Observed runner-min in cancelled runs | Runner-min in individually cancelled jobs |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Project tooling unit tests (`369800124`) | 1,180 | 308 | 248 | 382 | 295.02 | 294.43 |
+| Repository hygiene (`374916710`) | 1,205 | 164 | 155 | 155 | 67.23 | 67.23 |
 | Windows Visual Atlas PR validation (`393802512`) | 149 | 67 | 47 | 125 | 88.85 | 71.52 |
 | QA-05/09 Windows candidate (`379623240`) | 142 | 36 | 34 | 34 | 111.15 | 111.15 |
 | Windows native smoke (`374411662`) | 62 | 8 | 8 | 8 | 43.38 | 43.38 |
-| **Total, these workflows only** | **353** | **111** | **89** | **167** | **243.38** | **226.05** |
+| HP seeded 2P research (`402410752`) | 72 | 0 | 0 | 0 | 0.00 | 0.00 |
+| **Total, six selected workflows** | **2,810** | **583** | **492** | **704** | **605.63** | **587.71** |
 
-All runner-minute columns are observed nonnegative job spans from GitHub's job timestamps, rounded to two decimal places. The 17.33-minute difference between total time in cancelled runs and time in individually cancelled jobs includes successful or otherwise concluded jobs inside a subsequently cancelled workflow. **No assumption that the entire 243.38 minutes is waste, avoidable or billable is warranted.** Neither Windows billing multipliers nor subscription cost are assigned here. All jobs in the same run are summed; parallel job spans therefore count as separate runner-minutes, as intended. Missing/unstarted jobs contribute no measured span, not a fabricated duration.
+All runner-minute columns are nonnegative measured job spans, rounded to two decimal places. The **17.92-minute** difference between total time in cancelled workflows and time in individually cancelled jobs includes completed or otherwise concluded jobs inside subsequently cancelled workflows. **It is not sound to call all 605.63 minutes waste, avoidable, or billable.** Neither Windows billing multipliers nor monetary cost are estimated. Parallel started jobs count as separate runner-minutes, as intended. A cancelled run with no valid started job contributes zero observed compute rather than a fictitious duration.
 
-There were **22 cancelled runs without any started job** among these three workflows. A count of 111 cancelled *workflow runs* thus materially overstates how many started-job cancellations occurred. Conversely, the 89 cancelled runs with started jobs consumed 243.38 runner-minutes, which a run-count-only report misses.
+There are **91 cancelled workflows without a valid started-job span** in this census. This illustrates why raw cancellations and runner cost cannot be conflated: 583 workflow cancellations correspond to 492 with valid started jobs, containing 704 individually timed job spans.
 
-## Wider exact-window run census
+**GitHub timestamp anomaly:** the 308 cancelled tooling runs contained **114 job intervals with `completed_at < started_at`**, excluded from both minute columns and from the 382 valid job count. The other four cancelled-workflow populations contained zero inverted intervals under the same collection; hygiene likewise contained zero. One identified example, job `127124818627`, was a **skipped** `draft-syntax` job recorded as started `2026-11-05T08:03:26Z` and completed one second *before* that at `08:03:25Z`. That example does not prove all 114 are skips, nor that the missing time would be material. The reported **605.63 minutes is conservative** under the valid-interval rule, not a guaranteed complete billing or capacity total. No started job lacked a completion timestamp in the fully fetched tooling/hygiene cancellations.
 
-| Workflow | Runs in seven days | Observed run conclusions |
+## Full seven-day outcome census
+
+| Workflow | Runs created in window | Status/conclusion distribution at read time |
 | --- | ---: | --- |
-| Project tooling unit tests (`369800124`) | 1,180 | Latest 1,000 only: 641 success, 289 cancelled, 70 failure |
-| Repository hygiene (`374916710`) | 1,205 | Latest 1,000 only: 849 success, 144 cancelled, 7 failure |
-| Windows Visual Atlas PR validation (`393802512`) | 149 | 66 success, 67 cancelled, 16 failure |
-| QA-05/09 Windows candidate (`379623240`) | 142 | 63 success, 36 cancelled, 42 skipped, 1 failure |
-| Windows native smoke (`374411662`) | 62 | 52 success, 8 cancelled, 2 failure |
-| HP seeded 2P research (`402410752`) | 72 | 69 success, 3 failure |
+| Project tooling unit tests | 1,180 | 789 success, 82 failure, **308 cancelled**, 1 in progress |
+| Repository hygiene | 1,205 | 1,029 success, 10 failure, **164 cancelled**, 2 in progress |
+| Windows Visual Atlas PR validation | 149 | 66 success, 67 cancelled, 16 failure |
+| QA-05/09 Windows candidate | 142 | 63 success, 36 cancelled, 42 skipped, 1 failure |
+| Windows native smoke | 62 | 52 success, 8 cancelled, 2 failure |
+| HP seeded 2P research | 72 | 69 success, 3 failure |
 
-These six exact workflow IDs produced **2,810 runs** in the selected interval. GitHub's Actions list pagination returned only the newest 1,000 records for each of the two high-volume workflows; their exact `total_count` fields were cross-read using `per_page=1` in the same window. The additional 180 tooling and 205 hygiene runs were **not outcome-classified**. Consequently **at least 544 cancellations** were directly seen across six workflows; this is a lower bound, never the full seven-day cancellation rate. The three job-timed workflows' counts are complete under the same selection.
+The first two workflows exceeded GitHub's 1,000-result cap for unfiltered run lists. To resolve it, **separate `status`-filtered `total_count` queries were used**, rather than extrapolating the latest-1,000 sample: tooling **308 cancelled** (versus at least 289 in the truncated sample) and hygiene **164 cancelled** (versus at least 144). Each fully enumerated cancellation subset was below 1,000, so all affected job receipts could be read. These outcome counts are a snapshot of API state when read; the three in-progress runs may subsequently complete and change conclusion, so rerun the same time-bounded status census before relying on it for a future experiment.
 
 ## Reproducibility and decision rules
 
-1. Obtain each workflow's run list through `GET /repos/gamesbyian/UR-Recomp/actions/workflows/{workflow_id}/runs?created=2026-10-29T08:14:05Z..2026-11-05T08:14:05Z&per_page=100&page=N`, incrementing `N` while comparing retrieved count to `total_count`. Never infer an interval-wide conclusion from a list capped at 1,000.
-2. For each `conclusion=cancelled` run, read `GET /repos/gamesbyian/UR-Recomp/actions/runs/{run_id}/jobs?per_page=100` and fail if `total_count > 100` without fetching further pages. Include each job with real `started_at` and `completed_at` in the total. Record cancelled-*job* time separately from total started time in cancelled-*workflow* runs.
+1. Obtain each workflow's exact seven-day `total_count`. For large workflows, separately read `GET /repos/gamesbyian/UR-Recomp/actions/workflows/{workflow_id}/runs?created=2026-10-29T08:14:05Z..2026-11-05T08:14:05Z&status=cancelled&per_page=100&page=N`, advancing pages until the filtered `total_count` is retrieved. Read additional `status=success`, `failure`, `skipped`, `in_progress`, etc. counts to reconcile outcome totals; do not treat an unfiltered 1,000-row sample as complete.
+2. For each `conclusion=cancelled` run, read `GET /repos/gamesbyian/UR-Recomp/actions/runs/{run_id}/jobs?per_page=100`, reject incomplete pagination, and count but **exclude** missing/reversed timestamp intervals. Include every valid timed started job regardless of its own conclusion. Record cancelled-*job* time separately from total started time in cancelled-*workflow* runs. Do not impute missing time, including from skipped jobs with reversed timestamps.
 3. Compare only source-compatible candidate campaigns with identical test intent, actual executed-case identities, hosted OS, all relevant acceptance checks, exact source/PE/package envelopes and measured queue delays. **Do not** claim that cancellation totals would be eliminated by batching, or skip required ready-state tests.
 4. Preserve the existing protective `cancel-in-progress` rules until matched evidence proves an alternative saves runner-minutes without letting obsolete source consume a scarce runner. The Visual Atlas expensive model-export job already waits for ready PRs; Windows candidate validation also gates its full hosted Windows job on ready state.
 5. P1 source verification is still under review in [PR #3146](https://github.com/gamesbyian/UR-Recomp/pull/3146), specifically whole-composite tree membership and file-mode integrity. Do not promote shared builds or install the five-agent prompt addendum from this observational baseline.
 
 **Prior sample reconciliation:** the existing read-only [CI runtime report run #41983549429](https://github.com/gamesbyian/UR-Recomp/actions/runs/41983549429) covered 300 most recent runs across roughly 12 hours, with `window_census_complete=false`. The exact-window numbers here use separately enumerated workflow IDs and are not extrapolated from that sample. The sample is useful for step-level bottleneck analysis but does not replace the seven-day baseline above.
 
-**Next P3 measurement:** quantify seven-day *started* job-minutes for the cancelled tooling/hygiene population using bounded UTC-day partitioning so the 1,000-item API cap cannot obscure losses. Then compare any real P2 shared-qualification experiment against matching existing-workflow runs. In the absence of comparable candidates, retain this baseline without inventing a benchmark.
+**Next P3 measurement:** before any claimed savings, compare a genuinely useful, P1-verified P2 collective candidate against the actual same-case conventional Windows checks with source/PE/ZIP identities and started runner-minute measurements. Re-run an identical frozen-window query to track settled conclusions for the three still-in-progress runs. A per-job reason audit should distinguish never-started cancellations, requested cancellations and successful jobs before cancellation; there is no evidence yet that all 605.63 observed minutes can be eliminated. In the absence of compatible candidates, retain this measured baseline without inventing a benchmark.

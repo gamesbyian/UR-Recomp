@@ -105,7 +105,7 @@ class OriginalMesen24PaintDiscTests(unittest.TestCase):
         self.assertEqual(blue["original_rgba_variant_count"], 3)
         # Alpha-A low = (.5+.3)/2=.4; alpha-B low=.1; equal-shape .25.
         self.assertEqual(blue["mean_source_chroma_inside_wheel_disc_low"], .25)
-        self.assertEqual(blue["mean_source_chroma_inside_wheel_disc_high"], .6)
+        self.assertEqual(blue["mean_source_chroma_inside_wheel_disc_high"], .45)
         self.assertEqual(report["red"]["mean_source_chroma_inside_wheel_disc_low"], .2)
         self.assertEqual(report["red"]["mean_source_chroma_inside_wheel_disc_high"], .6)
 

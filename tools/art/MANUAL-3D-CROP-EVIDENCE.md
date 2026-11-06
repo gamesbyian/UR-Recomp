@@ -1,3 +1,39 @@
+## No-PC original print figure artifact through GitHub Actions
+
+If a local computer cannot run the PDF renderer, use the opt-in Actions
+workflow **ART-4K authenticated original manual crop review (on demand)**,
+`.github/workflows/art4k-original-manual-crops.yml`.
+The first review artifact is already generated and SHA-verified in the PR workflow qualification. Once this workflow reaches `main`, it runs only on demand, or on PRs modifying that workflow or its specific original
+manual extractor/validator/tests. It is **not scheduled**; it does not
+run for unrelated 3D, game, Android or CI work. From GitHub Actions,
+select that workflow and **Run workflow** on `main`.
+
+The workflow uses one Ubuntu runner, Python 3.12, pinned
+`PyMuPDF 1.26.4` and `Pillow 11.3.0`, original repo-tracked
+`Uniracers-USA-manual.pdf` and both focused synthetic-PDF unit suites.
+It renders four source crops, then **re-authenticates the exact tracked
+Git PDF blob and rerenders/compares every cropped RGB pixel** using the
+independent sparse-landmark validator before offering any output.
+The resulting downloadable seven-day GitHub Actions artifact
+`art4k-original-1994-manual-four-views` contains exactly four PNGs,
+`source-crops.json` with each real SHA-256 and PDF/page coordinates, and
+`landmarks.UNANNOTATED.json`. It contains no original ROM, GLB candidate,
+private credentials or approved art asset. The original scanned artwork
+is not committed to a new source path.
+
+Download/extract that ZIP to the phone, open the existing Pages 3D
+viewer and its **Mark original printed 2D landmarks locally** link.
+Select the four PNGs plus source-crops.json in one Android file-picker
+operation. The browser checks local PNG hashes and records actual point
+coordinates/occlusion. The separate offline Python source audit (#3170)
+remains mandatory before claiming *measured* original print landmarks.
+The workflow's generated PNG hashes are renderer-version-specific;
+if running locally against them, use the pinned renderer environment
+for exact RGB replay. Never mistake the original print figures for
+verified lost 1994 3D model/camera data or owner-approved game art.
+
+---
+
 # Original manual 3D-reference crops with authentic PDF provenance
 
 Research only. The original 1994 USA printed manual is already in the

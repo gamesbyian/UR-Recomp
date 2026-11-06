@@ -8,7 +8,8 @@ from unittest.mock import patch
 
 from tools.art.score_original_mesen24_full_saddle import (
     SCHEMA,TICKS,ARMS,BASE_ARMS,SADDLE_TRIALS,DRIVE_TRIALS,LEVEL_TRIALS,
-    MOTION_TRIALS,SLIDE_TRIALS,ALL_MOTION_TRIALS,STRETCH_TRIALS,FULL_MOTION_TRIALS,SPAN_TRIALS,ALL_SHAPE_TRIALS,CUP_TRIALS,ALL_CONTOUR_TRIALS,CROWN_TRIALS,ALL_GEOMETRY_TRIALS,drive_delta_degrees,
+    MOTION_TRIALS,SLIDE_TRIALS,ALL_MOTION_TRIALS,STRETCH_TRIALS,FULL_MOTION_TRIALS,SPAN_TRIALS,ALL_SHAPE_TRIALS,CUP_TRIALS,ALL_CONTOUR_TRIALS,CROWN_TRIALS,HUB_TRIALS,HUB_SETTINGS,MATCHED_HUB_CONTROL_NAMES,
+    MATCHED_HUB_TRIALS,MATCHED_HUB_ARMS,ALL_GEOMETRY_TRIALS,drive_delta_degrees,
     aggregate_original_timeline,main,analyze,
     summary_for_exact_original_source,check_exact_source_evidence,
 )
@@ -59,6 +60,23 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
             ("axle_root_fork_crown_full110_rom_phase_15deg","rom_phase",1.10),
             ("axle_root_fork_crown_narrow090_fixed_tick_24deg","fixed_tick",.90),
             ("axle_root_fork_crown_full110_fixed_tick_24deg","fixed_tick",1.10)))
+        self.assertEqual(HUB_TRIALS,(
+            ("axle_root_hub_cover_rom_phase_15deg","rom_phase"),
+            ("axle_root_hub_cover_fixed_tick_24deg","fixed_tick")))
+        self.assertEqual(HUB_SETTINGS,dict(HUB_TRIALS))
+        self.assertEqual(set(MATCHED_HUB_CONTROL_NAMES),set(n for n,_ in MATCHED_HUB_TRIALS))
+        self.assertEqual(set(MATCHED_HUB_ARMS),set(BASE_ARMS)|set(MATCHED_HUB_CONTROL_NAMES))
+        self.assertEqual(len(MATCHED_HUB_ARMS),len(BASE_ARMS)+4)
+        self.assertEqual({name for name,_ in ALL_GEOMETRY_TRIALS if name in HUB_SETTINGS},
+                         set(HUB_SETTINGS))
+        for candidate,control in (
+            ("axle_root_hub_cover_rom_phase_15deg",
+             "axle_root_saddle_world_level_rom_phase_15deg"),
+            ("axle_root_hub_cover_fixed_tick_24deg",
+             "axle_root_saddle_world_level_fixed_tick_24deg"),
+        ):
+            self.assertIn(candidate,ARMS)
+            self.assertIn(control,ARMS)
         self.assertEqual(drive_delta_degrees(3,3,1601,"rom_phase"),0.)
         self.assertEqual(drive_delta_degrees(5,3,1602,"rom_phase"),30.)
         self.assertEqual(drive_delta_degrees(1,23,1602,"rom_phase"),30.)
@@ -70,6 +88,29 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
                      (0,0,1625,"fixed_tick"),(0,0,1601,"fitted")):
             with self.subTest(args=args),self.assertRaises(ValueError):
                 drive_delta_degrees(*args)
+
+    def test_matched_hub_scope_retains_every_original_source_frame_and_baseline(self):
+        base=bytes([1])+bytes(4095)
+        alternate=bytes([0,1])+bytes(4094)
+        original={t:{"alpha":base if t<1624 else alternate} for t in TICKS}
+        predicted={t:{name:(alternate if name.endswith("hub_cover_rom_phase_15deg")
+                             else base) for name in ARMS} for t in TICKS}
+        full=aggregate_original_timeline(original,predicted)
+        reduced={t:{name:predicted[t][name] for name in MATCHED_HUB_ARMS}
+                 for t in TICKS}
+        matched=aggregate_original_timeline(original,reduced,MATCHED_HUB_ARMS)
+        self.assertEqual(set(matched["arms"]),set(MATCHED_HUB_ARMS))
+        self.assertEqual(matched["original_unique_binary_source_alpha_shape_sha256_to_ticks"],
+                         full["original_unique_binary_source_alpha_shape_sha256_to_ticks"])
+        for arm in MATCHED_HUB_ARMS:
+            self.assertEqual(matched["arms"][arm],full["arms"][arm])
+            self.assertEqual(matched["arms"][arm]["source_actual_timeline_edge_count"],23)
+        for invalid in (("original_source_2d_rotation",),MATCHED_HUB_ARMS+("junk",),
+                        MATCHED_HUB_ARMS+("original_source_2d_rotation",)):
+            with self.assertRaises(ValueError):
+                aggregate_original_timeline(original,reduced,invalid)
+        with self.assertRaises(ValueError):
+            aggregate_original_timeline(original,predicted,MATCHED_HUB_ARMS)
 
     def test_one_vote_per_unique_original_shape_not_23_repeated_snapshots(self):
         first=bytes([1])+bytes(4095)

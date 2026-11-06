@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import subprocess
+import shutil
 import textwrap
 import unittest
 
@@ -11,6 +12,7 @@ WORKFLOW = Path(__file__).resolve().parents[2] / '.github/workflows/qa01-event-c
 
 
 class RF095WorkflowPrerequisites(unittest.TestCase):
+    @unittest.skipUnless(shutil.which('bash'), 'bash is required for workflow guard execution')
     def test_opt_in_requires_complete_zoo_to_bowl_replay(self):
         source = WORKFLOW.read_text(encoding='utf-8')
         anchor = '          if [[ "$QA01_RF095" == "true" &&'

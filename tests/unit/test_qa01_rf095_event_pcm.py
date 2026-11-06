@@ -38,6 +38,10 @@ NATIVE = ('#include <stdio.h>\n#include <stdint.h>\n#include <stdlib.h>\n'
           '  dsp_handleEcho(dsp, &totalL, &totalR);\n' +
           patch.NATIVE_SAMPLE + '}\n')
 
+POSIX_DIRFD = (os.name == 'posix' and hasattr(os, 'O_DIRECTORY')
+               and hasattr(os, 'O_NOFOLLOW') and os.open in os.supports_dir_fd
+               and os.link in os.supports_dir_fd)
+
 class RF095Tests(unittest.TestCase):
     def test_original_hook_singleton_and_idempotence(self):
         updated = patch.patch_reference(REF)
@@ -170,6 +174,7 @@ class RF095Tests(unittest.TestCase):
                         ValueError, 'distinct physical files'):
                     receipt.analyze(*files)
 
+    @unittest.skipUnless(POSIX_DIRFD, 'POSIX secure directory-relative publication unavailable')
     def test_invalid_native_cannot_leave_plausible_original_window(self):
         with tempfile.TemporaryDirectory() as d:
             files = self.fixture(d)
@@ -227,6 +232,7 @@ class RF095Tests(unittest.TestCase):
                     self.assertFalse(window.exists())
                     self.assertFalse(out.exists())
 
+    @unittest.skipUnless(POSIX_DIRFD, 'POSIX secure directory-relative publication unavailable')
     def test_cli_serializes_receipt_only_once_before_window_publication(self):
         # A second json.dumps after the PCM window is published could fail,
         # leaving a plausible final-named window and an empty JSON receipt.
@@ -435,6 +441,7 @@ class RF095Tests(unittest.TestCase):
             self.assertTrue(good_parent.is_dir())
             self.assertEqual(list(good_parent.iterdir()), [])
 
+    @unittest.skipUnless(POSIX_DIRFD, 'POSIX secure directory-relative publication unavailable')
     def test_final_publication_stages_complete_bytes_before_name_is_visible(self):
         with tempfile.TemporaryDirectory() as d:
             final = pathlib.Path(d) / 'receipt.json'
@@ -458,6 +465,7 @@ class RF095Tests(unittest.TestCase):
             self.assertEqual(final.read_bytes(), payload)
             self.assertEqual([p.name for p in pathlib.Path(d).iterdir()], ['receipt.json'])
 
+    @unittest.skipUnless(POSIX_DIRFD, 'POSIX secure directory-relative publication unavailable')
     def test_final_publication_failure_leaves_no_partial_name_or_stage(self):
         with tempfile.TemporaryDirectory() as d:
             final = pathlib.Path(d) / 'window.pcm'
@@ -469,6 +477,7 @@ class RF095Tests(unittest.TestCase):
             self.assertFalse(final.exists())
             self.assertEqual(list(pathlib.Path(d).iterdir()), [])
 
+    @unittest.skipUnless(POSIX_DIRFD, 'POSIX secure directory-relative publication unavailable')
     def test_final_publication_racing_foreign_file_is_preserved(self):
         with tempfile.TemporaryDirectory() as d:
             final = pathlib.Path(d) / 'receipt.json'
@@ -528,6 +537,7 @@ class RF095Tests(unittest.TestCase):
                     alias / 'receipt.json', b'VALID', label='receipt output')
             self.assertEqual(list(actual.iterdir()), [])
 
+    @unittest.skipUnless(POSIX_DIRFD, 'POSIX secure directory-relative publication unavailable')
     def test_cli_publishes_both_final_names_through_staging(self):
         with tempfile.TemporaryDirectory() as d:
             files = self.fixture(d)

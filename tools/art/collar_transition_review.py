@@ -24,9 +24,10 @@ NEW = """  // Owner reference: official 1994 manual fork-facing illustration.
     translate([-0.22,0,1.59])sphere(r=0.14,$fn=48);
     translate([-0.22,0,1.65])sphere(r=0.14,$fn=48);
   }
+  // Preserve source material group order: silver seatpost, then dark trim.
+  color([0.75,0.81,0.84])frame_member([-0.22,0,1.67],[-0.20,0,2.235],0.065,0.058);
   color([0.30,0.40,0.45])translate([-0.22,0,1.775])
     cylinder(h=0.035,r=0.105,center=true,$fn=64);
-  color([0.75,0.81,0.84])frame_member([-0.22,0,1.67],[-0.20,0,2.235],0.065,0.058);
   color([0.30,0.40,0.45])frame_member([-0.20,0,2.225],[-0.03,0,2.2],0.083,0.088);"""
 
 

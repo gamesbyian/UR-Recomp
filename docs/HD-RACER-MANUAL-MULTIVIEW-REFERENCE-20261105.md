@@ -21,6 +21,8 @@ This is **not a newly acquired asset**: the repo already retains `reference/impo
 
 The **same publication** contributes several printed poses and apparent viewing directions. That is useful multiview image evidence, **but must not be counted as six independently recovered source 3D camera viewpoints** or as source-game 24 tick observations. They may be separately posed, composited, resized, shaded or rendered from modified illustrative geometry. The visual inspection does not establish an exact pixel-coordinate annotation or verified consistent orthographic camera.
 
+**November 6 provenance boundary:** a new 2026 authored welded dark-hub housing [visual study](../tools/art/welded_hub_review.py) uses p15 only for subjective shape reference, not for fitted 1994 source-camera, triangulation or physical axle attachment. It replaces a 2026 sleeve with one closed connected topology while retaining every other GLB mesh. The existing p14–p16 crop references and source claims below remain unchanged; no original-artist likeness verdict has been received.
+
 ## Physical reconstruction questions sharpened by these views
 
 1. **Saddle-to-crown clamp and head thickness.** In the current 2026 GLB/SCAD, saddle, fork and their attachment pivots are structurally separate but physically schematic. Printed p. 14 and 16 offer cross-direction constraints on the rounded black saddle underside, projecting stem, metal clamp and bulky fork crown. An apparently shorter/wider head in one view may be foreshortening, not a width scale.

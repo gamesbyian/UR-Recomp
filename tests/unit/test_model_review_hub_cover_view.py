@@ -31,6 +31,14 @@ class HubCoverViewerTests(unittest.TestCase):
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, html)
+        smoke = (ROOT / "tools/art/model-review/browser-smoke.mjs").read_text(encoding="utf-8")
+        for marker in (
+            "synthetic GLB enabled dark hub cover",
+            "exact-source dark hub cover disabled",
+            "real 2026 hub cover geometry mode unavailable",
+            "reversible dark hub cover altered original 1994 sprite or GLB part census",
+        ):
+            self.assertIn(marker, smoke)
         self.assertTrue(HELPER.is_file())
         for source_path in ("tools/windows_visual_atlas.py",
                             "tools/art/model-review/stage_pages.py"):

@@ -429,6 +429,26 @@ try{
         q('sourceInfo').textContent!==before||q('parts').textContent!==parts)
        issues.push('2026 source spoke preview mutated authentic 1994 rail or GLB materials');
    }
+   const hub=q('hubFace');
+   if(!hub||hub.getBoundingClientRect().height<44)
+     issues.push('source 2026 dark hub touch target');
+   if(${mocked}){
+     if(!hub?.disabled)issues.push('synthetic GLB enabled dark hub cover');
+   }else if(hub?.disabled)issues.push('exact-source dark hub cover disabled');
+   else{
+     const priorSource=q('sourceInfo').textContent;
+     const priorParts=q('parts').textContent;
+     const priorModel=q('source').textContent;
+     hub.value='cover';hub.dispatchEvent(new Event('change',{bubbles:true}));
+     if(q('hubFaceStatus').dataset.mode!=='cover'||
+        q('hubFaceStatus').dataset.sourceVertices!=='100')
+       issues.push('real 2026 hub cover geometry mode unavailable');
+     hub.value='original';hub.dispatchEvent(new Event('change',{bubbles:true}));
+     if(q('hubFaceStatus').dataset.mode!=='original'||
+        q('sourceInfo').textContent!==priorSource||
+        q('parts').textContent!==priorParts||q('source').textContent!==priorModel)
+       issues.push('reversible dark hub cover altered original 1994 sprite or GLB part census');
+   }
    if(q('paintHypothesis').getBoundingClientRect().height<44)
      issues.push('paint hypothesis touch target too small');
    if(q('modelColourway').getBoundingClientRect().height<44)

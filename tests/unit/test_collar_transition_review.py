@@ -33,13 +33,15 @@ class OwnerDirectedCollarTests(unittest.TestCase):
                              len(materials_for_part(changed.decode(),name)))
 
     def test_symmetric_lateral_collar_and_exposed_seatpost(self):
-        self.assertIn("translate([-0.22,0,1.93])",NEW)
-        self.assertIn("translate([-0.22,0,2.003])",NEW)
+        self.assertIn("translate([-0.22,0,1.59])",NEW)
+        self.assertIn("translate([-0.22,0,1.65])",NEW)
         # All new mechanical primitive centers are exactly on Y=0.
         self.assertNotIn("translate([-0.22,0.2",NEW)
-        self.assertIn("[-0.20,0,2.24]",NEW)
-        self.assertIn("[-0.22,0,1.89]",NEW)
-        self.assertIn("h=0.13,r1=0.16,r2=0.14",NEW)
+        self.assertIn("[-0.20,0,2.235]",NEW)
+        self.assertIn("[-0.22,0,1.60]",NEW)
+        self.assertIn("r=0.14,$fn=48",NEW)
+        self.assertIn("1.775",NEW)
+        self.assertIn("0.065,0.058",NEW)
         self.assertNotIn("rim_and_hub()",NEW)
         self.assertNotIn("saddle_section(",NEW)
 

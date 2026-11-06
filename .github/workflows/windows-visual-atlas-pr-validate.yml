@@ -17,6 +17,8 @@ on:
       - "media/windows-visual-atlas/**"
       - "tools/visual_atlas_web/**"
       - "tools/art/model-review/**"
+      - "tools/art/collar_transition_review.py"
+      - "tools/art/verify_collar_transition_review.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
       - "tools/art/racer_source_pixels.py"
       - "analysis/data/racer-hd-replacement-prototype.json"
@@ -150,6 +152,42 @@ jobs:
           assert evidence["shipping_art_approved"] is False
           print("EXPERIMENTAL_FIVE_POSE_EXPORT_STAGED",m["source_commit"])
           PY
+      - name: Export and independently validate owner-directed collar model against real baseline
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/collar-review"
+          python3 tools/art/collar_transition_review.py \
+            tools/art/candidates/unicycle_shared_rig.scad \
+            "$RUNNER_TEMP/collar-review/collar.scad"
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/export_articulated_unicycle.py \
+            "$RUNNER_TEMP/collar-review/collar.scad" \
+            "$RUNNER_TEMP/collar-review/export" --rig-pose upright --timeout 120 \
+            > "$RUNNER_TEMP/collar-review/export-result.json"
+          python3 - <<'PY'
+          import json,os,pathlib,shutil
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])
+          output=root/"collar-review"
+          for source,target in ((root/"model-exports/upright",output/"baseline.glb"),
+                                (output/"export",output/"collar.glb")):
+              ptr=json.loads((source/"articulated_blockout_current.json").read_text())
+              last=json.loads((source/"articulated_blockout_last_attempt.json").read_text())
+              assert last["status"]=="succeeded" and last["attempt_id"]==ptr["attempt_id"]
+              shutil.copyfile(source/ptr["glb_path"],target)
+          PY
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_collar_transition_review.py \
+            --baseline-glb "$RUNNER_TEMP/collar-review/baseline.glb" \
+            --candidate-glb "$RUNNER_TEMP/collar-review/collar.glb" \
+            --baseline-scad tools/art/candidates/unicycle_shared_rig.scad \
+            --candidate-scad "$RUNNER_TEMP/collar-review/collar.scad" \
+            --out "$RUNNER_TEMP/collar-review/integrity-report.json"
+      - name: Preserve opt-in owner collar review artifact (never the default Pages model)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-owner-saddle-collar-unapproved-review
+          path: ${{ runner.temp }}/collar-review/
+          if-no-files-found: warn
+          retention-days: 14
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

@@ -413,7 +413,7 @@ try{
    const blades=q('bladeSpokes');
    if(!blades||blades.getBoundingClientRect().height<44)
      issues.push('source-authored wheel blade preview mobile touch target');
-   if(mocked){if(!blades?.disabled)
+   if(${mocked}){if(!blades?.disabled)
       issues.push('synthetic GLB enabled source blade sculpt');}
    else if(blades?.disabled)issues.push('real original-2026 source spoke volume control unavailable');
    else{

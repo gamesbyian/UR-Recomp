@@ -44,7 +44,11 @@ def make_snapshot(inv, ledger, prior, adjustments, milestone_spec, entries, head
         "reviewed_inventory_sha":inv["source_sha"],
         "contract":inv["frozen_contract_fnv1a32"],
         "milestone_allocation_sha256":report["milestone_allocation_sha256"],
-        "effort_prior_sha256":canonical_hash({"prior":prior,"adjustments":adjustments}),
+        "effort_prior_sha256":canonical_hash({
+            "prior":prior,
+            "active_changes":adjustments.get("changes", []),
+            "completed_shared":adjustments.get("completed_shared", []),
+        }),
         "calculator_source_sha256":estimator_hash,
         "engineering_estimate_percent":report["engineering_estimate_percent"],
         "engineering_recorded_evidence_range_percent":report[
@@ -117,7 +121,13 @@ def main():
                        load(MILESTONES),entries,head,day,source_hash)
     result={"snapshot":snap}
     if args.compare:
-        result["trend"]=compare(load(args.compare),snap)
+        previous=load(args.compare)
+        ancestry=subprocess.run(["git","-C",str(ROOT),"merge-base","--is-ancestor",
+                                 previous["source_main_sha"],head],capture_output=True,
+                                 check=False)
+        if ancestry.returncode:
+            p.error("Prior daily snapshot source SHA is not an ancestor of current head")
+        result["trend"]=compare(previous,snap)
     if not args.dry_run:
         target=args.out or SNAPSHOTS/(day+".json")
         save_once(target,snap)

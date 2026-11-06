@@ -13,8 +13,10 @@ import numpy as np
 import trimesh
 try:
     from tools.art.glb_roundtrip_guard import geometry_signature
+    from tools.art.fork_tire_surface_certificate import certify_upright_review_fork
     from tools.art.rounded_fork_clearance_review import (
-        STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256, rounded_fork_source
+        STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256,
+        REPAIRED_SOURCE_SHA256, clearance_repaired_fork_source
     )
     from tools.art.verify_collar_transition_review import (
         EXPECTED, PART_COUNTS, lateral_reflection_error,
@@ -22,8 +24,10 @@ try:
     )
 except ModuleNotFoundError:
     from glb_roundtrip_guard import geometry_signature
+    from fork_tire_surface_certificate import certify_upright_review_fork
     from rounded_fork_clearance_review import (
-        STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256, rounded_fork_source
+        STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256,
+        REPAIRED_SOURCE_SHA256, clearance_repaired_fork_source
     )
     from verify_collar_transition_review import (
         EXPECTED, PART_COUNTS, lateral_reflection_error,
@@ -70,7 +74,7 @@ def tire_torus_clearance_samples(scene):
 
 def verify(baseline_source:Path, rounded_scad:Path, straight_glb:Path,
            rounded_glb:Path):
-    source=rounded_fork_source(baseline_source.read_bytes())
+    source=clearance_repaired_fork_source(baseline_source.read_bytes())
     if rounded_scad.read_bytes()!=source:
         raise ValueError("rounded SCAD does not match source-locked proposal")
     originals=(straight_glb.read_bytes(),rounded_glb.read_bytes())
@@ -104,6 +108,12 @@ def verify(baseline_source:Path, rounded_scad:Path, straight_glb:Path,
         silver_post_cross_section_centers(scene)
     before=tire_torus_clearance_samples(a)
     after=tire_torus_clearance_samples(b)
+    # Check whole fork triangles, not just sparse surface points.
+    # An inconclusive bound is reported explicitly, not counted as proof.
+    continuous=certify_upright_review_fork(b)
+    if continuous["status"]!="certified":
+        raise ValueError("rounded fork lacks complete ideal-torus surface certificate: "
+                         +json.dumps(continuous,sort_keys=True))
     if before["minimum_sampled_signed_clearance"]>=-.003:
         raise ValueError("baseline fork/tire overlap control unexpectedly absent")
     if (after["sampled_points_inside_tire_tube"] or
@@ -113,7 +123,8 @@ def verify(baseline_source:Path, rounded_scad:Path, straight_glb:Path,
         raise ValueError("rounded fork did not clear both sampled tire material tubes")
     return {"schema":"UR-ART4K-ROUNDED-FORK-REAL-GLB-REVIEW/1",
             "source_straight_scad_sha256":STRAIGHT_SOURCE_SHA256,
-            "rounded_candidate_scad_sha256":PROPOSED_SOURCE_SHA256,
+            "rounded_candidate_scad_sha256":REPAIRED_SOURCE_SHA256,
+            "historical_sampled_only_scad_sha256":PROPOSED_SOURCE_SHA256,
             "source_straight_glb_sha256":hashlib.sha256(originals[0]).hexdigest(),
             "rounded_glb_sha256":hashlib.sha256(originals[1]).hexdigest(),
             "only_changed_material_node":changed[0],
@@ -123,6 +134,7 @@ def verify(baseline_source:Path, rounded_scad:Path, straight_glb:Path,
             "straight_silver_post_retained":True,
             "existing_fork_sampled_tire_clearance":before,
             "rounded_fork_sampled_tire_clearance":after,
+            "rounded_fork_continuous_ideal_torus_review":continuous,
             "source_1994_mesh_recovered":False,
             "owner_likeness_approved":False,
             "shipping_art_approved":False}

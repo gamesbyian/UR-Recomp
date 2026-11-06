@@ -101,7 +101,8 @@ def matched_control(arm:str, available:set[str])->str|None:
               "axle_root_upper_stretch096","axle_root_upper_stretch104",
               "axle_root_saddle_span090","axle_root_saddle_span110",
               "axle_root_saddle_cup_deep008","axle_root_saddle_cup_soft008",
-              "axle_root_fork_crown_narrow090","axle_root_fork_crown_full110")
+              "axle_root_fork_crown_narrow090","axle_root_fork_crown_full110",
+              "axle_root_hub_cover")
     if prefix not in prefixes:
         return None
     control="axle_root_saddle_world_level_"+suffix

@@ -2,6 +2,9 @@
 
 # HD racer inverse-graphics: executable delivery plan
 
+> **Completed owner collar axis correction, November 6:** The original #3207 collider study leaned its post very slightly. A corrected, *still unapproved* source-derived candidate was merged via [#3214](https://github.com/gamesbyian/UR-Recomp/pull/3214) with six applicable checks green and actual GLB section-centre test X=-0.21999998 at both Z=1.90/2.10. Retained [full source-bound artifact](https://github.com/gamesbyian/UR-Recomp/actions/runs/42272506803/artifacts/13532345178), corrected GLB SHA-256 `5cc8c99df1a3c47a9c95fd2279fad28b11de8893a12ff17971a947f2ffcc7298`. Neither a new rig nor shipping art. Do not rerun straight-post fit/IoU sweeps. **Next:** actual owner-facing original promotional-art comparison, then rounded coloured fork-to-collar silhouette and controlled animation/pose review, retaining 2026 saddle, slim spokes and all model parent transforms.
+
+
 > **Live ART-4K task, owner decision November 6:** The five-part 2026 authoring rig is an acceptable **foundation**, with saddle close and thin spokes retained. Reject the bulky asymmetric welded hub. Establish lateral symmetry for the frame/wheel/hub viewed head-on (pedals may oppose); prioritize the **coloured collar and exposed silver saddle rod**, then improve rounded fork/frame shape with original promotional art as visual/material reference. Author one precise source-locked collar variant, export real GLB, check unchanged non-frame materials and five pivots, present side/front/three-quarter comparison, and obtain a focused accept/revise verdict before changing canonical SCAD. Expressive pedalling, balancing, saddle flex, jumps, flips and twists are all in scope, but original animation timing remains unverified. Old 64px fitting studies below are retained research, not an active recommendation. No final art/shipping acceptance implied.
 
 

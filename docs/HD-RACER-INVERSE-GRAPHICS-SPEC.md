@@ -1,5 +1,8 @@
 # Source-registered inverse graphics for the Uniracers racers
 
+> **November 6 supersession:** This is a **retained technical evidence and diagnostics specification**, not the current marching orders for model generation. The 1,536 original 2D records and 48/48 exact Mesen references are preserved, while the original 1994 3D mesh/camera/rig remain unidentifiable from these source pixels. Stop treating new 64×64 IoU, temporal scoring, Pareto or camera fitting as a likeness oracle. The [current art brief](HD-RACER-CHARACTER-RECONSTRUCTION.md), [shared agent board](HOURLY-AGENT-LINES.md) and [actual visual review](../tools/art/model-review/visual-review.html) require owner judgment first. The five-part unapproved rig landed on main via #3200 and draft #2832 is closed. Optional physically welded hub #3202 is a **2026 authoring candidate** with no original-geometry or approval claim. Historic work packets below remain reproducible negative/scientific history but are not authorized new agent tasks.
+
+
 **Status (2026-10-31): approved research direction and executable planning contract; no newly calibrated source-authentic 3D model, animation rig or shipping artwork is claimed.** This is the technical annex to [HD-RACER-CHARACTER-RECONSTRUCTION.md](HD-RACER-CHARACTER-RECONSTRUCTION.md). That document owns the target likeness and the owner's visual veto; [HD-ART-DIRECTION.md](HD-ART-DIRECTION.md) owns art direction, [HD-RACER-PROJECTED-LANDMARKS.md](HD-RACER-PROJECTED-LANDMARKS.md) owns projected 2D evidence, [WORK-QUEUE.md](WORK-QUEUE.md) alone owns active dispatch and [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) alone owns release acceptance. Execution sequence: [HD-RACER-INVERSE-GRAPHICS-PLAN.md](HD-RACER-INVERSE-GRAPHICS-PLAN.md).
 
 ## 0. Goal, non-goals, evidence standard
@@ -35,7 +38,7 @@ Important observed facts: the title reference guest400 is **inside a dark fade**
 
 ### Existing 3D work: **do not duplicate**
 
-**Draft PR [#2832](https://github.com/gamesbyian/UR-Recomp/pull/2832)**, work ID UR-ART-4K-20261026, is the primary integration target. Its open head on 2026-10-31 is graphics/art4k-part-addressable-rig-20261029. The candidate OpenSCAD shared model was recovered from **closed, unmerged PR [#1826](https://github.com/gamesbyian/UR-Recomp/pull/1826)**, not an independently sourced original rig.
+**Historical PR [#2832](https://github.com/gamesbyian/UR-Recomp/pull/2832)**, work ID UR-ART-4K-20261026, was the original 2026 shared-rig integration branch. Its source/doc/test files were integrated byte-for-byte into main by merged [#3200](https://github.com/gamesbyian/UR-Recomp/pull/3200) and the old draft closed, without any artistic approval. The candidate OpenSCAD shared model was recovered from **closed, unmerged PR [#1826](https://github.com/gamesbyian/UR-Recomp/pull/1826)**, not an independently sourced original rig.
 
 Draft-only files include:
 - tools/art/candidates/unicycle_shared_rig.scad, with one parametric blockout and named upright, pedal, wheelie, stunt, bank poses (and exploratory continuous ride/stunt-cycle study in source).

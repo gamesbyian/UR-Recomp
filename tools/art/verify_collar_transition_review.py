@@ -11,8 +11,12 @@ import hashlib
 import json
 from pathlib import Path
 
-from tools.art.glb_roundtrip_guard import geometry_signature
-from tools.art.collar_transition_review import BASELINE_SOURCE_SHA256, sculpt
+try:
+    from tools.art.glb_roundtrip_guard import geometry_signature
+    from tools.art.collar_transition_review import BASELINE_SOURCE_SHA256, sculpt
+except ModuleNotFoundError:
+    from glb_roundtrip_guard import geometry_signature
+    from collar_transition_review import BASELINE_SOURCE_SHA256, sculpt
 
 PART_COUNTS = {"tire": 2, "rim_and_hub": 5, "fork_and_frame": 4,
                "pedals": 3, "saddle": 2}

@@ -16,6 +16,7 @@ import subprocess
 import urllib.parse
 import urllib.request
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 REPO = "gamesbyian/UR-Recomp"
 ROOT = "/repos/" + REPO
@@ -29,17 +30,30 @@ WORKFLOWS = {
 }
 MAX_PAGES = 10  # GitHub Actions run listing is capped at 1,000.
 STAMP = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\Z")
+API_STAMP = re.compile(
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+    r"(?:\.[0-9]{1,6})?(?:Z|[+-][0-9]{2}:[0-9]{2})\Z"
+)
 
 
 def utc(value):
-    from datetime import datetime
-    if type(value) is not str or not STAMP.fullmatch(value):
-        raise ValueError("expected exact UTC YYYY-MM-DDTHH:MM:SSZ")
-    return datetime.fromisoformat(value[:-1] + "+00:00")
+    """Parse a timezone-qualified GitHub timestamp, preserving UTC instants.
+
+    The REST schema permits fractional seconds and ISO8601 offsets in job
+    and step records; user-supplied search-window bounds remain strict Z.
+    """
+    if type(value) is not str or not API_STAMP.fullmatch(value):
+        raise ValueError("expected a timezone-qualified GitHub timestamp")
+    instant = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if instant.utcoffset() is None:
+        raise ValueError("missing GitHub timestamp offset")
+    return instant.astimezone(timezone.utc)
 
 
 def span(start, end):
-    from datetime import timedelta
+    if (type(start) is not str or type(end) is not str
+            or not STAMP.fullmatch(start) or not STAMP.fullmatch(end)):
+        raise ValueError("window bounds require exact YYYY-MM-DDTHH:MM:SSZ")
     delta = utc(end) - utc(start)
     if not timedelta(0) < delta <= timedelta(days=7):
         raise ValueError("window must be greater than zero and <= seven days")
@@ -146,11 +160,22 @@ def get_run_census(fetch, workflow, created):
     return total, rows
 
 
-def get_run_jobs(fetch, run_id):
+def get_run_jobs(fetch, run_id, attempt_policy="latest"):
+    """Read one cancelled run's latest or full rerun history, explicitly.
+
+    GitHub's default is latest. Retain that as the historical P3 v1/v2
+    baseline policy; use 'all' only for a separately labelled census.
+    """
+    if type(run_id) is not int or run_id < 1:
+        raise ValueError("invalid source run ID")
+    if attempt_policy not in ("latest", "all"):
+        raise ValueError("invalid job attempt policy")
     base = ROOT + "/actions/runs/" + str(run_id) + "/jobs"
     jobs, expected = [], None
     for page in range(1, MAX_PAGES + 1):
-        url = base + "?" + urllib.parse.urlencode({"per_page": 100, "page": page})
+        url = base + "?" + urllib.parse.urlencode({
+            "filter": attempt_policy, "per_page": 100, "page": page
+        })
         receipt = obj(fetch(url), "job page")
         n = count(receipt.get("total_count"), "jobs")
         if expected is None:
@@ -179,6 +204,9 @@ def get_run_jobs(fetch, run_id):
         if type(jid) is not int or jid < 1 or jid in seen:
             raise ValueError("duplicate or invalid job ID")
         seen.add(jid)
+        if "run_id" in job and (type(job["run_id"]) is not int
+                                or job["run_id"] != run_id):
+            raise ValueError("job returned from another workflow run")
         start, end = job.get("started_at"), job.get("completed_at")
         if start is None:
             continue
@@ -247,17 +275,23 @@ def get_run_jobs(fetch, run_id):
             "seconds_job_to_first_step": prefirst_step_seconds}
 
 
-def measure(fetch, start, end, workflows=WORKFLOWS, workers=6):
+def measure(fetch, start, end, workflows=WORKFLOWS, workers=6,
+            attempt_policy="latest"):
     created = span(start, end)
-    if not 1 <= workers <= 8:
+    if type(workers) is not int or not 1 <= workers <= 8:
         raise ValueError("workers must be in range 1..8")
+    if attempt_policy not in ("latest", "all"):
+        raise ValueError("invalid job attempt policy")
     rows = []
     for name, workflow in workflows.items():
         if type(workflow) is not int or workflow < 1:
             raise ValueError("invalid workflow ID")
         total, cancelled = get_run_census(fetch, workflow, created)
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-            jobs = list(pool.map(lambda r: get_run_jobs(fetch, r["id"]), cancelled))
+            jobs = list(pool.map(
+                lambda r: get_run_jobs(fetch, r["id"], attempt_policy),
+                cancelled,
+            ))
         sums = {key: sum(j[key] for j in jobs) for key in (
             "valid_started", "invalid_intervals", "missing_completions",
             "seconds_inside_cancelled_run", "seconds_cancelled_jobs",
@@ -266,18 +300,25 @@ def measure(fetch, start, end, workflows=WORKFLOWS, workers=6):
             "seconds_job_to_first_step")}
         rows.append({"name": name, "workflow_id": workflow, "all_runs": total,
                      "cancelled_runs": len(cancelled),
+                     "cancelled_runs_with_reruns": sum(
+                         type(r.get("run_attempt")) is int
+                         and r["run_attempt"] > 1 for r in cancelled),
                      "cancelled_with_started_jobs": sum(j["valid_started"] > 0 for j in jobs),
                      **sums})
-    return {"schema": "ur-ci-cancelled-runner-census/2", "repository": REPO,
+    return {"schema": "ur-ci-cancelled-runner-census/3", "repository": REPO,
             "created_after_utc": start, "created_before_utc": end,
+            "job_attempt_policy": attempt_policy,
             "workflows": rows,
             "limitations": "GitHub job-interval and step-duration spans only; neither proves billed, active-CPU, wasted, avoidable or recovered minutes. Invalid/missing intervals and skipped steps excluded."}
 
 
 def render_markdown(receipt):
-    lines = ["# Cancelled-workflow runner-time census", "",
+    lines = ["# Cancelled-workflow GitHub timing census", "",
              "Source: " + receipt["repository"] + " created " +
              receipt["created_after_utc"] + " through " + receipt["created_before_utc"],
+             "",
+             "Job attempt policy: **" + receipt["job_attempt_policy"] +
+             "** (latest is the original P3 v1/v2 baseline; all includes reruns)",
              "",
              "| Workflow | Runs | Cancelled | Valid job spans | Invalid job intervals | Job interval min | Cancelled job interval min | Step duration min | Pre-first-step gap min | Jobs with step evidence |",
              "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
@@ -299,8 +340,13 @@ def main():
     parser.add_argument("--end", required=True)
     parser.add_argument("--json-out", type=str)
     parser.add_argument("--markdown-out", type=str)
+    parser.add_argument(
+        "--attempts", choices=("latest", "all"), default="latest",
+        help="latest (baseline-compatible) or all (includes rerun history)",
+    )
     args = parser.parse_args()
-    result = measure(api_get, args.start, args.end)
+    result = measure(api_get, args.start, args.end,
+                     attempt_policy=args.attempts)
     rendered = render_markdown(result)
     if args.json_out:
         Path(args.json_out).write_text(json.dumps(result, sort_keys=True, indent=2) + "\n",

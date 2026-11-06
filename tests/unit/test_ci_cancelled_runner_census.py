@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from tools.ci_cancelled_runner_census import (measure, span, get_run_census,
                                               get_run_jobs, render_markdown,
-                                              auth_token, api_get)
+                                              auth_token, api_get, utc)
 
 START = "2026-10-29T08:14:05Z"
 END = "2026-11-05T08:14:05Z"
@@ -87,6 +87,8 @@ class CensusTests(unittest.TestCase):
         self.assertEqual(row["seconds_cancelled_jobs"], 60)
         self.assertIn("3.00", render_markdown(report))
         self.assertIn("neither proves billed", report["limitations"])
+        self.assertEqual(report["job_attempt_policy"], "latest")
+        self.assertEqual(report["schema"], "ur-ci-cancelled-runner-census/3")
 
     def test_long_job_start_to_first_step_gap(self):
         f = MockAPI(jobs={17: [{
@@ -183,6 +185,63 @@ class CensusTests(unittest.TestCase):
                                             "authentication required") as cm:
                     auth_token()
                 self.assertNotIn("secret", str(cm.exception))
+
+    def test_offset_and_fractional_github_timestamps(self):
+        self.assertEqual(
+            utc("2026-11-05T00:00:00.250-07:00"),
+            utc("2026-11-05T07:00:00.250Z"),
+        )
+        f = MockAPI(jobs={
+            17: [job(301, start="2026-11-05T00:00:00.000-07:00",
+                     end="2026-11-05T07:01:00Z")],
+            18: [],
+        })
+        self.assertEqual(get_run_jobs(f, 17)["seconds_inside_cancelled_run"], 60)
+        for value in ("2026-11-05T07:00:00", "2026-11-05T07:00:00+07",
+                      "nonsense", "2026-11-05T07:00:00.0000000Z"):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                utc(value)
+
+    def test_explicit_job_attempt_policy_in_all_calls(self):
+        f = MockAPI()
+        self.assertEqual(get_run_jobs(f, 17)["valid_started"], 2)
+        self.assertTrue(all("filter=latest" in x for x in f.calls))
+        f.calls.clear()
+        self.assertEqual(get_run_jobs(f, 17, "all")["valid_started"], 2)
+        self.assertTrue(all("filter=all" in x for x in f.calls))
+        for policy in ("both", None, 1):
+            with self.subTest(policy=policy), self.assertRaisesRegex(
+                    ValueError, "attempt policy"):
+                get_run_jobs(f, 17, policy)
+
+    def test_all_attempts_census_is_not_mislabelled_as_latest(self):
+        f = MockAPI()
+        f.override = lambda route: (
+            {"total_count": 3, "jobs": [
+                job(101), job(102), job(103)
+            ]} if "/actions/runs/17/jobs" in route and "filter=all" in route
+            else None
+        )
+        latest = measure(f, START, END, workflows={"test": WORKFLOW},
+                         workers=1, attempt_policy="latest")
+        all_attempts = measure(f, START, END, workflows={"test": WORKFLOW},
+                               workers=1, attempt_policy="all")
+        self.assertEqual(latest["workflows"][0]["valid_started"], 2)
+        self.assertEqual(all_attempts["workflows"][0]["valid_started"], 3)
+        self.assertEqual(all_attempts["job_attempt_policy"], "all")
+        self.assertIn("**all**", render_markdown(all_attempts))
+
+    def test_cross_run_job_identity_mismatch_rejected(self):
+        f = MockAPI(jobs={17: [{**job(301), "run_id": 18}]})
+        with self.assertRaisesRegex(ValueError, "another workflow run"):
+            get_run_jobs(f, 17)
+
+    def test_cancelled_rerun_count_recorded_separately(self):
+        f = MockAPI(runs=[{**run(17), "run_attempt": 2},
+                          {**run(18), "run_attempt": 1}])
+        row = measure(f, START, END, workflows={"test": WORKFLOW},
+                      workers=1)["workflows"][0]
+        self.assertEqual(row["cancelled_runs_with_reruns"], 1)
 
     def test_missing_completion_excluded(self):
         f = MockAPI(jobs={17: [job(1, end=None),

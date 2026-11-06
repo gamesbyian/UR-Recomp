@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from tools.art.collar_transition_review import (
-    BASELINE_SOURCE_SHA256, OLD, NEW, sculpt, make_candidate,
+    BASELINE_SOURCE_SHA256, OLD, NEW, canonical_source_bytes, sculpt, make_candidate,
 )
 from tools.art.export_articulated_unicycle import (
     PARTS, POSES, source_without_entrypoint, saddle_mount_from_source,
@@ -17,7 +17,7 @@ SOURCE=Path(__file__).resolve().parents[2]/"tools/art/candidates/unicycle_shared
 
 class OwnerDirectedCollarTests(unittest.TestCase):
     def test_source_locked_one_change_in_existing_rig(self):
-        original=SOURCE.read_bytes()
+        original=canonical_source_bytes(SOURCE.read_bytes())
         self.assertEqual(hashlib.sha256(original).hexdigest(),BASELINE_SOURCE_SHA256)
         changed=sculpt(original)
         self.assertNotEqual(original,changed)
@@ -45,8 +45,15 @@ class OwnerDirectedCollarTests(unittest.TestCase):
         self.assertNotIn("rim_and_hub()",NEW)
         self.assertNotIn("saddle_section(",NEW)
 
+    def test_windows_checkout_crlf_is_not_source_drift(self):
+        original=canonical_source_bytes(SOURCE.read_bytes())
+        windows=original.replace(b"\n",b"\r\n")
+        self.assertEqual(sculpt(windows),sculpt(original))
+        with self.assertRaisesRegex(ValueError,"mixed source newlines"):
+            sculpt(windows.replace(b"\r\n",b"\n",1))
+
     def test_changed_source_rejected_no_output_overwrite(self):
-        original=SOURCE.read_bytes()
+        original=canonical_source_bytes(SOURCE.read_bytes())
         with self.assertRaisesRegex(ValueError,"source SHA changed"):
             sculpt(original+b"\n")
         with tempfile.TemporaryDirectory() as d:

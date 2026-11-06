@@ -31,8 +31,18 @@ NEW = """  // Owner reference: official 1994 manual fork-facing illustration.
   color([0.30,0.40,0.45])frame_member([-0.20,0,2.225],[-0.03,0,2.2],0.083,0.088);"""
 
 
+def canonical_source_bytes(source_bytes: bytes) -> bytes:
+    """Recover Git's LF blob from a Windows all-CRLF checkout, not arbitrary drift."""
+    if b"\r\n" in source_bytes:
+        if source_bytes.count(b"\r\n") != source_bytes.count(b"\n"):
+            raise ValueError("mixed source newlines; re-review owner collar patch")
+        source_bytes = source_bytes.replace(b"\r\n", b"\n")
+    return source_bytes
+
+
 def sculpt(source_bytes: bytes) -> bytes:
     """One exact-authoring-source replacement, no second source model fork."""
+    source_bytes = canonical_source_bytes(source_bytes)
     digest = hashlib.sha256(source_bytes).hexdigest()
     if digest != BASELINE_SOURCE_SHA256:
         raise ValueError("canonical 2026 source SHA changed; re-review owner collar patch")

@@ -83,6 +83,8 @@ python3 tools/daily_measurement.py --format json
 python3 tools/live_progress.py --format json
 ```
 
+The report binds its milestone-allocation methodology to an explicit SHA-256 fingerprint, so a new set of weights or criteria cannot silently masquerade as an unchanged historical estimator. Compare two daily percentages only when their `milestone_allocation_sha256` values match, or re-evaluate both snapshots with the same new allocation and report the methodological discontinuity.
+
 The daily calculator produces an **engineering partial-work instrument**, not a replacement for a human's comprehensive source judgment until substantially more historical evidence has been entered. It starts from the *last frozen certified criterion inventory*; reviewed milestones add their exact fixed subweight and provisional milestones add half as a transparent planning point, with the full 0–100% provisional-subweight interval reported separately. Milestone sums are bounded by their original parent 45 units or 10 USA-event units, and credited parents are never counted twice. Provisional calibration **is a modelling convention**, not a statistically measured completion probability.
 
 The forecast separately starts at the original prior for all unfinished criterion jobs, residual independent review and one-time shared blockers, then replaces per-job remaining cost only when an evidence-linked revision exists. It deliberately never subtracts arbitrary "units completed" from effort because product coverage units and engineering effort units are different quantities. A milestone can increase engineering coverage while remaining cost stays unchanged; that's a legitimate initial observation pending justified cost reassessment.

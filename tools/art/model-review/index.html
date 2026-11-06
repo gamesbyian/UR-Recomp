@@ -9,7 +9,7 @@ border-radius:8px;border:1px solid #465573}
 .reference-image img,.reference-image canvas{max-width:100%;object-fit:fill;image-rendering:pixelated}
 .reference-image img[hidden],.reference-image canvas[hidden]{display:none!important}.file-label{display:block;border:1px dashed #7188a8;border-radius:10px;padding:11px;text-align:center;cursor:pointer}#file{position:absolute;width:1px;height:1px;opacity:0}.empty{font-size:15px;line-height:1.5}kbd{background:#27374c;border-radius:4px;padding:2px 4px}@media(max-width:720px){.app{height:100dvh;grid-template-rows:auto minmax(0,1fr) auto}.top{padding:7px 10px}.main{grid-template-columns:1fr;grid-template-rows:minmax(230px,1fr) auto}.panel{border-left:0;border-top:1px solid #293a51;max-height:min(44dvh,370px);padding:10px}.buttons{grid-template-columns:repeat(5,minmax(0,1fr))}.buttons button{font-size:11px;padding:5px 2px;min-height:44px}#views{grid-template-columns:repeat(4,minmax(0,1fr))}.overlay{font-size:12px}.bottom{font-size:11px}}
 </style></head><body>
-<div class="app"><header class="top"><strong>UNIRACERS / 3D LAB</strong><span class="tag">Experimental blockout · likeness unapproved</span><span id="version" class="muted">Checking model manifest…</span><a href="../" aria-label="Return to screenshot atlas">Screenshot atlas</a></header>
+<div class="app"><header class="top"><strong>UNIRACERS / 3D LAB</strong><span class="tag">Experimental blockout · likeness unapproved</span><span id="version" class="muted">Checking model manifest…</span><a href="./visual-review.html" aria-label="Start original versus model likeness review">Visual likeness review</a><a href="../" aria-label="Return to screenshot atlas">Screenshot atlas</a></header>
 <main class="main"><section class="stage" aria-label="Interactive 3D unicycle viewport"><div id="viewport" style="width:100%;height:100%"></div><div class="overlay"><div id="state" class="empty" role="status">Loading viewer…</div><div class="tiny" id="details"></div></div></section>
 <aside class="panel"><div class="group"><h2>Pose studies</h2><div class="buttons" id="poses"></div><div class="tiny" id="poseHelp">Five exporter blockout studies. These are not yet verified as authentic gameplay sprite poses.</div></div>
 <div class="group"><h2>Verified 1994 sprite references</h2>
@@ -893,4 +893,16 @@ if(new URLSearchParams(location.search).has('art4k-still')){
 }
 init();
 void mountOriginalMesen24Rail(document.getElementById('originalMesen24Rail'));
+// Read-only screenshot route for the same-origin visual-first review page.
+// Render synchronously before extracting the actual WebGL canvas; never
+// synthesize a missing GLB or label a local upload as source-verified.
+window.__art4kReviewCapture=()=>{
+ if(!current)throw Error('No real 3D model loaded in the existing viewer');
+ renderer.render(scene,camera);
+ return {image:renderer.domElement.toDataURL('image/png'),
+   model_source:$('source').textContent,
+   pose:selected,
+   view:$('manualViewStatus').dataset.preset||'custom',
+   model_version:manifest?.source_commit||null};
+};
 </script></body></html>

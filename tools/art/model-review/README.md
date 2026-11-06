@@ -1,5 +1,12 @@
 # Racer 3D Review (experimental)
 
+## Visual-first likeness decision (November 6)
+
+Start with [the mobile likeness comparison](visual-review.html) (at the same hosted `/model-review/visual-review.html` route). It puts the verified original sprite and October 10 rejected 4× art side by side, allows original p14–p16 printed reference crops to be selected locally without rehosting them, embeds this **same** source-aware 3D viewer and captures actual current model views for a three-view PNG review sheet. Save or copy the owner's keep/revise/restart verdict and specific saddle/wheel/fork/acting/material notes. No account, write-back, automated approval or new model is created.
+
+**Important:** normal static publication intentionally stages **no GLB**. The owner-controlled existing `Windows Visual Atlas (publish static site)` manual workflow must be explicitly run with `include_experimental_model=true` (and `deploy_pages=true` if desired) to show the current SHA-bound five-pose #2832 model in the hosted review. Otherwise, the embedded viewer supports a local .glb upload, which the review labels as local/unverified. Source/rejected-art pairs are retained and SHA-checked independently of model publication. This review replaces repeated unsupervised alpha-score searches as the next ART-4K action. A human visual verdict precedes additional sculpting or 3D default promotion.
+
+
 A responsive, read-only Three.js inspection tool intended for GitHub Pages. This is a visualization surface for **the existing #2832 part-addressable OpenSCAD/GLB authoring candidate**, not a replacement authoring rig, a gameplay renderer, or evidence of approved source likeness.
 
 ## Launch

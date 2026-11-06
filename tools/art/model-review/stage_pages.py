@@ -76,7 +76,7 @@ def stage(exports, site, source_commit):
         if (target.is_symlink() or not target.is_dir() or
                 not {"index.html", "manifest.json"}.issubset({p.name for p in target.iterdir()}) or
                 not {p.name for p in target.iterdir()}.issubset(
-                    {"index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs", "authored_upper_shape_controls.mjs", "manual_view_directions.mjs", "manual_landmark_marking.mjs", "manual-landmarks.html", "source_spoke_blade_view.mjs", "source_hub_cover_view.mjs", "original-mesen24", "original-index-lookup.json", "sprites", "sprites.json"}) or
+                    {"index.html", "visual-review.html", "visual-review-assets.json", "legacy-art", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs", "authored_upper_shape_controls.mjs", "manual_view_directions.mjs", "manual_landmark_marking.mjs", "manual-landmarks.html", "source_spoke_blade_view.mjs", "source_hub_cover_view.mjs", "original-mesen24", "original-index-lookup.json", "sprites", "sprites.json"}) or
                 not manifest_path.is_file() or manifest_path.is_symlink() or
                 json.loads(manifest_path.read_text()).get("model_url") is not None):
             raise ValueError("refusing to replace a non-placeholder model-review site")
@@ -93,6 +93,7 @@ def stage(exports, site, source_commit):
             pose_map[pose] = {"url": f"assets/{source_commit}/{filename}", "sha256": pointer["glb_sha256"]}
         here = Path(__file__).resolve().parent
         shutil.copy2(here / "index.html", work / "index.html")
+        shutil.copy2(here / "visual-review.html", work / "visual-review.html")
         shutil.copy2(here / "measurement_overlay.mjs", work / "measurement_overlay.mjs")
         shutil.copy2(here / "wheel_hypothesis.mjs", work / "wheel_hypothesis.mjs")
         shutil.copy2(here / "root_lean_hypothesis.mjs", work / "root_lean_hypothesis.mjs")
@@ -145,6 +146,45 @@ def stage(exports, site, source_commit):
                 raise ValueError("redirected original-sprite reference")
             shutil.copytree(source_dir, work / "sprites", symlinks=False)
             shutil.copy2(target / "sprites.json", work / "sprites.json")
+        # The opt-in GLB stage must preserve the same verified original/rejected
+        # comparison packet; never replace it with an unverified 3D render.
+        if target.exists() and (target / "visual-review-assets.json").is_file():
+            packet_path = target / "visual-review-assets.json"
+            if packet_path.is_symlink():
+                raise ValueError("redirected historical likeness comparison packet")
+            packet = json.loads(packet_path.read_text(encoding="utf-8"))
+            if (packet.get("schema") != "UR-ART4K-LIKENESS-REVIEW-ASSETS/1"
+                    or packet.get("likeness_approved") is not False
+                    or packet.get("source_to_2026_model_pose_mapping_verified") is not False
+                    or len(packet.get("pairs", [])) != 14):
+                raise ValueError("invalid historical likeness review packet")
+            comparison = target / "legacy-art"
+            if comparison.is_symlink() or not comparison.is_dir():
+                raise ValueError("missing original/vetoed review images")
+            expected = set()
+            seen = set()
+            for entry in packet["pairs"]:
+                identity = (entry.get("player"), entry.get("step"))
+                if (identity[0] not in ("p1", "p2") or not isinstance(identity[1], int)
+                        or identity[1] not in range(7) or identity in seen):
+                    raise ValueError("duplicate/invalid historical likeness sample")
+                seen.add(identity)
+                for kind in ("stock", "authored"):
+                    rel = "legacy-art/" + kind + "/" + f"{identity[0]}-{identity[1]:02}.png"
+                    if entry.get(kind) != rel:
+                        raise ValueError("unexpected original/rejected asset path")
+                    source = target / rel
+                    expected_hash = entry.get(kind + "_sha256")
+                    if (not source.is_file() or source.is_symlink()
+                            or not isinstance(expected_hash, str) or len(expected_hash) != 64
+                            or digest(source) != expected_hash):
+                        raise ValueError("historical likeness review asset digest mismatch")
+                    expected.add((source.relative_to(comparison)).as_posix())
+            if {p.relative_to(comparison).as_posix() for p in comparison.rglob("*")
+                    if p.is_file()} != expected or len(seen) != 14:
+                raise ValueError("unexpected original/rejected comparison asset set")
+            shutil.copy2(packet_path, work / "visual-review-assets.json")
+            shutil.copytree(comparison, work / "legacy-art", symlinks=False)
         manifest = {"schema": "ur-racer-model-review/1", "version": source_commit[:12],
                     "source_commit": source_commit, "source_model_sha256": next(iter(sources)),
                     "model_url": pose_map["upright"]["url"],

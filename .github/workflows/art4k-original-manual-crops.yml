@@ -12,6 +12,8 @@ on:
       - analysis/data/racer-original-manual-saddle-estimates-20261105.json
       - analysis/data/racer-original-manual-saddle-2d-pdf-verified-20261105.json
       - tests/unit/test_original_manual_saddle_sparse_measurements.py
+      - analysis/data/racer-original-manual-fork-clamp-image-traces-20261105.json
+      - tests/unit/test_original_manual_fork_clamp_2d.py
 
 concurrency:
   group: art4k-original-manual-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -44,7 +46,8 @@ jobs:
           python -m unittest \
             tests.unit.test_extract_manual_3d_reference_views \
             tests.unit.test_audit_manual_sparse_landmarks \
-            tests.unit.test_original_manual_saddle_sparse_measurements
+            tests.unit.test_original_manual_saddle_sparse_measurements \
+            tests.unit.test_original_manual_fork_clamp_2d
 
       - name: Extract four official figures from exact retained USA manual
         run: |
@@ -103,6 +106,42 @@ jobs:
                                  "pixels":r["projected_pixel_distances"]["saddle"],
                                  "uncertainty":r["pixel_uncertainty"]}
                                 for r in data["observations"]]},sort_keys=True))
+          PY
+
+      - name: Verify original p14/p15 visible fork-collar and saddle clamp feature points
+        run: |
+          python -m tools.art.audit_manual_sparse_landmarks \
+            analysis/data/racer-original-manual-fork-clamp-image-traces-20261105.json \
+            --crop-dir art4k-original-manual-crop-evidence \
+            --source-pdf reference/imported/manuals/Uniracers-USA-manual.pdf \
+            --out art4k-original-manual-crop-evidence/p14-p15-collar-clamp-observations-2d.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path("art4k-original-manual-crop-evidence/p14-p15-collar-clamp-observations-2d.json")
+          report=json.loads(path.read_text(encoding="utf-8"))
+          assert report["reviewed_print_figure_count"]==2
+          assert not report["three_dimensional_source_geometry_calibrated"]
+          assert not report["shipping_art_approved"]
+          assert not report["owner_character_likeness_approved"]
+          expected={
+              "p14-twist-fork-front":{"saddle","crown","fork","clamp"},
+              "p15-mega-underside":{"saddle","crown","clamp"}
+          }
+          for row in report["observations"]:
+              assert set(row["projected_pixel_distances"])==expected[row["reference_id"]]
+              assert row["original_print_pixel_aspect"]=="square"
+              assert not row["historical_1994_3d_camera_calibrated"]
+              assert all(value is None
+                  for scores in row["projected_ratios_only_if_whole_wheel_visible"].values()
+                  for value in scores.values())
+          print("ART4K_VERIFIED_PRINTED_FORK_COLLAR_2D",
+                json.dumps({"source_pdf_sha256":report["authenticated_source_pdf_sha256"],
+                            "measured":[
+                                {"figure":x["reference_id"],
+                                 "pixels":x["projected_pixel_distances"],
+                                 "uncertainty":x["pixel_uncertainty"]}
+                                for x in report["observations"]]},sort_keys=True))
           PY
 
       - name: Save local-review-only four PNGs and provenance, not game assets

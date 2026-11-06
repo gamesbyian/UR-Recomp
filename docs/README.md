@@ -4,7 +4,7 @@
 
 ## Shared CI, compute, HP and five-agent implementation roadmap
 
-The [November 4 collective-qualification infrastructure plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) connects the existing hosted/HP runner architecture, cross-PR test batching, Android build-once lessons, rollout/rollback stages, evidence requirements, science cadence and operational recovery. The [verbatim snapshot of all five live task prompts](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md) is an archival readback with a proposed addendum, **not an update to the live tasks**. The shared board and release ledger retain authority.
+The [November 4 collective-qualification infrastructure plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) connects the existing hosted/HP runner architecture, cross-PR test batching, Android build-once lessons, rollout/rollback stages, evidence requirements, science cadence and operational recovery. The [November 6 HP delivery and host-recovery audit](HP-RESEARCH-RELIABILITY-AUDIT-20261106.md) records a complete four-day started-job census, an unexpected shutdown behind a long queue and the verified independent fallback recovery. Its figures distinguish actual job spans and availability from billed compute or product acceptance. The [verbatim snapshot of all five live task prompts](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md) is an archival readback with a proposed addendum, **not an update to the live tasks**. The shared board and release ledger retain authority.
 
 ## HD racer inverse-graphics and rig fitting
 

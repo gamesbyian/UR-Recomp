@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Uniracers | Visual likeness review</title>
+<style>
+:root{color-scheme:dark;background:#0c121b;color:#edf3fa;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}body{margin:0}a{color:#a7c8ff}h1{font-size:21px;margin:0}h2{font-size:17px;margin:0 0 10px}p{margin:6px 0 10px}small,.muted{color:#adbbd0}button,select,textarea,input{font:inherit}button,select,input[type=file]{min-height:44px}button,select{background:#23334a;border:1px solid #567295;color:#f2f6fc;border-radius:9px;padding:9px 11px}button{cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #ffc765;outline-offset:2px}
+header{background:#162334;border-bottom:1px solid #35455c;padding:12px max(14px,env(safe-area-inset-left))}header nav{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;font-size:13px}
+main{padding:12px 12px 38px;max-width:1050px;margin:auto;display:grid;gap:14px}
+section{border:1px solid #33465c;border-radius:14px;padding:13px;background:#152133;min-width:0}
+strong{font-weight:700}.warn{color:#ffdb95}.state{background:#1d2b3c;border-radius:8px;padding:10px;margin-top:8px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.controls label{display:grid;gap:5px;font-size:13px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{min-width:0;margin:0}.tile figcaption{min-height:38px;font-size:12px;color:#c0cfe1;margin:0 0 5px}
+.tile img{width:100%;aspect-ratio:7/6;object-fit:contain;background:#2b3544;border:1px solid #55647c;border-radius:8px;image-rendering:pixelated}
+.manual{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.manual figure{margin:0;min-width:0}.manual figcaption{font-size:12px}.manual img{display:block;width:100%;height:110px;object-fit:contain;background:#2b3544;border-radius:8px;margin:5px 0}.manual input{width:100%;max-width:100%;font-size:12px}
+.viewer{width:100%;height:min(68dvh,620px);min-height:420px;border:1px solid #526682;border-radius:10px;background:#0c121b}.capture-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.capture-list figure{margin:0;min-width:0}.capture-list img{width:100%;aspect-ratio:4/3;object-fit:contain;border:1px solid #596a82;background:#2d3848;border-radius:7px}.capture-list figcaption{font-size:12px}
+.criteria{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}.criteria label{display:grid;font-size:13px;gap:4px}
+textarea{width:100%;min-height:110px;background:#25364c;border:1px solid #66809d;border-radius:9px;padding:10px;color:inherit;resize:vertical}
+.actions{display:flex;gap:10px;flex-wrap:wrap}.actions button{flex:1;min-width:170px}
+@media(max-width:400px){.manual{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr 1fr}header{padding:10px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+@media print{header nav,.controls,.actions,input,.viewer{display:none}section{break-inside:avoid}body{background:white;color:black}}
+</style>
+</head>
+<body>
+<header><h1>Racer likeness review</h1><div class="muted">Visual judgment first · 1994 references vs. 2026 experimental model</div>
+<nav><a href="./index.html">Interactive 3D lab</a><a href="../">Visual Atlas</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md">Likeness brief</a></nav></header>
+<main>
+<section>
+<h2>Start with what the character looks like</h2>
+<p>Compare the original 1994 sprite, the earlier <strong>owner-rejected</strong> 4× art, printed 1994 large-form reference (if supplied), and the current unapproved experimental 3D character. Decide what should be sculpted before requesting another numerical experiment.</p>
+<p class="warn">Original sprite frames and 2026 model poses are <strong>independent selections</strong>. A similar silhouette does not prove the same pose, source mesh or original camera. Manual figures are 2D period artwork.</p>
+<div id="packetStatus" class="state" role="status">Loading source reference manifest…</div>
+</section>
+<section>
+<h2>1 · Original versus rejected 4× art</h2>
+<div class="controls"><label>Original racer<select id="player"><option value="p1">P1 · red</option><option value="p2">P2 · blue</option></select></label>
+<label>Historical frame sample<select id="sample"><option value="0">1 of 7</option><option value="1">2 of 7</option><option value="2">3 of 7</option><option value="3">4 of 7</option><option value="4">5 of 7</option><option value="5">6 of 7</option><option value="6">7 of 7</option></select></label>
+<label>Review capture slot<select id="slot"><option value="side">Side / neutral</option><option value="three-quarter">Three-quarter</option><option value="action">Action / expressive</option></select></label></div>
+<div class="pair">
+<figure class="tile"><figcaption>Original retail-game sprite · nearest 4× review</figcaption><img id="stock" alt="Original 1994 source sprite" width="224" height="192"></figure>
+<figure class="tile"><figcaption>Old procedural 4× · visually rejected October 10</figcaption><img id="old" alt="Earlier rejected 4x authored racer" width="224" height="192"></figure></div>
+<p class="muted" id="sourceIdentity">The seven historical samples include repetitions. They are not seven independent 3D camera views.</p>
+</section>
+<section>
+<h2>2 · Original printed reference views</h2>
+<p>Original USA manual printed p14 (fork/front), p15 (large underside and wheel), p16 (saddle/side). Select cropped PNG/JPEG images <strong>on your device</strong>. Nothing is uploaded, persisted on a server or added to Git.</p>
+<div class="manual">
+<figure><figcaption>p14 · side / front reference</figcaption><img id="manual-side" alt="Optional local original manual p14 image"><input data-manual="side" aria-label="Choose original printed p14 crop" type="file" accept="image/png,image/jpeg,image/webp"></figure>
+<figure><figcaption>p15 · underside / three-quarter</figcaption><img id="manual-three-quarter" alt="Optional local original manual p15 image"><input data-manual="three-quarter" aria-label="Choose original printed p15 crop" type="file" accept="image/png,image/jpeg,image/webp"></figure>
+<figure><figcaption>p16 · saddle / action</figcaption><img id="manual-action" alt="Optional local original manual p16 image"><input data-manual="action" aria-label="Choose original printed p16 crop" type="file" accept="image/png,image/jpeg,image/webp"></figure></div>
+<p><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/reference/imported/manuals/Uniracers-USA-manual.pdf">Open retained 1994 manual PDF</a> · <a href="https://github.com/gamesbyian/UR-Recomp/actions/runs/42125657977">Authenticated p14–p16 crop artifact (temporary availability)</a></p>
+</section>
+<section>
+<h2>3 · Actual 2026 experimental GLB</h2>
+<p>The existing 3D viewer is embedded here. Set its five-pose selector and <strong>Side / Three-quarter / Action</strong> camera manually. For each review slot above, tap <strong>Capture current model view</strong>. Captures reflect the real loaded 3D viewport, never a generated lookalike.</p>
+<div id="modelStatus" class="state" role="status">Checking exact model manifest…</div>
+<iframe id="modelFrame" class="viewer" title="Existing source-aware Uniracers 3D model viewer" src="./index.html" loading="lazy"></iframe>
+<div class="actions"><button id="capture" type="button">Capture current model view into selected slot</button><button id="sheet" type="button">Save comparison sheet PNG</button></div>
+<div class="capture-list" id="captures" aria-label="Three visual review captures"></div>
+<p class="muted">If the site is model-free, the embedded viewer can accept a local exported GLB for inspection. Local uploads and model variants must be labeled as such, never as approved 1994 art. Each snapshot records the model source/status shown by the viewer.</p>
+</section>
+<section>
+<h2>4 · Your artistic verdict</h2>
+<div class="criteria">
+<label>Overall identity<select id="overall"><option value="">Not reviewed</option><option value="promising">Promising foundation</option><option value="revise">Revise current model</option><option value="restart">New sculpt / major redesign needed</option></select></label>
+<label>Saddle/head personality<select data-feature="saddle"><option value="">Not reviewed</option><option value="keep">Keep</option><option value="change">Change</option><option value="unknown">Need reference</option></select></label>
+<label>Wheel/tire/hub mass<select data-feature="wheel"><option value="">Not reviewed</option><option value="keep">Keep</option><option value="change">Change</option><option value="unknown">Need reference</option></select></label>
+<label>Frame/fork silhouette<select data-feature="fork"><option value="">Not reviewed</option><option value="keep">Keep</option><option value="change">Change</option><option value="unknown">Need reference</option></select></label>
+<label>Movement and expression<select data-feature="motion"><option value="">Not reviewed</option><option value="keep">Keep</option><option value="change">Change</option><option value="unknown">Need reference</option></select></label>
+<label>Materials and colours<select data-feature="materials"><option value="">Not reviewed</option><option value="keep">Keep</option><option value="change">Change</option><option value="unknown">Need reference</option></select></label>
+</div>
+<label for="notes"><strong>What specifically looks wrong or right?</strong></label>
+<textarea id="notes" placeholder="Describe silhouette, mass, saddle curvature, fork, hardware, proportion, personality, view-specific flaws, animation…"></textarea>
+<div class="actions"><button id="copy" type="button">Copy review notes</button><button id="download" type="button">Save review JSON</button></div>
+<p class="muted" id="exportStatus" role="status">Review decisions are local until you choose to copy or save. No hidden submission or art approval.</p>
+</section>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const slots = ['side','three-quarter','action'];
+const captures = {};
+const manualUrls = {};
+let packet=null,model=null;
+const manualNames = {};
+function setStatus(id,text){$(id).textContent=text}
+function lookup(){return packet && packet.pairs.find(x=>x.player===$('player').value && x.step===Number($('sample').value))}
+function sourceSelection(){
+ const p=lookup();
+ if(!p){$('stock').removeAttribute('src');$('old').removeAttribute('src');return}
+ $('stock').src='./'+p.stock;
+ $('old').src='./'+p.authored;
+ setStatus('sourceIdentity','Source: '+p.player+' sample '+(p.step+1)+'/7 · original PNG SHA '+p.stock_sha256.slice(0,16)+'… · rejected 4× SHA '+p.authored_sha256.slice(0,16)+'…. No asserted 1994 → GLB pose mapping.');
+}
+async function init(){
+ try{
+  const r=await fetch('./visual-review-assets.json',{cache:'no-store'});
+  if(!r.ok)throw Error('HTTP '+r.status);
+  const v=await r.json();
+  if(v.schema!=='UR-ART4K-LIKENESS-REVIEW-ASSETS/1'||v.pairs.length!==14||
+     v.likeness_approved!==false)throw Error('Unrecognized or unsafe source packet');
+  for(const p of v.pairs){
+   if(!['p1','p2'].includes(p.player)||!Number.isInteger(p.step)||p.step<0||p.step>6)throw Error('Invalid sample');
+   for(const [kind,key,hash] of [['stock','stock','stock_sha256'],['authored','authored','authored_sha256']]){
+    if(p[key]!=='legacy-art/'+kind+'/'+p.player+'-'+String(p.step).padStart(2,'0')+'.png'||!/^[a-f0-9]{64}$/.test(p[hash]))throw Error('Incorrect image identity');
+   }
+  }
+  packet=v;sourceSelection();
+  setStatus('packetStatus','Ready: 14 verified original/rejected artwork pairs. Printed images and 3D remain independent, optional references.');
+ }catch(e){setStatus('packetStatus','Source images unavailable or not verified: '+e.message+'. Do not use this as an authenticated comparison.')}
+ try{
+  const r=await fetch('./manifest.json',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);
+  model=await r.json();
+  if(model.schema!=='ur-racer-model-review/1'||model.likeness_approved!==false)throw Error('Invalid model provenance');
+  setStatus('modelStatus',model.model_url?
+   'Candidate: experimental 2026 GLB, source commit '+String(model.source_commit).slice(0,12)+'. Likeness unapproved.':
+   'No published GLB in this site snapshot. Open the existing viewer to upload a local exported GLB, or publish the existing five-pose source model through the owner-controlled opt-in atlas workflow.');
+ }catch(e){setStatus('modelStatus','Model manifest could not be verified: '+e.message)}
+}
+document.querySelectorAll('[data-manual]').forEach(input=>input.addEventListener('change',()=>{
+ const key=input.dataset.manual,file=input.files&&input.files[0];
+ if(manualUrls[key])URL.revokeObjectURL(manualUrls[key]); delete manualUrls[key];delete manualNames[key];
+ const image=$('manual-'+key);
+ if(!file){image.removeAttribute('src');return}
+ if(!/^image\/(png|jpeg|webp)$/.test(file.type)||file.size>20*1024*1024){
+  input.value='';image.removeAttribute('src');setStatus('exportStatus','Choose a PNG, JPEG or WebP image no larger than 20 MB.');return;
+ }
+ manualUrls[key]=URL.createObjectURL(file);manualNames[key]=file.name;image.src=manualUrls[key];
+}));
+$('player').addEventListener('change',sourceSelection);$('sample').addEventListener('change',sourceSelection);
+function drawCaptures(){
+ $('captures').replaceChildren();
+ for(const key of slots){
+  const fig=document.createElement('figure'),img=document.createElement('img'),cap=document.createElement('figcaption');
+  const v=captures[key];img.alt=v?'Captured 2026 '+key+' experimental model':'No 3D capture for '+key;
+  if(v)img.src=v.image;
+  cap.textContent=key+': '+(v?v.pose+' · '+v.view:'not captured');
+  fig.append(img,cap);$('captures').append(fig);
+ }
+}
+$('capture').addEventListener('click',()=>{
+ try{
+  if(!packet)throw Error('Verified original/legacy 4× image packet is missing');
+  const win=$('modelFrame').contentWindow;
+  if(!win||typeof win.__art4kReviewCapture!=='function')throw Error('3D viewer has not loaded yet');
+  const data=win.__art4kReviewCapture();
+  if(!data||typeof data.image!=='string'||!data.image.startsWith('data:image/png;base64,'))throw Error('Actual model screenshot unavailable');
+  const key=$('slot').value,ref=lookup();if(!slots.includes(key)||!ref)throw Error('Select a valid review slot and source image');
+  captures[key]={...data,player:ref.player,step:ref.step,original:ref.stock,authored:ref.authored,source_sha256:ref.stock_sha256,authored_sha256:ref.authored_sha256};
+  drawCaptures();setStatus('exportStatus','Captured '+key+' as seen in the interactive source-aware 3D viewport. Move to the next camera/pose before another capture.');
+ }catch(e){setStatus('exportStatus','No snapshot saved: '+e.message)}
+});
+const safeText=s=>String(s||'').slice(0,10000);
+function reviewRecord(){
+ return {schema:'UR-ART4K-VISUAL-LIKENESS-VERDICT/1',created_utc:new Date().toISOString(),
+  original_reference:'authentic ROM-composed original 1994 2D sprites; manual crops supplied on device only',
+  legacy_4x_art:'owner rejected 2026-10-10',
+  experimental_model_source_commit:model&&model.source_commit||null,
+  experimental_model_likeness_approved:false,source_to_model_pose_mapping_verified:false,
+  overall:$('overall').value,features:Object.fromEntries([...document.querySelectorAll('[data-feature]')].map(x=>[x.dataset.feature,x.value])),
+  notes:safeText($('notes').value),
+  manual_files:Object.fromEntries(slots.map(k=>[k,manualNames[k]||null])),
+  captures:Object.fromEntries(slots.map(k=>[k,captures[k]?{player:captures[k].player,step:captures[k].step,model_pose:captures[k].pose,model_view:captures[k].view,model_origin:captures[k].model_source,source_sha256:captures[k].source_sha256,old_4x_sha256:captures[k].authored_sha256}:null]))};
+}
+$('copy').addEventListener('click',async()=>{
+ const r=reviewRecord(),msg='Uniracers 3D likeness review\nOverall: '+(r.overall||'unreviewed')+'\n'+
+ Object.entries(r.features).map(([k,v])=>k+': '+(v||'unreviewed')).join('\n')+'\nNotes: '+r.notes+'\nEvidence: '+JSON.stringify(r.captures);
+ try{await navigator.clipboard.writeText(msg);setStatus('exportStatus','Copied review. Paste it into the repo discussion or chat to drive sculpting.');}
+ catch{setStatus('exportStatus','Clipboard unavailable; choose Save review JSON instead.')}
+});
+function saveBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
+$('download').addEventListener('click',()=>{
+ const r=reviewRecord();saveBlob(new Blob([JSON.stringify(r,null,2)+'\n'],{type:'application/json'}),'uniracers-likeness-review.json');
+ setStatus('exportStatus','Saved your local review JSON. No decision was published or approved automatically.');
+});
+function loadImage(url){return new Promise((resolve,reject)=>{if(!url){resolve(null);return}
+ const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error('Missing image: '+url));img.src=url})}
+function fitDraw(ctx,img,x,y,w,h,nearest){
+ ctx.fillStyle='#273343';ctx.fillRect(x,y,w,h);if(!img)return;
+ const sx=w/img.naturalWidth,sy=h/img.naturalHeight,s=Math.min(sx,sy);
+ const iw=img.naturalWidth*s,ih=img.naturalHeight*s;
+ ctx.imageSmoothingEnabled=!nearest;ctx.drawImage(img,x+(w-iw)/2,y+(h-ih)/2,iw,ih);
+}
+$('sheet').addEventListener('click',async()=>{
+ const width=1440,height=1110,can=document.createElement('canvas');can.width=width;can.height=height;
+ const ctx=can.getContext('2d');ctx.fillStyle='#111927';ctx.fillRect(0,0,width,height);
+ ctx.fillStyle='#f3f6ff';ctx.font='bold 28px system-ui';ctx.fillText('UNIRACERS · ORIGINAL / REJECTED 4× / 2026 EXPERIMENTAL MODEL',20,38);
+ ctx.font='17px system-ui';ctx.fillStyle='#becfe4';ctx.fillText('Unapproved likeness study · manual crops are 2D period images · model pose mapping unverified',20,64);
+ const labels=['1994 printed (local crop)','1994 game sprite','Rejected procedural 4×','Actual 2026 GLB capture'];
+ for(let i=0;i<4;i++)ctx.fillText(labels[i],20+i*355,94);
+ try{
+  for(let ri=0;ri<slots.length;ri++){
+   const key=slots[ri],v=captures[key],y=105+ri*325;
+   ctx.fillStyle='#f5cc86';ctx.fillText(key.toUpperCase()+(v?' · '+v.player.toUpperCase()+' sample '+(v.step+1):' · not captured'),20,y+16);
+   const all=[manualUrls[key],v?'./'+v.original:null,v?'./'+v.authored:null,v?v.image:null];
+   for(let j=0;j<4;j++)fitDraw(ctx,await loadImage(all[j]),20+j*355,y+28,340,258,j===1||j===2);
+  }
+  ctx.fillStyle='#cbd3df';ctx.font='15px system-ui';ctx.fillText('ROM sprites: provenance-verified in repository · 3D model: one source-authored 2026 experiment, not original mesh',20,1092);
+  can.toBlob(blob=>{if(blob){saveBlob(blob,'uniracers-visual-likeness-comparison.png');setStatus('exportStatus','Saved locally assembled four-column contact sheet. Missing slots are visibly marked.')}else setStatus('exportStatus','Browser did not produce PNG.');},'image/png');
+ }catch(e){setStatus('exportStatus','Cannot export comparison sheet: '+e.message)}
+});
+window.addEventListener('pagehide',()=>Object.values(manualUrls).forEach(url=>URL.revokeObjectURL(url)));
+drawCaptures();init();
+</script>
+</body></html>

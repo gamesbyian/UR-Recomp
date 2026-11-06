@@ -13,7 +13,8 @@ from pathlib import Path
 
 import run_baldosa_parallel_windows_journeys as bridge
 
-SCHEMA = "ur-win32-acceptance-fanout/2"
+SCHEMA = "ur-win32-acceptance-fanout/3"
+AGGREGATE_SCHEMA = "ur-win32-acceptance-fanout-aggregate/3"
 GROUPS = {"seed-dependent": (0, 1, 2), "independent": tuple(range(3, 13))}
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
@@ -26,6 +27,20 @@ def require(condition, reason):
 
 def digest(obj):
     return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def original_script_hashes(commands=None):
+    """Bind the existing case IDs to exact original Bash bodies, not just names.
+
+    This is a source/test identity receipt for prospective same-script
+    comparisons. It does not prove any Windows process executed on its own.
+    """
+    if commands is None:
+        commands = bridge.extract_commands(bridge.WORKFLOW.read_text(encoding="utf-8"))
+    bridge.independent_priority_indices(len(commands))
+    require(len(commands) == len(bridge.STEPS), "original Windows journey population changed")
+    return tuple(hashlib.sha256(script.encode("utf-8")).hexdigest()
+                 for script in commands)
 
 
 def candidate_identity(source_sha, exe, fixture, archive):
@@ -84,6 +99,7 @@ def validate_receipt(receipt, group, source_sha):
     require(isinstance(stamp, str) and bool(HEX64.fullmatch(stamp))
             and digest(unsigned) == stamp, "altered receipt")
     expected = GROUPS[group]
+    original_hashes = original_script_hashes()
     require(receipt.get("expected_indices") == list(expected), "case inventory changed")
     rows = receipt.get("cases")
     require(isinstance(rows, list) and len(rows) == len(expected),
@@ -91,6 +107,8 @@ def validate_receipt(receipt, group, source_sha):
     for idx, row in zip(expected, rows):
         require(isinstance(row, dict) and row.get("index") == idx
                 and row.get("name") == bridge.STEPS[idx], "original case identity changed")
+        require(row.get("script_sha256") == original_hashes[idx],
+                "original Windows shell script identity changed")
         require(type(row.get("exit_code")) is int, "invalid original step exit code")
         require(type(row.get("elapsed_seconds")) in (float, int)
                 and row["elapsed_seconds"] >= 0, "invalid measured step time")
@@ -124,6 +142,7 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
     commands = bridge.extract_commands(bridge.WORKFLOW.read_text(encoding="utf-8"))
     bridge.independent_priority_indices(len(commands))
     require(len(commands) == 13, "missing original Windows journeys")
+    original_hashes = original_script_hashes(commands)
     work.mkdir(parents=True)
     started = time.monotonic()
     if group == "seed-dependent":
@@ -150,6 +169,8 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
     require(candidate_identity(source_sha, bridge.EXE, bridge.FIXTURE, archive) == who,
             "candidate changed during original scripts")
     rows.sort(key=lambda row: row["index"])
+    for row in rows:
+        row["script_sha256"] = original_hashes[row["index"]]
     attest_private_case_files(rows, work)
     report = {
         "schema": SCHEMA, "group": group, "candidate_identity": who,
@@ -197,9 +218,10 @@ def aggregate(root, source_sha):
     if sorted(indices) != list(range(13)):
         problems.append("original thirteen-journey inventory incomplete or duplicated")
     return {
-        "schema": "ur-win32-acceptance-fanout-aggregate/2",
+        "schema": AGGREGATE_SCHEMA,
         "source_sha": source_sha, "candidate_identity": identities[0] if identities else None,
         "cases": sorted(({"index": row["index"], "exit_code": row["exit_code"],
+                          "script_sha256": row["script_sha256"],
                           "elapsed_seconds": row["elapsed_seconds"],
                           "log_sha256": row["log_sha256"],
                           "log_bytes": row["log_bytes"],

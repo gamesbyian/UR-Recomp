@@ -19,6 +19,8 @@ on:
       - "tools/art/model-review/**"
       - "tools/art/score_original_mesen24_fixed_pivot_glb.py"
       - "tools/art/score_original_mesen24_full_saddle.py"
+      - "tools/art/experimental_welded_hub_casing.py"
+      - "tests/unit/test_experimental_welded_hub_casing.py"
       - "tools/art/audit_source_registered_glb_parent_overlap.py"
       - "tools/art/count_real_glb_parent_source_y_bands.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
@@ -215,6 +217,41 @@ jobs:
             --camera analysis/data/racer-inverse-side-provisional-1205.json \
             --verified-exports "$RUNNER_TEMP/model-exports" \
             --out "$RUNNER_TEMP/real-model-evidence/original-source-vs-real-root-pivots.json"
+      - name: Qualify source-verified one-solid 2026 axle-to-housing topology and rollback
+        run: |
+          set -euo pipefail
+          # Reuse the SAME real 2026 16-material five-parent upright GLB
+          # already exported and hash-checked earlier in this job. No source
+          # ROM or extra OpenSCAD export needed for pure physical topology.
+          "$RUNNER_TEMP/rig-venv/bin/python" - <<'PY'
+          import json, os, runpy
+          from pathlib import Path
+          import numpy as np
+          import trimesh
+          from tools.art.experimental_welded_hub_casing import (
+              temporary_welded_source_hub_casing, WELDED_VERTICES, WELDED_FACES)
+          validate=runpy.run_path("tools/art/model-review/stage_pages.py")["validate"]
+          pointer,outputs=validate(Path(os.environ["RUNNER_TEMP"])/"model-exports","upright")
+          scene=trimesh.load(outputs["glb"],file_type="glb",force="scene",process=False)
+          key="rim_and_hub__material_4"
+          hub=scene.geometry[key]
+          old=np.asarray(hub.vertices).copy(),np.asarray(hub.faces).copy(),np.asarray(hub.visual.vertex_colors).copy()
+          with temporary_welded_source_hub_casing(scene):
+              assert hub.is_watertight and hub.is_winding_consistent and hub.euler_number==2
+              assert len(hub.vertices)==WELDED_VERTICES and len(hub.faces)==WELDED_FACES
+              assert 0.074959 < hub.volume < 0.074962
+              print("ART4K_SOURCE_BOUND_2026_ONE_SOLID_DARK_HUB",
+                    json.dumps({"source_2026_SCAD_sha256":pointer["source_sha256"],
+                                "source_2026_original_GLB_sha256":pointer["glb_sha256"],
+                                "one_closed_shell":True,
+                                "vertices":len(hub.vertices),"triangles":len(hub.faces),
+                                "euler":hub.euler_number,"signed_volume":round(hub.volume,11),
+                                "source_1994_3d_recovered":False,
+                                "shipping_art_approved":False},sort_keys=True))
+          assert np.array_equal(hub.vertices,old[0])
+          assert np.array_equal(hub.faces,old[1])
+          assert np.array_equal(hub.visual.vertex_colors,old[2])
+          PY
       - name: Check fixed saddle-only articulation across all 48 original two-player PPU images
         run: |
           set -euo pipefail

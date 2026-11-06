@@ -1,0 +1,124 @@
+{
+  "schema": "UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D-REPORT/1",
+  "authenticated_source_pdf_sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235",
+  "authenticated_pdf_git_blob_sha1": "a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3",
+  "reviewed_print_figure_count": 2,
+  "observations": [
+    {
+      "reference_id": "p14-twist-fork-front",
+      "source_original_print_page": 14,
+      "crop_png_sha256": "cfbbc7b3e3cd1e3786897eba580bffec2ee9ceec268bcf4cdb4b5b6e30f4642b",
+      "crop_dimensions_pixels": [
+        358,
+        369
+      ],
+      "view_approximation": "front",
+      "original_print_pixel_aspect": "square",
+      "annotator": "GPT-6 visual image-plane estimate, not independently artist-reviewed",
+      "pixel_uncertainty": 8,
+      "perspective_and_occlusion_notes": "Approximate frontal printed view; black saddle silhouette is visibly isolated above its vertical post, but black antialiasing/print shadow makes the boundary uncertain by approximately eight scan pixels. Tracks obscure wheel/fork and this illustration is not camera-calibrated.",
+      "visible_points": {
+        "saddle": {
+          "saddle_left": [
+            72,
+            53
+          ],
+          "saddle_right": [
+            226,
+            53
+          ],
+          "saddle_top": [
+            185,
+            29
+          ],
+          "saddle_bottom": [
+            142,
+            95
+          ]
+        }
+      },
+      "unmeasurable": {
+        "wheel": "wheel partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "hub": "hub partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "crown": "crown partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "fork": "fork partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "clamp": "clamp partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "crank": "crank partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred"
+      },
+      "projected_pixel_distances": {
+        "saddle": {
+          "height_px": 66,
+          "width_px": 154
+        }
+      },
+      "projected_ratios_only_if_whole_wheel_visible": {
+        "saddle": {
+          "height_over_projected_wheel_diameter": null,
+          "width_over_projected_wheel_diameter": null
+        }
+      },
+      "historical_1994_3d_camera_calibrated": false,
+      "original_source_mesh_dimensions_recovered": false
+    },
+    {
+      "reference_id": "p15-mega-underside",
+      "source_original_print_page": 15,
+      "crop_png_sha256": "4c9242a0126891a2d6a6e8f574eec4179c4cdbcd30cb34a1cdff8589e9290d22",
+      "crop_dimensions_pixels": [
+        900,
+        1151
+      ],
+      "view_approximation": "three-quarter",
+      "original_print_pixel_aspect": "square",
+      "annotator": "GPT-6 visual image-plane estimate, not independently artist-reviewed",
+      "pixel_uncertainty": 14,
+      "perspective_and_occlusion_notes": "Low-angle perspective printed CGI; the black saddle surface appears foreshortened and partly overlaps dark tyre/post/fork. Seat extremities are approximate, with generous fourteen-pixel uncertainty, not physical source 3D dimensions. Wheel/hub/fork/crank have major overlapping or cropped contours; no complete independent part boundaries are claimed.",
+      "visible_points": {
+        "saddle": {
+          "saddle_left": [
+            501,
+            165
+          ],
+          "saddle_right": [
+            819,
+            229
+          ],
+          "saddle_top": [
+            564,
+            34
+          ],
+          "saddle_bottom": [
+            655,
+            307
+          ]
+        }
+      },
+      "unmeasurable": {
+        "wheel": "wheel partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "hub": "hub partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "crown": "crown partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "fork": "fork partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "clamp": "clamp partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred",
+        "crank": "crank partly hidden by printed track, structural overlap, cropping, or insufficiently separable source boundaries; no complete landmarks inferred"
+      },
+      "projected_pixel_distances": {
+        "saddle": {
+          "height_px": 273,
+          "width_px": 318
+        }
+      },
+      "projected_ratios_only_if_whole_wheel_visible": {
+        "saddle": {
+          "height_over_projected_wheel_diameter": null,
+          "width_over_projected_wheel_diameter": null
+        }
+      },
+      "historical_1994_3d_camera_calibrated": false,
+      "original_source_mesh_dimensions_recovered": false
+    }
+  ],
+  "print_observations_are_independent_original_game_3d_views": false,
+  "three_dimensional_source_geometry_calibrated": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false
+}

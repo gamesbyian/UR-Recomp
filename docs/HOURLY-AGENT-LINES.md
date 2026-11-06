@@ -10,6 +10,8 @@ The [daily progress and remaining-work estimation plan](progress/DAILY-ENGINEERI
 
 **Operational measurement pilot, November 6:** The [per-task event and estimator instructions](progress/daily/README.md) implement a bounded source-linked ledger and read-only dual report. Every agent now treats its existing completion/PR handoff as the recording point, with a concrete criterion/milestone and remaining-work direction or `not measured`. For material deliverables already assigned a milestone, bundle a provisional `docs/progress/daily/entries/*.json` observation in that PR when practical, then run `python3 tools/daily_measurement.py --format markdown`. Do not modify other agents' pending event files, invent independent review, start an extra workflow, or overtake product priority to fill estimation fields. The formal ledger and owner-dependent release checks remain untouched.
 
+The shared measurement workflow now offers `python3 tools/record_agent_measurement.py --help` to generate a source-bound event in the ongoing PR without manually editing schema fields. Use only for material findings, and never invent a reduction in remaining units solely to record activity. The 50 registered milestones correspond to ten unfinished criteria, not automatic owner or release approval.
+
 ## Five identical workers, staggered starts
 
 | Scheduled agent | Start minute | Selection pool | Only hard constraints |

@@ -71,8 +71,8 @@ def welded_housing(source_vertices):
                      (HALFWIDTH,HALFHEIGHT-BEVEL),
                      (HALFWIDTH-BEVEL,HALFHEIGHT),
                      (-HALFWIDTH+BEVEL,HALFHEIGHT),
-                     (-HALFWIDTH,-HALFHEIGHT+BEVEL),
-                     (-HALFWIDTH+BEVEL,-HALFHEIGHT)]
+                     (-HALFWIDTH,HALFHEIGHT-BEVEL),
+                     (-HALFWIDTH,-HALFHEIGHT+BEVEL)]
     polygon = [(CENTER_X+x,CENTER_Z+z) for x,z in corners_local]
     angles = sorted(set(round(math.atan2(p[2],p[0]),12) for p in rear)
                     | set(round(math.atan2(z,x),12) for x,z in polygon))

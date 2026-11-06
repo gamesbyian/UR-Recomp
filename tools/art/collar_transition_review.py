@@ -47,22 +47,23 @@ def assert_seatpost_aligned(candidate_source: str) -> None:
         match = re.search(pattern, candidate_source)
         if match is None:
             raise ValueError("missing unique owner-authored collar/post axis")
-        return [tuple(float(v) for v in re.findall(r"-?\\d+(?:\\.\\d+)?", item))
+        return [tuple(float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", item))
                 for item in match.groups()]
 
-    collar = pairs(r"color\\(rig_color\\)hull\\(\\)\\{\\s*"
-                   r"translate\\(\\[([^]]+)\\]\\)sphere\\(r=0\\.14"
-                   r"[^;]*;\\s*translate\\(\\[([^]]+)\\]\\)sphere\\(r=0\\.14")
-    post = pairs(r"color\\(\\[0\\.75,0\\.81,0\\.84\\]\\)frame_member\\("
-                 r"\\[([^]]+)\\],\\[([^]]+)\\],0\\.065,0\\.058\\)")
-    upper = pairs(r"color\\(\\[0\\.30,0\\.40,0\\.45\\]\\)frame_member\\("
-                  r"\\[([^]]+)\\],\\[([^]]+)\\],0\\.083,0\\.088\\)")
+    collar = pairs(r"color\(rig_color\)hull\(\)\{\s*"
+                   r"translate\(\[([^]]+)\]\)sphere\(r=0\.14"
+                   r"[^;]*;\s*translate\(\[([^]]+)\]\)sphere\(r=0\.14")
+    post = pairs(r"color\(\[0\.75,0\.81,0\.84\]\)frame_member\("
+                 r"\[([^]]+)\],\[([^]]+)\],0\.065,0\.058\)")
+    upper = pairs(r"color\(\[0\.30,0\.40,0\.45\]\)frame_member\("
+                  r"\[([^]]+)\],\[([^]]+)\],0\.083,0\.088\)")
     if any(len(x) != 3 for x in collar + post + upper):
         raise ValueError("expected three-dimensional seatpost endpoints")
     anchor = collar[0][:2]
     if not all(point[:2] == anchor for point in collar+post+upper[:1]):
         raise ValueError("seatpost meets coloured collar off-axis or at an angle")
-    if not post[0][2] < collar[-1][2] < post[1][2]:
+    if not (collar[0][2] < collar[1][2] < post[0][2] < post[1][2]
+            and post[0][2] < collar[1][2] + .14):
         raise ValueError("straight post does not pass through the collar into saddle")
     if not upper[0][2] <= post[1][2]:
         raise ValueError("post and saddle support no longer join")

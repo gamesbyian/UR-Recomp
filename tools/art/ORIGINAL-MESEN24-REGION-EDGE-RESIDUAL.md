@@ -1,0 +1,9 @@
+# Authentic Mesen motion error by source-image band
+
+This experiment is stacked on the existing #3124/#3126 GLB evidence. It changes no geometry, source ROM, camera, player registration, material, 3D viewer or emulator. The existing Windows Visual Atlas job already exports the source-owned 2026 five-parent/16-material GLB and authenticates all 48 original Mesen PPU source masks.
+
+On every one of the 23 genuinely consecutive original frame transitions for blue and red, XOR successive original 64x64 alpha masks and the corresponding unchanged-camera 2026 GLB model masks. Report TP, FP and FN for each of the three previously frozen, exhaustive source-image bands: upper y0..14, middle y15..26 and lower y27..63. Also report genuine source and predicted changed-pixel *instances* in each band. Assert that summing the band counts reproduces precisely the already-qualified whole-image edge counts. Repeated original shapes create no imaginary motion votes. The four earlier saddle/2D baseline controls and both predeclared fixed-rate/source-phase wheel-motion controls remain unchanged, separately scored for both original racers.
+
+Decision: determine whether residual moving pixels are concentrated in a source-image region before testing a new upper-part articulation or geometry change. The source y bands are NOT identified 1994 anatomical parts. Any early conclusion must retain original 2D nulls, no per-player model degrees, no source post-hoc shape fitting, and honest original/2026 camera and mesh uncertainty. Nominal IoU=1 for a no-change band has zero signal; interpret raw counts.
+
+Run existing full tooling/hygiene and real source-owned GLB/Chromium Windows Visual Atlas validation; source numerical claims require that actual job. No original 3D rig, physical wheel rate, owner art likeness or release acceptance is implied.

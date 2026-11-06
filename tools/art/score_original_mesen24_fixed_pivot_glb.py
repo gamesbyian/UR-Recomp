@@ -217,7 +217,7 @@ def fixed_source_y_band_metrics(source:bytes,candidate:bytes)->dict:
     return result
 
 
-def read_original_roles(source_zip:bytes,pose:dict)->dict:
+def read_original_roles(source_zip:bytes,pose:dict,*,all_original_ticks:bool=False)->dict:
     from tools.art.audit_original_mesen_oam_descriptors import decode_oam
     from tools.art.audit_original_mesen_obj_screen_pixels import decode_source_obj
     frames={}
@@ -229,7 +229,9 @@ def read_original_roles(source_zip:bytes,pose:dict)->dict:
             if set(lookup)!=set(range(1601,1625)):
                 raise ValueError("original 24-tick exact frame sequence incomplete")
             frames[role]={}
-            for t in [1601,*SELECTED[role]]:
+            ticks=(range(1601,1625) if all_original_ticks
+                   else [1601,*SELECTED[role]])
+            for t in ticks:
                 desc=decode_oam(z.read(f"frame-{t:06d}-oam.bin"))[slot]
                 vram=z.read(f"frame-{t:06d}-vram.bin")
                 cgram=z.read(f"frame-{t:06d}-cgram.bin")

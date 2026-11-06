@@ -10,6 +10,8 @@ For staggered shared-pool agents, run `python3 tools/agent_control.py --agent N`
 
 For live, read-only GitHub PR/head/CI collision, evidence-reuse and measured-runtime preflight, use python3 tools/agent_release_control.py --live --lane release-qa --gate QA-04 (GitHub read token); see docs/AGENT-RELEASE-CONTROL-PREFLIGHT.md. Results are advisory and never replace the owning board or ledger. For a source-matched artifact-expiry decision, create metadata-only JSON with `tools/artifact_retention_preflight.py --live-run-id RUN_ID --expected-sha EXACT_HEAD --json-out FILE` and pass `--artifact-availability FILE` to the live preflight; reported availability is not independently audited bytes.
 
+**November 6 progress measurement pilot:** [per-task measurement guide](docs/progress/daily/README.md) and `python3 tools/daily_measurement.py --format markdown` are now available. For substantive player-facing source changes or material research findings, record the bounded effect in the **existing PR/issue handoff** and, if it matches a registered milestone, bundle a small source-linked `docs/progress/daily/entries/*.json` event with the current work. For all work, state the affected criterion or `none`, remaining discriminator, and whether remaining relative effort changed or was not measured. Never grant a release gate, owner art approval, or original USA event by such a record; avoid new CI or extra PRs solely for bookkeeping. The shared five agents apply this in their normal work, without a dedicated lane.
+
 ## Dispatch and task routes
 
 | Task | Start here |

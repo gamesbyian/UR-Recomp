@@ -8,8 +8,8 @@ from unittest.mock import patch
 
 from tools.art.score_original_mesen24_full_saddle import (
     SCHEMA,TICKS,ARMS,BASE_ARMS,SADDLE_TRIALS,DRIVE_TRIALS,LEVEL_TRIALS,
-    MOTION_TRIALS,SLIDE_TRIALS,ALL_MOTION_TRIALS,STRETCH_TRIALS,FULL_MOTION_TRIALS,SPAN_TRIALS,ALL_SHAPE_TRIALS,CUP_TRIALS,ALL_CONTOUR_TRIALS,CROWN_TRIALS,HUB_TRIALS,HUB_SETTINGS,MATCHED_HUB_CONTROL_NAMES,
-    MATCHED_HUB_TRIALS,MATCHED_HUB_ARMS,ALL_GEOMETRY_TRIALS,drive_delta_degrees,
+    MOTION_TRIALS,SLIDE_TRIALS,ALL_MOTION_TRIALS,STRETCH_TRIALS,FULL_MOTION_TRIALS,SPAN_TRIALS,ALL_SHAPE_TRIALS,CUP_TRIALS,ALL_CONTOUR_TRIALS,CROWN_TRIALS,HUB_TRIALS,HUB_SETTINGS,HUB_AXLE_TRIALS,HUB_AXLE_SETTINGS,MATCHED_HUB_CONTROL_NAMES,
+    MATCHED_HUB_TRIALS,MATCHED_HUB_ARMS,MATCHED_HUB_JOINT_NAMES,MATCHED_HUB_JOINT_TRIALS,MATCHED_HUB_JOINT_ARMS,ALL_GEOMETRY_TRIALS,drive_delta_degrees,
     aggregate_original_timeline,main,analyze,
     summary_for_exact_original_source,check_exact_source_evidence,
 )
@@ -64,6 +64,15 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
             ("axle_root_hub_cover_rom_phase_15deg","rom_phase"),
             ("axle_root_hub_cover_fixed_tick_24deg","fixed_tick")))
         self.assertEqual(HUB_SETTINGS,dict(HUB_TRIALS))
+        self.assertEqual(HUB_AXLE_TRIALS,(
+            ("axle_root_hub_cover_axle_locked_rom_phase_15deg","rom_phase"),
+            ("axle_root_hub_cover_axle_locked_fixed_tick_24deg","fixed_tick")))
+        self.assertEqual(HUB_AXLE_SETTINGS,dict(HUB_AXLE_TRIALS))
+        self.assertEqual(set(MATCHED_HUB_JOINT_NAMES),
+                         set(name for name,_ in MATCHED_HUB_JOINT_TRIALS))
+        self.assertEqual(set(MATCHED_HUB_JOINT_ARMS),
+                         set(BASE_ARMS)|set(MATCHED_HUB_JOINT_NAMES))
+        self.assertEqual(len(MATCHED_HUB_JOINT_ARMS),len(BASE_ARMS)+6)
         self.assertEqual(set(MATCHED_HUB_CONTROL_NAMES),set(n for n,_ in MATCHED_HUB_TRIALS))
         self.assertEqual(set(MATCHED_HUB_ARMS),set(BASE_ARMS)|set(MATCHED_HUB_CONTROL_NAMES))
         self.assertEqual(len(MATCHED_HUB_ARMS),len(BASE_ARMS)+4)
@@ -111,6 +120,21 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
                 aggregate_original_timeline(original,reduced,invalid)
         with self.assertRaises(ValueError):
             aggregate_original_timeline(original,predicted,MATCHED_HUB_ARMS)
+
+    def test_axle_locked_joint_scope_preserves_original_and_old_control_masks(self):
+        original={t:{"alpha":bytes([1])+bytes(4095)} for t in TICKS}
+        predicted={t:{name:bytes([1])+bytes(4095) for name in ARMS}
+                   for t in TICKS}
+        full=aggregate_original_timeline(original,predicted)
+        reduced={t:{name:predicted[t][name] for name in MATCHED_HUB_JOINT_ARMS}
+                 for t in TICKS}
+        subset=aggregate_original_timeline(original,reduced,MATCHED_HUB_JOINT_ARMS)
+        self.assertEqual(set(subset["arms"]),set(MATCHED_HUB_JOINT_ARMS))
+        for name in MATCHED_HUB_ARMS:
+            self.assertEqual(subset["arms"][name],full["arms"][name])
+        self.assertEqual(len(subset["arms"]),len(BASE_ARMS)+6)
+        with self.assertRaisesRegex(ValueError,"complete"):
+            aggregate_original_timeline(original,reduced,MATCHED_HUB_ARMS)
 
     def test_one_vote_per_unique_original_shape_not_23_repeated_snapshots(self):
         first=bytes([1])+bytes(4095)

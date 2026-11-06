@@ -8,6 +8,7 @@ or part-material identity. This code affects ONLY the existing dark source
 from __future__ import annotations
 
 from contextlib import contextmanager
+import math
 
 CURRENT_2026_SOURCE_GLB_SHA256="634aa0280ec1a8a322c34d1598680e854980f317965b3a848a2cf6b240c50c08"
 SOURCE_MATERIAL="rim_and_hub__material_4"
@@ -43,10 +44,39 @@ def authored_oblique_hub_cover():
         raise ValueError("single authored 2026 cover polygon triangulation changed")
     return vertices,tuple(faces)
 
+def counterspun_hub_cover_vertices(phase_degrees):
+    """Pre-inverse wheel-Y rotation: same cover fixed to axle under wheel spin.
+
+    Authored 2026 geometry only. The wheel parent receives Ry(-phase) per
+    actual GLB direct-drive, so undo its parent motion in local cover vertices
+    using Ry(+phase). This is an in-memory kinematic *hypothesis*, not a new
+    joint or assertion about the 1994 production rig.
+    """
+    if (type(phase_degrees) not in (int,float) or
+            not math.isfinite(phase_degrees) or
+            not -360 <= phase_degrees <= 360):
+        raise ValueError("finite existing 2026 wheel phase within ±360 required")
+    vertices,_=authored_oblique_hub_cover()
+    if phase_degrees==0:
+        return vertices
+    # Direct-drive's parent rotation is Ry(-phase):
+    # [ cos,0,-sin; 0,1,0; sin,0,cos ].
+    # The exact inverse in its wheel-local frame cancels parent wheel spin.
+    theta=math.radians(float(phase_degrees))
+    c,q=math.cos(theta),math.sin(theta)
+    return tuple((c*x+q*z,y,-q*x+c*z) for x,y,z in vertices)
+
 
 @contextmanager
-def temporary_hub_cover_volume(scene):
-    """Source-SHA-external-verified real GLB; exact rollback on success/error."""
+def temporary_hub_cover_volume(scene, *, counterspin_degrees=0.):
+
+    """Source-SHA-external-verified real GLB; exact rollback on success/error.
+
+    At zero, reuse the existing 2026 wheel-rotating research shell.
+    Counterspin is the single predeclared axle-locked alternative. It changes
+    *only* this proposed shell, preserving all authored source material data.
+    """
+    vertices=counterspun_hub_cover_vertices(counterspin_degrees)
     import numpy as np
     import trimesh
     from tools.art.experimental_direct_drive_phase import PARTS,CHILD_COUNTS
@@ -83,7 +113,7 @@ def temporary_hub_cover_volume(scene):
                        for part in PARTS}
     before_nodes=set(scene.graph.nodes)
     before_volume=float(hub.volume)
-    vertices,faces=authored_oblique_hub_cover()
+    _,faces=authored_oblique_hub_cover()
     try:
         hub.vertices=np.vstack([old_vertices,np.asarray(vertices,dtype=float)])
         hub.faces=np.vstack([old_faces,

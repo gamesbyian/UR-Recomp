@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 
 from tools.art.experimental_oblique_hub_cover import (
-    authored_oblique_hub_cover,
+    authored_oblique_hub_cover,counterspun_hub_cover_vertices,
     SOURCE_MATERIAL,CURRENT_2026_SOURCE_GLB_SHA256,
     ORIGINAL_SOURCE_VERTEX_COUNT,ORIGINAL_SOURCE_FACE_COUNT,
     NEW_HUB_COVER_VERTICES,NEW_HUB_COVER_FACES,
@@ -37,6 +37,26 @@ class ExperimentalOriginalPrintHubCoverTests(unittest.TestCase):
         self.assertAlmostEqual(min(x[2] for x in v),-.37)
         self.assertAlmostEqual(max(x[2] for x in v),.27)
 
+    def test_2026_counterspin_matches_existing_wheel_parent_inverse_exactly(self):
+        import math
+        original,_=authored_oblique_hub_cover()
+        self.assertEqual(counterspun_hub_cover_vertices(0),original)
+        self.assertEqual(counterspun_hub_cover_vertices(0.),original)
+        for degrees in (-360,-225,-90,-15,15,24,90,180,345,360):
+            child=counterspun_hub_cover_vertices(degrees)
+            a=math.radians(degrees)
+            c,q=math.cos(a),math.sin(a)
+            for (x,y,z),(xx,yy,zz) in zip(original,child):
+                # Existing 2026 wheel transform Ry(-phase) exactly cancels
+                # the proposed axle-fixed cover inverse local rotation.
+                self.assertAlmostEqual(c*xx-q*zz,x,places=12)
+                self.assertAlmostEqual(q*xx+c*zz,z,places=12)
+                self.assertAlmostEqual(yy,y,places=12)
+        self.assertNotEqual(counterspun_hub_cover_vertices(24),original)
+        for bad in (True,None,3j,float("nan"),float("inf"),361,-361,"45"):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):
+                counterspun_hub_cover_vertices(bad)
+
     def test_frozen_original_model_only_numeric_receipt_never_claims_1994_3d(self):
         score=json.loads(SCORE.read_text(encoding="utf-8"))
         self.assertEqual(score["schema"],SCHEMA)
@@ -65,6 +85,11 @@ class ExperimentalOriginalPrintHubCoverTests(unittest.TestCase):
         m=trimesh.Trimesh(*authored_oblique_hub_cover(),process=False)
         self.assertTrue(m.is_watertight)
         self.assertAlmostEqual(m.volume,0.06592,6)
+        for phase in (0,15,24,90,180,345):
+            transformed=trimesh.Trimesh(counterspun_hub_cover_vertices(phase),
+                                       m.faces.copy(),process=False)
+            self.assertTrue(transformed.is_watertight)
+            self.assertAlmostEqual(transformed.volume,m.volume,places=10)
 
     @unittest.skipUnless(importlib.util.find_spec("numpy") and
                          importlib.util.find_spec("trimesh"),

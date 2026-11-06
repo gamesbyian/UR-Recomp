@@ -105,8 +105,16 @@ HUB_TRIALS=(
     ("axle_root_hub_cover_fixed_tick_24deg","fixed_tick"),
 )
 HUB_SETTINGS={name:mode for name,mode in HUB_TRIALS}
+# Separate stationary-axle attachment control, not a new mesh or geometry
+# sweep. Both races and both frozen wheel laws are treated identically.
+HUB_AXLE_TRIALS=(
+    ("axle_root_hub_cover_axle_locked_rom_phase_15deg","rom_phase"),
+    ("axle_root_hub_cover_axle_locked_fixed_tick_24deg","fixed_tick"),
+)
+HUB_AXLE_SETTINGS={name:mode for name,mode in HUB_AXLE_TRIALS}
 ALL_GEOMETRY_TRIALS=(ALL_CONTOUR_TRIALS+
-                     tuple((name,mode) for name,mode,_ in CROWN_TRIALS)+HUB_TRIALS)
+                     tuple((name,mode) for name,mode,_ in CROWN_TRIALS)+
+                     HUB_TRIALS+HUB_AXLE_TRIALS)
 ARMS=BASE_ARMS+tuple(name for name,_ in ALL_GEOMETRY_TRIALS)
 # One bounded contrast for the NEW hub proposal; all other older arms already
 # have permanent source-verified receipts and must not consume a new full sweep.
@@ -121,6 +129,15 @@ MATCHED_HUB_TRIALS=tuple((name,mode) for name,mode in ALL_GEOMETRY_TRIALS
 MATCHED_HUB_ARMS=BASE_ARMS+tuple(name for name,_ in MATCHED_HUB_TRIALS)
 if set(name for name,_ in MATCHED_HUB_TRIALS)!=set(MATCHED_HUB_CONTROL_NAMES):
     raise ValueError("matched 2026 hub controls changed")
+MATCHED_HUB_JOINT_NAMES=MATCHED_HUB_CONTROL_NAMES+tuple(
+    name for name,_ in HUB_AXLE_TRIALS)
+MATCHED_HUB_JOINT_TRIALS=tuple(
+    (name,mode) for name,mode in ALL_GEOMETRY_TRIALS
+    if name in MATCHED_HUB_JOINT_NAMES)
+MATCHED_HUB_JOINT_ARMS=BASE_ARMS+tuple(
+    name for name,_ in MATCHED_HUB_JOINT_TRIALS)
+if set(name for name,_ in MATCHED_HUB_JOINT_TRIALS)!=set(MATCHED_HUB_JOINT_NAMES):
+    raise ValueError("matched 2026 axle housing kinematic controls changed")
 
 
 def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
@@ -222,10 +239,14 @@ def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[st
 
 def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
             camera_raw:bytes,verified_exports:Path,trial_scope:str="all")->dict:
-    if trial_scope not in ("all","matched-hub"):
-        raise ValueError("only frozen all-arms or matched-hub source trial scope allowed")
-    shape_trials=(MATCHED_HUB_TRIALS if trial_scope=="matched-hub" else ALL_GEOMETRY_TRIALS)
-    expected_arms=(MATCHED_HUB_ARMS if trial_scope=="matched-hub" else ARMS)
+    if trial_scope not in ("all","matched-hub","matched-hub-joint"):
+        raise ValueError("only frozen all-arms or matched-hub joint scope allowed")
+    if trial_scope=="matched-hub":
+        shape_trials,expected_arms=MATCHED_HUB_TRIALS,MATCHED_HUB_ARMS
+    elif trial_scope=="matched-hub-joint":
+        shape_trials,expected_arms=MATCHED_HUB_JOINT_TRIALS,MATCHED_HUB_JOINT_ARMS
+    else:
+        shape_trials,expected_arms=ALL_GEOMETRY_TRIALS,ARMS
     import numpy as np
     import trimesh
     from tools.art.render_racer_glb_projection import render_mask
@@ -251,7 +272,9 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
     def model4(angle:int,lean:float,wheel:float=0.,saddle_level:bool=False,
                saddle_stroke:float=0.,upper_stretch:float=0.,
                saddle_span:float=0.,saddle_cup:float=0.,crown_scale:float=0.,
-               hub_cover:bool=False):
+               hub_cover:bool=False,hub_axle_locked:bool=False):
+        if hub_cover and hub_axle_locked:
+            raise ValueError("rotating and axle-locked housing modes are mutually exclusive")
         apply_root_scene(scene,angle,"wheel_axle",wheel,0.)
         with temporary_saddle_pitch(scene,lean):
             adjustment=(temporary_saddle_world_attitude(scene,level_reference)
@@ -272,8 +295,9 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                                 crown=(temporary_fork_crown_volume(scene,crown_scale)
                                        if crown_scale else nullcontext())
                                 with crown:
-                                    hub=(temporary_hub_cover_volume(scene)
-                                         if hub_cover else nullcontext())
+                                    hub=(temporary_hub_cover_volume(
+                                             scene,counterspin_degrees=wheel if hub_axle_locked else 0.)
+                                         if hub_cover or hub_axle_locked else nullcontext())
                                     with hub:
                                         world=(scene.to_geometry() if callable(
                                             getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
@@ -317,7 +341,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
                 cup=CUP_SETTINGS[name][1] if name in CUP_SETTINGS else 0.
                 crown=CROWN_SETTINGS[name][1] if name in CROWN_SETTINGS else 0.
-                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS or name in HUB_SETTINGS
+                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS or name in HUB_SETTINGS or name in HUB_AXLE_SETTINGS
                 key=(frame["angle"],15.,wheel,"world_level","crown",crown) if crown else (
                     (frame["angle"],15.,wheel,"world_level","cup",cup) if cup else (
                     (frame["angle"],15.,wheel,"world_level","span",span) if span else (
@@ -327,9 +351,12 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     (frame["angle"],15.,wheel))))))
                 if name in HUB_SETTINGS:
                     key=(frame["angle"],15.,wheel,"world_level","hub_cover")
+                if name in HUB_AXLE_SETTINGS:
+                    key=(frame["angle"],15.,wheel,"world_level","hub_cover_axle_locked")
                 if key not in renders:
                     renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span,cup,crown,
-                                        hub_cover=name in HUB_SETTINGS)
+                                        hub_cover=name in HUB_SETTINGS,
+                                        hub_axle_locked=name in HUB_AXLE_SETTINGS)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(expected_arms):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -371,7 +398,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
             span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
             cup=CUP_SETTINGS[name][1] if name in CUP_SETTINGS else 0.
             crown=CROWN_SETTINGS[name][1] if name in CROWN_SETTINGS else 0.
-            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS or name in HUB_SETTINGS
+            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS or name in HUB_SETTINGS or name in HUB_AXLE_SETTINGS
             for tick in (first,last):
                 frame=original[tick]
                 wheel=drive_delta_degrees(frame["phase"],original[1601]["phase"],tick,mode)
@@ -384,6 +411,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     (frame["angle"],15.,wheel))))))
                 if name in HUB_SETTINGS:
                     key=(frame["angle"],15.,wheel,"world_level","hub_cover")
+                if name in HUB_AXLE_SETTINGS:
+                    key=(frame["angle"],15.,wheel,"world_level","hub_cover_axle_locked")
                 if key not in renders:
                     raise ValueError("same already rendered actual GLB pose missing")
                 apply_root_scene(scene,frame["angle"],"wheel_axle",wheel,0.)
@@ -406,8 +435,9 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                                         volume=(temporary_fork_crown_volume(scene,crown)
                                                 if crown else nullcontext())
                                         with volume:
-                                            hub=(temporary_hub_cover_volume(scene)
-                                                 if name in HUB_SETTINGS else nullcontext())
+                                            hub=(temporary_hub_cover_volume(
+                                                     scene,counterspin_degrees=wheel if name in HUB_AXLE_SETTINGS else 0.)
+                                                 if name in HUB_SETTINGS or name in HUB_AXLE_SETTINGS else nullcontext())
                                             with hub:
                                                 parent256=project_real_parent_masks256(scene,camera)
                 union=np.logical_or.reduce(list(parent256.values()))
@@ -459,6 +489,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "2026_authored_upper_cupped_saddle_contour_controls":list(CUP_TRIALS),
         "2026_authored_local_fork_crown_volumetric_controls":list(CROWN_TRIALS),
         "2026_authored_dark_hub_cover_controls_same_drive_as_world_level":list(HUB_TRIALS),
+        "2026_authored_dark_hub_cover_axle_locked_controls":list(HUB_AXLE_TRIALS),
+        "2026_axle_locked_hub_is_only_an_unverified_original_1994_joint_hypothesis":True,
         "2026_hub_cover_is_two_closed_2026_model_solids_not_original_1994_3d":True,
         "2026_crown_volume_not_measured_original_1994_source_geometry":True,
         "2026_saddle_cup_is_not_recovered_original_1994_surface":True,
@@ -550,15 +582,19 @@ def main():
     p.add_argument("--axis-report",required=True,type=Path)
     p.add_argument("--camera",required=True,type=Path)
     p.add_argument("--verified-exports",required=True,type=Path)
-    p.add_argument("--matched-hub-only",action="store_true",
-                   help="render only original 2D/neutral saddle plus exactly 2 new hub and 2 same-drive controls")
+    cohort=p.add_mutually_exclusive_group()
+    cohort.add_argument("--matched-hub-only",action="store_true",
+                        help="old qualified moving dark-hub vs matched baseline study")
+    cohort.add_argument("--matched-hub-joint-only",action="store_true",
+                        help="one original 48-frame matched wheel-rotating vs axle-locked physical shell test")
     p.add_argument("--expected-summary",type=Path,
                    help="SHA-bound prior executed original source/GLB baseline")
     p.add_argument("--out",required=True,type=Path)
     a=p.parse_args()
     result=analyze(a.source_zip.read_bytes(),a.pose_report.read_bytes(),
                    a.axis_report.read_bytes(),a.camera.read_bytes(),a.verified_exports,
-                   trial_scope="matched-hub" if a.matched_hub_only else "all")
+                   trial_scope=("matched-hub-joint" if a.matched_hub_joint_only else
+                                "matched-hub" if a.matched_hub_only else "all"))
     if a.expected_summary is not None:
         check_exact_source_evidence(result,json.loads(a.expected_summary.read_text()))
     publish_text_once(a.out,json.dumps(result,sort_keys=True,indent=2)+"\n")

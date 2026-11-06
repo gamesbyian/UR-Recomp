@@ -13,6 +13,7 @@ on:
       - analysis/data/racer-original-manual-saddle-2d-pdf-verified-20261105.json
       - tests/unit/test_original_manual_saddle_sparse_measurements.py
       - analysis/data/racer-original-manual-fork-clamp-image-traces-20261105.json
+      - analysis/data/racer-original-manual-fork-clamp-pdf-verified-20261105.json
       - tests/unit/test_original_manual_fork_clamp_2d.py
 
 concurrency:
@@ -121,6 +122,8 @@ jobs:
           path=Path("art4k-original-manual-crop-evidence/p14-p15-collar-clamp-observations-2d.json")
           report=json.loads(path.read_text(encoding="utf-8"))
           assert report["reviewed_print_figure_count"]==2
+          frozen=json.loads(Path("analysis/data/racer-original-manual-fork-clamp-pdf-verified-20261105.json").read_text(encoding="utf-8"))
+          assert report==frozen, "source 1994 manual RGB pixels/2D feature report changed"
           assert not report["three_dimensional_source_geometry_calibrated"]
           assert not report["shipping_art_approved"]
           assert not report["owner_character_likeness_approved"]

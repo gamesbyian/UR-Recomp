@@ -75,6 +75,20 @@ For a non-credit research finding: change `kind` to `research`, omit `milestone_
 
 The example is an *illustration*, not an approved effort deduction. `from` must equal the active frozen prior or prior verified change. Effort changes are **replacements**, never additive claims on top of a full parent item; shared tasks (`COMMON-*`) are modeled once. The prospective expected delta is the change in the arithmetic mean of the three values. Optional per-event `effort_update` is absent by default, leaving the prior untouched.
 
+## Immutable daily snapshots and changes
+
+The standard-library `tools/daily_estimate_snapshot.py` records a **new, append-only** dated UTC measurement from current checked-out main. It never overwrites an existing snapshot or changes formal release acceptance. On a clean main checkout:
+
+```sh
+python3 tools/daily_estimate_snapshot.py --dry-run
+python3 tools/daily_estimate_snapshot.py
+python3 tools/daily_estimate_snapshot.py --compare docs/progress/daily/snapshots/PREVIOUS-DAY.json --dry-run
+```
+
+The normal output is `docs/progress/daily/snapshots/YYYY-MM-DD.json`; commit it in the normal existing report/integration PR if genuinely useful. If there is already a snapshot for that UTC day, **do not overwrite** it to accommodate more work. Create the next dated snapshot or a separately documented explicit correction; preserve history.
+
+A trend is numeric **only** when the frozen criterion contract, milestone-allocation SHA-256, active remaining-work prior/adjustment SHA-256, and calculator source SHA-256 all match. If methodology changes, the tool reports `comparable: false`, null numeric deltas and a backcast instruction. It also verifies prior snapshot source ancestry and rejects removed agent observations. This avoids interpreting new milestone definitions as earned day-to-day progress. The formal score and release gates are shown separately. A saved snapshot is an **engineering planning estimate**, not an independent game release validation.
+
 ## Read the report correctly
 
 ```sh

@@ -153,5 +153,301 @@
   "both_hub_cover_candidates_nondominated_among_29": true,
   "both_hub_cover_candidates_have_red_original_motion_regression": true,
   "neither_hub_cover_candidate_strictly_dominates_own_same_drive_control": true,
-  "conclusion": "Both new experimental 2026 dark-hub physical-shell variants improve both racers static silhouettes and blue motion, but worsen red true 23-edge motion. Both are strictly six-objective nondominated among 29 retrospective source-registered 2026 GLB arms. No original 1994 production 3D recovery, owner artwork approval, or shipping promotion."
+  "conclusion": "Both new experimental 2026 dark-hub physical-shell variants improve both racers static silhouettes and blue motion, but worsen red true 23-edge motion. Both are strictly six-objective nondominated among 29 retrospective source-registered 2026 GLB arms. No original 1994 production 3D recovery, owner artwork approval, or shipping promotion.",
+  "original_source_23_edge_motion_fixed_image_y_band_confusion": {
+    "blue": {
+      "rom_phase_15deg": {
+        "source_fixed_image_y_regions_not_1994_parts": true,
+        "consecutive_source_edge_count": 23,
+        "counts_order": [
+          "tp",
+          "fp",
+          "fn"
+        ],
+        "bands": {
+          "upper_y0_14": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              12,
+              40,
+              15
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              12,
+              40,
+              15
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              0,
+              0,
+              0
+            ]
+          },
+          "middle_y15_26": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              20,
+              64,
+              86
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              18,
+              68,
+              88
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              -2,
+              4,
+              2
+            ]
+          },
+          "lower_y27_63": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              109,
+              304,
+              418
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              111,
+              225,
+              416
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              2,
+              -79,
+              -2
+            ]
+          }
+        },
+        "all_regions_sum_unchanged_model_tp_fp_fn": [
+          141,
+          408,
+          519
+        ],
+        "all_regions_sum_dark_hub_model_tp_fp_fn": [
+          141,
+          333,
+          519
+        ]
+      },
+      "fixed_tick_24deg": {
+        "source_fixed_image_y_regions_not_1994_parts": true,
+        "consecutive_source_edge_count": 23,
+        "counts_order": [
+          "tp",
+          "fp",
+          "fn"
+        ],
+        "bands": {
+          "upper_y0_14": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              12,
+              40,
+              15
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              12,
+              40,
+              15
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              0,
+              0,
+              0
+            ]
+          },
+          "middle_y15_26": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              24,
+              106,
+              82
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              24,
+              116,
+              82
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              0,
+              10,
+              0
+            ]
+          },
+          "lower_y27_63": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              171,
+              477,
+              356
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              159,
+              289,
+              368
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              -12,
+              -188,
+              12
+            ]
+          }
+        },
+        "all_regions_sum_unchanged_model_tp_fp_fn": [
+          207,
+          623,
+          453
+        ],
+        "all_regions_sum_dark_hub_model_tp_fp_fn": [
+          195,
+          445,
+          465
+        ]
+      }
+    },
+    "red": {
+      "rom_phase_15deg": {
+        "source_fixed_image_y_regions_not_1994_parts": true,
+        "consecutive_source_edge_count": 23,
+        "counts_order": [
+          "tp",
+          "fp",
+          "fn"
+        ],
+        "bands": {
+          "upper_y0_14": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              5,
+              53,
+              14
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              5,
+              53,
+              14
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              0,
+              0,
+              0
+            ]
+          },
+          "middle_y15_26": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              75,
+              283,
+              111
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              54,
+              229,
+              132
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              -21,
+              -54,
+              21
+            ]
+          },
+          "lower_y27_63": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              173,
+              415,
+              281
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              159,
+              286,
+              295
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              -14,
+              -129,
+              14
+            ]
+          }
+        },
+        "all_regions_sum_unchanged_model_tp_fp_fn": [
+          253,
+          751,
+          406
+        ],
+        "all_regions_sum_dark_hub_model_tp_fp_fn": [
+          218,
+          568,
+          441
+        ]
+      },
+      "fixed_tick_24deg": {
+        "source_fixed_image_y_regions_not_1994_parts": true,
+        "consecutive_source_edge_count": 23,
+        "counts_order": [
+          "tp",
+          "fp",
+          "fn"
+        ],
+        "bands": {
+          "upper_y0_14": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              5,
+              53,
+              14
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              5,
+              53,
+              14
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              0,
+              0,
+              0
+            ]
+          },
+          "middle_y15_26": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              67,
+              245,
+              119
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              41,
+              205,
+              145
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              -26,
+              -40,
+              26
+            ]
+          },
+          "lower_y27_63": {
+            "unchanged_hubless_2026_model_tp_fp_fn": [
+              141,
+              385,
+              313
+            ],
+            "authored_dark_hub_2026_model_tp_fp_fn": [
+              122,
+              234,
+              332
+            ],
+            "difference_hub_minus_control_tp_fp_fn": [
+              -19,
+              -151,
+              19
+            ]
+          }
+        },
+        "all_regions_sum_unchanged_model_tp_fp_fn": [
+          213,
+          683,
+          446
+        ],
+        "all_regions_sum_dark_hub_model_tp_fp_fn": [
+          168,
+          492,
+          491
+        ]
+      }
+    }
+  },
+  "red_true_23_edge_tp_decreases_in_both_middle_and_lower_source_image_y_bands_on_both_drive_laws": true,
+  "authored_2026_dark_hub_does_not_change_any_upper_y0_14_motion_tp_fp_fn_for_either_racer": true
 }

@@ -410,6 +410,23 @@ try{
        if(q('upperShape').disabled)issues.push('upper-shape preview did not re-enable');
      }
    }
+   const blades=q('bladeSpokes');
+   if(!blades||blades.getBoundingClientRect().height<44)
+     issues.push('source-authored wheel blade preview mobile touch target');
+   if(mocked){if(!blades?.disabled)
+      issues.push('synthetic GLB enabled source blade sculpt');}
+   else if(blades?.disabled)issues.push('real original-2026 source spoke volume control unavailable');
+   else{
+     const before=q('sourceInfo').textContent, parts=q('parts').textContent;
+     blades.value='blade';blades.dispatchEvent(new Event('change',{bubbles:true}));
+     if(q('bladeSpokesStatus').dataset.mode!=='blade'||
+        q('bladeSpokesStatus').dataset.sourceVertices!=='1788')
+       issues.push('2026 real source blade 1788-vertex volume preview failed');
+     blades.value='original';blades.dispatchEvent(new Event('change',{bubbles:true}));
+     if(q('bladeSpokesStatus').dataset.mode!=='original'||
+        q('sourceInfo').textContent!==before||q('parts').textContent!==parts)
+       issues.push('2026 source spoke preview mutated authentic 1994 rail or GLB materials');
+   }
    if(q('paintHypothesis').getBoundingClientRect().height<44)
      issues.push('paint hypothesis touch target too small');
    if(q('modelColourway').getBoundingClientRect().height<44)
@@ -632,6 +649,21 @@ try{
      throw Error('fork crown variant failed byte-identical original model restoration');
    writeFileSync(join(out,'model-review-fork-crown-narrow-412.png'),narrowCrownFrame);
    writeFileSync(join(out,'model-review-fork-crown-full-412.png'),fullCrownFrame);
+   const setBlades=async mode=>evaluate("(()=>{const q=document.getElementById('bladeSpokes');if(q.disabled)return false;q.value='"+mode+"';q.dispatchEvent(new Event('change',{bubbles:true}));return q.value==='"+mode+"'&&document.getElementById('bladeSpokesStatus').dataset.mode==='"+mode+"'})()");
+   if(!await setBlades('original'))throw Error('real original 2026 spoke mesh not available');
+   // Freeze one identical camera, then compare the *actual* source GLB mesh.
+   await capture();
+   const normalBlades=await capture();
+   if(!await setBlades('blade'))throw Error('wider source spoke volume unavailable');
+   const broadBladePixels=await capture();
+   if(!await setBlades('original'))throw Error('original 2026 spoke geometry restoration failed');
+   const restoredBladePixels=await capture();
+   if(normalBlades.equals(broadBladePixels))
+     throw Error('real source 2026 spokes grew in label only, not rendered GLB pixels');
+   if(!normalBlades.equals(restoredBladePixels))
+     throw Error('wider spoke research preview failed pixel-identical GLB restoration');
+   writeFileSync(join(out,'model-review-wheel-spokes-original-412.png'),normalBlades);
+   writeFileSync(join(out,'model-review-wheel-spokes-wide-412.png'),broadBladePixels);
    await evaluate("window.__urArt4kVisualReadback.resume()");
   }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);

@@ -1,0 +1,121 @@
+{
+  "schema": "UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D/1",
+  "source_pdf_sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235",
+  "annotations": [
+    {
+      "reference_id": "p14-twist-fork-front",
+      "crop_png_sha256": "cfbbc7b3e3cd1e3786897eba580bffec2ee9ceec268bcf4cdb4b5b6e30f4642b",
+      "pixel_uncertainty": 9,
+      "visible_points": {
+        "saddle": {
+          "saddle_left": [
+            72,
+            53
+          ],
+          "saddle_right": [
+            226,
+            53
+          ],
+          "saddle_top": [
+            185,
+            29
+          ],
+          "saddle_bottom": [
+            142,
+            95
+          ]
+        },
+        "crown": {
+          "crown_left": [
+            129,
+            185
+          ],
+          "crown_right": [
+            195,
+            187
+          ]
+        },
+        "fork": {
+          "fork_left": [
+            132,
+            247
+          ],
+          "fork_right": [
+            191,
+            247
+          ]
+        },
+        "clamp": {
+          "clamp_top": [
+            161,
+            121
+          ],
+          "clamp_bottom": [
+            163,
+            146
+          ]
+        }
+      },
+      "perspective_and_occlusion_notes": "Original p14 printed near-frontal small cyan character: the upper collar, pair of visible leg traces and seat-post clamp are cautiously labelled projected crown/fork/clamp features. The overlapping green/purple track hides the wheel and portions of the fork, while the seat, post and coloured ferrule blend at boundaries. These labels are provisional visual regions, not verified original 1994 manufacturing parts or 3D junctions.",
+      "annotator": "GPT-6 original printed-art visual feature trace, independently unreviewed",
+      "unmeasurable": {
+        "wheel": "wheel cannot be given complete separable original print landmarks due to deep projection overlap, ribbon occlusion, or cropped boundaries; no invisible 1994 source geometry inferred",
+        "hub": "hub cannot be given complete separable original print landmarks due to deep projection overlap, ribbon occlusion, or cropped boundaries; no invisible 1994 source geometry inferred",
+        "crank": "crank cannot be given complete separable original print landmarks due to deep projection overlap, ribbon occlusion, or cropped boundaries; no invisible 1994 source geometry inferred"
+      }
+    },
+    {
+      "reference_id": "p15-mega-underside",
+      "crop_png_sha256": "4c9242a0126891a2d6a6e8f574eec4179c4cdbcd30cb34a1cdff8589e9290d22",
+      "pixel_uncertainty": 22,
+      "visible_points": {
+        "saddle": {
+          "saddle_left": [
+            501,
+            165
+          ],
+          "saddle_right": [
+            819,
+            229
+          ],
+          "saddle_top": [
+            564,
+            34
+          ],
+          "saddle_bottom": [
+            655,
+            307
+          ]
+        },
+        "crown": {
+          "crown_left": [
+            542,
+            448
+          ],
+          "crown_right": [
+            685,
+            447
+          ]
+        },
+        "clamp": {
+          "clamp_top": [
+            590,
+            208
+          ],
+          "clamp_bottom": [
+            616,
+            288
+          ]
+        }
+      },
+      "perspective_and_occlusion_notes": "Original p15 oversized low-oblique rendered illustration: the turquoise band near the front of dark hub-cover region is visually tagged crown-like, and the metallic brace under the saddle is tagged clamp-like. Deep tire, hub shell, crank and fork overlap in perspective, so part allocation and exact boundaries are ambiguous. Large uncertainty is intentional: these are pixel-plane feature extents, not physical source mesh labels or calibrated 1994 production camera.",
+      "annotator": "GPT-6 original printed-art visual feature trace, independently unreviewed",
+      "unmeasurable": {
+        "wheel": "wheel cannot be given complete separable original print landmarks due to deep projection overlap, ribbon occlusion, or cropped boundaries; no invisible 1994 source geometry inferred",
+        "hub": "hub cannot be given complete separable original print landmarks due to deep projection overlap, ribbon occlusion, or cropped boundaries; no invisible 1994 source geometry inferred",
+        "fork": "fork cannot be given complete separable original print landmarks due to deep projection overlap, ribbon occlusion, or cropped boundaries; no invisible 1994 source geometry inferred",
+        "crank": "crank cannot be given complete separable original print landmarks due to deep projection overlap, ribbon occlusion, or cropped boundaries; no invisible 1994 source geometry inferred"
+      }
+    }
+  ]
+}

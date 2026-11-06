@@ -94,7 +94,7 @@ jobs:
           retention-days: 7
 
   experimental-real-model-export:
-    # One source-bound consumer of the EXISTING unapproved #2832 draft rig.
+    # One source-bound consumer of the SAME unapproved rig on the PR checkout.
     # Do not wake this expensive OpenSCAD route while a PR is still a draft.
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-24.04
@@ -102,12 +102,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
-      - uses: actions/checkout@v4
-        with:
-          repository: gamesbyian/UR-Recomp
-          ref: graphics/art4k-part-addressable-rig-20261029
-          path: candidate-rig
           persist-credentials: false
       - name: Install isolated offline OpenSCAD/GLB authoring dependencies
         run: |
@@ -119,13 +113,13 @@ jobs:
       - name: Export all five actual experimental poses and bind immutable receipts
         run: |
           set -euo pipefail
-          source_commit="$(git -C candidate-rig rev-parse HEAD)"
+          source_commit="$(git rev-parse HEAD)"
           export EXPERIMENTAL_RIG_SHA="$source_commit"
           echo "EXPERIMENTAL_RIG_SHA=$source_commit" >> "$GITHUB_ENV"
           for pose in upright pedal wheelie stunt bank; do
             "$RUNNER_TEMP/rig-venv/bin/python" \
-              candidate-rig/tools/art/export_articulated_unicycle.py \
-              candidate-rig/tools/art/candidates/unicycle_shared_rig.scad \
+              tools/art/export_articulated_unicycle.py \
+              tools/art/candidates/unicycle_shared_rig.scad \
               "$RUNNER_TEMP/model-exports/$pose" --rig-pose "$pose" --timeout 120
           done
           python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/real-model-site"
@@ -172,7 +166,7 @@ jobs:
         run: |
           {
             echo "### Five-pose experimental 3D review"
-            echo "Draft model source: \`${EXPERIMENTAL_RIG_SHA:-unavailable}\`"
+            echo "Same-checkout experimental model source: \`${EXPERIMENTAL_RIG_SHA:-unavailable}\`"
             echo "Artifact is a technical viewer candidate, not original art likeness or release approval."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Retain experimental site and visual evidence

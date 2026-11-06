@@ -22,7 +22,7 @@ on:
         type: boolean
         default: false
       include_experimental_model:
-        description: "Build latest five-pose unapproved draft GLB for the model review route (expensive opt-in)"
+        description: "Build five-pose unapproved authoring model from exact checked-out main (expensive opt-in)"
         type: boolean
         default: false
 permissions:
@@ -55,14 +55,6 @@ jobs:
                   f.write(f"- {name}: {amount}\n")
               f.write("\nThis site contains current-source engineering captures or distinct COMING SOON plates; no hardware/visual/release approval.\n")
           PY
-      - name: Check out existing five-part draft rig only on explicit manual opt-in
-        if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
-        uses: actions/checkout@v4
-        with:
-          repository: gamesbyian/UR-Recomp
-          ref: graphics/art4k-part-addressable-rig-20261029
-          path: candidate-rig
-          persist-credentials: false
       - name: Prepare isolated, offline-authoring-only GLB dependencies
         if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
         run: |
@@ -75,11 +67,11 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
         run: |
           set -euo pipefail
-          source_commit="$(git -C candidate-rig rev-parse HEAD)"
+          source_commit="$(git rev-parse HEAD)"
           for pose in upright pedal wheelie stunt bank; do
             "$RUNNER_TEMP/rig-venv/bin/python" \
-              candidate-rig/tools/art/export_articulated_unicycle.py \
-              candidate-rig/tools/art/candidates/unicycle_shared_rig.scad \
+              tools/art/export_articulated_unicycle.py \
+              tools/art/candidates/unicycle_shared_rig.scad \
               "$RUNNER_TEMP/model-exports/$pose" --rig-pose "$pose" --timeout 120
           done
           python3 tools/art/model-review/stage_pages.py \
@@ -89,7 +81,7 @@ jobs:
           {
             echo "### Experimental 3D model review"
             echo "Rig source: \`$source_commit\`"
-            echo "Five exported procedural studies; no original likeness or release approval."
+            echo "Five exact-main experimental authoring studies; no original likeness or release approval."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Generate source-verified measurements for the explicitly opted-in model
         if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true

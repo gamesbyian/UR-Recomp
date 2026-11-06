@@ -1,0 +1,182 @@
+{
+  "schema": "ur-daily-milestones/1",
+  "contract": "32c62b80",
+  "description": "Bounded partial-deliverable scoring for selected active unfinished frozen criteria. Weights sum to fixed parent weight, never alter formal acceptance. Additional criteria require pre-reviewed milestone allocation; do not edit weights retrospectively.",
+  "milestones": [
+    {
+      "id": "ART-02-SCOPED-SOURCE",
+      "criterion_id": "ART-02",
+      "weight_units": 9,
+      "deliverable": "Real original-player source observations and source-registered five-part GLB prototype are reproducible",
+      "limitation": "Experimental geometry is not the recovered or shipping 1994 mesh."
+    },
+    {
+      "id": "ART-02-AUTHORING-RIG",
+      "criterion_id": "ART-02",
+      "weight_units": 9,
+      "deliverable": "A single authored source-controlled part-addressable rig and reversible joint transformations are maintained",
+      "limitation": "Prototype articulation does not establish authentic joint positions, pose correspondence or native runtime integration."
+    },
+    {
+      "id": "ART-02-SOURCE-POSE-FIT",
+      "criterion_id": "ART-02",
+      "weight_units": 9,
+      "deliverable": "Source-linked blue/red pose geometry is evaluated against independent original frames and retained holdout families",
+      "limitation": "Higher IoU on some frames does not establish original physical 3D geometry."
+    },
+    {
+      "id": "ART-02-RUNTIME-ASSET",
+      "criterion_id": "ART-02",
+      "weight_units": 9,
+      "deliverable": "One coherent artifact is integrated with real Windows gameplay render under source-linked identities",
+      "limitation": "Pages-only previews and external model experiments cannot satisfy runtime asset integration."
+    },
+    {
+      "id": "ART-02-FINAL-GEOMETRY",
+      "criterion_id": "ART-02",
+      "weight_units": 9,
+      "deliverable": "The shared pose-registered production 3D geometry qualifies across required states",
+      "limitation": "Final art approval and other ART criteria remain separate."
+    },
+    {
+      "id": "ART-03-BASELINE",
+      "criterion_id": "ART-03",
+      "weight_units": 9,
+      "deliverable": "Original silhouette and 24-frame source body references are independently reproducible",
+      "limitation": "References and metrics alone do not establish correct authored proportions."
+    },
+    {
+      "id": "ART-03-PART-LANDMARKS",
+      "criterion_id": "ART-03",
+      "weight_units": 9,
+      "deliverable": "Authentic 1994 sprite/manual projected 2D landmarks and occlusion are captured",
+      "limitation": "Print 2D cannot prove original physical 3D dimensions or camera."
+    },
+    {
+      "id": "ART-03-DUAL-PLAYER-FIT",
+      "criterion_id": "ART-03",
+      "weight_units": 9,
+      "deliverable": "One model meets prespecified blue/red silhouette and independent holdout thresholds",
+      "limitation": "Local saddle/fork shape improvements are insufficient without independent generalization."
+    },
+    {
+      "id": "ART-03-POSE-CONSISTENCY",
+      "criterion_id": "ART-03",
+      "weight_units": 9,
+      "deliverable": "Model remains rounded, distinctive and stable across genuine source poses",
+      "limitation": "Rigid pose renders do not prove animation or 4K visual identity."
+    },
+    {
+      "id": "ART-03-APPROVED-SILHOUETTE",
+      "criterion_id": "ART-03",
+      "weight_units": 9,
+      "deliverable": "Owner has seen and approved the original identity silhouette",
+      "limitation": "Owner approval is separate from individual source-fit metrics."
+    },
+    {
+      "id": "ART-05-PIVOTS",
+      "criterion_id": "ART-05",
+      "weight_units": 9,
+      "deliverable": "Direct-drive wheel/crank and frame/saddle mechanically linked around validated pivots",
+      "limitation": "An in-memory experimental rig does not recover original joint animations."
+    },
+    {
+      "id": "ART-05-SOURCE-PHASE",
+      "criterion_id": "ART-05",
+      "weight_units": 9,
+      "deliverable": "Original frame/phase registration supplies repeatable motion controls",
+      "limitation": "Source phase observations are not themselves a 3D animation."
+    },
+    {
+      "id": "ART-05-CONTINUITY",
+      "criterion_id": "ART-05",
+      "weight_units": 9,
+      "deliverable": "Genuine chronological transitions do not introduce part overlap, mesh jumps or detachment",
+      "limitation": "One static render per pose does not qualify continuity."
+    },
+    {
+      "id": "ART-05-PLAYABLE-PATH",
+      "criterion_id": "ART-05",
+      "weight_units": 9,
+      "deliverable": "Real game animation is driven by the unified source/rig with real gameplay controls",
+      "limitation": "Pages motion previews do not count as runtime animation."
+    },
+    {
+      "id": "ART-05-SOURCE-MOTION",
+      "criterion_id": "ART-05",
+      "weight_units": 9,
+      "deliverable": "Gameplay motion follows original source identity across full required transitions",
+      "limitation": "User likeness review and art gate remain separate."
+    },
+    {
+      "id": "WIDE-07-CAUSE",
+      "criterion_id": "WIDE-07",
+      "weight_units": 9,
+      "deliverable": "Source moving-course camera/tile baseline and first divergence are reproduced",
+      "limitation": "Diagnostics are not proof of correct source-world presentation."
+    },
+    {
+      "id": "WIDE-07-RASTER",
+      "criterion_id": "WIDE-07",
+      "weight_units": 9,
+      "deliverable": "Screen/split-band raster rules and HDMA source phase are implemented and unit-tested",
+      "limitation": "Isolated parser regressions alone do not qualify full moving course."
+    },
+    {
+      "id": "WIDE-07-SOURCE-TILES",
+      "criterion_id": "WIDE-07",
+      "weight_units": 9,
+      "deliverable": "Actual widened course tile streaming references pass source-bound comparisons",
+      "limitation": "One checkpoint does not cover changing world/split states."
+    },
+    {
+      "id": "WIDE-07-DYNAMIC-PARITY",
+      "criterion_id": "WIDE-07",
+      "weight_units": 9,
+      "deliverable": "Multiple authentic moving-camera/split frames match independently held reference conditions",
+      "limitation": "Synthetic capture and recomputed expected images cannot substitute for source evidence."
+    },
+    {
+      "id": "WIDE-07-WINDOWS-ACCEPT",
+      "criterion_id": "WIDE-07",
+      "weight_units": 9,
+      "deliverable": "Integrated Windows x64 gameplay visual sequence qualifies full widescreen camera/tiles",
+      "limitation": "Real physical 4K and other QA gates remain separate."
+    },
+    {
+      "id": "FID-01-FROZEN-EVENT",
+      "criterion_id": "FID-01",
+      "weight_units": 2,
+      "deliverable": "Unique original USA course key, unchanged controller movie and original/source hashes are pinned",
+      "limitation": "Preparatory harness evidence never grants event admission."
+    },
+    {
+      "id": "FID-01-FIRST-CAUSE",
+      "criterion_id": "FID-01",
+      "weight_units": 2,
+      "deliverable": "First causally relevant original/native divergence is resolved or independently proven unobservable",
+      "limitation": "Diagnostic internal byte equality is not sufficient."
+    },
+    {
+      "id": "FID-01-OUTCOME",
+      "criterion_id": "FID-01",
+      "weight_units": 2,
+      "deliverable": "One full original/native genuine race result and scoring outcome pair passes same-run checks",
+      "limitation": "Stage-only and synthetic guest results cannot count."
+    },
+    {
+      "id": "FID-01-PROGRESSION",
+      "criterion_id": "FID-01",
+      "weight_units": 2,
+      "deliverable": "Same-run progression, independent cold-save restart and artifact receipts agree",
+      "limitation": "One accepted subpart is not a complete original event."
+    },
+    {
+      "id": "FID-01-INDEPENDENT-ADMISSION",
+      "criterion_id": "FID-01",
+      "weight_units": 2,
+      "deliverable": "All first-event criteria are accepted by a separate reviewer under the event census",
+      "limitation": "Formal FID gate is authoritative; this partial record never changes it."
+    }
+  ]
+}

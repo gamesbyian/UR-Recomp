@@ -2,6 +2,29 @@
 
 **Status:** source-linked provisional engineering estimate and expected remaining relative-work model, not release acceptance. **One feed, five interchangeable agents.** This implements the first bounded subset of the [daily estimation protocol](../DAILY-ENGINEERING-PROGRESS-ESTIMATION-PLAN-20261106.md), without a new scheduler, extra full-suite CI or a required PR for each observation.
 
+## Fast receipt creation (new)
+
+Use the validated standard-library generator rather than hand-writing JSON:
+
+```sh
+python3 tools/record_agent_measurement.py \
+  --id art-05-pivot-observation-unique-20261106 \
+  --kind milestone \
+  --work-id UR-ART-4K \
+  --source-sha FULL_40_CHARACTER_SOURCE_MAIN_SHA \
+  --pr https://github.com/gamesbyian/UR-Recomp/pull/3101 \
+  --actor YOUR_AGENT_IDENTIFIER \
+  --milestone ART-05-PIVOTS \
+  --outcome "Observed five-part GLB pivot alignment with real artifact check" \
+  --remaining "Original source animation and integrated game art remain missing" \
+  --evidence https://github.com/gamesbyian/UR-Recomp/pull/3101 \
+  --dry-run
+```
+
+Remove `--dry-run` after inspecting the result. The generator writes one validated `docs/progress/daily/entries/<event-id>.json` file and refuses overwriting an existing file. Use a *real* exact 40-hex source SHA, not the template above. For a zero-credit research finding use `--kind research` and omit `--milestone`. To change expected effort, add `--job-id`, `--from OPT LIKELY PESS`, `--to OPT LIKELY PESS`, `--reason-type earned|re_estimate|regression` and a concrete `--reason`; review the replacement range against the previous active range. Distinct reviewer follow-ups can use `--state reviewed --reviewer INDEPENDENT_REVIEWER` only when actual evidence review occurred. All five agents use the same mechanism within their normal PR and need no additional schedule.
+
+**Expanded milestone allocation:** 50 atomic deliverables now span ART-02/03/04/05, ONE-09, DATA-10, WIDE-07/09, FID-01 and QA-04. They carry **no new automatic credits**; original source and physical evidence determine whether events are recorded. The provisional backfill remains three source events. Only register new immutable milestone allocations for other parent criteria after a genuine deliverable is defined; don't subdivide for the sake of displaying a bigger score.
+
 ## Do this after material work, inside your existing PR or handoff
 
 1. Read [the frozen partial milestones](milestones-v1.json). If your product work delivered or invalidated one of them, add **one JSON event** to `entries/`, following the example below. If you just investigated the problem or improved infrastructure, use `kind: research` or `infrastructure` **without milestone fields**. Do not create an event for every inconsequential edit or docs formatting change.

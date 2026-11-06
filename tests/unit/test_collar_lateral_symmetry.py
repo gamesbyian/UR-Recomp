@@ -9,7 +9,7 @@ if AVAILABLE:
     from tools.art.verify_collar_transition_review import lateral_reflection_error
 
 
-@unittest.skipUnless(trimesh is not None, "optional real GLB geometry dependencies")
+@unittest.skipUnless(AVAILABLE, "optional real GLB geometry dependencies")
 class OwnerFrontMirrorTests(unittest.TestCase):
     def build(self, y):
         scene = trimesh.Scene(base_frame="world")

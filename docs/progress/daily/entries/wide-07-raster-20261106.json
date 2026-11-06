@@ -1,0 +1,17 @@
+{
+  "schema": "ur-agent-work-measurement/1",
+  "event_id": "backfill-wide-07-raster-20261106",
+  "recorded_at": "2026-11-06T22:07:00Z",
+  "source_main_sha": "3e721add5e03b65e625e2207a653e18dca00603e",
+  "source_pr": "https://github.com/gamesbyian/UR-Recomp/pull/3043",
+  "kind": "milestone",
+  "work_id": "UR-RELEASE-PROGRESS",
+  "recorded_by": "initial-ledger-reconstruction",
+  "milestone_id": "WIDE-07-RASTER",
+  "milestone_state": "provisional",
+  "outcome": "Source-proven lower split-band retained-history Y-phase inconsistency was corrected with a strict extracted-C regression",
+  "remaining": "Complete source-matched moving course camera/tile frames in real integrated widescreen gameplay remain unaccepted",
+  "evidence": [
+    "https://github.com/gamesbyian/UR-Recomp/pull/3043"
+  ]
+}

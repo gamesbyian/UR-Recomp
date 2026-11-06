@@ -89,6 +89,24 @@ def main():
     effort = calculate(prior,inv,adjust,samples=500)
     summary["remaining_relative_work_units_prior_mean"] = effort["expected_relative_work_units"]
     summary["effort_estimate_basis"] = "Last reviewed criterion inventory, not rescreened current HEAD"
+    # Optional provisional engineering instrument: partial delivered-source evidence
+    # and source-pinned prospective work revisions, without changing formal QA.
+    from tools.daily_measurement import (
+        DAILY, calculate_daily, read_entries, load, validate_provenance,
+    )
+    daily_entries = read_entries(DAILY / "entries")
+    validate_provenance(daily_entries, head)
+    daily = calculate_daily(
+        inv, ledger, prior, adjust, load(DAILY / "milestones-v1.json"),
+        daily_entries, head, reviewed,
+    )
+    summary["daily_engineering"] = daily
+    summary["current_completion_estimate_percent"] = daily["engineering_estimate_percent"]
+    summary["current_estimate_status"] = "PROVISIONAL: source-linked partial ledger, historical intake incomplete"
+    summary["remaining_relative_work_units_estimate"] = daily["relative_work_units"]
+    summary["current_completion_estimate_range_percent"] = daily[
+        "engineering_recorded_evidence_range_percent"
+    ]
     if args.format == "json":
         print(json.dumps(summary,indent=2))
     else:
@@ -107,9 +125,11 @@ def main():
               "|", summary["current_estimate_status"])
         print("Remaining relative-work prior:",effort["expected_relative_work_units"],
               "(excludes possible unreviewed closures)")
+        print("Provisional daily remaining units:",daily["relative_work_units"],
+              "| source-linked observations:",daily["observations_count"])
         print("USA:",summary["accepted_USA_events"],"/45 | QA gates:",
               summary["release_gates_passed"],"/12")
         if n:
-            print("WARNING: current progress is not independently certified; never present this floor as a fresh score.")
+            print("WARNING: provisional engineering estimate is NOT independently certified; historical milestones are not exhaustively backfilled.")
 if __name__ == "__main__":
     main()

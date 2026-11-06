@@ -9,6 +9,16 @@ Start with [the mobile likeness comparison](visual-review.html) (at the same hos
 
 A responsive, read-only Three.js inspection tool intended for GitHub Pages. This is a visualization surface for **the existing unapproved part-addressable OpenSCAD/GLB authoring baseline on `main`**, not a replacement authoring rig, a gameplay renderer, or evidence of approved source likeness.
 
+## Optional welded hub physical housing review (November 6)
+
+To inspect a **source-derived, unapproved** 2026 hub casing, first export or obtain the real source-owned upright GLB from the existing canonical five-part authoring pipeline, then run:
+
+```sh
+python3 tools/art/welded_hub_review.py /path/to/upright-source.glb /path/to/NEW-welded-hub-study.glb
+```
+
+Requires the existing optional NumPy/Trimesh authoring dependencies; no new workflow, branch checkout, renderer, model root or scoreboard. The script leaves the input GLB alone, validates exactly five parent transforms and sixteen source material nodes, substitutes only `rim_and_hub__material_4`, verifies a single connected/closed outward-wound 234v/464f shell, and checks other 15 meshes' vertex/face/color arrays and all five transforms **after actual GLB serialization**. An existing output path is rejected. Load both files into the **same** 3D viewer (one at a time) for actual side/front/oblique comparisons, then the visual-review sheet. The printed original 1994 manual p15 informs the visual proposition, **not source topology or an original joint law**. This candidate must remain local/unapproved until the owner chooses an artistic direction; no automatic default manifest, Pages deploy or shipping artifact is changed.
+
 ## Launch
 
 Serve this directory over HTTP (for example `python3 -m http.server 8000 --directory tools/art/model-review`). The viewer also accepts a local .glb upload entirely within the browser. Browser import-map support and internet access to pinned Three.js 0.170.0 CDN modules are required. Pin and vendor these dependencies for offline use before a release-quality publication. No ROM input is needed.

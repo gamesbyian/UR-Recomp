@@ -45,5 +45,22 @@ Job timing came from a complete, four-row authenticated GitHub run-job API inven
 ## Trust, retention and next decision
 
 - This invocation ran **only an already-merged `main` SHA on hosted `windows-2022`/Ubuntu**. The workflow itself is manually dispatchable with a supplied ref; a future **cross-PR composite** still requires the unpublished stronger P1 full-tree source verifier, an independently approved source admission procedure and full per-PR integration gates. Do not send unreviewed PR code to the owner HP.
-- The producer export currently expires **2026-11-13T10:00:24Z** (seven-day retention); independent group and aggregate receipts expire **November 20** (14-day retention). Retain source/run/artifact identifiers in this document; neither temporary artifact replaces the preserved, independently audited October 28 physical playtest package.
+- All four real source/EXE/ZIP-bound P2 artifacts were **separately preserved on the owner HP**, without extraction or execution. Exact artifact IDs, ZIP hashes, expiry and a clearly NONRELEASE local path are recorded in the [preservation receipt](#p7-source-bound-preservation-of-qualification-artifacts).
 - Continue with actual Windows product, WIDE-07 and first full original/native event priorities rather than building a second fan-out orchestrator. If a naturally justified equivalent **same-SHA/same-13-script** conventional run appears, compare critical path, **all** started job time, setup/build/checkouts/transfers, skip/failure coverage and case identities for 2–3 trials before claiming any improvement or changing workflow defaults. If no such comparison is justified, keep this successful, **manual** bounded route and the existing full bridge.
+
+## P7 source-bound preservation of qualification artifacts
+
+On November 6 UTC, all four ZIP artifacts from trusted-main [run #42198617652](https://github.com/gamesbyian/UR-Recomp/actions/runs/42198617652) were independently downloaded **again** using the owner HP's existing authenticated GitHub API, compared with the previously checked artifact ZIP SHA-256 values, and saved intact, without extraction or executable launch, under:
+
+\`%USERPROFILE%\Downloads\UR-Recomp-Playtests\Qualification-Evidence\`
+
+Every name starts with **\`P2-NONRELEASE-\`**. The destination is never overwritten if an existing file has a different SHA-256; downloaded temporary files are removed. The local ZIP bytes are source-bound *technical test evidence*, separately identified from the previously [audited October 28 ROM-free physical-playtest package](HP-PLAYTEST-ARTIFACT-PRESERVATION-20261106.md). All four download receipts reported \`preserved and verified\`.
+
+| Exact GitHub Actions artifact | Expires UTC | Local filename after \`P2-NONRELEASE-\` | Outer ZIP SHA-256 |
+| --- | --- | --- | --- |
+| Producer [#13492983782](https://github.com/gamesbyian/UR-Recomp/actions/runs/42198617652/artifacts/13492983782), **13,033,977 bytes** | **Nov 13 10:00:24** | \`6c57ff4-producer-run42198617652.zip\` | \`8d271b2703b73b39bac0c45b0fe3340d0b9dc541cba7243d2d00580e890addac\` |
+| Seed-dependent [#13493053163](https://github.com/gamesbyian/UR-Recomp/actions/runs/42198617652/artifacts/13493053163), 1,094 bytes | Nov 20 10:05:21 | \`6c57ff4-seed-dependent-run42198617652.zip\` | \`ad23894fadab1168a5eb36a6a861b4f316f818fc7be50b077239b0559b657d1d\` |
+| Independent [#13494365840](https://github.com/gamesbyian/UR-Recomp/actions/runs/42198617652/artifacts/13494365840), 2,073 bytes | Nov 20 10:06:07 | \`6c57ff4-independent-run42198617652.zip\` | \`be29f42dbf1a8bd87f61d246ed9b6c98d056b565a334419e313cc106ad5e9e7c\` |
+| Aggregate [#13493552466](https://github.com/gamesbyian/UR-Recomp/actions/runs/42198617652/artifacts/13493552466), 1,748 bytes | Nov 20 10:06:29 | \`6c57ff4-aggregate-run42198617652.zip\` | \`cea290457e359f072e1fa8ab51c8b557887173698212d7054d1fb7a4a49d2a73\` |
+
+This retains the exact original 13/13 qualification receipts for later A/B or methodological audit after normal GitHub Actions expiry, without another Windows game build. It **does not** prove that a conventional same-SHA comparison was performed, establish a shipping/release gate, permit unmerged PR code on HP, or justify preserving every Actions artifact.

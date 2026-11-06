@@ -2,6 +2,14 @@
 
 **2026-11-05 visual-source inspection. Nonshipping, not reconstructed 1994 geometry.**
 
+## November 6 owner-informed collar interpretation and real-GLB result
+
+The owner considers the existing 2026 five-part racer a **reasonable reconstruction foundation**, with its saddle already close and **thin spokes retained**. The near-side bulky welded hub is **rejected**. In a head-on view, a plausible racer can read as laterally symmetrical across the wheel, fork and frame except the mechanically opposing crank/pedal positions; one-sided housing/stripe details in the 2026 model are not therefore automatically approved.
+
+The original printed **page 14 cyan near-front unicycle** shows a relatively long, narrow exposed saddle post standing above a **compact rounded coloured fork-crown collar**, with the saddle remaining its broad original shape. These are *visible illustrated 2D relationships*, not recovered 1994 3D dimensions or a verified metal material. The owner specifically named the coloured-collar-to-bare-metal-seatpost transition as the first sculpting priority. A first source-locked attempt left only a tiny visible rod; the revised version lowers/rounds the collar and exposes a substantially longer rod, while leaving the existing saddle, thin spokes, wheel and part pivots unchanged.
+
+[PR #3207](https://github.com/gamesbyian/UR-Recomp/pull/3207) merged the **review-only** source-derived collar variant and its exact GLB comparison tool after all six substantive checks passed, including actual OpenSCAD export. Its receipt records unchanged original twelve non-frame material meshes, all sixteen material colour identities and all five part transforms; candidate model SHA256 `befe6e9db6f70f008b801c50ee1f48e5c3bac13b872400ed6aa8ab879e868b98`, candidate derived-SCAD SHA256 `eb2ca9275b2db73901c3159a2a22def542ad0a5344b183bfe127beb430a9f687`. The source art was not modified; the canonical five-part rig remains unchanged pending a specific **owner collar accept/revise** judgment. Do not reintroduce the rejected asymmetrical welded housing, widen the chosen thin spokes or interpret a topology/unit test as 1994 artist approval. After this comparison, tackle fork mass/roundedness and material look using the retained promotional images.
+
 ## Why this already-retained publication matters
 
 The owner's [character likeness brief](HD-RACER-CHARACTER-RECONSTRUCTION.md) calls for authentic large-form design rather than an arbitrary model fitted only to 64px ROM silhouettes. The official 1994 Nintendo/DMA instruction booklet contains **several different rendered character viewpoints**, including a relatively large near-wheel oblique illustration, a fork-facing view and stunts/side poses. These are potentially much stronger constraints on the 2026 candidate's fork crown, rim, hub, saddle underside and crank assembly than another tiny gameplay silhouette adjustment.

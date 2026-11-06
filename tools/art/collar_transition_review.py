@@ -24,11 +24,48 @@ NEW = """  // Owner reference: official 1994 manual fork-facing illustration.
     translate([-0.22,0,1.59])sphere(r=0.14,$fn=48);
     translate([-0.22,0,1.65])sphere(r=0.14,$fn=48);
   }
+  // Owner November 6 correction: silver post leaves collar straight up,
+  // coaxial at X=-0.22/Y=0 from base to upper saddle bracket.
+  // Fork may lean *below* the collar; the silver post must not lean inside it.
   // Preserve source material group order: silver seatpost, then dark trim.
-  color([0.75,0.81,0.84])frame_member([-0.22,0,1.67],[-0.20,0,2.235],0.065,0.058);
+  color([0.75,0.81,0.84])frame_member([-0.22,0,1.67],[-0.22,0,2.235],0.065,0.058);
   color([0.30,0.40,0.45])translate([-0.22,0,1.775])
     cylinder(h=0.035,r=0.105,center=true,$fn=64);
-  color([0.30,0.40,0.45])frame_member([-0.20,0,2.225],[-0.03,0,2.2],0.083,0.088);"""
+  color([0.30,0.40,0.45])frame_member([-0.22,0,2.225],[-0.03,0,2.2],0.083,0.088);"""
+
+
+def assert_seatpost_aligned(candidate_source: str) -> None:
+    """A source-level invariant for the owner's straight-from-collar geometry.
+
+    The coloured collar's two sphere centres, silver rod endpoints and the
+    upper saddle bracket all share one X/Y axis. This says nothing about the
+    uncalibrated 1994 pose's world vertical under a stunt rotation.
+    """
+    import re
+
+    def pairs(pattern: str):
+        match = re.search(pattern, candidate_source)
+        if match is None:
+            raise ValueError("missing unique owner-authored collar/post axis")
+        return [tuple(float(v) for v in re.findall(r"-?\\d+(?:\\.\\d+)?", item))
+                for item in match.groups()]
+
+    collar = pairs(r"color\\(rig_color\\)hull\\(\\)\\{\\s*"
+                   r"translate\\(\\[([^]]+)\\]\\)sphere\\(r=0\\.14"
+                   r"[^;]*;\\s*translate\\(\\[([^]]+)\\]\\)sphere\\(r=0\\.14")
+    post = pairs(r"color\\(\\[0\\.75,0\\.81,0\\.84\\]\\)frame_member\\("
+                 r"\\[([^]]+)\\],\\[([^]]+)\\],0\\.065,0\\.058\\)")
+    upper = pairs(r"color\\(\\[0\\.30,0\\.40,0\\.45\\]\\)frame_member\\("
+                  r"\\[([^]]+)\\],\\[([^]]+)\\],0\\.083,0\\.088\\)")
+    if any(len(x) != 3 for x in collar + post + upper):
+        raise ValueError("expected three-dimensional seatpost endpoints")
+    anchor = collar[0][:2]
+    if not all(point[:2] == anchor for point in collar+post+upper[:1]):
+        raise ValueError("seatpost meets coloured collar off-axis or at an angle")
+    if not post[0][2] < collar[-1][2] < post[1][2]:
+        raise ValueError("straight post does not pass through the collar into saddle")
+    if not upper[0][2] <= post[1][2]:
+        raise ValueError("post and saddle support no longer join")
 
 
 def canonical_source_bytes(source_bytes: bytes) -> bytes:
@@ -50,6 +87,7 @@ def sculpt(source_bytes: bytes) -> bytes:
     if source.count(OLD) != 1:
         raise ValueError("expected exactly one original coloured/metal saddle neck")
     replacement = source.replace(OLD, NEW)
+    assert_seatpost_aligned(replacement)
     if replacement.count(NEW) != 1 or OLD in replacement:
         raise ValueError("collar replacement failed")
     return replacement.encode("utf-8")

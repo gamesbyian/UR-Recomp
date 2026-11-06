@@ -2,7 +2,7 @@
 
 **October 26, 2026: the only active dispatch model is the [ranked shared hourly pool](HOURLY-AGENT-LINES.md).** The five scheduled agents are **generalists**. Each invocation inspects five eligible jobs, reconciles live work, advances the highest-value unblocked candidate as far as practical and leaves a job-specific handoff. There are **no permanent two-anchor assignments, reserved Agent 5 integration lane, or compulsory five patches per invocation**. The former allocation and dated decisions are preserved in [the historical queue](archive/WORK-QUEUE-FIXED-ANCHORS-20261026.md) and [old board](archive/HOURLY-AGENT-LINES-FIXED-ANCHORS-20261026.md), but neither schedules work.
 
-**CI/HP implementation routing (proposal only):** [November 4 collective qualification / compute plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) and [five-task prompt snapshot](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md). These create no new scheduled agent, work ID, automatic CI job or priority override. The existing deferred UR-OPS-ACCEL work remains deferred unless actual product CI cost warrants a bounded pilot.
+**CI/HP implementation routing (proposal only):** [November 4 collective qualification / compute plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md), [current implementation/economics status](CI-COLLECTIVE-QUALIFICATION-IMPLEMENTATION-STATUS.md) and [five-task prompt snapshot](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md). These create no new scheduled agent, work ID, automatic CI job or priority override. The existing deferred UR-OPS-ACCEL work remains deferred unless actual product CI cost warrants a bounded pilot.
 
 ## Shipping priorities, in simple terms
 

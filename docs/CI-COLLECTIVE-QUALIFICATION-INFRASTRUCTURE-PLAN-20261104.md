@@ -2,6 +2,8 @@
 
 **Status:** implementation proposal and operating design, not a newly enabled scheduler or CI gate. **Snapshot:** November 4, 2026 America/Edmonton (some GitHub evidence is dated November 5 UTC). **Scope:** gamesbyian/UR-Recomp, the five existing hourly ChatGPT tasks, hosted GitHub Actions, the owner HP Windows PC, Remote Desktop Commander, trusted-main HP research, release and original/native verification, and bounded cross-project lessons. **Change control:** enact one small independently reviewable stage at a time; this document is a plan, not authorization for an agent to bypass source, test, ownership or platform restrictions.
 
+**Current implementation checkpoint:** [November 6 verified P1/P3 pilot, review blockers and public-repository cost reality](CI-COLLECTIVE-QUALIFICATION-IMPLEMENTATION-STATUS.md). This November 4 plan remains a design snapshot, not proof that later proposals were deployed.
+
 **In one sentence:** preserve fast per-change diagnostics, qualify several compatible changes against one frozen integrated candidate and its reused build, and still independently validate the exact final Windows product and original-game claims. Measure independently accepted player outcomes per elapsed hour, with runner-minutes and defect detection as guardrails.
 
 ## 0. Authority and non-negotiable boundaries

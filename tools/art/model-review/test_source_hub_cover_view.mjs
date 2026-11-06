@@ -112,10 +112,10 @@ test("one actual 2026 source axle and cover become a single connected watertight
  assert.equal(edges.size,v.length+f.length-2);
  assert.ok([...edges.values()].every(a=>a.length===2&&a[0]+a[1]===0));
  assert.ok(Math.abs(vol6/6-.07496005181)<1e-7);
- assert.deepEqual([
-   Math.min(...v.map(p=>p[0])),Math.max(...v.map(p=>p[0])),
-   Math.min(...v.map(p=>p[2])),Math.max(...v.map(p=>p[2]))
- ],[-.3,.22,-.37,.27]);
+ const bounds=[Math.min(...v.map(p=>p[0])),Math.max(...v.map(p=>p[0])),
+               Math.min(...v.map(p=>p[2])),Math.max(...v.map(p=>p[2]))];
+ [-.3,.22,-.37,.27].forEach((expected,i)=>
+   assert.ok(Math.abs(bounds[i]-expected)<1e-10,'preserve exact eight source chamfer extremes'));
  for(const bad of [source.slice(0,99),source.map(p=>[p[0]*2,p[1],p[2]]),null,[]]){
    assert.throws(()=>weldedAuthoredHubFace(bad));
  }

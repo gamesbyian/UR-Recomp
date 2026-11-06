@@ -29,6 +29,49 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(summary["current_artifact_bytes_estimate"], 10100)
         self.assertEqual(summary["largest_name_groups"][0]["count"], 100)
 
+    def test_ur_small_page_complete_and_rechecked(self):
+        items = [a(i + 1, "receipt", i + 1) for i in range(51)]
+        called = []
+        def api(*argv):
+            q = argv[-1]
+            self.assertIn("per_page=25", q)
+            n = int(q.split("page=")[-1])
+            called.append(n)
+            return {"total_count": len(items),
+                    "artifacts": items[(n - 1) * 25:n * 25]}
+        rows = inv.artifact_inventory("gamesbyian/UR-Recomp", api=api,
+                                      max_pages=400, page_size=25,
+                                      recheck_first_page=True)
+        self.assertEqual(len(rows), 51)
+        self.assertEqual(called, [1, 2, 3, 1])
+
+    def test_ur_first_page_drift_fails_closed(self):
+        items = [a(i + 1, "receipt", 1) for i in range(26)]
+        count = 0
+        def api(*argv):
+            nonlocal count
+            count += 1
+            n = int(argv[-1].split("page=")[-1])
+            if count == 3:
+                return {"total_count": 26,
+                        "artifacts": [a(999, "new", 1), *items[:24]]}
+            return {"total_count": 26,
+                    "artifacts": items[(n - 1) * 25:n * 25]}
+        with self.assertRaisesRegex(RuntimeError, "first page changed"):
+            inv.artifact_inventory("gamesbyian/UR-Recomp", api=api,
+                                   page_size=25, recheck_first_page=True)
+
+    def test_invalid_page_options_rejected_before_network(self):
+        def no_network(*_):
+            self.fail("invalid arguments should not call GitHub")
+        for bad in (0, True, 10, 101, "25", None):
+            with self.subTest(page_size=bad), self.assertRaises(ValueError):
+                inv.artifact_inventory("gamesbyian/UR-Recomp", api=no_network,
+                                       page_size=bad)
+        with self.assertRaises(ValueError):
+            inv.artifact_inventory("gamesbyian/UR-Recomp", api=no_network,
+                                   page_size=25, recheck_first_page=1)
+
     def test_refuse_partial_inventory(self):
         def api(*argv):
             return {"total_count": 2, "artifacts": [a(1, "only", 3)]}
@@ -71,6 +114,16 @@ class InventoryTests(unittest.TestCase):
         with patch.object(inv.subprocess, "run", side_effect=[failed, passed]) as run:
             with patch.object(inv.time, "sleep") as sleep:
                 self.assertEqual(inv.gh_json("api", "repos/gamesbyian/UR-Recomp/actions/artifacts"), {"ok": True})
+        self.assertEqual(run.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    def test_gh_json_retries_bounded_truncated_artifact_json(self):
+        bad = SimpleNamespace(returncode=1, stderr="unexpected end of JSON input token=never-log", stdout="")
+        good = SimpleNamespace(returncode=0, stderr="", stdout='{"total_count":0,"artifacts":[]}')
+        with patch.object(inv.subprocess, "run", side_effect=[bad, good]) as run:
+            with patch.object(inv.time, "sleep") as sleep:
+                got = inv.gh_json("api", "repos/gamesbyian/UR-Recomp/actions/artifacts")
+        self.assertEqual(got["total_count"], 0)
         self.assertEqual(run.call_count, 2)
         sleep.assert_called_once_with(1)
 

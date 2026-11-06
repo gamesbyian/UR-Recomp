@@ -18,6 +18,7 @@ import time
 
 REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 PAGE_SIZE = 100
+ALLOWED_PAGE_SIZES = (25, 50, 100)
 
 
 def gh_json(*args):
@@ -50,6 +51,9 @@ def gh_json(*args):
         status = int(match.group(1)) if match else None
         transient = status in (429, 502, 503, 504) or (
             "secondary rate limit" in (result.stderr or "").lower()
+            # Large artifact pages can be truncated in transport. Retry
+            # twice, never accept malformed JSON as valid evidence.
+            or "unexpected end of json input" in (result.stderr or "").lower()
         )
         if transient and attempt < 2:
             time.sleep(2 ** attempt)
@@ -71,15 +75,21 @@ def repositories(owner, api=gh_json):
     return sorted(set(names))
 
 
-def artifact_inventory(repo, api=gh_json, max_pages=200):
+def artifact_inventory(repo, api=gh_json, max_pages=200, *,
+                       page_size=PAGE_SIZE, recheck_first_page=False):
     if not isinstance(repo, str) or not REPO.fullmatch(repo):
         raise ValueError("invalid repository")
     if type(max_pages) is not int or not 1 <= max_pages <= 1000:
         raise ValueError("invalid max_pages")
+    if type(page_size) is not int or page_size not in ALLOWED_PAGE_SIZES:
+        raise ValueError("invalid page_size")
+    if type(recheck_first_page) is not bool:
+        raise ValueError("invalid recheck_first_page")
     artifacts, seen = [], set()
     expected = None
+    first_page_ids = None
     for page in range(1, max_pages + 1):
-        response = api("api", f"repos/{repo}/actions/artifacts?per_page={PAGE_SIZE}&page={page}")
+        response = api("api", f"repos/{repo}/actions/artifacts?per_page={page_size}&page={page}")
         if not isinstance(response, dict) or not isinstance(response.get("artifacts"), list):
             raise ValueError(f"{repo}: invalid artifact page {page}")
         total = response.get("total_count")
@@ -90,8 +100,10 @@ def artifact_inventory(repo, api=gh_json, max_pages=200):
         elif expected != total:
             raise RuntimeError(f"{repo}: artifact count changed during pagination, rerun inventory")
         batch = response["artifacts"]
-        if len(batch) > PAGE_SIZE:
+        if len(batch) > page_size:
             raise ValueError(f"{repo}: oversized artifact page")
+        if page == 1:
+            first_page_ids = [x.get("id") if isinstance(x, dict) else None for x in batch]
         for item in batch:
             if not isinstance(item, dict) or type(item.get("id")) is not int or item["id"] <= 0:
                 raise ValueError(f"{repo}: invalid artifact identifier")
@@ -103,9 +115,17 @@ def artifact_inventory(repo, api=gh_json, max_pages=200):
                 raise ValueError(f"{repo}: invalid artifact name")
             seen.add(item["id"])
             artifacts.append(item)
-        if len(batch) < PAGE_SIZE:
+        if len(batch) < page_size:
             if len(artifacts) != expected:
                 raise RuntimeError(f"{repo}: incomplete inventory ({len(artifacts)}/{expected}), rerun")
+            if recheck_first_page:
+                check = api("api", f"repos/{repo}/actions/artifacts?per_page={page_size}&page=1")
+                if not isinstance(check, dict) or type(check.get("total_count")) is not int \
+                        or not isinstance(check.get("artifacts"), list) \
+                        or check["total_count"] != expected \
+                        or [a.get("id") if isinstance(a, dict) else None
+                            for a in check["artifacts"]] != first_page_ids:
+                    raise RuntimeError(f"{repo}: first page changed during census, rerun inventory")
             return artifacts
     raise RuntimeError(f"{repo}: reached {max_pages} pages; refusing truncated inventory")
 
@@ -197,12 +217,18 @@ def main():
     p.add_argument("--owner", default="gamesbyian")
     p.add_argument("--repo", action="append", help="Owner/name; repeat for a specific subset")
     p.add_argument("--max-pages", type=int, default=200)
+    p.add_argument("--page-size", type=int, choices=ALLOWED_PAGE_SIZES, default=PAGE_SIZE,
+                   help="bounded artifacts per API page (smaller for very large repositories)")
+    p.add_argument("--recheck-first-page", action="store_true",
+                   help="fail if the newest artifact IDs or count changed while paging")
     p.add_argument("--json-out", type=Path)
     args = p.parse_args()
     repos = args.repo or repositories(args.owner)
     if not repos:
         raise SystemExit("No repositories discovered")
-    rows = [summarize(repo, artifact_inventory(repo, max_pages=args.max_pages))
+    rows = [summarize(repo, artifact_inventory(
+        repo, max_pages=args.max_pages, page_size=args.page_size,
+        recheck_first_page=args.recheck_first_page))
             for repo in sorted(set(repos))]
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

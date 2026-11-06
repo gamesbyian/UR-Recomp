@@ -9,6 +9,8 @@ on:
       - tools/art/audit_manual_sparse_landmarks.py
       - tests/unit/test_extract_manual_3d_reference_views.py
       - tests/unit/test_audit_manual_sparse_landmarks.py
+      - analysis/data/racer-original-manual-saddle-estimates-20261105.json
+      - tests/unit/test_original_manual_saddle_sparse_measurements.py
 
 concurrency:
   group: art4k-original-manual-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -40,7 +42,8 @@ jobs:
         run: |
           python -m unittest \
             tests.unit.test_extract_manual_3d_reference_views \
-            tests.unit.test_audit_manual_sparse_landmarks
+            tests.unit.test_audit_manual_sparse_landmarks \
+            tests.unit.test_original_manual_saddle_sparse_measurements
 
       - name: Extract four official figures from exact retained USA manual
         run: |
@@ -67,6 +70,36 @@ jobs:
                                 {"name":x["crop_png"],"sha256":x["crop_png_sha256"],
                                  "page":x["original_printed_page"]}
                                 for x in receipt["figures"]]},sort_keys=True))
+          PY
+
+      - name: Source-PDF-validate visually estimated 1994 saddle points from two prints
+        run: |
+          python -m tools.art.audit_manual_sparse_landmarks \
+            analysis/data/racer-original-manual-saddle-estimates-20261105.json \
+            --crop-dir art4k-original-manual-crop-evidence \
+            --source-pdf reference/imported/manuals/Uniracers-USA-manual.pdf \
+            --out art4k-original-manual-crop-evidence/p14-p15-saddle-observations-2d.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path=Path("art4k-original-manual-crop-evidence/p14-p15-saddle-observations-2d.json")
+          data=json.loads(path.read_text(encoding="utf-8"))
+          assert data["reviewed_print_figure_count"]==2
+          assert not data["three_dimensional_source_geometry_calibrated"]
+          assert not data["owner_character_likeness_approved"]
+          assert not data["shipping_art_approved"]
+          for row in data["observations"]:
+              assert set(row["projected_pixel_distances"])=={"saddle"}
+              assert row["original_print_pixel_aspect"]=="square"
+              assert not any(v is not None for v in
+                  row["projected_ratios_only_if_whole_wheel_visible"]["saddle"].values())
+          print("ART4K_SOURCE_VERIFIED_PRINT_SADDLE_2D",
+                json.dumps({"source_pdf_sha256":data["authenticated_source_pdf_sha256"],
+                            "observed_dimensions":[
+                                {"figure":r["reference_id"],
+                                 "pixels":r["projected_pixel_distances"]["saddle"],
+                                 "uncertainty":r["pixel_uncertainty"]}
+                                for r in data["observations"]]},sort_keys=True))
           PY
 
       - name: Save local-review-only four PNGs and provenance, not game assets

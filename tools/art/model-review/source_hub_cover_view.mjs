@@ -4,7 +4,7 @@
 export const SOURCE_2026_HUB_NODE="rim_and_hub__material_4";
 export const SOURCE_2026_HUB_VERTICES=100;
 export const SOURCE_2026_HUB_FACES=196;
-export const SOURCE_2026_HUB_MODES=Object.freeze(["original","cover"]);
+export const SOURCE_2026_HUB_MODES=Object.freeze(["original","cover","axle-locked"]);
 export function experimentalAuthoredHubFace(){
  const hw=.26,hh=.32,b=.04,centerX=-.04,centerZ=-.05;
  const outline=[
@@ -26,4 +26,22 @@ export function experimentalAuthoredHubFace(){
  return {vertices,faces,
   original_1994_camera_or_physical_hub_recovered:false,
   original_source_model_material_graph_changed:false};
+}
+
+/** Stationary-axle kinematic counterfactual of the SAME 2026 dark 3D volume.
+ * Wheel parents in the verified OpenSCAD source apply Ry(-phase), so pre-rotate
+ * the new shell by Ry(+phase) locally. Only the new 16 authored vertices move:
+ * every original source vertex and all sixteen material IDs remain immutable.
+ * The 1994 source hub joint/camera are NOT recovered from the print/manual.
+ */
+export function axleLockedAuthoredHubFace(wheelDegrees){
+ if(typeof wheelDegrees!=='number'||!Number.isFinite(wheelDegrees)||
+    Math.abs(wheelDegrees)>1080)
+   throw Error('verified 2026 wheel-phase degrees required for axle-locked cover');
+ const shape=experimentalAuthoredHubFace();
+ const degrees=((wheelDegrees%360)+360)%360;
+ if(degrees===0)return shape;
+ const a=degrees*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+ return {...shape,vertices:shape.vertices.map(([x,y,z])=>
+   [c*x+s*z,y,-s*x+c*z])};
 }

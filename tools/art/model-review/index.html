@@ -48,7 +48,7 @@ border-radius:8px;border:1px solid #465573}
 <select id="bladeSpokes" style="min-height:44px;width:100%" disabled><option value="original">Original eight narrow 2026 spokes</option><option value="blade">Broad metal spoke blades · original manual-inspired</option></select>
 <div id="bladeSpokesStatus" class="tiny" role="status">Requires the published exact-source 2026 GLB.</div>
 <label for="hubFace">One provisional dark hub casing face</label>
-<select id="hubFace" style="min-height:44px;width:100%" disabled><option value="original">Original 2026 narrow axle sleeve</option><option value="cover">Add dark beveled hub cover · original printed p15-inspired</option></select>
+<select id="hubFace" style="min-height:44px;width:100%" disabled><option value="original">Original 2026 narrow axle sleeve</option><option value="cover">Add dark beveled hub cover · wheel-rotating</option><option value="axle-locked">Same dark cover · stationary axle</option></select>
 <div id="hubFaceStatus" class="tiny" role="status">Requires the published exact-source 2026 GLB.</div>
 <div class="tiny">2026 model-only, source-authored, reversible. Original manual p15 suggests broad metallic supports but does not establish the 1994 source mesh/camera/spoke count. No game geometry or file is modified.</div></div>
 <div class="group"><h2>Direct-drive wheel phase</h2><label for="wheelDrive">Experimental wheel/spoke synchronisation</label><select id="wheelDrive" disabled><option value="0">Original source spokes</option><option value="1">Follow authored pedal phase</option></select><div id="wheelDriveStatus" class="tiny" role="status">Requires the original SHA-verified 2026 experimental five-part model.</div><div class="tiny">Reversible tire and rim parent rotation only. Pedals, fork, saddle and material meshes stay unchanged. No authentic 1994 wheel timing or likeness claimed.</div></div>
@@ -81,7 +81,7 @@ import {SOURCE_SHA,sourceDriveMatrix,sourcePhaseDelta,sourceCrankMatrix,sourceWh
 import {mountOriginalMesen24Rail} from './original_mesen24_rail.mjs';
 import {sourceShapeIntervention,saddleCupZ,forkCrownXYZ} from './authored_upper_shape_controls.mjs';
 import {SOURCE_2026_SPOKE_NODE,SOURCE_2026_SPOKE_VERTICES,SOURCE_2026_BLADE_MODES,broadenOriginal2026Spoke} from './source_spoke_blade_view.mjs';
-import {SOURCE_2026_HUB_NODE,SOURCE_2026_HUB_VERTICES,SOURCE_2026_HUB_FACES,SOURCE_2026_HUB_MODES,experimentalAuthoredHubFace} from './source_hub_cover_view.mjs';
+import {SOURCE_2026_HUB_NODE,SOURCE_2026_HUB_VERTICES,SOURCE_2026_HUB_FACES,SOURCE_2026_HUB_MODES,experimentalAuthoredHubFace,axleLockedAuthoredHubFace} from './source_hub_cover_view.mjs';
 import {CAMERA_VIEW_PRESETS,cameraViewDirection} from './manual_view_directions.mjs';
 const $=id=>document.getElementById(id), stage=$('viewport'), scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(35,1,.01,200);
 camera.position.set(6,4.3,8);
@@ -267,6 +267,11 @@ function applyWheelDrive(){
  }
  cranks.updateMatrix();
  current.updateMatrixWorld(true);
+ // A stationary-axle housing must counterspin as the wheel phase changes.
+ // Rebuild its tiny temporary 2026 mesh only, never the original GLB buffers.
+ if(hubFaceState&&hubFaceMode==='axle-locked'){
+  applyHubFace('axle-locked');updateHubFaceStatus($('source').textContent);
+ }
 }
 function updateWheelDriveStatus(origin=''){
  const ctrl=$('wheelDrive'),status=$('wheelDriveStatus');
@@ -325,6 +330,11 @@ function captureHubFace(origin){
  }
  return {mesh,geometry:mesh.geometry};
 }
+function hubCounterspinDegrees(){
+ if(!wheelDriveState||(!wheelDrive&&crankStep===0))return 0;
+ const base=sourcePhaseDelta(selected,manifest.source_model_sha256);
+ return base+(crankStep?sourceCrankDegrees(crankStep):0);
+}
 function applyHubFace(mode){
  if(!hubFaceState||!SOURCE_2026_HUB_MODES.includes(mode))
    throw Error('exact-source 2026 dark hub geometry and one provisional cover required');
@@ -332,7 +342,8 @@ function applyHubFace(mode){
  if(mode==='original')return;
  const {mesh,geometry}=hubFaceState;
  try{
-  const extra=experimentalAuthoredHubFace();
+  const extra=mode==='axle-locked'?
+   axleLockedAuthoredHubFace(hubCounterspinDegrees()):experimentalAuthoredHubFace();
   const oldPos=geometry.getAttribute('position'),oldCol=geometry.getAttribute('color'),oldIdx=geometry.getIndex();
   const positions=new Float32Array((oldPos.count+extra.vertices.length)*3);
   for(let i=0;i<oldPos.count;i++){
@@ -364,9 +375,13 @@ function updateHubFaceStatus(origin=''){
  choice.value=hubFaceState?hubFaceMode:'original';
  status.dataset.mode=hubFaceMode;
  status.dataset.sourceVertices=hubFaceState?String(SOURCE_2026_HUB_VERTICES):'';
+ status.dataset.counterspinDegrees=hubFaceState&&hubFaceMode==='axle-locked'?
+  String(hubCounterspinDegrees()):'0';
  status.textContent=!hubFaceState?'Unavailable: exact original 2026 source GLB required.':
   hubFaceMode==='original'?'Original source-authored 2026 dark axle sleeve unchanged.':
-  'Temporary 2026 beveled hub cover: original 1994 printed p15 exposes only one 2D dark face; physical hub, camera and ownership unknown.';
+  hubFaceMode==='axle-locked'?
+  'Same 2026 dark housing volume held stationary against experimental wheel spin. Original 1994 casing joint and camera are unknown.':
+  'Same 2026 dark housing volume rotates with the wheel. Original 1994 printed p15 exposes one partly hidden 2D face; physical hub joint and camera unknown.';
 }
 function restoreBladeSpokes(){
  if(!bladeSpokeState)return;

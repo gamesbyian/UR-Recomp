@@ -6,6 +6,7 @@ remaining relative work. Neither PR titles nor commit counts earn progress.
 No network, external modules, new CI dispatch or background worker required.
 """
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -203,11 +204,15 @@ def calculate_daily(inventory, ledger, prior, adjustments, milestones_spec,
     low = (formal_covered_units + confirmed_extra) / 45
     high = (formal_covered_units + confirmed_extra + provisional_extra) / 45
     delta_total = sum(x["delta_work_units"] for x in impacts)
+    milestone_model_hash = hashlib.sha256(json.dumps(
+        milestones_spec, sort_keys=True, separators=(",", ":"),
+        ensure_ascii=False).encode("utf-8")).hexdigest()
     return {
         "schema": "ur-daily-engineering-report/1",
         "as_of_source": snapshot_sha,
         "formal_reviewed_source": reviewed_sha,
-        "model": milestones_spec["schema"] + "/" + milestones_spec["contract"],
+        "model": milestones_spec["schema"] + "/" + milestones_spec["contract"] + "/" + milestone_model_hash[:16],
+        "milestone_allocation_sha256": milestone_model_hash,
         "formal_bounded_percent": accepted["bounded_product_coverage_percent"],
         "independently_reviewed_percent": accepted["independently_audited_coverage_percent"],
         "engineering_estimate_percent": round(center, 2),

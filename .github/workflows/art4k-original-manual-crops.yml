@@ -10,6 +10,7 @@ on:
       - tests/unit/test_extract_manual_3d_reference_views.py
       - tests/unit/test_audit_manual_sparse_landmarks.py
       - analysis/data/racer-original-manual-saddle-estimates-20261105.json
+      - analysis/data/racer-original-manual-saddle-2d-pdf-verified-20261105.json
       - tests/unit/test_original_manual_saddle_sparse_measurements.py
 
 concurrency:
@@ -85,6 +86,8 @@ jobs:
           path=Path("art4k-original-manual-crop-evidence/p14-p15-saddle-observations-2d.json")
           data=json.loads(path.read_text(encoding="utf-8"))
           assert data["reviewed_print_figure_count"]==2
+          frozen=json.loads(Path("analysis/data/racer-original-manual-saddle-2d-pdf-verified-20261105.json").read_text(encoding="utf-8"))
+          assert data==frozen, "real 1994 PDF pixels/annotated 2D score drifted from repository source evidence"
           assert not data["three_dimensional_source_geometry_calibrated"]
           assert not data["owner_character_likeness_approved"]
           assert not data["shipping_art_approved"]

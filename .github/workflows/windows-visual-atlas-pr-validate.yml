@@ -217,6 +217,15 @@ jobs:
             --straight-glb "$RUNNER_TEMP/collar-review/collar.glb" \
             --rounded-glb "$RUNNER_TEMP/rounded-fork-review/rounded.glb" \
             --out "$RUNNER_TEMP/rounded-fork-review/physical-clearance-report.json"
+          # Reuse the five real source GLBs already exported above; no extra
+          # OpenSCAD exports or new runner. The repaired source patch leaves
+          # the global pose formula/pivots alone; verify rigid transport,
+          # material identity and positive ideal-torus proof independently.
+          "$RUNNER_TEMP/rig-venv/bin/python" -m unittest tests.unit.test_fork_pose_transport
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_fork_pose_transport.py \
+            --rounded-upright-glb "$RUNNER_TEMP/rounded-fork-review/rounded.glb" \
+            --canonical-pose-exports-root "$RUNNER_TEMP/model-exports" \
+            --out "$RUNNER_TEMP/rounded-fork-review/five-pose-transport-report.json"
       - name: Preserve one rounded 2026 fork candidate for visual review (not approved or default)
         if: always()
         uses: actions/upload-artifact@v4

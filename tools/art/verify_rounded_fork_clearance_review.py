@@ -56,9 +56,14 @@ def tire_torus_clearance_samples(scene):
     relative=world-wheel_xyz
     axis_distance=np.hypot(relative[:,0],relative[:,2])
     signed=np.hypot(axis_distance-.85,relative[:,1])-.15
+    # The second source-owned near-sidewall stripe is an offset torus,
+    # major radius 0.80, minor 0.028 at local Y=-0.15.
+    stripe=np.hypot(axis_distance-.80,relative[:,1]+.15)-.028
     return {"sample_count":int(len(signed)),
             "minimum_sampled_signed_clearance":float(signed.min()),
             "sampled_points_inside_tire_tube":int(np.count_nonzero(signed<0)),
+            "minimum_nearside_stripe_clearance":float(stripe.min()),
+            "sampled_points_inside_nearside_stripe":int(np.count_nonzero(stripe<0)),
             "continuous_surface_cleared":False,
             "all_poses_cleared":False}
 
@@ -102,8 +107,10 @@ def verify(baseline_source:Path, rounded_scad:Path, straight_glb:Path,
     if before["minimum_sampled_signed_clearance"]>=-.003:
         raise ValueError("baseline fork/tire overlap control unexpectedly absent")
     if (after["sampled_points_inside_tire_tube"] or
-        after["minimum_sampled_signed_clearance"]<=.005):
-        raise ValueError("rounded fork did not clear sampled tire tube")
+        after["minimum_sampled_signed_clearance"]<=.005 or
+        after["sampled_points_inside_nearside_stripe"] or
+        after["minimum_nearside_stripe_clearance"]<=.001):
+        raise ValueError("rounded fork did not clear both sampled tire material tubes")
     return {"schema":"UR-ART4K-ROUNDED-FORK-REAL-GLB-REVIEW/1",
             "source_straight_scad_sha256":STRAIGHT_SOURCE_SHA256,
             "rounded_candidate_scad_sha256":PROPOSED_SOURCE_SHA256,

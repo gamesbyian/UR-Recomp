@@ -15,6 +15,7 @@ from tools.art.extract_manual_3d_reference_views import SOURCE,extract
 
 ROOT=Path(__file__).resolve().parents[2]
 FIXTURE=ROOT/"analysis/data/racer-original-manual-saddle-estimates-20261105.json"
+QUALIFIED=ROOT/"analysis/data/racer-original-manual-saddle-2d-pdf-verified-20261105.json"
 SOURCE_SHA="50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235"
 SHAS={
  "p14-twist-fork-front":"cfbbc7b3e3cd1e3786897eba580bffec2ee9ceec268bcf4cdb4b5b6e30f4642b",
@@ -28,6 +29,12 @@ class PrintSaddle2DObservationsTests(unittest.TestCase):
         self.assertEqual(data["schema"],"UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D/1")
         self.assertEqual(data["source_pdf_sha256"],SOURCE_SHA)
         self.assertEqual(len(data["annotations"]),2)
+        confirmed=json.loads(QUALIFIED.read_text(encoding="utf-8"))
+        self.assertEqual(confirmed["authenticated_source_pdf_sha256"],SOURCE_SHA)
+        self.assertEqual(confirmed["reviewed_print_figure_count"],2)
+        self.assertFalse(confirmed["three_dimensional_source_geometry_calibrated"])
+        self.assertFalse(confirmed["owner_character_likeness_approved"])
+        self.assertFalse(confirmed["shipping_art_approved"])
         self.assertEqual({r["reference_id"] for r in data["annotations"]},set(SHAS))
         expected={"p14-twist-fork-front":(154,66,8),
                   "p15-mega-underside":(318,273,14)}
@@ -58,6 +65,7 @@ class PrintSaddle2DObservationsTests(unittest.TestCase):
             self.assertEqual(evidence["source_pdf_sha256"],SOURCE_SHA)
             report=measure(json.loads(FIXTURE.read_text(encoding="utf-8")),dest,source)
             self.assertEqual(report["reviewed_print_figure_count"],2)
+            self.assertEqual(report,json.loads(QUALIFIED.read_text(encoding="utf-8")), "actual retained original PDF RGB rerender changed frozen observed 2D evidence")
             for observed in report["observations"]:
                 self.assertEqual(observed["original_print_pixel_aspect"],"square")
                 self.assertEqual(set(observed["projected_pixel_distances"]),{"saddle"})

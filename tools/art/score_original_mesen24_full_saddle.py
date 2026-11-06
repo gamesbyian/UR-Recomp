@@ -108,6 +108,19 @@ HUB_SETTINGS={name:mode for name,mode in HUB_TRIALS}
 ALL_GEOMETRY_TRIALS=(ALL_CONTOUR_TRIALS+
                      tuple((name,mode) for name,mode,_ in CROWN_TRIALS)+HUB_TRIALS)
 ARMS=BASE_ARMS+tuple(name for name,_ in ALL_GEOMETRY_TRIALS)
+# One bounded contrast for the NEW hub proposal; all other older arms already
+# have permanent source-verified receipts and must not consume a new full sweep.
+MATCHED_HUB_CONTROL_NAMES=(
+    "axle_root_saddle_world_level_rom_phase_15deg",
+    "axle_root_saddle_world_level_fixed_tick_24deg",
+    "axle_root_hub_cover_rom_phase_15deg",
+    "axle_root_hub_cover_fixed_tick_24deg",
+)
+MATCHED_HUB_TRIALS=tuple((name,mode) for name,mode in ALL_GEOMETRY_TRIALS
+                         if name in MATCHED_HUB_CONTROL_NAMES)
+MATCHED_HUB_ARMS=BASE_ARMS+tuple(name for name,_ in MATCHED_HUB_TRIALS)
+if set(name for name,_ in MATCHED_HUB_TRIALS)!=set(MATCHED_HUB_CONTROL_NAMES):
+    raise ValueError("matched 2026 hub controls changed")
 
 
 def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
@@ -129,10 +142,16 @@ def drive_delta_degrees(phase:int,start_phase:int,tick:int,mode:str)->float:
     raise ValueError("only the two predeclared 2026 drive controls allowed")
 
 
-def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[str,bytes]])->dict:
+def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[str,bytes]],
+                                expected_arms:tuple[str,...]=ARMS)->dict:
     """Keep temporal-frame and one-vote-per-unique-2D-source-shape distinct."""
+    if (not isinstance(expected_arms,tuple) or
+            len(set(expected_arms))!=len(expected_arms) or
+            not set(BASE_ARMS).issubset(expected_arms) or
+            not set(expected_arms).issubset(ARMS)):
+        raise ValueError("cannot omit the authentic source/control baseline or add fitted arms")
     if (set(rows)!=set(TICKS) or set(predictions)!=set(TICKS) or
-            any(set(predictions[t])!=set(ARMS) for t in TICKS)):
+            any(set(predictions[t])!=set(expected_arms) for t in TICKS)):
         raise ValueError("complete original 24-tick timeline and all candidate arms required")
     shapes={}
     for t in TICKS:
@@ -141,7 +160,7 @@ def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[st
             raise ValueError("original Mesen source alpha malformed")
         shapes.setdefault(sha(original),[]).append(t)
     outcome={}
-    for arm in ARMS:
+    for arm in expected_arms:
         scores={t:metric(rows[t]["alpha"],predictions[t][arm]) for t in TICKS}
         full={k:sum(score[k] for score in scores.values()) for k in ("tp","fp","fn")}
         unique_mean=[]
@@ -202,7 +221,11 @@ def aggregate_original_timeline(rows:dict[int,dict],predictions:dict[int,dict[st
 
 
 def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
-            camera_raw:bytes,verified_exports:Path)->dict:
+            camera_raw:bytes,verified_exports:Path,trial_scope:str="all")->dict:
+    if trial_scope not in ("all","matched-hub"):
+        raise ValueError("only frozen all-arms or matched-hub source trial scope allowed")
+    shape_trials=(MATCHED_HUB_TRIALS if trial_scope=="matched-hub" else ALL_GEOMETRY_TRIALS)
+    expected_arms=(MATCHED_HUB_ARMS if trial_scope=="matched-hub" else ARMS)
     import numpy as np
     import trimesh
     from tools.art.render_racer_glb_projection import render_mask
@@ -287,7 +310,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 if key not in renders:
                     renders[key]=model4(frame["angle"],lean,0.)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
-            for name,mode in ALL_GEOMETRY_TRIALS:
+            for name,mode in shape_trials:
                 wheel=drive_delta_degrees(frame["phase"],reference["phase"],t,mode)
                 stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
                 stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
@@ -308,7 +331,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span,cup,crown,
                                         hub_cover=name in HUB_SETTINGS)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
-            if set(arms)!=set(ARMS):
+            if set(arms)!=set(expected_arms):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
             predictions[t]=arms
             samples[str(t)]={
@@ -323,7 +346,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     name:fixed_source_y_band_metrics(source_mask,img)
                     for name,img in arms.items()},
             }
-        timeline=aggregate_original_timeline(actual,predictions)
+        timeline=aggregate_original_timeline(actual,predictions,expected_arms)
         data[role]={
             "one_source_tick1601_lower_alpha_anchor_x2y2":list(original_anchor),
             "original_24_tick_samples":samples,
@@ -341,7 +364,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         original=originals[role]
         placement=anchor(original[1601]["alpha"])
         events={}
-        for name,mode in ALL_GEOMETRY_TRIALS:
+        for name,mode in shape_trials:
             projected={}
             stroke=SLIDE_SETTINGS[name][1] if name in SLIDE_SETTINGS else 0.
             stretch=STRETCH_SETTINGS[name][1] if name in STRETCH_SETTINGS else 0.
@@ -413,6 +436,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         }
     return {
         "schema":SCHEMA,
+        "2026_real_source_scoring_scope":trial_scope,
+        "2026_candidate_arms_actually_rendered":list(expected_arms),
         "source_exact_original_USA_ROM_sha256":pose["original_usa_ROM_sha256"],
         "source_exact_original_Mesen24_archive_sha256":sha(zip_raw),
         "source_exact_ROM_phase_orientation_report_sha256":sha(pose_raw),
@@ -525,12 +550,15 @@ def main():
     p.add_argument("--axis-report",required=True,type=Path)
     p.add_argument("--camera",required=True,type=Path)
     p.add_argument("--verified-exports",required=True,type=Path)
+    p.add_argument("--matched-hub-only",action="store_true",
+                   help="render only original 2D/neutral saddle plus exactly 2 new hub and 2 same-drive controls")
     p.add_argument("--expected-summary",type=Path,
                    help="SHA-bound prior executed original source/GLB baseline")
     p.add_argument("--out",required=True,type=Path)
     a=p.parse_args()
     result=analyze(a.source_zip.read_bytes(),a.pose_report.read_bytes(),
-                   a.axis_report.read_bytes(),a.camera.read_bytes(),a.verified_exports)
+                   a.axis_report.read_bytes(),a.camera.read_bytes(),a.verified_exports,
+                   trial_scope="matched-hub" if a.matched_hub_only else "all")
     if a.expected_summary is not None:
         check_exact_source_evidence(result,json.loads(a.expected_summary.read_text()))
     publish_text_once(a.out,json.dumps(result,sort_keys=True,indent=2)+"\n")

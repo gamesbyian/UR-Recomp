@@ -38,6 +38,23 @@ class DailyMeasurementsTests(unittest.TestCase):
         return calculate_daily(self.i,self.l,self.p,self.a,
                                milestones or self.m,events,self.sha,self.sha)
 
+    def test_methodology_hash_changes_when_milestone_allocation_changes(self):
+        from copy import deepcopy
+        original=self.calc([])
+        modified=deepcopy(self.m)
+        # Add a distinct *pending* criterion without changing prior milestone credits.
+        modified["milestones"].append({
+            "id":"WIDE-08-BASELINE-CAMERA",
+            "criterion_id":"WIDE-08",
+            "weight_units":9,
+            "deliverable":"Pinned actual two-player split-screen moving camera evidence",
+            "limitation":"A split-screen baseline alone does not qualify the shipping viewport.",
+        })
+        after=self.calc([],modified)
+        self.assertEqual(after["engineering_estimate_percent"],original["engineering_estimate_percent"])
+        self.assertNotEqual(after["model"],original["model"])
+        self.assertNotEqual(after["milestone_allocation_sha256"],original["milestone_allocation_sha256"])
+
     def test_baseline_tracks_existing_forecast_without_double_count(self):
         result=self.calc([])
         self.assertEqual(result["engineering_estimate_percent"],56.0)

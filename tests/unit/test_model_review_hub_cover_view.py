@@ -37,6 +37,9 @@ class HubCoverViewerTests(unittest.TestCase):
             "exact-source dark hub cover disabled",
             "real 2026 hub cover geometry mode unavailable",
             "reversible dark hub cover altered original 1994 sprite or GLB part census",
+            "real source 2026 hub cover did not alter fixed-view GLB pixels",
+            "source 2026 dark hub cover did not restore exact GLB framebuffer",
+            "model-review-hub-cover-proposed-412.png",
         ):
             self.assertIn(marker, smoke)
         self.assertTrue(HELPER.is_file())

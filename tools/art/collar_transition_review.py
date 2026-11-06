@@ -16,15 +16,17 @@ BASELINE_SOURCE_SHA256 = "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b
 OLD = """  color(rig_color)frame_member([-0.17,0,1.39],[-0.25,0,2.09],0.16,0.126);
   color([0.75,0.81,0.84])frame_member([-0.21,0,1.91],[-0.19,0,2.13],0.116,0.105);
   color([0.30,0.40,0.45])frame_member([-0.20,0,2.1],[-0.03,0,2.2],0.10,0.09);"""
-NEW = """  // Owner review: rounded, laterally symmetric coloured-to-bare-metal collar.
-  // Keep wheel, spokes, saddle, animation, all five pivots and paint roles.
-  // A shorter coloured neck reveals the central silver saddle post.
-  color(rig_color)frame_member([-0.17,0,1.39],[-0.22,0,1.89],0.16,0.14);
-  color(rig_color)translate([-0.22,0,1.93])
-    cylinder(h=0.13,r1=0.16,r2=0.14,center=true,$fn=50);
-  color(rig_color)translate([-0.22,0,2.003])
-    cylinder(h=0.022,r=0.148,center=true,$fn=50);
-  color([0.75,0.81,0.84])frame_member([-0.22,0,1.88],[-0.20,0,2.24],0.105,0.085);
+NEW = """  // Owner reference: official 1994 manual fork-facing illustration.
+  // Short rounded coloured collar at fork crown; long, slim exposed seatpost.
+  // Every new element lies on Y=0; original saddle, wheel and spokes untouched.
+  color(rig_color)frame_member([-0.17,0,1.39],[-0.22,0,1.60],0.16,0.135);
+  color(rig_color)hull(){
+    translate([-0.22,0,1.59])sphere(r=0.14,$fn=48);
+    translate([-0.22,0,1.65])sphere(r=0.14,$fn=48);
+  }
+  color([0.30,0.40,0.45])translate([-0.22,0,1.775])
+    cylinder(h=0.035,r=0.105,center=true,$fn=64);
+  color([0.75,0.81,0.84])frame_member([-0.22,0,1.67],[-0.20,0,2.235],0.065,0.058);
   color([0.30,0.40,0.45])frame_member([-0.20,0,2.225],[-0.03,0,2.2],0.083,0.088);"""
 
 

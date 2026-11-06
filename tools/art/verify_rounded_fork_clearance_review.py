@@ -13,6 +13,7 @@ import numpy as np
 import trimesh
 try:
     from tools.art.glb_roundtrip_guard import geometry_signature
+    from tools.art.fork_tire_surface_certificate import certify_upright_review_fork
     from tools.art.rounded_fork_clearance_review import (
         STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256, rounded_fork_source
     )
@@ -22,6 +23,7 @@ try:
     )
 except ModuleNotFoundError:
     from glb_roundtrip_guard import geometry_signature
+    from fork_tire_surface_certificate import certify_upright_review_fork
     from rounded_fork_clearance_review import (
         STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256, rounded_fork_source
     )
@@ -104,6 +106,11 @@ def verify(baseline_source:Path, rounded_scad:Path, straight_glb:Path,
         silver_post_cross_section_centers(scene)
     before=tire_torus_clearance_samples(a)
     after=tire_torus_clearance_samples(b)
+    # Check whole fork triangles, not just sparse surface points.
+    # An inconclusive bound is reported explicitly, not counted as proof.
+    continuous=certify_upright_review_fork(b)
+    if continuous["status"]=="penetration":
+        raise ValueError("rounded fork penetrates an ideal source tire tube")
     if before["minimum_sampled_signed_clearance"]>=-.003:
         raise ValueError("baseline fork/tire overlap control unexpectedly absent")
     if (after["sampled_points_inside_tire_tube"] or
@@ -123,6 +130,7 @@ def verify(baseline_source:Path, rounded_scad:Path, straight_glb:Path,
             "straight_silver_post_retained":True,
             "existing_fork_sampled_tire_clearance":before,
             "rounded_fork_sampled_tire_clearance":after,
+            "rounded_fork_continuous_ideal_torus_review":continuous,
             "source_1994_mesh_recovered":False,
             "owner_likeness_approved":False,
             "shipping_art_approved":False}

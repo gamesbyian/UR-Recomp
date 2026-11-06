@@ -2,6 +2,9 @@
 
 # HD racer inverse-graphics: executable delivery plan
 
+> **Current owner-led 2026 geometry continuation (November 6):** With upright silver post now straight/coaxial in the real-GLB-qualified #3214 review, progress to a single *optional* symmetric round-fork/tire-clearance candidate. Use the same GLB source rig and no additional fitting objectives. A preliminary source OpenSCAD physical sample reduces fork intrusion into the original tire from 163/20,160 sampled points to 0/21,400; the near-side wall/stripe margin also becomes positive in the tested upright. The next gate is actual GLB export with independent fifteen-unchanged-mesh proof and owner qualitative visual inspection. This does not certify continuous Boolean contact, all stunt poses or the lost original 1994 rig. Neither default, Windows renderer nor release art is modified.
+
+
 > **Completed owner collar axis correction, November 6:** The original #3207 collider study leaned its post very slightly. A corrected, *still unapproved* source-derived candidate was merged via [#3214](https://github.com/gamesbyian/UR-Recomp/pull/3214) with six applicable checks green and actual GLB section-centre test X=-0.21999998 at both Z=1.90/2.10. Retained [full source-bound artifact](https://github.com/gamesbyian/UR-Recomp/actions/runs/42272506803/artifacts/13532345178), corrected GLB SHA-256 `5cc8c99df1a3c47a9c95fd2279fad28b11de8893a12ff17971a947f2ffcc7298`. Neither a new rig nor shipping art. Do not rerun straight-post fit/IoU sweeps. **Next:** actual owner-facing original promotional-art comparison, then rounded coloured fork-to-collar silhouette and controlled animation/pose review, retaining 2026 saddle, slim spokes and all model parent transforms.
 
 

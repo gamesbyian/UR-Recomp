@@ -6,6 +6,7 @@ import {spawn} from 'node:child_process';
 import {readFileSync,existsSync,mkdirSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {resolve,join,sep} from 'node:path';
 import {tmpdir} from 'node:os';
+import {SOURCE_SHA,sourcePhaseDelta} from './direct_drive_hypothesis.mjs';
 
 const site=resolve(process.argv[2]||'.'), out=resolve(process.argv[3]||'.');
 if(!existsSync(join(site,'model-review','sprites.json')))throw Error('Assemble atlas first');
@@ -717,7 +718,14 @@ try{
    if(!await setHubFace('axle-locked'))throw Error('source axle-locked 2026 hub preview not available');
    const lockedAtPhase=await capture();
    const axleDegrees=await evaluate("document.getElementById('hubFaceStatus').dataset.counterspinDegrees");
-   if(axleDegrees!=='45')throw Error('source axle-locked housing phase not coupled to existing crank');
+   // The browser smoke may be on any of the five authored GLB named poses.
+   // Wheel phase = immutable named-pose offset PLUS 45 degrees of scrub.
+   // Never assume the checked pose is upright or change the source pose to
+   // accommodate a test expectation.
+   const activePose=await evaluate("([...document.querySelectorAll('[id^=pose-]')].find(x=>x.getAttribute('aria-pressed')==='true')?.id||'').slice(5)");
+   const expectedDegrees=sourcePhaseDelta(activePose,SOURCE_SHA)+45;
+   if(Number(axleDegrees)!==expectedDegrees)
+     throw Error('source axle-locked housing phase not coupled to existing crank and named pose: '+activePose+' measured '+axleDegrees+' expected '+expectedDegrees);
    if(rotatingAtPhase.equals(lockedAtPhase))
      throw Error('axle-locked hub and wheel-rotating hub did not differ at a genuine wheel phase');
    if(!await setHubFace('original'))throw Error('original GLB hub cannot restore from axle-locked view');

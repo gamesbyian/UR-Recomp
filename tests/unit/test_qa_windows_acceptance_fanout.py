@@ -19,7 +19,9 @@ WHO = {"source_sha": SHA, "exe_sha256": "b" * 64,
 
 def packet(group, who=None):
     indices = fanout.GROUPS[group]
-    rows = [{"index": i, "name": bridge.STEPS[i], "exit_code": 0,
+    original_hashes = fanout.original_script_hashes()
+    rows = [{"index": i, "name": bridge.STEPS[i],
+             "script_sha256": original_hashes[i], "exit_code": 0,
              "elapsed_seconds": 1.5, "log": "step-%02d.log" % i,
              "summary": "step-%02d.md" % i,
              "log_sha256": "b" * 64, "log_bytes": 82,
@@ -55,6 +57,9 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         self.assertEqual(r["observed_cases"], 13)
         self.assertEqual([row["index"] for row in r["cases"]], list(range(13)))
         self.assertEqual(r["release_gate_credit"], 0)
+        self.assertEqual(r["schema"], fanout.AGGREGATE_SCHEMA)
+        self.assertEqual(r["cases"][0]["script_sha256"],
+                         fanout.original_script_hashes()[0])
 
     def test_missing_group_is_rejected(self):
         (self.path / "windows-fanout-independent" / "result.json").unlink()
@@ -141,6 +146,46 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         self.assertEqual([i for i in bridge.INDEPENDENT_PRIORITY if
                           i in fanout.GROUPS["independent"]].__len__(), 10)
         self.assertTrue(all("baseline/" not in commands[i] for i in range(3, 13)))
+
+    def test_recomputed_receipt_digest_does_not_mask_changed_script(self):
+        bad = packet("independent")
+        bad["cases"][0]["script_sha256"] = "0" * 64
+        bad["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in bad.items() if k != "receipt_sha256"})
+        self.update("independent", bad)
+        result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertIn("script identity changed", " ".join(result["issues"]))
+
+    def test_missing_script_hash_fails_even_with_valid_receipt_digest(self):
+        bad = packet("seed-dependent")
+        del bad["cases"][0]["script_sha256"]
+        bad["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in bad.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", bad)
+        self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+
+    def test_same_names_changed_original_shell_body_is_not_equivalent(self):
+        current = bridge.WORKFLOW.read_text(encoding="utf-8")
+        changed = current.replace("--expected-frames 2473",
+                                  "--expected-frames 2474", 1)
+        self.assertNotEqual(current, changed)
+        alternate = self.path / "changed-original-workflow.yml"
+        alternate.write_text(changed, encoding="utf-8")
+        with mock.patch.object(bridge, "WORKFLOW", alternate):
+            result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertIn("script identity changed", " ".join(result["issues"]))
+
+    def test_historical_v2_group_receipts_not_silently_promoted(self):
+        old = packet("seed-dependent")
+        old["schema"] = "ur-win32-acceptance-fanout/2"
+        for row in old["cases"]:
+            del row["script_sha256"]
+        old["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in old.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", old)
+        self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
 
     def test_authenticate_three_independent_source_hashes(self):
         names = ("exe", "fixture", "zip")

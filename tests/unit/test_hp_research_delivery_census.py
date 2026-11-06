@@ -144,6 +144,37 @@ class HPCensusTests(TestCase):
                 with self.assertRaises(ValueError):
                     hp.measure(f, START, END, workers=1)
 
+    def test_run_attempt_or_conclusion_drift_during_job_read_rejected(self):
+        class ChangedMidCensus(FakeGitHub):
+            def __init__(self, field, value):
+                super().__init__(runs=[run(17)], jobs={17: [job(301, 17)]})
+                self.field, self.value = field, value
+                self.run_reads = 0
+
+            def __call__(self, path):
+                if "/workflows/402410752/runs?" in path:
+                    self.run_reads += 1
+                    if self.run_reads == 2:
+                        self.runs[0][self.field] = self.value
+                return super().__call__(path)
+
+        for field, value in (
+            ("run_attempt", 2),
+            ("head_sha", "b" * 40),
+            ("conclusion", "failure"),
+        ):
+            f = ChangedMidCensus(field, value)
+            with self.subTest(field=field), self.assertRaisesRegex(
+                    ValueError, "changed during job reads"):
+                hp.measure(f, START, END, workers=1)
+
+    def test_stable_source_rechecked_after_job_census(self):
+        f = FakeGitHub()
+        hp.measure(f, START, END, workers=1)
+        run_reads = [path for path in f.calls if
+                     "/workflows/402410752/runs?" in path]
+        self.assertEqual(len(run_reads), 2)
+
     def test_duplicate_job_id_across_runs(self):
         f = FakeGitHub()
         f.jobs[18][0]["id"] = 301

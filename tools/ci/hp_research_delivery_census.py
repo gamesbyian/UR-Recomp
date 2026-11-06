@@ -208,6 +208,17 @@ def measure(get, start, end, workers=4):
     runs = read_runs(get, start, end)
     with ThreadPoolExecutor(max_workers=workers) as pool:
         rows = list(pool.map(lambda run: read_one_job(get, run), runs))
+    # A run can be retried or reclassified while its jobs are being read.
+    # Pagination total_count checks alone cannot catch an unchanged count
+    # with a changed attempt or head. Fail closed on source identity drift.
+    after = read_runs(get, start, end)
+    def identity(rows):
+        return sorted((
+            r["id"], r.get("run_attempt", 1), r["head_sha"], r["event"],
+            r["conclusion"], r["created_at"], r["head_branch"],
+        ) for r in rows)
+    if identity(after) != identity(runs):
+        raise ValueError("research source/run census changed during job reads")
     jobids = [x["job_id"] for x in rows]
     if len(jobids) != len(set(jobids)):
         raise ValueError("duplicate job ID across distinct workflow runs")

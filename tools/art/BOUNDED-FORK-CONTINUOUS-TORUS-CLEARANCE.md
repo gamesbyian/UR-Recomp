@@ -1,0 +1,9 @@
+# Bounded fork/tire continuous authoring check (November 6, 2026)
+
+The 2026 rounded fork remains a **review-only** candidate; the canonical rig is unchanged and unapproved. The earlier real-GLB verification samples frame vertices, face centroids and edge midpoints against the original ideal main tire (R=.85, r=.15) and one offset near-sidewall stripe (R=.80, r=.028, Y=-.15). Positive sparse samples can miss triangle intersections.
+
+The additional fork_tire_surface_certificate.py check evaluates the actual GLB fork material triangles in the upright tire coordinate frame. A 1-Lipschitz signed-distance lower bound either certifies a complete triangle surface outside both ideal tubes or subdivides it, with strict limits. It returns **certified**, **penetration**, or **inconclusive**. Demonstrated penetration rejects the proposed rounded candidate; inconclusive never implies certified but preserves the existing independently checked sampled result. The bounded check does not edit the authoring source or mutate original GLB evidence.
+
+The certificate only concerns the mathematical source-authored ideal torus tubes and the current upright geometry. It does **not** prove continuous intersection-free contact with the actual faceted tire GLB, clearance in moving or stunt poses, recovered original 1994 geometry, owner likeness approval or shipping-art acceptance. A real exported candidate and exact-head CI are still necessary to report the candidate's actual result.
+
+ROM-free regression tests cover a full-triangle interior collision invisible to vertices, midpoints and centroid, a stripe-only penetration, narrow positive gap, transformed tire frame, and fail-closed budget and input validation. The saddle, straight silver post, thin spokes, 16 material roles and five source pivots stay unchanged.

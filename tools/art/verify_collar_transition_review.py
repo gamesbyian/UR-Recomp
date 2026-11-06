@@ -24,6 +24,39 @@ EXPECTED = {f"{name}__material_{i}" for name,count in PART_COUNTS.items()
             for i in range(count)}
 
 
+
+def lateral_reflection_error(scene, part: str) -> dict:
+    """Real GLB world-space Y=0 mirror check, *excluding* opposing pedals.
+
+    Surface-vertex nearest neighbours are an exact positive certificate for
+    truly mirror-paired triangulations. A nonzero distance is an inspection
+    warning, not an exact Hausdorff bound on continuous triangles.
+    """
+    import numpy as np
+    from scipy.spatial import cKDTree
+    import trimesh
+
+    if part not in PART_COUNTS or part == "pedals":
+        raise ValueError("mirror audit applies to non-pedal 2026 parts only")
+    positions = []
+    for i in range(PART_COUNTS[part]):
+        node = f"{part}__material_{i}"
+        transform, mesh_name = scene.graph.get(node)
+        vertices = trimesh.transform_points(scene.geometry[mesh_name].vertices, transform)
+        if not np.isfinite(vertices).all():
+            raise ValueError("nonfinite 2026 GLB mirror input")
+        positions.append(vertices)
+    points = np.concatenate(positions, axis=0)
+    reflected = points.copy()
+    reflected[:, 1] *= -1
+    errors, _ = cKDTree(points).query(reflected, k=1)
+    return {"sampled_world_vertices": int(len(points)),
+            "max_nearest_vertex_error": float(np.max(errors)),
+            "p99_nearest_vertex_error": float(np.percentile(errors, 99)),
+            "fraction_error_over_0p04": float(np.mean(errors > .04)),
+            "exact_surface_mirror_recovered_1994": False}
+
+
 def inspect(base_glb: Path, candidate_glb: Path, baseline_scad: Path,
             candidate_scad: Path) -> dict:
     import numpy as np
@@ -63,6 +96,16 @@ def inspect(base_glb: Path, candidate_glb: Path, baseline_scad: Path,
     for part in PART_COUNTS:
         if not np.array_equal(a.graph.get(part)[0],b.graph.get(part)[0]):
             raise ValueError("source-authored part pivot changed: "+part)
+    # The owner explicitly expects a laterally symmetric coloured frame/seat.
+    # Pedals are intentionally opposite, and tire/rim asymmetry remains a
+    # nonblocking documented design question rather than an invented fix.
+    symmetry = {label: {part: lateral_reflection_error(scene, part)
+                        for part in ("fork_and_frame", "saddle", "tire", "rim_and_hub")}
+                for label,scene in (("baseline",a),("candidate",b))}
+    for label in ("baseline","candidate"):
+        for part in ("fork_and_frame","saddle"):
+            if symmetry[label][part]["max_nearest_vertex_error"] > 1e-4:
+                raise ValueError(f"{label} {part} violates owner front-view Y mirror")
     return {
         "schema":"UR-ART4K-OWNER-COLLAR-REAL-GLB/1",
         "baseline_scad_sha256":BASELINE_SOURCE_SHA256,
@@ -73,6 +116,9 @@ def inspect(base_glb: Path, candidate_glb: Path, baseline_scad: Path,
         "source_material_roles_unchanged":True,
         "unchanged_nonframe_material_nodes":12,
         "changed_frame_material_nodes":changed,
+        "lateral_y_mirror_vertex_audit":symmetry,
+        "saddle_and_coloured_frame_y_mirror_certified":True,
+        "wheel_rim_mirror_deviations_are_unreviewed":True,
         "source_1994_3d_geometry_recovered":False,
         "source_sprite_pose_registration_verified":False,
         "owner_approved":False,

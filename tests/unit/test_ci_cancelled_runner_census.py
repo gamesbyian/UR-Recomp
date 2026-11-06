@@ -325,6 +325,16 @@ class CensusTests(unittest.TestCase):
                 get_run_census(MockAPI(runs=[row]), WORKFLOW,
                                span(START, END))
 
+    def test_markdown_column_counts_stay_in_sync(self):
+        r = measure(MockAPI(), START, END, workflows={"test": WORKFLOW},
+                    workers=1)
+        lines = render_markdown(r).splitlines()
+        header = next(line for line in lines if line.startswith("| Workflow |"))
+        divider = next(line for line in lines if line.startswith("| --- |"))
+        first = next(line for line in lines if line.startswith("| test |"))
+        self.assertEqual(header.count("|"), divider.count("|"))
+        self.assertEqual(header.count("|"), first.count("|"))
+
     def test_missing_completion_excluded(self):
         f = MockAPI(jobs={17: [job(1, end=None),
                               job(2, start=None)], 18: []})

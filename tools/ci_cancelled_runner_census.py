@@ -360,7 +360,7 @@ def render_markdown(receipt):
              "** (latest is the original P3 v1/v2 baseline; all includes reruns)",
              "",
              "| Workflow | Runs | Cancelled | Valid job spans | Invalid job intervals | Missing starts | Missing ends | Job interval min | Cancelled job interval min | Step duration min | Invalid step spans | Pre-first-step gap min | Jobs with step evidence |",
-             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for r in receipt["workflows"]:
         lines.append(f'| {r["name"]} | {r["all_runs"]} | {r["cancelled_runs"]} | '
                      f'{r["valid_started"]} | {r["invalid_intervals"]} | '

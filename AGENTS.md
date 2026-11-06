@@ -12,6 +12,8 @@ For live, read-only GitHub PR/head/CI collision, evidence-reuse and measured-run
 
 **November 6 progress measurement pilot:** [per-task measurement guide](docs/progress/daily/README.md) and `python3 tools/daily_measurement.py --format markdown` are now available. For substantive player-facing source changes or material research findings, record the bounded effect in the **existing PR/issue handoff** and, if it matches a registered milestone, bundle a small source-linked `docs/progress/daily/entries/*.json` event with the current work. For all work, state the affected criterion or `none`, remaining discriminator, and whether remaining relative effort changed or was not measured. Never grant a release gate, owner art approval, or original USA event by such a record; avoid new CI or extra PRs solely for bookkeeping. The shared five agents apply this in their normal work, without a dedicated lane.
 
+**Fast per-task measurement authoring:** use `python3 tools/record_agent_measurement.py --help` for validated no-overwrite receipt creation inside the existing feature PR, then `python3 tools/daily_measurement.py --format markdown` to see provisional coverage and remaining effort. The [daily operator guide](docs/progress/daily/README.md) includes an exact command pattern. The milestone list has expanded to ten active criteria; evidence must support an observable deliverable, never a presumed release gate.
+
 ## Dispatch and task routes
 
 | Task | Start here |

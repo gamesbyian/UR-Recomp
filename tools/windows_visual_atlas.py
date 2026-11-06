@@ -236,7 +236,7 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
     model_review = Path(__file__).resolve().parent / "art/model-review"
     review_target = target / "model-review"
     review_target.mkdir()
-    for filename in ("index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs", "authored_upper_shape_controls.mjs", "manual_view_directions.mjs", "manual_landmark_marking.mjs", "manual-landmarks.html", "source_spoke_blade_view.mjs", "source_hub_cover_view.mjs"):
+    for filename in ("index.html", "visual-review.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs", "authored_upper_shape_controls.mjs", "manual_view_directions.mjs", "manual_landmark_marking.mjs", "manual-landmarks.html", "source_spoke_blade_view.mjs", "source_hub_cover_view.mjs"):
         shutil.copyfile(model_review / filename, review_target / filename)
     # This numeric look-up is original-USA-ROM/PNG-SHA-bound; never a 3D part label.
     shutil.copyfile(Path(__file__).resolve().parents[1] / "analysis/data/racer-original-index-lookup-20261102.json",
@@ -283,6 +283,48 @@ def build(catalog: dict, target: Path, captures: Path | None, source: str | None
         "source_sha256": stock_corpus["historical_manifest_declared_rom_sha256"],
         "sprite_3d_pose_mapping_verified": False,
         "frames": sprite_rows}, indent=2) + "\n", encoding="utf-8")
+    # Legacy 4x artwork was technically validated but artistically vetoed.
+    # Keep original and old authored views side-by-side, never as approved art.
+    # Verify the repository's historical immutable SHA256SUMS before copying.
+    historical_hashes = {}
+    historical_prefix = "media/showcase/art-reconstruction/2026-10-10/"
+    for line in (original_strip / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        match = re.fullmatch(
+            r"([0-9a-f]{64})  media/showcase/art-reconstruction/2026-10-10/(stock|authored)/(p[12]-0[0-6]\.png)",
+            line)
+        if match:
+            identity = (match.group(2), match.group(3))
+            if identity in historical_hashes:
+                raise ValueError("duplicate original/vetoed 4x identity in historical SHA256SUMS")
+            historical_hashes[identity] = match.group(1)
+    if len(historical_hashes) != 28:
+        raise ValueError("missing historical original/vetoed 4x image SHA records")
+    visual_out = review_target / "legacy-art"
+    pairs = []
+    for kind in ("stock", "authored"):
+        (visual_out / kind).mkdir(parents=True)
+    for player in ("p1", "p2"):
+        for step in range(7):
+            name = f"{player}-{step:02}.png"
+            pair = {"player": player, "step": step}
+            for kind in ("stock", "authored"):
+                src = original_strip / kind / name
+                expected = historical_hashes[(kind, name)]
+                if not src.is_file() or src.is_symlink() or sha256(src) != expected:
+                    raise ValueError("historical original/vetoed artwork hash mismatch: " + kind + "/" + name)
+                shutil.copyfile(src, visual_out / kind / name)
+                if sha256(visual_out / kind / name) != expected:
+                    raise ValueError("staged historical artwork digest mismatch")
+                pair[kind] = "legacy-art/" + kind + "/" + name
+                pair[kind + "_sha256"] = expected
+            pairs.append(pair)
+    (review_target / "visual-review-assets.json").write_text(json.dumps({
+        "schema": "UR-ART4K-LIKENESS-REVIEW-ASSETS/1",
+        "historical_legacy_source": historical_prefix,
+        "likeness_approved": False,
+        "source_to_2026_model_pose_mapping_verified": False,
+        "pairs": pairs
+    }, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     # Optional source-exact 24-tick 2D chronology is a separate visual rail.
     # Never bind source ROM phase/orientation indices to a speculative GLB joint.
     from tools.art.export_original_mesen24_review_rail import export as exact_original_rail

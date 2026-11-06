@@ -3,7 +3,7 @@ import copy
 import unittest
 
 from tools.art.rank_real_glb_mesen24_pareto import (
-    analyze,dominates,SOURCE_PINS,SOURCE_SCHEMA,SCHEMA,OBJECTIVES,
+    analyze,dominates,matched_control,SOURCE_PINS,SOURCE_SCHEMA,SCHEMA,OBJECTIVES,
 )
 
 def arm(shape,unique,motion,tp,fp,fn):
@@ -204,6 +204,36 @@ class RealGLBMesenParetoTests(unittest.TestCase):
         self.assertFalse(tick["mixed_shape_or_motion_tradeoff"])
         self.assertEqual(len(result["per_2026_GLB_arm"][
             "axle_root_hub_cover_rom_phase_15deg"]["source_six_objective_values"]),6)
+
+    def test_same_physical_hub_axle_locked_joint_only_vs_wheel_rotating_control(self):
+        data=fake()
+        for role in ("blue","red"):
+            arms=data["original_source_per_role"][role]["arms"]
+            for mode in ("rom_phase_15deg","fixed_tick_24deg"):
+                root="axle_root_saddle_world_level_"+mode
+                rotating="axle_root_hub_cover_"+mode
+                axle="axle_root_hub_cover_axle_locked_"+mode
+                arms[root]=arm(.9,.9,.5,1,1,0)
+                arms[rotating]=arm(.6,.6,.5,1,1,0)
+                arms[axle]=arm(.7,.7,.33333333,1,1,1)
+        report=analyze(data)
+        self.assertEqual(len(report["matched_attachment_only_deltas"]),2)
+        for mode in ("rom_phase_15deg","fixed_tick_24deg"):
+            axle="axle_root_hub_cover_axle_locked_"+mode
+            rotating="axle_root_hub_cover_"+mode
+            finding=report["matched_attachment_only_deltas"][axle]
+            self.assertEqual(finding["same_wheel_drive_and_saddle_attitude_control"],
+                             rotating)
+            self.assertEqual(finding["signed_six_objective_delta"],
+                             [.1,.1,-.16666667]*2)
+            self.assertTrue(finding["mixed_shape_or_motion_tradeoff"])
+            self.assertFalse(finding["chronological_motion_improves_both_original_racers"])
+            self.assertNotIn(axle,report["matched_geometry_only_deltas"])
+            self.assertEqual(report["matched_geometry_only_deltas"][rotating][
+                "same_wheel_drive_and_saddle_attitude_control"],
+                "axle_root_saddle_world_level_"+mode)
+            self.assertIsNone(matched_control(axle,{rotating.replace(mode,"other")}))
+        self.assertFalse(report["owner_art_likeness_approved"])
 
     def test_dominance_is_strict_and_six_dimensional(self):
         a=(.5,)*6

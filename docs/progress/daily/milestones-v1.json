@@ -1,7 +1,7 @@
 {
   "schema": "ur-daily-milestones/1",
   "contract": "32c62b80",
-  "description": "Bounded partial-deliverable scoring for selected active unfinished frozen criteria. Weights sum to fixed parent weight, never alter formal acceptance. Additional criteria require pre-reviewed milestone allocation; do not edit weights retrospectively.",
+  "description": "Bounded partial-deliverable scoring for selected active unfinished frozen criteria. Weights sum to fixed parent weight, never alter formal acceptance. Additional criteria require pre-reviewed milestone allocation; do not edit weights retrospectively. Additional November 6 source-observable milestones for expert physics, replay, HDMA moving pixels, character part identity and actual 2P physical QA; no partial completion automatically granted.",
   "milestones": [
     {
       "id": "ART-02-SCOPED-SOURCE",
@@ -177,6 +177,181 @@
       "weight_units": 2,
       "deliverable": "All first-event criteria are accepted by a separate reviewer under the event census",
       "limitation": "Formal FID gate is authoritative; this partial record never changes it."
+    },
+    {
+      "id": "ONE-09-ORIGINAL-REFERENCE",
+      "criterion_id": "ONE-09",
+      "weight_units": 9,
+      "deliverable": "Original expert race reference with same-run input, physics and course state is frozen",
+      "limitation": "A handful of original time samples cannot demonstrate full interactive physics."
+    },
+    {
+      "id": "ONE-09-NATIVE-DYNAMICS",
+      "criterion_id": "ONE-09",
+      "weight_units": 9,
+      "deliverable": "Real native expert movement/physics source path is implemented against reference",
+      "limitation": "Some supported movements do not establish all original expert state transitions."
+    },
+    {
+      "id": "ONE-09-CAUSAL-VALIDATION",
+      "criterion_id": "ONE-09",
+      "weight_units": 9,
+      "deliverable": "First semantic divergences are traced to bounded concrete causal effects and corrected",
+      "limitation": "Diagnostic byte equality and unrelated source counter matches cannot stand in for gameplay behavior."
+    },
+    {
+      "id": "ONE-09-INDEPENDENT-REPLAYS",
+      "criterion_id": "ONE-09",
+      "weight_units": 9,
+      "deliverable": "Independent source/native expert run evidence meets predefined physical gameplay tolerances",
+      "limitation": "One successful replay does not prove all race conditions or release gates."
+    },
+    {
+      "id": "ONE-09-FULL-EXPERT-PHYSICS",
+      "criterion_id": "ONE-09",
+      "weight_units": 9,
+      "deliverable": "Representative complete expert-race physics behavior is qualified without source-semantic masking",
+      "limitation": "Full formal criterion certification and accepted complete events are separate."
+    },
+    {
+      "id": "DATA-10-RECORD-PERSIST",
+      "criterion_id": "DATA-10",
+      "weight_units": 9,
+      "deliverable": "Source-owned native saved run and source metadata reopen correctly from a cold process",
+      "limitation": "A verified run file is not a replay or authenticated ghost playback."
+    },
+    {
+      "id": "DATA-10-GHOST-DECODE",
+      "criterion_id": "DATA-10",
+      "weight_units": 9,
+      "deliverable": "Cold-loaded replay/ghost decoder enforces original source run timing and identity",
+      "limitation": "Decoding metadata alone does not render an authentic moving racer."
+    },
+    {
+      "id": "DATA-10-PLAYBACK-CONTROLS",
+      "criterion_id": "DATA-10",
+      "weight_units": 9,
+      "deliverable": "Actual Modern UI starts, controls and exits ghost replay in integrated runtime",
+      "limitation": "A synthetic menu path does not prove real persisted run animation."
+    },
+    {
+      "id": "DATA-10-SOURCE-COMPARISON",
+      "criterion_id": "DATA-10",
+      "weight_units": 9,
+      "deliverable": "Real saved source-authentic run replays visibly with independently compared source outcomes",
+      "limitation": "A simulated or patched fixture must not substitute for real source gameplay."
+    },
+    {
+      "id": "DATA-10-FULL-REPLAY",
+      "criterion_id": "DATA-10",
+      "weight_units": 9,
+      "deliverable": "Persistent saved replay is qualified across restart, profiles and relevant errors",
+      "limitation": "An isolated successful replay never approves release QA."
+    },
+    {
+      "id": "WIDE-09-SOURCE-HD-MOTION",
+      "criterion_id": "WIDE-09",
+      "weight_units": 9,
+      "deliverable": "Source-authoritative moving HDMA and V0 original frame stream can be captured with immutable provenance",
+      "limitation": "Source capture does not establish native or widened renderer fidelity."
+    },
+    {
+      "id": "WIDE-09-NATIVE-CAPTURE",
+      "criterion_id": "WIDE-09",
+      "weight_units": 9,
+      "deliverable": "Actual runtime/native equivalent frames are captured at matching source checkpoints",
+      "limitation": "Fixture-only or cross-epoch images cannot be counted as equivalent source frames."
+    },
+    {
+      "id": "WIDE-09-PIXEL-DIFF",
+      "criterion_id": "WIDE-09",
+      "weight_units": 9,
+      "deliverable": "Independent deterministic pixel comparisons give causal mismatch diagnostics, not just similarity totals",
+      "limitation": "Pixel differences may still indicate material graphical errors."
+    },
+    {
+      "id": "WIDE-09-MULTI-STATE",
+      "criterion_id": "WIDE-09",
+      "weight_units": 9,
+      "deliverable": "Original and native representative moving camera, course, split, OBJ and brightness states qualify",
+      "limitation": "A single source screenshot cannot cover scrolling dynamics."
+    },
+    {
+      "id": "WIDE-09-COMPLETE-PARITY",
+      "criterion_id": "WIDE-09",
+      "weight_units": 9,
+      "deliverable": "No unresolved substantive HDMA/V0 moving-frame parity failure survives source-bound comparison",
+      "limitation": "Formal widening and hardware QA remain separate."
+    },
+    {
+      "id": "ART-04-SOURCE-PARTS",
+      "criterion_id": "ART-04",
+      "weight_units": 9,
+      "deliverable": "Original 1994 material references for saddle, eye region, wheel/fork and axle parts are authenticated",
+      "limitation": "Printed camera views and source sprites do not reveal ground-truth physical 3D dimensions."
+    },
+    {
+      "id": "ART-04-AUTHORED-PARTS",
+      "criterion_id": "ART-04",
+      "weight_units": 9,
+      "deliverable": "One source-authored model includes distinguishable adjustable saddle, forks, hub/rim, wheel and eyes",
+      "limitation": "Experimental source geometry is not the approved final characteristic."
+    },
+    {
+      "id": "ART-04-SIDE-AND-FRONT",
+      "criterion_id": "ART-04",
+      "weight_units": 9,
+      "deliverable": "Model character part identities hold across authenticated player roles and multiple genuine viewpoints",
+      "limitation": "One camera-aligned static render may hide mechanical and silhouette faults."
+    },
+    {
+      "id": "ART-04-MOTION-CONTINUITY",
+      "criterion_id": "ART-04",
+      "weight_units": 9,
+      "deliverable": "Relevant art parts remain correct when wheel and frame articulate in real source poses",
+      "limitation": "Pages-only animation cannot substitute for integrated gameplay."
+    },
+    {
+      "id": "ART-04-FINAL-4K-IDENTITY",
+      "criterion_id": "ART-04",
+      "weight_units": 9,
+      "deliverable": "Actual rendered 4K racer retains owner-approved source-specific part character",
+      "limitation": "Owner art approval is separate and cannot be implied by source similarity."
+    },
+    {
+      "id": "QA-04-PACKAGE",
+      "criterion_id": "QA-04",
+      "weight_units": 9,
+      "deliverable": "One source-pinned portable Windows 2P package passes independent actual-binary provenance",
+      "limitation": "Hosted emulator or generated package is not real two-controller hardware."
+    },
+    {
+      "id": "QA-04-TWO-PADS",
+      "criterion_id": "QA-04",
+      "weight_units": 9,
+      "deliverable": "A physical Windows machine detects two actual controllers and their independent mappings",
+      "limitation": "Device enumeration does not prove distinct playable P1/P2 inputs."
+    },
+    {
+      "id": "QA-04-FULL-2P-RACE",
+      "criterion_id": "QA-04",
+      "weight_units": 9,
+      "deliverable": "Two local human-operated controllers produce a complete real guest race",
+      "limitation": "One-pad synthetic automation or hosted 2P fixture is insufficient."
+    },
+    {
+      "id": "QA-04-RESULTS-RETURN",
+      "criterion_id": "QA-04",
+      "weight_units": 9,
+      "deliverable": "Both players reach correct results and Modern menus using the same physical candidate",
+      "limitation": "Simulated win or programmatic state jump is not a real physical journey."
+    },
+    {
+      "id": "QA-04-INDEPENDENT-SIGNOFF",
+      "criterion_id": "QA-04",
+      "weight_units": 9,
+      "deliverable": "Independent physical 2P evidence is accepted against the exact nominated release candidate",
+      "limitation": "A subtask credit never directly passes the formal QA-04 gate."
     }
   ]
 }

@@ -171,6 +171,40 @@ class RealGLBMesenParetoTests(unittest.TestCase):
         self.assertTrue(narrower["chronological_motion_improves_both_original_racers"])
         self.assertFalse(narrower["shape_improves_both_original_racers"])
 
+    def test_dark_hub_volume_only_compares_exactly_matching_original_wheel_law(self):
+        data=fake()
+        for role in ("blue","red"):
+            source=data["original_source_per_role"][role]["arms"]
+            neutral="axle_root_saddle_world_level_rom_phase_15deg"
+            other="axle_root_saddle_world_level_fixed_tick_24deg"
+            source[neutral]=arm(.6,.6,.5,1,1,0)
+            source[other]=arm(.4,.4,.33333333,1,1,1)
+            source["axle_root_hub_cover_rom_phase_15deg"]=arm(
+                .7,.7,.33333333,1,1,1)
+            source["axle_root_hub_cover_fixed_tick_24deg"]=arm(
+                .5,.5,.66666667,2,1,0)
+        result=analyze(data)
+        hub=result["matched_geometry_only_deltas"]
+        rom=hub["axle_root_hub_cover_rom_phase_15deg"]
+        tick=hub["axle_root_hub_cover_fixed_tick_24deg"]
+        self.assertEqual(rom["same_wheel_drive_and_saddle_attitude_control"],
+                         "axle_root_saddle_world_level_rom_phase_15deg")
+        self.assertEqual(rom["signed_six_objective_delta"],
+                         [.1,.1,-.16666667]*2)
+        self.assertTrue(rom["shape_improves_both_original_racers"])
+        self.assertFalse(rom["chronological_motion_improves_both_original_racers"])
+        self.assertTrue(rom["mixed_shape_or_motion_tradeoff"])
+        self.assertFalse(rom["strictly_dominates_own_matched_control"])
+        self.assertEqual(tick["same_wheel_drive_and_saddle_attitude_control"],
+                         "axle_root_saddle_world_level_fixed_tick_24deg")
+        self.assertEqual(tick["signed_six_objective_delta"],
+                         [.1,.1,.33333334]*2)
+        self.assertTrue(tick["strictly_dominates_own_matched_control"])
+        self.assertTrue(tick["chronological_motion_improves_both_original_racers"])
+        self.assertFalse(tick["mixed_shape_or_motion_tradeoff"])
+        self.assertEqual(len(result["per_2026_GLB_arm"][
+            "axle_root_hub_cover_rom_phase_15deg"]["source_six_objective_values"]),6)
+
     def test_dominance_is_strict_and_six_dimensional(self):
         a=(.5,)*6
         self.assertFalse(dominates(a,a))

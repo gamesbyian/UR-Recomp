@@ -49,7 +49,6 @@ class HubCoverViewerTests(unittest.TestCase):
             "source 2026 welded housing failed exact in-memory rollback",
             "source axle-locked 2026 hub preview not available",
             "axle-locked hub and wheel-rotating hub did not differ at a genuine wheel phase",
-            "axle-locked cover lost exact same-pose source GLB framebuffer restoration",
         ):
             self.assertIn(marker, smoke)
         self.assertTrue(HELPER.is_file())

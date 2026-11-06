@@ -6,6 +6,8 @@
 
 This is a *measurement specification and staged implementation plan*. The pilot implements source-linked partial-credit arithmetic; it does **not** claim calibrated delivery times, a complete current engineering estimate, or authoritative release approval. No real time data or owner approval should be inferred from the examples.
 
+**November 6 second implementation stage:** a separate source-bound `tools/daily_estimate_snapshot.py` now supports **no-overwrite UTC daily output and version-fingerprinted comparison**, with regression tests for changed milestones, changed effort assumptions, removed evidence and snapshot immutability. This is an on-demand operator tool, not a new recurring agent or automatically filled historical timeline. See [operational guide](daily/README.md). The initial milestone ledger remains provisional and incomplete.
+
 ## 1. Four independent quantities, with an unambiguous answer every day
 
 1. **Current engineering completion estimate** (`engineering_completion_estimate_percent`): the most plausible fraction of the fixed Windows-beta *deliverable* scope that has been genuinely implemented at the requested current `main` HEAD. Include defensible, nonbinary partial progress on unfinished criteria. Exclude CI/tooling as player-facing completion unless it directly satisfies an inventoried outcome. Label judgment, show range and sources. This estimate is **allowed and required** when a criterion audit is behind.

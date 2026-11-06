@@ -13,6 +13,7 @@ if AVAILABLE:
 class OwnerFrontMirrorTests(unittest.TestCase):
     def build(self, y):
         scene = trimesh.Scene(base_frame="world")
+        scene.graph.update(frame_from="world", frame_to="saddle")
         for i in range(2):
             mesh = trimesh.creation.box(extents=[.24,.2,.32])
             mesh.apply_translation([0,y,0])

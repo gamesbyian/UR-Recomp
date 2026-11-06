@@ -18,6 +18,7 @@ WORKFLOW = 123
 
 def run(rid, status="cancelled", created=START):
     return {"id": rid, "workflow_id": WORKFLOW,
+            "status": "completed", "run_attempt": 1, "head_sha": "a" * 40,
             "conclusion": status, "created_at": created}
 
 
@@ -88,7 +89,7 @@ class CensusTests(unittest.TestCase):
         self.assertIn("3.00", render_markdown(report))
         self.assertIn("neither proves billed", report["limitations"])
         self.assertEqual(report["job_attempt_policy"], "latest")
-        self.assertEqual(report["schema"], "ur-ci-cancelled-runner-census/3")
+        self.assertEqual(report["schema"], "ur-ci-cancelled-runner-census/4")
 
     def test_long_job_start_to_first_step_gap(self):
         f = MockAPI(jobs={17: [{
@@ -242,6 +243,87 @@ class CensusTests(unittest.TestCase):
         row = measure(f, START, END, workflows={"test": WORKFLOW},
                       workers=1)["workflows"][0]
         self.assertEqual(row["cancelled_runs_with_reruns"], 1)
+
+    def test_completion_without_start_is_invalid_not_silently_unstarted(self):
+        f = MockAPI(jobs={17: [job(301, start=None)], 18: []})
+        r = get_run_jobs(f, 17)
+        self.assertEqual(r["valid_started"], 0)
+        self.assertEqual(r["missing_starts"], 1)
+        self.assertEqual(r["missing_completions"], 0)
+
+    def test_steps_outside_job_boundaries_do_not_add_duration(self):
+        f = MockAPI(jobs={17: [{
+            **job(301),
+            "steps": [
+                {"conclusion": "success", "started_at": "2026-11-05T06:59:00Z",
+                 "completed_at": "2026-11-05T07:00:10Z"},
+                {"conclusion": "cancelled", "started_at": "2026-11-05T07:00:30Z",
+                 "completed_at": "2026-11-05T07:01:30Z"},
+            ],
+        }]})
+        r = get_run_jobs(f, 17)
+        self.assertEqual(r["seconds_inside_cancelled_run"], 60)
+        self.assertEqual(r["seconds_in_timed_steps"], 0)
+        self.assertEqual(r["invalid_step_intervals"], 2)
+        self.assertEqual(r["jobs_with_timed_steps"], 0)
+        self.assertEqual(r["seconds_job_to_first_step"], 0)
+
+    def test_overlapping_steps_are_not_double_counted(self):
+        f = MockAPI(jobs={17: [{
+            **job(301, end="2026-11-05T07:05:00Z"),
+            "steps": [
+                {"conclusion": "success", "started_at": "2026-11-05T07:00:00Z",
+                 "completed_at": "2026-11-05T07:02:00Z"},
+                {"conclusion": "success", "started_at": "2026-11-05T07:01:00Z",
+                 "completed_at": "2026-11-05T07:03:00Z"},
+                {"conclusion": "cancelled", "started_at": "2026-11-05T07:03:00Z",
+                 "completed_at": "2026-11-05T07:04:00Z"},
+            ],
+        }]})
+        r = get_run_jobs(f, 17)
+        self.assertEqual(r["seconds_in_timed_steps"], 180)
+        self.assertEqual(r["timed_steps"], 2)
+        self.assertEqual(r["invalid_step_intervals"], 1)
+        self.assertEqual(r["seconds_job_to_first_step"], 0)
+
+    def test_one_sided_step_timestamp_is_explicit_invalid_evidence(self):
+        f = MockAPI(jobs={17: [{
+            **job(301),
+            "steps": [{"conclusion": "cancelled",
+                       "started_at": "2026-11-05T07:00:01Z",
+                       "completed_at": None}],
+        }]})
+        r = get_run_jobs(f, 17)
+        self.assertEqual(r["invalid_step_intervals"], 1)
+        self.assertEqual(r["seconds_in_timed_steps"], 0)
+
+    def test_source_attempt_or_head_change_during_jobs_refuses_complete_census(self):
+        for field, value in (("run_attempt", 2), ("head_sha", "b" * 40),
+                             ("conclusion", "success")):
+            f = MockAPI()
+            reads = [0]
+            def override(path):
+                if "status=cancelled" not in path:
+                    return None
+                reads[0] += 1
+                if reads[0] == 2:
+                    rows = copy.deepcopy(f.runs)
+                    rows[0][field] = value
+                    return {"total_count": len(rows), "workflow_runs": rows}
+                return None
+            f.override = override
+            with self.subTest(field=field), self.assertRaisesRegex(
+                    ValueError, "source cohort changed|wrong workflow or run conclusion"):
+                measure(f, START, END, workflows={"test": WORKFLOW}, workers=1)
+
+    def test_missing_source_provenance_is_rejected(self):
+        for missing in ("head_sha", "run_attempt", "status"):
+            row = run(17)
+            del row[missing]
+            with self.subTest(field=missing), self.assertRaisesRegex(
+                    ValueError, "source/attempt metadata"):
+                get_run_census(MockAPI(runs=[row]), WORKFLOW,
+                               span(START, END))
 
     def test_missing_completion_excluded(self):
         f = MockAPI(jobs={17: [job(1, end=None),

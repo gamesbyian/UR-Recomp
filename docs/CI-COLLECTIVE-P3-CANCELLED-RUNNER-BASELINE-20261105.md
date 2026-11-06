@@ -39,7 +39,7 @@ The first two workflows exceeded GitHub's 1,000-result cap for unfiltered run li
 
 The API's `job.started_at` can precede the first recorded step by a substantial interval. A directly inspected successful tooling job, `127490523824` in [run #42097281045](https://github.com/gamesbyian/UR-Recomp/actions/runs/42097281045), had job `started_at=2026-11-05T19:47:46Z` but its first `Set up job` step began at `19:54:08Z`: **a 382-second difference**. This observation is outside the frozen seven-day run census and serves as a timing-semantics control. Whether those seconds are queue time, API representation or a billable interval is unverified.
 
-The optional `tools/ci_cancelled_runner_census.py` collector now emits a **schema 2** receipt with both the original job-interval seconds and separately measured valid step-duration seconds, plus the job-to-first-step gap, missing step evidence and invalid interval counts. These additional fields require a **fresh collection**. They are **not retroactively available** from the historical v1 tally of 605.63 job-interval minutes. Both measures remain observational, not proof of cloud billing or recoverable CI capacity. An incomplete or anomalous step record is reported separately and never imputed as zero actual CPU usage.
+The first step-aware `tools/ci_cancelled_runner_census.py` collector emitted a **schema 2** receipt with both the original job-interval seconds and separately measured valid step-duration seconds, plus the job-to-first-step gap, missing step evidence and invalid interval counts. These additional fields require a **fresh collection**. They are **not retroactively available** from the historical v1 tally of 605.63 job-interval minutes. Both measures remain observational, not proof of cloud billing or recoverable CI capacity. An incomplete or anomalous step record is reported separately and never imputed as zero actual CPU usage.
 
 For reproducibility, the manually invoked collector accepts the fixed UTC bounds and optionally writes JSON and Markdown:
 
@@ -84,6 +84,17 @@ For prioritization, the larger observed cancelled **step-duration** buckets were
 
 The full evidence, individual job-name breakdown and limitations were also recorded in [P3 discussion](https://github.com/gamesbyian/UR-Recomp/pull/3156#issuecomment-6670947983). This report establishes the observational baseline and nothing about individual-source acceptance, Windows PE/ZIP identity, HP PR-code authorization or measured recoverable compute.
 
+## P3 source-methodology correction: schema 4 (qualification pending)
+
+An independent source inspection of P3 head `ff3553f8a1b1853cdc6948b1a97aa4b144e62c1b` identified three incomplete-evidence cases that were not covered by the earlier green hosted tests. The proposed schema **4** correction and new synthetic negatives make the manual collector refuse or separately count them:
+
+1. A job with `completed_at` but **no `started_at`** now increments a distinct `missing_starts` counter rather than disappearing into the unstarted-job category. Both timestamps absent still mean no started interval was observed; it is never proof of zero actual resource use.
+2. A step whose timestamps fall outside the parent job or overlap an earlier accepted step is now counted as an invalid step interval and **excluded** from the sum of valid step durations. One-sided step timestamps are also counted as incomplete evidence. The first-step gap only uses valid retained steps.
+3. After reading every selected cancelled run's job inventory, the source again fetches the complete bounded cancelled workflow-run population and compares run IDs, attempts, head SHAs, created times and conclusions. Any change aborts, even when the run-count total stays constant. This reduces, but does not eliminate, the nontransactional GitHub REST snapshot race.
+
+The source changes are **not** a retroactive remeasurement. Retain the original **605.63 observed GitHub job-interval minutes** and the later **494.22 recorded-step minutes** as their own historical source populations and earlier counting rules. A future schema-4 collector result must be labelled with its **new retrieval date**, attempt policy, schema, exact fixed UTC window, missing/invalid evidence counters and tested source SHA. A changed step total after excluding out-of-job or overlapping intervals is a *methodology correction*, not a measured resource saving.
+
+Independent follow-up review of the corrected exact PR SHA and the usual complete hosted unit/hygiene checks remain required before merging this collector. This does not relax P1 whole-tree trust, Windows/native packaging acceptance or HP unmerged-code restrictions.
 ## Reproducibility and decision rules
 
 1. Obtain each workflow's exact seven-day `total_count`. For large workflows, separately read `GET /repos/gamesbyian/UR-Recomp/actions/workflows/{workflow_id}/runs?created=2026-10-29T08:14:05Z..2026-11-05T08:14:05Z&status=cancelled&per_page=100&page=N`, advancing pages until the filtered `total_count` is retrieved. Read additional `status=success`, `failure`, `skipped`, `in_progress`, etc. counts to reconcile outcome totals; do not treat an unfiltered 1,000-row sample as complete.

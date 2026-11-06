@@ -29,6 +29,7 @@ WORKFLOWS = {
     "hp_research": 402410752,
 }
 MAX_PAGES = 10  # GitHub Actions run listing is capped at 1,000.
+HEX_SHA = re.compile(r"[a-fA-F0-9]{40}\Z")
 STAMP = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\Z")
 API_STAMP = re.compile(
     r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
@@ -155,6 +156,12 @@ def get_run_census(fetch, workflow, created):
         seen.add(rid)
         if row.get("conclusion") != "cancelled" or row.get("workflow_id") != workflow:
             raise ValueError("wrong workflow or run conclusion")
+        if (row.get("status") != "completed"
+                or type(row.get("run_attempt")) is not int
+                or row["run_attempt"] < 1
+                or type(row.get("head_sha")) is not str
+                or not HEX_SHA.fullmatch(row["head_sha"])):
+            raise ValueError("missing immutable run source/attempt metadata")
         if not left <= utc(row.get("created_at")) <= right:
             raise ValueError("run created outside selected window")
     return total, rows
@@ -197,7 +204,7 @@ def get_run_jobs(fetch, run_id, attempt_policy="latest"):
     seen = set()
     valid_seconds = cancelled_seconds = 0.
     step_seconds = prefirst_step_seconds = 0.
-    valid = invalid = missing_end = 0
+    valid = invalid = missing_end = missing_start = 0
     timed_steps = invalid_steps = jobs_with_steps = jobs_without_step_evidence = 0
     for job in jobs:
         jid = job.get("id")
@@ -209,6 +216,8 @@ def get_run_jobs(fetch, run_id, attempt_policy="latest"):
             raise ValueError("job returned from another workflow run")
         start, end = job.get("started_at"), job.get("completed_at")
         if start is None:
+            if end is not None:
+                missing_start += 1
             continue
         if end is None:
             missing_end += 1
@@ -234,26 +243,45 @@ def get_run_jobs(fetch, run_id, attempt_policy="latest"):
             continue
         first_step = None
         observed = False
+        valid_step_intervals = []
+        job_start = utc(start)
+        job_end = utc(end)
         for step in steps:
             if type(step) is not dict:
                 raise ValueError("malformed job step")
             if step.get("conclusion") == "skipped":
                 continue
             before, after = step.get("started_at"), step.get("completed_at")
+            if before is None and after is None:
+                continue
             if before is None or after is None:
+                invalid_steps += 1
                 continue
             try:
                 st, en = utc(before), utc(after)
             except (ValueError, TypeError, OverflowError):
                 invalid_steps += 1
                 continue
-            if en < st:
+            # A step cannot add duration outside its parent job interval.
+            # Keep failed/skipped API evidence visible as invalid rather
+            # than inflating recorded execution to exceed the job span.
+            if en < st or st < job_start or en > job_end:
                 invalid_steps += 1
                 continue
+            valid_step_intervals.append((st, en))
+        # GitHub steps are sequential. Guard against overlapping spans
+        # without double counting them. Do not count a later overlapping
+        # record as independently executed duration.
+        previous_end = None
+        for st, en in sorted(valid_step_intervals):
+            if previous_end is not None and st < previous_end:
+                invalid_steps += 1
+                continue
+            previous_end = en
             observed = True
             timed_steps += 1
             step_seconds += (en - st).total_seconds()
-            if first_step is None or st < first_step:
+            if first_step is None:
                 first_step = st
         if observed:
             jobs_with_steps += 1
@@ -265,7 +293,7 @@ def get_run_jobs(fetch, run_id, attempt_policy="latest"):
         else:
             jobs_without_step_evidence += 1
     return {"valid_started": valid, "invalid_intervals": invalid,
-            "missing_completions": missing_end,
+            "missing_completions": missing_end, "missing_starts": missing_start,
             "seconds_inside_cancelled_run": valid_seconds,
             "seconds_cancelled_jobs": cancelled_seconds,
             "timed_steps": timed_steps, "invalid_step_intervals": invalid_steps,
@@ -292,8 +320,19 @@ def measure(fetch, start, end, workflows=WORKFLOWS, workers=6,
                 lambda r: get_run_jobs(fetch, r["id"], attempt_policy),
                 cancelled,
             ))
+        # A workflow's latest conclusion, attempt or source SHA may change
+        # while its many job pages are being read. Re-attest the run cohort.
+        after_total, after = get_run_census(fetch, workflow, created)
+        def source_ids(runs):
+            return sorted((
+                r["id"], r["run_attempt"], r["head_sha"],
+                r["conclusion"], r["created_at"],
+            ) for r in runs)
+        if total != after_total or source_ids(cancelled) != source_ids(after):
+            raise ValueError("cancelled workflow source cohort changed during job read")
         sums = {key: sum(j[key] for j in jobs) for key in (
             "valid_started", "invalid_intervals", "missing_completions",
+            "missing_starts",
             "seconds_inside_cancelled_run", "seconds_cancelled_jobs",
             "timed_steps", "invalid_step_intervals", "jobs_with_timed_steps",
             "jobs_without_step_evidence", "seconds_in_timed_steps",
@@ -305,11 +344,11 @@ def measure(fetch, start, end, workflows=WORKFLOWS, workers=6,
                          and r["run_attempt"] > 1 for r in cancelled),
                      "cancelled_with_started_jobs": sum(j["valid_started"] > 0 for j in jobs),
                      **sums})
-    return {"schema": "ur-ci-cancelled-runner-census/3", "repository": REPO,
+    return {"schema": "ur-ci-cancelled-runner-census/4", "repository": REPO,
             "created_after_utc": start, "created_before_utc": end,
             "job_attempt_policy": attempt_policy,
             "workflows": rows,
-            "limitations": "GitHub job-interval and step-duration spans only; neither proves billed, active-CPU, wasted, avoidable or recovered minutes. Invalid/missing intervals and skipped steps excluded."}
+            "limitations": "GitHub job-interval and step-duration spans only; neither proves billed, active-CPU, wasted, avoidable or recovered minutes. Missing starts/completions, reversed/out-of-job/overlapping steps, and skipped steps are excluded and separately counted. The run cohort is re-read for source drift, but GitHub REST remains nontransactional."}
 
 
 def render_markdown(receipt):
@@ -320,14 +359,16 @@ def render_markdown(receipt):
              "Job attempt policy: **" + receipt["job_attempt_policy"] +
              "** (latest is the original P3 v1/v2 baseline; all includes reruns)",
              "",
-             "| Workflow | Runs | Cancelled | Valid job spans | Invalid job intervals | Job interval min | Cancelled job interval min | Step duration min | Pre-first-step gap min | Jobs with step evidence |",
-             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+             "| Workflow | Runs | Cancelled | Valid job spans | Invalid job intervals | Missing starts | Missing ends | Job interval min | Cancelled job interval min | Step duration min | Invalid step spans | Pre-first-step gap min | Jobs with step evidence |",
+             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for r in receipt["workflows"]:
         lines.append(f'| {r["name"]} | {r["all_runs"]} | {r["cancelled_runs"]} | '
                      f'{r["valid_started"]} | {r["invalid_intervals"]} | '
+                     f'{r["missing_starts"]} | {r["missing_completions"]} | '
                      f'{r["seconds_inside_cancelled_run"]/60:.2f} | '
                      f'{r["seconds_cancelled_jobs"]/60:.2f} | '
                      f'{r["seconds_in_timed_steps"]/60:.2f} | '
+                     f'{r["invalid_step_intervals"]} | '
                      f'{r["seconds_job_to_first_step"]/60:.2f} | '
                      f'{r["jobs_with_timed_steps"]} |')
     lines.extend(["", "Evidence limit: " + receipt["limitations"], ""])

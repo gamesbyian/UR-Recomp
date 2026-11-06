@@ -1,0 +1,150 @@
+{
+  "schema": "UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D/1",
+  "source_pdf_sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235",
+  "annotations": [
+    {
+      "reference_id": "p14-twist-fork-front",
+      "crop_png_sha256": "cfbbc7b3e3cd1e3786897eba580bffec2ee9ceec268bcf4cdb4b5b6e30f4642b",
+      "pixel_uncertainty": 9,
+      "visible_points": {
+        "saddle": {
+          "saddle_left": [
+            72,
+            53
+          ],
+          "saddle_right": [
+            226,
+            53
+          ],
+          "saddle_top": [
+            185,
+            29
+          ],
+          "saddle_bottom": [
+            142,
+            95
+          ]
+        }
+      },
+      "visible_surface_regions": [
+        {
+          "region_id": "cyan-fork-bridge-exposed",
+          "visible_appearance_notes": "Exposed turquoise curved printed bridge between two darker fork-like regions",
+          "cutoff_or_occlusion_notes": "Purple and green track overlaps and hidden wheel obscure its true continuation and surface backside",
+          "visible_polygon_xy": [
+            [
+              133,
+              173
+            ],
+            [
+              185,
+              174
+            ],
+            [
+              196,
+              186
+            ],
+            [
+              194,
+              207
+            ],
+            [
+              135,
+              209
+            ],
+            [
+              129,
+              190
+            ]
+          ],
+          "original_3d_part_identity_verified": false,
+          "entire_original_3d_surface_visible": false
+        }
+      ],
+      "perspective_and_occlusion_notes": "Original p14 near-frontal illustration has an exposed cyan bridge between the dark vertical legs. This is a visible coloured patch outline only, with no original 1994 source GLB geometry, camera, complete fork or hub inferred.",
+      "annotator": "GPT-6 1994 printed surface visible-pixel trace; not independently artist reviewed",
+      "unmeasurable": {
+        "wheel": "wheel is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "hub": "hub is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "crown": "crown is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "fork": "fork is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "clamp": "clamp is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "crank": "crank is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced"
+      }
+    },
+    {
+      "reference_id": "p15-mega-underside",
+      "crop_png_sha256": "4c9242a0126891a2d6a6e8f574eec4179c4cdbcd30cb34a1cdff8589e9290d22",
+      "pixel_uncertainty": 24,
+      "visible_points": {
+        "saddle": {
+          "saddle_left": [
+            501,
+            165
+          ],
+          "saddle_right": [
+            819,
+            229
+          ],
+          "saddle_top": [
+            564,
+            34
+          ],
+          "saddle_bottom": [
+            655,
+            307
+          ]
+        }
+      },
+      "visible_surface_regions": [
+        {
+          "region_id": "dark-near-hub-housing-face",
+          "visible_appearance_notes": "Dark front polygonal printed casing patch between metallic wheel supports and crank axle",
+          "cutoff_or_occlusion_notes": "Tire, turquoise fork stem and cranks hide the far-side casing and much of its outer boundaries; only exposed dark face is traced",
+          "visible_polygon_xy": [
+            [
+              548,
+              500
+            ],
+            [
+              686,
+              495
+            ],
+            [
+              720,
+              535
+            ],
+            [
+              736,
+              677
+            ],
+            [
+              709,
+              701
+            ],
+            [
+              560,
+              710
+            ],
+            [
+              544,
+              572
+            ]
+          ],
+          "original_3d_part_identity_verified": false,
+          "entire_original_3d_surface_visible": false
+        }
+      ],
+      "perspective_and_occlusion_notes": "Original p15 oversized oblique print exposes a large near-side dark casing face but other physical hub volume is behind rim, spokes and fork. The polygon is a projected visible fragment only; source production part identity, camera and unexposed surface are all unknown.",
+      "annotator": "GPT-6 1994 printed surface visible-pixel trace; not independently artist reviewed",
+      "unmeasurable": {
+        "wheel": "wheel is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "hub": "hub is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "crown": "crown is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "fork": "fork is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "clamp": "clamp is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "crank": "crank is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced"
+      }
+    }
+  ]
+}

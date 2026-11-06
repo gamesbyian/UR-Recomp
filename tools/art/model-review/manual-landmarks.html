@@ -62,6 +62,21 @@ button.primary{background:#216b5d;border-color:#7fddc5}
 <button id="markHidden" type="button">Mark unmeasurable</button>
 <button id="clear" type="button">Clear this part</button>
 </div>
+<details id="partialSurface"><summary>Trace a partly visible original printed surface (advanced)</summary>
+<p class="small">Use this when a hub casing face or fork patch is visible but the whole part is hidden. The outline is only exposed printed pixels; original 3D ownership and camera remain unknown.</p>
+<label for="surfaceId">Unique visible region ID</label><input id="surfaceId" placeholder="near-side-hub-cover" value="">
+<label for="surfaceAppearance">What surface appearance is actually visible?</label>
+<textarea id="surfaceAppearance" placeholder="Dark polygonal printed patch on the near-side hub casing"></textarea>
+<label for="surfaceOcclusion">Which original boundaries are hidden or cropped?</label>
+<textarea id="surfaceOcclusion" placeholder="Tire and fork hide the continuation of this original surface"></textarea>
+<div class="controls">
+<button id="surfaceStart" type="button">Trace surface taps</button>
+<button id="surfaceFinish" type="button">Save 2D polygon</button>
+<button id="surfaceCancel" type="button">Cancel tracing</button>
+<button id="surfaceDelete" type="button">Clear figure polygons</button>
+</div>
+<p id="surfaceStatus" class="small" role="status">No visible partial surface polygon recorded.</p>
+</details>
 <div><label for="notes">This figure's perspective, crop and occlusion uncertainty</label>
 <textarea id="notes" placeholder="e.g. Printed near-frontal pose, no calibrated camera; wheel partly hidden behind track"></textarea></div>
 <div><label for="annotator">Reviewer label</label><input id="annotator" placeholder="Who marked these actual visible points?"></div>
@@ -78,11 +93,12 @@ button.primary{background:#216b5d;border-color:#7fddc5}
 </main>
 <script type="module">
 import {FIGURES,PARTS,verifyReceipt,dimensions,makeFigure,markPoint,
-        markOccluded,clearPart,nextLandmark,buildAnnotations}
+        markOccluded,clearPart,nextLandmark,buildAnnotations,
+        addVisibleSurfaceRegion,clearVisibleSurfaceRegions}
  from "./manual_landmark_marking.mjs";
 const el=id=>document.getElementById(id);
 const states={},files=new Map(),urls=new Map();
-let receipt=null,active=null;
+let receipt=null,active=null,surfaceDrawing=[],surfaceMode=false;
 for(const [key] of Object.entries(PARTS)){
  const option=document.createElement("option");option.value=key;
  option.textContent=key[0].toUpperCase()+key.slice(1);el("part").append(option);
@@ -107,11 +123,15 @@ function status(){
    Object.keys(draft.visible_points).filter(p=>
     Object.keys(draft.visible_points[p]).length===PARTS[p].length).length;
   if(resolved===Object.keys(PARTS).length &&
-     Object.keys(draft.visible_points).length)finished++;
+     (Object.keys(draft.visible_points).length||draft.visible_surface_regions?.length))finished++;
   if(resolved)partial++;
  }
  el("progress").textContent=finished+" fully reviewed figures of "+
-  partial+" touched, out of four. One measured part and a decision on every other group are required per exported figure.";
+  partial+" touched, out of four. Complete parts or a measured partial printed surface, plus a decision on all seven groups, are required for export.";
+ el("surfaceStatus").textContent=(state.visible_surface_regions?.length||0)+
+  " saved partial source-surface polygons. "+(surfaceMode?
+   surfaceDrawing.length+" active points, tap image (3–24), then Save 2D polygon.":
+   "Tap Trace surface taps to start another partial face.");
  el("preview").textContent="Current original crop SHA-256: "+
   dimensions(receipt,active).sha256+"\nSource PDF SHA-256: "+
   receipt.source_pdf_sha256+"\nNo original 1994 3D camera or model is claimed.";
@@ -137,10 +157,23 @@ function draw(){
    ctx.stroke();ctx.fillText(name.replace(group+"_","")+" "+(++index),p[0]+7,p[1]-7);
   }
  }
+ for(const region of state.visible_surface_regions||[]){
+  const pts=region.visible_polygon_xy;
+  if(!pts.length)continue;
+  ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
+  for(const p of pts.slice(1))ctx.lineTo(p[0],p[1]);
+  ctx.closePath();ctx.strokeStyle="#fa72a8";ctx.lineWidth=Math.max(2,canvas.width/160);ctx.stroke();
+ }
+ if(surfaceDrawing.length){
+  ctx.beginPath();ctx.moveTo(surfaceDrawing[0][0],surfaceDrawing[0][1]);
+  for(const p of surfaceDrawing.slice(1))ctx.lineTo(p[0],p[1]);
+  ctx.strokeStyle="#ffd266";ctx.lineWidth=Math.max(2,canvas.width/160);ctx.stroke();
+  for(const p of surfaceDrawing){ctx.beginPath();ctx.arc(p[0],p[1],Math.max(4,canvas.width/150),0,Math.PI*2);ctx.stroke()}
+ }
 }
 function selectFigure(id){
  if(!receipt||!states[id])return;
- active=id;
+ active=id;surfaceDrawing=[];surfaceMode=false;
  el("figure").value=id;
  const img=el("picture");
  img.onload=()=>{
@@ -196,7 +229,16 @@ el("notes").addEventListener("input",()=>{if(active)states[active].perspective_a
 function place(x,y){
  if(!active||!receipt)return;
  try{
-  states[active]=markPoint(states[active],el("part").value,x,y,dimensions(receipt,active));
+  if(surfaceMode){
+   const d=dimensions(receipt,active);
+   if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||x>=d.width||y<0||y>=d.height)
+    throw Error("source image point outside authenticated original crop");
+   if(surfaceDrawing.length>=24)throw Error("24 source polygon vertices maximum");
+   const p=[Math.round(x*100)/100,Math.round(y*100)/100];
+   if(surfaceDrawing.some(q=>q[0]===p[0]&&q[1]===p[1]))
+    throw Error("duplicate source visible polygon vertex");
+   surfaceDrawing.push(p);
+  }else states[active]=markPoint(states[active],el("part").value,x,y,dimensions(receipt,active));
   status();
  }catch(e){say(e.message,true)}
 }
@@ -220,6 +262,32 @@ el("markHidden").addEventListener("click",()=>{
 });
 el("clear").addEventListener("click",()=>{
  states[active]=clearPart(states[active],el("part").value);status();
+});
+el("surfaceStart").addEventListener("click",()=>{
+ if(!active)return;surfaceDrawing=[];surfaceMode=true;status();
+});
+el("surfaceCancel").addEventListener("click",()=>{
+ surfaceDrawing=[];surfaceMode=false;status();
+});
+el("surfaceDelete").addEventListener("click",()=>{
+ if(!active)return;
+ states[active]=clearVisibleSurfaceRegions(states[active]);
+ surfaceDrawing=[];surfaceMode=false;status();
+});
+el("surfaceFinish").addEventListener("click",()=>{
+ if(!active||!receipt)return;
+ try{
+  const region={
+   region_id:el("surfaceId").value.trim(),
+   visible_appearance_notes:el("surfaceAppearance").value.trim(),
+   cutoff_or_occlusion_notes:el("surfaceOcclusion").value.trim(),
+   visible_polygon_xy:surfaceDrawing.map(p=>[...p]),
+   original_3d_part_identity_verified:false,
+   entire_original_3d_surface_visible:false,
+  };
+  states[active]=addVisibleSurfaceRegion(states[active],region,dimensions(receipt,active));
+  surfaceDrawing=[];surfaceMode=false;status();
+ }catch(e){say("Visible partial source surface not saved: "+e.message,true)}
 });
 el("save").addEventListener("click",async()=>{
  try{

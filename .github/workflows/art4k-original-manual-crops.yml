@@ -15,6 +15,10 @@ on:
       - analysis/data/racer-original-manual-fork-clamp-image-traces-20261105.json
       - analysis/data/racer-original-manual-fork-clamp-pdf-verified-20261105.json
       - tests/unit/test_original_manual_fork_clamp_2d.py
+      - analysis/data/racer-original-manual-exposed-structural-surfaces-20261105.json
+      - analysis/data/racer-original-manual-exposed-surface-pdf-verified-20261105.json
+      - tests/unit/test_original_manual_exposed_surface_polygons.py
+      - tests/unit/test_manual_visible_surface_regions.py
 
 concurrency:
   group: art4k-original-manual-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -48,7 +52,9 @@ jobs:
             tests.unit.test_extract_manual_3d_reference_views \
             tests.unit.test_audit_manual_sparse_landmarks \
             tests.unit.test_original_manual_saddle_sparse_measurements \
-            tests.unit.test_original_manual_fork_clamp_2d
+            tests.unit.test_original_manual_fork_clamp_2d \
+            tests.unit.test_original_manual_exposed_surface_polygons \
+            tests.unit.test_manual_visible_surface_regions
 
       - name: Extract four official figures from exact retained USA manual
         run: |
@@ -145,6 +151,42 @@ jobs:
                                  "pixels":x["projected_pixel_distances"],
                                  "uncertainty":x["pixel_uncertainty"]}
                                 for x in report["observations"]]},sort_keys=True))
+          PY
+
+      - name: Authenticate original 1994 printed partial face polygons, not whole hub
+        run: |
+          python -m tools.art.audit_manual_sparse_landmarks \
+            analysis/data/racer-original-manual-exposed-structural-surfaces-20261105.json \
+            --crop-dir art4k-original-manual-crop-evidence \
+            --source-pdf reference/imported/manuals/Uniracers-USA-manual.pdf \
+            --out art4k-original-manual-crop-evidence/p14-p15-exposed-surface-observations-2d.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path("art4k-original-manual-crop-evidence/p14-p15-exposed-surface-observations-2d.json").read_text(encoding="utf-8"))
+          assert result["reviewed_print_figure_count"]==2
+          frozen=json.loads(Path("analysis/data/racer-original-manual-exposed-surface-pdf-verified-20261105.json").read_text(encoding="utf-8"))
+          assert result==frozen, "original printed source-PDF RGB replay changed frozen partial surface measurements"
+          assert not result["three_dimensional_source_geometry_calibrated"]
+          assert not result["owner_character_likeness_approved"]
+          assert not result["shipping_art_approved"]
+          expected={
+              "p14-twist-fork-front":("cyan-fork-bridge-exposed",2134.0),
+              "p15-mega-underside":("dark-near-hub-housing-face",35973.5),
+          }
+          for record in result["observations"]:
+              assert "hub" not in record["projected_pixel_distances"]
+              assert record["original_print_pixel_aspect"]=="square"
+              assert len(record["visible_surface_regions"])==1
+              face=record["visible_surface_regions"][0]
+              assert (face["region_id"],face["projected_visible_2d_area_px2"])==expected[record["reference_id"]]
+              assert face["original_3d_part_identity_verified"] is False
+              assert face["entire_original_3d_surface_visible"] is False
+              assert record["unmeasurable"]["hub"]
+              assert all(v is None
+                  for row in record["projected_ratios_only_if_whole_wheel_visible"].values()
+                  for v in row.values())
+          print("ART4K_ORIGINAL_SOURCE_PRINT_EXPOSED_FACE_VALIDATED",result["authenticated_source_pdf_sha256"])
           PY
 
       - name: Save local-review-only four PNGs and provenance, not game assets

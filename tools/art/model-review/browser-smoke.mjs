@@ -114,10 +114,12 @@ try{
     const downloaded=await fetch(manualLink.href);
     const page=downloaded.ok?await downloaded.text():'';
     if(!downloaded.ok||!page.includes('manual_landmark_marking.mjs')||
-       !page.includes('No images are uploaded'))
+       !page.includes('No images are uploaded')||
+       !page.includes('id="partialSurface"')||!page.includes('id="surfaceStart"')||
+       !page.includes('id="surfaceFinish"'))
       issues.push('local manual PNG annotation page not published');
     const pureHelper=await fetch('./manual_landmark_marking.mjs');
-    if(!pureHelper.ok||!(await pureHelper.text()).includes('source_pdf_sha256'))
+    if(!pureHelper.ok||!((await pureHelper.text()).includes('source_pdf_sha256')))
       issues.push('mobile manual source annotation helper not published');
    }
    const sourceBeforePrintViews=q('sourceInfo').textContent;

@@ -47,6 +47,9 @@ border-radius:8px;border:1px solid #465573}
 <div class="group"><h2>Research wheel spoke volume</h2><label for="bladeSpokes">One reversible original-2026 wheel support sculpt</label>
 <select id="bladeSpokes" style="min-height:44px;width:100%" disabled><option value="original">Original eight narrow 2026 spokes</option><option value="blade">Broad metal spoke blades · original manual-inspired</option></select>
 <div id="bladeSpokesStatus" class="tiny" role="status">Requires the published exact-source 2026 GLB.</div>
+<label for="hubFace">One provisional dark hub casing face</label>
+<select id="hubFace" style="min-height:44px;width:100%" disabled><option value="original">Original 2026 narrow axle sleeve</option><option value="cover">Add dark beveled hub cover · original printed p15-inspired</option></select>
+<div id="hubFaceStatus" class="tiny" role="status">Requires the published exact-source 2026 GLB.</div>
 <div class="tiny">2026 model-only, source-authored, reversible. Original manual p15 suggests broad metallic supports but does not establish the 1994 source mesh/camera/spoke count. No game geometry or file is modified.</div></div>
 <div class="group"><h2>Direct-drive wheel phase</h2><label for="wheelDrive">Experimental wheel/spoke synchronisation</label><select id="wheelDrive" disabled><option value="0">Original source spokes</option><option value="1">Follow authored pedal phase</option></select><div id="wheelDriveStatus" class="tiny" role="status">Requires the original SHA-verified 2026 experimental five-part model.</div><div class="tiny">Reversible tire and rim parent rotation only. Pedals, fork, saddle and material meshes stay unchanged. No authentic 1994 wheel timing or likeness claimed.</div></div>
 <div class="group"><h2>Experimental continuous crank</h2><label for="crankScrub">Source-authored crank cycle · <output id="crankStep">0/64</output></label><input id="crankScrub" class="crank-scrub" type="range" min="0" max="64" step="1" value="0" disabled><div id="crankStatus" class="tiny" role="status">A published source-verified five-part GLB is required. This controls only 2026 authored mechanics.</div><div class="tiny">Each of 64 steps advances the wheel and pedals by 11.25°. This grid deliberately avoids the old spoke-symmetry alias. It is not observed original-game frame timing.</div></div>
@@ -78,6 +81,7 @@ import {SOURCE_SHA,sourceDriveMatrix,sourcePhaseDelta,sourceCrankMatrix,sourceWh
 import {mountOriginalMesen24Rail} from './original_mesen24_rail.mjs';
 import {sourceShapeIntervention,saddleCupZ,forkCrownXYZ} from './authored_upper_shape_controls.mjs';
 import {SOURCE_2026_SPOKE_NODE,SOURCE_2026_SPOKE_VERTICES,SOURCE_2026_BLADE_MODES,broadenOriginal2026Spoke} from './source_spoke_blade_view.mjs';
+import {SOURCE_2026_HUB_NODE,SOURCE_2026_HUB_VERTICES,SOURCE_2026_HUB_FACES,SOURCE_2026_HUB_MODES,experimentalAuthoredHubFace} from './source_hub_cover_view.mjs';
 import {CAMERA_VIEW_PRESETS,cameraViewDirection} from './manual_view_directions.mjs';
 const $=id=>document.getElementById(id), stage=$('viewport'), scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(35,1,.01,200);
 camera.position.set(6,4.3,8);
@@ -85,7 +89,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.set
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1.7,0);
 const hemi=new THREE.HemisphereLight(0xddeeff,0x43546e,1.5);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(5,8,6);scene.add(sun);
 const grid=new THREE.GridHelper(12,24,0x7089ad,0x34445b),axes=new THREE.AxesHelper(1.5);scene.add(grid,axes);
-const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0,driveBeforeScrub=false,paintMode='original',paintState=null,modelColourway='p2',colourState=null,upperShapeMode='original',upperShapeState=null,bladeSpokeState=null,bladeSpokeMode='original';
+const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0,driveBeforeScrub=false,paintMode='original',paintState=null,modelColourway='p2',colourState=null,upperShapeMode='original',upperShapeState=null,bladeSpokeState=null,bladeSpokeMode='original',hubFaceState=null,hubFaceMode='original';
 const PAINT_HYPOTHESES=Object.freeze({
  original:Object.freeze([]),
  area:Object.freeze(['rim_and_hub__material_1','pedals__material_1']),
@@ -109,7 +113,7 @@ function resetCameraForModel(obj){
  camera.near=Math.max(.001,span/1000);camera.far=span*100;
  camera.updateProjectionMatrix();controls.update();
 }
-function clear(){if(current){restoreBladeSpokes();restoreUpperShape();restorePaintMaterials();restoreModelColourway();scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;driveBeforeScrub=false;paintMode='original';paintState=null;modelColourway='p2';colourState=null;upperShapeMode='original';upperShapeState=null;bladeSpokeState=null;bladeSpokeMode='original';nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
+function clear(){if(current){restoreHubFace();restoreBladeSpokes();restoreUpperShape();restorePaintMaterials();restoreModelColourway();scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;driveBeforeScrub=false;paintMode='original';paintState=null;modelColourway='p2';colourState=null;upperShapeMode='original';upperShapeState=null;bladeSpokeState=null;bladeSpokeMode='original';hubFaceState=null;hubFaceMode='original';nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
 function markers(){nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[];if(!current||!$('nodes').checked)return;current.updateMatrixWorld(true);const parts=['tire','rim_and_hub','fork_and_frame','pedals','saddle'];for(const n of parts){const x=current.getObjectByName(n);if(!x)continue;const p=x.getWorldPosition(new THREE.Vector3());const marker=new THREE.Mesh(new THREE.SphereGeometry(.055,10,8),new THREE.MeshBasicMaterial({color:0xffcc62,depthTest:false}));marker.position.copy(p);marker.renderOrder=100;scene.add(marker);nodeMarkers.push(marker)}}
 function wheelControls(available, origin=''){
  $('wheelOriginal').disabled=!available;$('wheelWide').disabled=!available;
@@ -294,6 +298,76 @@ function updateCrankScrubStatus(){
   'No 1994 PPU frame timing, joint mapping or likeness approval.';
 }
 
+function restoreHubFace(){
+ if(!hubFaceState)return;
+ const {mesh,geometry}=hubFaceState;
+ if(mesh.geometry!==geometry){
+  const temporary=mesh.geometry;mesh.geometry=geometry;temporary?.dispose();
+ }
+ hubFaceMode='original';
+}
+function captureHubFace(origin){
+ if(!wheelDriveState||!origin.startsWith('published ')||
+    manifest?.source_model_sha256!==SOURCE_SHA||!current)return null;
+ const rim=current.getObjectByName('rim_and_hub');
+ const mesh=current.getObjectByName(SOURCE_2026_HUB_NODE);
+ const pos=mesh?.geometry?.getAttribute('position');
+ const color=mesh?.geometry?.getAttribute('color');
+ const faces=mesh?.geometry?.getIndex();
+ if(!rim||!mesh?.isMesh||mesh.parent!==rim||!pos||!color||!faces||
+    pos.itemSize!==3||pos.count!==SOURCE_2026_HUB_VERTICES||
+    faces.count!==SOURCE_2026_HUB_FACES*3||
+    color.count!==SOURCE_2026_HUB_VERTICES||
+    ![3,4].includes(color.itemSize))return null;
+ for(let i=0;i<pos.count;i++){
+  if(![pos.getX(i),pos.getY(i),pos.getZ(i)].every(Number.isFinite))
+    return null;
+ }
+ return {mesh,geometry:mesh.geometry};
+}
+function applyHubFace(mode){
+ if(!hubFaceState||!SOURCE_2026_HUB_MODES.includes(mode))
+   throw Error('exact-source 2026 dark hub geometry and one provisional cover required');
+ restoreHubFace();
+ if(mode==='original')return;
+ const {mesh,geometry}=hubFaceState;
+ try{
+  const extra=experimentalAuthoredHubFace();
+  const oldPos=geometry.getAttribute('position'),oldCol=geometry.getAttribute('color'),oldIdx=geometry.getIndex();
+  const positions=new Float32Array((oldPos.count+extra.vertices.length)*3);
+  for(let i=0;i<oldPos.count;i++){
+   positions[3*i]=oldPos.getX(i);
+   positions[3*i+1]=oldPos.getY(i);
+   positions[3*i+2]=oldPos.getZ(i);
+  }
+  for(let i=0;i<extra.vertices.length;i++)
+   positions.set(extra.vertices[i],3*(oldPos.count+i));
+  const colors=new Float32Array((oldCol.count+extra.vertices.length)*oldCol.itemSize);
+  for(let i=0;i<oldCol.count;i++)
+   for(let j=0;j<oldCol.itemSize;j++)colors[oldCol.itemSize*i+j]=oldCol.getComponent(i,j);
+  for(let i=0;i<extra.vertices.length;i++)
+   for(let j=0;j<oldCol.itemSize;j++)colors[oldCol.itemSize*(oldCol.count+i)+j]=oldCol.getComponent(0,j);
+  const indices=new Uint16Array(oldIdx.count+extra.faces.length*3);
+  for(let i=0;i<oldIdx.count;i++)indices[i]=oldIdx.getX(i);
+  extra.faces.forEach((face,i)=>face.forEach((k,j)=>indices[oldIdx.count+3*i+j]=oldPos.count+k));
+  const clone=geometry.clone();
+  clone.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  clone.setAttribute('color',new THREE.Float32BufferAttribute(colors,oldCol.itemSize));
+  clone.setIndex(new THREE.BufferAttribute(indices,1));
+  clone.computeVertexNormals();clone.computeBoundingBox();clone.computeBoundingSphere();
+  mesh.geometry=clone;hubFaceMode=mode;
+ }catch(e){restoreHubFace();throw e}
+}
+function updateHubFaceStatus(origin=''){
+ const choice=$('hubFace'),status=$('hubFaceStatus');
+ choice.disabled=!hubFaceState;
+ choice.value=hubFaceState?hubFaceMode:'original';
+ status.dataset.mode=hubFaceMode;
+ status.dataset.sourceVertices=hubFaceState?String(SOURCE_2026_HUB_VERTICES):'';
+ status.textContent=!hubFaceState?'Unavailable: exact original 2026 source GLB required.':
+  hubFaceMode==='original'?'Original source-authored 2026 dark axle sleeve unchanged.':
+  'Temporary 2026 beveled hub cover: original 1994 printed p15 exposes only one 2D dark face; physical hub, camera and ownership unknown.';
+}
 function restoreBladeSpokes(){
  if(!bladeSpokeState)return;
  const {mesh,geometry}=bladeSpokeState;
@@ -599,7 +673,7 @@ function useModel(gltf,origin){clear();current=gltf.scene;
 if($('wire').getAttribute('aria-pressed')==='true')current.traverse(o=>{
  if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])m.wireframe=true;
 });
-rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);bladeSpokeMode='original';bladeSpokeState=captureBladeSpokes(origin);upperShapeMode='original';upperShapeState=captureUpperShape(origin);paintMode='original';paintState=capturePaintMaterials(origin);modelColourway='p2';colourState=captureModelColourway(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);updateModelColourwayStatus(origin);updateUpperShapeStatus(origin);updateBladeSpokesStatus(origin);
+rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);hubFaceMode='original';hubFaceState=captureHubFace(origin);bladeSpokeMode='original';bladeSpokeState=captureBladeSpokes(origin);upperShapeMode='original';upperShapeState=captureUpperShape(origin);paintMode='original';paintState=capturePaintMaterials(origin);modelColourway='p2';colourState=captureModelColourway(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);updateModelColourwayStatus(origin);updateUpperShapeStatus(origin);updateBladeSpokesStatus(origin);updateHubFaceStatus(origin);
 let widthAvailable=false;
 try{applyWheelWidthHypothesis(current,wheelFactor);widthAvailable=true}catch(e){wheelFactor=1}
 wheelControls(widthAvailable,origin);scene.add(current);fit(current);tireBaselineY=sourceTireLowerY();updateRootLeanStatus(origin);const names=[];current.traverse(o=>{if(o.isMesh)names.push(o.name||'(unnamed mesh)')});$('parts').textContent=names.length?names.join(' · '):'No meshes';$('source').textContent=origin;say('Model loaded',names.length+' mesh nodes · '+origin);markers()}
@@ -754,6 +828,11 @@ $('frameHinge').onchange=()=>{if(!current||!frameHingeState)return;try{
  restoreUpperShape();
  frameHinge=Number($('frameHinge').value);applyFrameHinge();updateFrameHingeStatus($('source').textContent);updateWheelDriveStatus($('source').textContent);updateUpperShapeStatus($('source').textContent);markers();
 }catch(e){frameHinge=0;applyFrameHinge();updateFrameHingeStatus($('source').textContent);$('frameHingeStatus').textContent='Frame hinge unsupported: '+e.message}};
+$('hubFace').onchange=()=>{if(!hubFaceState)return;try{
+ applyHubFace($('hubFace').value);updateHubFaceStatus($('source').textContent);markers();
+ }catch(e){restoreHubFace();updateHubFaceStatus($('source').textContent);
+ $('hubFaceStatus').textContent='Original-2026 dark hub cover preview unavailable: '+e.message}
+};
 $('bladeSpokes').onchange=()=>{if(!bladeSpokeState)return;try{
  applyBladeSpokes($('bladeSpokes').value);updateBladeSpokesStatus($('source').textContent);markers();
  }catch(e){restoreBladeSpokes();updateBladeSpokesStatus($('source').textContent);

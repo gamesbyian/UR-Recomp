@@ -86,6 +86,8 @@ class ModelReviewPublicationTests(unittest.TestCase):
             self.assertTrue((site / "model-review/index_overlay.mjs").is_file())
             self.assertTrue((site / "model-review/manual_landmark_marking.mjs").is_file())
             self.assertTrue((site / "model-review/source_spoke_blade_view.mjs").is_file())
+            self.assertTrue((site / "model-review/source_hub_cover_view.mjs").is_file())
+            self.assertIn("source_hub_cover_view.mjs", (site / "model-review/index.html").read_text())
             self.assertTrue((site / "model-review/manual-landmarks.html").is_file())
             self.assertIn("source-crops.json",(site / "model-review/manual-landmarks.html").read_text(encoding="utf-8"))
             self.assertTrue((site / "model-review/manual_view_directions.mjs").is_file())

@@ -429,6 +429,26 @@ try{
         q('sourceInfo').textContent!==before||q('parts').textContent!==parts)
        issues.push('2026 source spoke preview mutated authentic 1994 rail or GLB materials');
    }
+   const hub=q('hubFace');
+   if(!hub||hub.getBoundingClientRect().height<44)
+     issues.push('source 2026 dark hub touch target');
+   if(${mocked}){
+     if(!hub?.disabled)issues.push('synthetic GLB enabled dark hub cover');
+   }else if(hub?.disabled)issues.push('exact-source dark hub cover disabled');
+   else{
+     const priorSource=q('sourceInfo').textContent;
+     const priorParts=q('parts').textContent;
+     const priorModel=q('source').textContent;
+     hub.value='cover';hub.dispatchEvent(new Event('change',{bubbles:true}));
+     if(q('hubFaceStatus').dataset.mode!=='cover'||
+        q('hubFaceStatus').dataset.sourceVertices!=='100')
+       issues.push('real 2026 hub cover geometry mode unavailable');
+     hub.value='original';hub.dispatchEvent(new Event('change',{bubbles:true}));
+     if(q('hubFaceStatus').dataset.mode!=='original'||
+        q('sourceInfo').textContent!==priorSource||
+        q('parts').textContent!==priorParts||q('source').textContent!==priorModel)
+       issues.push('reversible dark hub cover altered original 1994 sprite or GLB part census');
+   }
    if(q('paintHypothesis').getBoundingClientRect().height<44)
      issues.push('paint hypothesis touch target too small');
    if(q('modelColourway').getBoundingClientRect().height<44)
@@ -666,6 +686,25 @@ try{
      throw Error('wider spoke research preview failed pixel-identical GLB restoration');
    writeFileSync(join(out,'model-review-wheel-spokes-original-412.png'),normalBlades);
    writeFileSync(join(out,'model-review-wheel-spokes-wide-412.png'),broadBladePixels);
+   // Check true source-verified three-dimensional dark housing, not merely
+   // select values: rendered pixels must change in one fixed printed-hub-like
+   // model view, then restore byte-identically. Neither camera nor shape
+   // represents a recovered 1994 production mesh.
+   const hubView=await evaluate("(()=>{const b=[...document.querySelectorAll('#views button')].find(x=>x.textContent==='Print hub');if(!b)return false;b.click();return document.getElementById('manualViewStatus').dataset.preset==='print-hub'})()");
+   if(!hubView)throw Error('uncalibrated print hub camera inspection unavailable');
+   await capture();
+   const originalHub=await capture();
+   const setHubFace=async mode=>evaluate("(()=>{const q=document.getElementById('hubFace');if(q.disabled)return false;q.value='"+mode+"';q.dispatchEvent(new Event('change',{bubbles:true}));return q.value==='"+mode+"'&&document.getElementById('hubFaceStatus').dataset.mode==='"+mode+"'})()");
+   if(!await setHubFace('cover'))throw Error('source 2026 hub cover preview could not add closed 3D geometry');
+   const coveredHub=await capture();
+   if(!await setHubFace('original'))throw Error('source 2026 hub cover geometry could not reset');
+   const restoredHub=await capture();
+   if(originalHub.equals(coveredHub))
+     throw Error('real source 2026 hub cover did not alter fixed-view GLB pixels');
+   if(!originalHub.equals(restoredHub))
+     throw Error('source 2026 dark hub cover did not restore exact GLB framebuffer');
+   writeFileSync(join(out,'model-review-hub-cover-original-412.png'),originalHub);
+   writeFileSync(join(out,'model-review-hub-cover-proposed-412.png'),coveredHub);
    await evaluate("window.__urArt4kVisualReadback.resume()");
   }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);

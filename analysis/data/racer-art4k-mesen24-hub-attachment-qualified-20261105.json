@@ -1,0 +1,206 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-MESEN24-2026-HUB-ATTACHMENT-QUALIFIED-SCORES/1",
+  "source_repository": "gamesbyian/UR-Recomp",
+  "experiment": "one same 2026 closed dark near-side housing mesh, wheel-rotating versus axle-locked",
+  "experimental_PR": 3190,
+  "experimental_source_head_sha": "4e92bbd26ca46cea3c7bec1fb1299c7c21a0e139",
+  "merged_into_unapproved_3124_stack_sha": "e04ae7dd689893c1a74775fbd33de7fc0f25231c",
+  "source_successful_run_id": 42167483742,
+  "source_successful_job_id": 127727200422,
+  "source_artifact_id": 13480425689,
+  "source_artifact_outer_zip_sha256": "920e94ca4569d8e72ea545ae3a1df2d49094c4f47bc049c3d2ce72f07f5f2c43",
+  "source_full_verified_original_Mesen24_2026_GLB_report_member": "real-model-evidence/original-all24-saddle-only-generalization.json",
+  "source_full_report_bytes": 953344,
+  "source_full_report_sha256": "c55cc93cfb8d97bff37a0a8524fa29a4584c517359b61f070672765e1bce0c32",
+  "source_verified_2026_real_upright_GLB_sha256": "3e89093f5d58acaa0e48ce30819ad7a6fc98dafa545e4a51f8080b6b3098f63d",
+  "source_original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_original_Mesen24_no_skip_archive_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "source_original_24phase_report_sha256": "6286aedcda6080acf832ecece9fcdb879354db008e870bc00ada02db3ff3aa20",
+  "source_original_64_angle_report_sha256": "23aa563c094471a3d7f1b5dcb12489cc1b5ca45b1240aee06fde3934a932bbd0",
+  "source_unchanged_provisional_7_6_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "source_2026_authored_SCAD_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "source_frozen_previous_28_control_score_certificate_git_blob_sha1": "8257e87d070758136b4b8a67f36db636eaa08902",
+  "source_frozen_previous_29_arm_hub_score_certificate_git_blob_sha1": "f06adc027fa0a1074b773b35330089da59aae663",
+  "previous_original_player_control_shape_motion_metrics_reproduced_exact_8_decimal_places": true,
+  "same_source_per_original_racer_frames": 24,
+  "same_source_per_original_racer_true_adjacent_edges": 23,
+  "source_original_player_roles": [
+    "blue",
+    "red"
+  ],
+  "source_six_objective_order": [
+    "blue:source_frame_pooled_alpha_iou",
+    "blue:source_unique_shape_equal_vote_mean_alpha_iou",
+    "blue:source_actual_23_consecutive_edge_change_pooled_iou",
+    "red:source_frame_pooled_alpha_iou",
+    "red:source_unique_shape_equal_vote_mean_alpha_iou",
+    "red:source_actual_23_consecutive_edge_change_pooled_iou"
+  ],
+  "source_2026_model_physical_hub_attachment_score": {
+    "blue": {
+      "rom_phase_15deg": {
+        "source_original_unique_64px_binary_shapes": 19,
+        "source_original_true_adjacent_motion_edges": 23,
+        "per_2026_physical_hub_joint": {
+          "hubless": {
+            "source_frame_pooled_alpha_iou": 0.56757653,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.57006528,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.13202247
+          },
+          "rotating": {
+            "source_frame_pooled_alpha_iou": 0.58449851,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58595129,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.14199396
+          },
+          "axle_locked": {
+            "source_frame_pooled_alpha_iou": 0.58098166,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58322363,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.11226611
+          }
+        },
+        "axle_locked_minus_rotating": {
+          "source_frame_pooled_alpha_iou": -0.00351685,
+          "source_unique_shape_equal_vote_mean_alpha_iou": -0.00272766,
+          "source_actual_23_consecutive_edge_change_pooled_iou": -0.02972785
+        },
+        "axle_locked_minus_hubless": {
+          "source_frame_pooled_alpha_iou": 0.01340513,
+          "source_unique_shape_equal_vote_mean_alpha_iou": 0.01315835,
+          "source_actual_23_consecutive_edge_change_pooled_iou": -0.01975636
+        }
+      },
+      "fixed_tick_24deg": {
+        "source_original_unique_64px_binary_shapes": 19,
+        "source_original_true_adjacent_motion_edges": 23,
+        "per_2026_physical_hub_joint": {
+          "hubless": {
+            "source_frame_pooled_alpha_iou": 0.56870778,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.5709925,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.16134061
+          },
+          "rotating": {
+            "source_frame_pooled_alpha_iou": 0.58718429,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58885246,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.17647059
+          },
+          "axle_locked": {
+            "source_frame_pooled_alpha_iou": 0.58238855,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58482355,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.15176152
+          }
+        },
+        "axle_locked_minus_rotating": {
+          "source_frame_pooled_alpha_iou": -0.00479574,
+          "source_unique_shape_equal_vote_mean_alpha_iou": -0.00402891,
+          "source_actual_23_consecutive_edge_change_pooled_iou": -0.02470907
+        },
+        "axle_locked_minus_hubless": {
+          "source_frame_pooled_alpha_iou": 0.01368077,
+          "source_unique_shape_equal_vote_mean_alpha_iou": 0.01383105,
+          "source_actual_23_consecutive_edge_change_pooled_iou": -0.00957909
+        }
+      }
+    },
+    "red": {
+      "rom_phase_15deg": {
+        "source_original_unique_64px_binary_shapes": 23,
+        "source_original_true_adjacent_motion_edges": 23,
+        "per_2026_physical_hub_joint": {
+          "hubless": {
+            "source_frame_pooled_alpha_iou": 0.58549568,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58761115,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.17943262
+          },
+          "rotating": {
+            "source_frame_pooled_alpha_iou": 0.60110314,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.6034064,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.17766911
+          },
+          "axle_locked": {
+            "source_frame_pooled_alpha_iou": 0.60282904,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.60487746,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.17026578
+          }
+        },
+        "axle_locked_minus_rotating": {
+          "source_frame_pooled_alpha_iou": 0.0017259,
+          "source_unique_shape_equal_vote_mean_alpha_iou": 0.00147106,
+          "source_actual_23_consecutive_edge_change_pooled_iou": -0.00740333
+        },
+        "axle_locked_minus_hubless": {
+          "source_frame_pooled_alpha_iou": 0.01733336,
+          "source_unique_shape_equal_vote_mean_alpha_iou": 0.01726631,
+          "source_actual_23_consecutive_edge_change_pooled_iou": -0.00916684
+        }
+      },
+      "fixed_tick_24deg": {
+        "source_original_unique_64px_binary_shapes": 23,
+        "source_original_true_adjacent_motion_edges": 23,
+        "per_2026_physical_hub_joint": {
+          "hubless": {
+            "source_frame_pooled_alpha_iou": 0.58471835,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58663941,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.15871833
+          },
+          "rotating": {
+            "source_frame_pooled_alpha_iou": 0.59986692,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.60185905,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.14596003
+          },
+          "axle_locked": {
+            "source_frame_pooled_alpha_iou": 0.60197844,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.60406188,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.14550265
+          }
+        },
+        "axle_locked_minus_rotating": {
+          "source_frame_pooled_alpha_iou": 0.00211152,
+          "source_unique_shape_equal_vote_mean_alpha_iou": 0.00220283,
+          "source_actual_23_consecutive_edge_change_pooled_iou": -0.00045738
+        },
+        "axle_locked_minus_hubless": {
+          "source_frame_pooled_alpha_iou": 0.01726009,
+          "source_unique_shape_equal_vote_mean_alpha_iou": 0.01742247,
+          "source_actual_23_consecutive_edge_change_pooled_iou": -0.01321568
+        }
+      }
+    }
+  },
+  "source_retained_historical_real_GLB_arms": 27,
+  "previous_new_rotating_hub_arms": 2,
+  "new_axle_locked_hub_arms": 2,
+  "combined_real_2026_model_arms": 31,
+  "combined_strict_six_objective_unweighted_nondominated_arms": [
+    "axle_root_fork_crown_full110_fixed_tick_24deg",
+    "axle_root_fork_crown_full110_rom_phase_15deg",
+    "axle_root_hub_cover_axle_locked_fixed_tick_24deg",
+    "axle_root_hub_cover_axle_locked_rom_phase_15deg",
+    "axle_root_hub_cover_fixed_tick_24deg",
+    "axle_root_hub_cover_rom_phase_15deg",
+    "axle_root_saddle_cup_soft008_fixed_tick_24deg",
+    "axle_root_saddle_cup_soft008_rom_phase_15deg",
+    "axle_root_saddle_slide_down012_rom_phase_15deg",
+    "axle_root_saddle_slide_up012_fixed_tick_24deg",
+    "axle_root_saddle_slide_up012_rom_phase_15deg",
+    "axle_root_saddle_span110_fixed_tick_24deg",
+    "axle_root_saddle_span110_rom_phase_15deg",
+    "axle_root_saddle_world_level_fixed_tick_24deg",
+    "axle_root_saddle_world_level_rom_phase_15deg",
+    "axle_root_upper_stretch096_fixed_tick_24deg",
+    "axle_root_upper_stretch096_rom_phase_15deg",
+    "axle_root_upper_stretch104_fixed_tick_24deg",
+    "axle_root_upper_stretch104_rom_phase_15deg"
+  ],
+  "all_four_hub_arms_remain_nondominated_in_six_objective_retrospective_comparison": true,
+  "axle_locked_does_not_improve_red_true_motion_under_either_wheel_drive": true,
+  "axle_locked_lowers_blue_true_motion_under_both_drive_laws": true,
+  "original_1994_source_3D_mesh_camera_or_joint_recovered": false,
+  "original_printed_p15_1994_visible_hub_evidence_is_partly_occluded_2D_only": true,
+  "same_authored_2026_16_vertex_28_triangle_closed_hub_cover": true,
+  "source_2026_hub_cover_requires_manual_artist_review_before_any_approval": true,
+  "source_model_contains_two_unfused_closed_dark_hub_solids": true,
+  "owner_2026_character_likeness_approved": false,
+  "shipping_art_approved": false,
+  "retrospective_same_source_observations_not_prospective_blind_holdout": true,
+  "conclusion": "Axle-locked same-shape counterspin modestly improves red static alpha but worsens blue static and true motion for both roles/wheel laws; neither frozen drive restores red true motion. Both axle-locked variants remain strictly Pareto-nondominated among the 31 retrospective 2026 GLB arms because of separate static tradeoffs, NOT a reason to adopt the 1994-unknown axle joint or ship the owner-rejected art."
+}

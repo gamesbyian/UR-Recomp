@@ -37,11 +37,22 @@ class LocalOriginalPrintedManualReviewerTests(unittest.TestCase):
         self.assertNotIn("<script src=\"http",form)
         self.assertNotIn("fetch(",form)
         self.assertIn("No images are uploaded",form)
+        for marker in ('id="partialSurface"','id="surfaceStart"',
+                       'id="surfaceFinish"','id="surfaceDelete"',
+                       'id="surfaceStatus"','source polygon'):
+            if marker == "source polygon":
+                self.assertIn("source polygon",form.lower()+helper.lower())
+            else:
+                self.assertIn(marker,form)
+        self.assertIn("addVisibleSurfaceRegion",helper)
+        self.assertIn("clearVisibleSurfaceRegions",helper)
 
     @unittest.skipUnless(shutil.which("node"),"Node.js not installed")
     def test_client_annotations_preserve_2d_only_and_reject_partial_sources(self):
         proc=subprocess.run(
-            ["node","--test","tools/art/model-review/test_manual_landmark_marking.mjs"],
+            ["node","--test",
+             "tools/art/model-review/test_manual_landmark_marking.mjs",
+             "tools/art/model-review/test_manual_visible_surface_regions.mjs"],
             cwd=ROOT,text=True,capture_output=True,timeout=25)
         self.assertEqual(proc.returncode,0,proc.stdout+proc.stderr)
 

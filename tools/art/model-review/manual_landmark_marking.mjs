@@ -48,7 +48,7 @@ export function verifyReceipt(receipt){
  return receipt;
 }
 export function makeFigure(){
- return {visible_points:{},unmeasurable:{},perspective_and_occlusion_notes:""};
+ return {visible_points:{},unmeasurable:{},visible_surface_regions:[],perspective_and_occlusion_notes:""};
 }
 export function dimensions(receipt,name){
  verifyReceipt(receipt);
@@ -56,6 +56,54 @@ export function dimensions(receipt,name){
  if(!row)throw Error("unknown original printed figure");
  const [x0,y0,x1,y1]=row.page_crop_pixels_xyxy;
  return Object.freeze({width:x1-x0,height:y1-y0,sha256:row.crop_png_sha256});
+}
+export function validateVisibleSurfaceRegion(region,dim){
+ if(!region||typeof region!=="object"||Array.isArray(region))
+  throw Error("source visible-surface record required");
+ const name=region.region_id;
+ if(typeof name!=="string"||!/^[a-z0-9-]{3,64}$/.test(name))
+  throw Error("source visible-surface region ID must be unique lowercase slug");
+ text(region.visible_appearance_notes,"visible source print surface notes",16);
+ text(region.cutoff_or_occlusion_notes,"original print surface occlusion notes",16);
+ if(region.original_3d_part_identity_verified!==false||
+    region.entire_original_3d_surface_visible!==false)
+  throw Error("printed partial surface cannot certify full original 1994 geometry");
+ const pts=region.visible_polygon_xy;
+ if(!Array.isArray(pts)||pts.length<3||pts.length>24)
+  throw Error("three to 24 source print polygon points required");
+ const seen=new Set();
+ for(const p of pts){
+  if(!Array.isArray(p)||p.length!==2||p.some(v=>typeof v!=="number"||!Number.isFinite(v))||
+      p[0]<0||p[1]<0||p[0]>=dim.width||p[1]>=dim.height)
+   throw Error("printed 2D partial surface coordinates outside exact source crop");
+  const k=p.join(",");
+  if(seen.has(k))throw Error("repeated printed image source vertex");
+  seen.add(k);
+ }
+ let signed=0;
+ const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+ for(let i=0;i<pts.length;i++){
+  const a=pts[i],b=pts[(i+1)%pts.length];
+  signed+=a[0]*b[1]-b[0]*a[1];
+  for(let j=i+1;j<pts.length;j++){
+   if(j===i||j===(i+1)%pts.length||i===(j+1)%pts.length)continue;
+   const c=pts[j],d=pts[(j+1)%pts.length];
+   if(cross(a,b,c)*cross(a,b,d)<0&&cross(c,d,a)*cross(c,d,b)<0)
+    throw Error("self-intersecting original print polygon");
+  }
+ }
+ if(Math.abs(signed)<=2)throw Error("visible original print polygon encloses no area");
+ return region;
+}
+export function addVisibleSurfaceRegion(draft,region,dim){
+ validateVisibleSurfaceRegion(region,dim);
+ const prior=draft.visible_surface_regions||[];
+ if(prior.length>=8||prior.some(x=>x.region_id===region.region_id))
+  throw Error("at most eight uniquely named source surface regions");
+ return {...draft,visible_surface_regions:[...prior,region]};
+}
+export function clearVisibleSurfaceRegions(draft){
+ return {...draft,visible_surface_regions:[]};
 }
 export function nextLandmark(draft,group){
  const names=PARTS[group];if(!names)throw Error("unknown source part");
@@ -119,9 +167,10 @@ export function buildAnnotations(receipt,figures,annotator,uncertainty){
   if(!state.visible_points||!state.unmeasurable)throw Error("invalid figure state");
   const present=Object.keys(state.visible_points);
   const hidden=Object.keys(state.unmeasurable);
-  if(!present.length&&!hidden.length)continue;
+  const surfaces=state.visible_surface_regions||[];
+  if(!present.length&&!hidden.length&&!surfaces.length)continue;
   const known=Object.keys(PARTS);
-  if(!present.length||present.some(k=>!known.includes(k))||
+  if((!present.length&&!surfaces.length)||present.some(k=>!known.includes(k))||
      hidden.some(k=>!known.includes(k))||
      present.some(k=>hidden.includes(k))||
      [...present,...hidden].length!==known.length)
@@ -135,6 +184,13 @@ export function buildAnnotations(receipt,figures,annotator,uncertainty){
      throw Error("source point outside uploaded PNG");
   }
   for(const group of hidden)text(state.unmeasurable[group],"source occlusion "+group,8);
+  if(!Array.isArray(surfaces)||surfaces.length>8)throw Error("at most eight source surface regions");
+  const names=new Set();
+  for(const region of surfaces){
+   validateVisibleSurfaceRegion(region,size);
+   if(names.has(region.region_id))throw Error("duplicate source region identifier");
+   names.add(region.region_id);
+  }
   const row=receipt.figures.find(f=>f.reference_id===p.id);
   observations.push({
    reference_id:p.id,crop_png_sha256:row.crop_png_sha256,
@@ -142,6 +198,7 @@ export function buildAnnotations(receipt,figures,annotator,uncertainty){
    perspective_and_occlusion_notes:text(
     state.perspective_and_occlusion_notes,p.id+" perspective notes",12),
    visible_points:state.visible_points,unmeasurable:state.unmeasurable,
+   ...(surfaces.length?{visible_surface_regions:surfaces}:{}),
   });
  }
  if(!observations.length)throw Error("annotate at least one genuine visible part");

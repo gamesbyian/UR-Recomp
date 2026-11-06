@@ -69,6 +69,73 @@ def bounds(points,part):
             round(math.hypot(a[0]-b[0],a[1]-b[1]),6)}
 
 
+def visible_surface_regions(items, dimensions):
+    """2D *visible pieces* only. Never turn an occluded part into a full box.
+
+    Polygon pixels must belong to the same authenticated original PNG. A
+    region cannot certify the lost original 1994 3D surface identity.
+    """
+    if items is None:
+        return []
+    if not isinstance(items,list) or len(items)>8:
+        fail("at most eight visible source-print partial surfaces per figure")
+    found=set()
+    out=[]
+    for item in items:
+        if not isinstance(item,dict):
+            fail("original print partial surface must be an object")
+        ident=item.get("region_id")
+        note=item.get("visible_appearance_notes")
+        occlusion=item.get("cutoff_or_occlusion_notes")
+        if (not isinstance(ident,str) or not 3<=len(ident)<=64
+                or any(ch not in "abcdefghijklmnopqrstuvwxyz0123456789-"
+                       for ch in ident) or ident in found):
+            fail("unique lowercase source-print partial-surface ID required")
+        found.add(ident)
+        if (not isinstance(note,str) or len(note.strip())<16
+                or not isinstance(occlusion,str) or len(occlusion.strip())<16
+                or item.get("original_3d_part_identity_verified") is not False
+                or item.get("entire_original_3d_surface_visible") is not False):
+            fail("original print partial surface must declare visibility and unknown 1994 ownership")
+        raw=item.get("visible_polygon_xy")
+        if not isinstance(raw,list) or not 3<=len(raw)<=24:
+            fail("three to 24 visible source-print polygon vertices required")
+        pts=[point(q,dimensions,ident) for q in raw]
+        if len(set(pts))!=len(pts):
+            fail("repeated original print visible-surface polygon coordinate")
+        area=sum(x*pts[(i+1)%len(pts)][1]-
+                 pts[(i+1)%len(pts)][0]*y
+                 for i,(x,y) in enumerate(pts))/2
+        if abs(area)<=1:
+            fail("original print partial surface must enclose real source pixels")
+        # A bow-tie or self-intersecting outline can fabricate projected area.
+        def cross(a,b,c):
+            return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
+        for i in range(len(pts)):
+            a,b=pts[i],pts[(i+1)%len(pts)]
+            for j in range(i+1,len(pts)):
+                if j in ((i-1)%len(pts),i,(i+1)%len(pts)):
+                    continue
+                c,d=pts[j],pts[(j+1)%len(pts)]
+                if (cross(a,b,c)*cross(a,b,d)<0 and
+                        cross(c,d,a)*cross(c,d,b)<0):
+                    fail("self-crossing original print visible-surface polygon")
+        xs=[p[0] for p in pts]
+        ys=[p[1] for p in pts]
+        out.append({
+            "region_id":ident,
+            "visible_appearance_notes":note.strip(),
+            "cutoff_or_occlusion_notes":occlusion.strip(),
+            "visible_polygon_xy":[list(p) for p in pts],
+            "projected_visible_2d_area_px2":round(abs(area),6),
+            "projected_bounds_xyxy":[min(xs),min(ys),max(xs),max(ys)],
+            "original_3d_part_identity_verified":False,
+            "entire_original_3d_surface_visible":False,
+            "original_production_camera_calibrated":False,
+        })
+    return out
+
+
 def authenticated_crops(folder:Path, raw_pdf:bytes,
                         expected_blob=SOURCE_BLOB_SHA1)->dict:
     auth=authenticate_pdf(raw_pdf,expected_blob)
@@ -200,7 +267,8 @@ def measure(annotation:dict,folder:Path,raw_pdf:bytes,
             pts={key:point(raw[key],dimensions,key) for key in names}
             readings[part]=bounds(pts,part)
             landmarks[part]={key:list(pts[key]) for key in names}
-        if not readings:
+        surface_regions=visible_surface_regions(record.get("visible_surface_regions"),dimensions)
+        if not readings and not surface_regions:
             fail("do not emit measurements of an entirely obscured figure")
         wheel_diameter=readings.get("wheel",{}).get("height_px")
         normalized={}
@@ -210,7 +278,7 @@ def measure(annotation:dict,folder:Path,raw_pdf:bytes,
                     round(value/wheel_diameter,6) if wheel_diameter else None
                 for key,value in dimensions_px.items()
             }
-        report.append({
+        entry={
             "reference_id":name,
             "source_original_print_page":
                 source["figures"][name]["receipt"]["original_printed_page"],
@@ -228,7 +296,10 @@ def measure(annotation:dict,folder:Path,raw_pdf:bytes,
             "projected_ratios_only_if_whole_wheel_visible":normalized,
             "historical_1994_3d_camera_calibrated":False,
             "original_source_mesh_dimensions_recovered":False,
-        })
+        }
+        if surface_regions:
+            entry["visible_surface_regions"]=surface_regions
+        report.append(entry)
     return {
         "schema":REPORT_SCHEMA,
         "authenticated_source_pdf_sha256":source["pdf"]["source_pdf_sha256"],

@@ -27,6 +27,23 @@ class ContinuousForkTubeTests(unittest.TestCase):
         self.assertEqual(report["status"], "penetration")
         self.assertFalse(report["continuous_fork_surface_cleared_against_ideal_tori"])
 
+    def test_actual_028_glb_hidden_stripe_intersection(self):
+        # Actual source-authored blue GLB face 161 from hosted run 42307831723.
+        triangle = np.array([[[-.01999950, -.19076900, .05825230],
+                              [-.09966600, -.17600299, .81185400],
+                              [-.09954270, -.17598200, .81196702]]])
+        v = triangle[0]
+        probes = np.vstack((v, v.mean(axis=0),
+                            (v + np.roll(v, 1, axis=0)) / 2))
+        radial = np.hypot(probes[:, 0], probes[:, 2])
+        self.assertGreater(float(np.min(
+            np.hypot(radial - .80, probes[:, 1] + .15) - .028)), 0)
+        report = certify_triangles_against_source_tori(triangle)
+        self.assertEqual(report["status"], "penetration")
+        self.assertLess(
+            report["minimum_observed_center_signed_distance"]["near_sidewall_stripe"],
+            -.001)
+
     def test_far_and_near_positive_surfaces_certified(self):
         for x, min_depth in ((2., 0), (1.005, 1)):
             patch = np.array([[[x, 0, 0], [x + .1, 0, 0], [x, 0, .1]]])

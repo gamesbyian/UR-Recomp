@@ -7,3 +7,9 @@ The additional fork_tire_surface_certificate.py check evaluates the actual GLB f
 The certificate only concerns the mathematical source-authored ideal torus tubes and the current upright geometry. It does **not** prove continuous intersection-free contact with the actual faceted tire GLB, clearance in moving or stunt poses, recovered original 1994 geometry, owner likeness approval or shipping-art acceptance. A real exported candidate and exact-head CI are still necessary to report the candidate's actual result.
 
 ROM-free regression tests cover a full-triangle interior collision invisible to vertices, midpoints and centroid, a stripe-only penetration, narrow positive gap, transformed tire frame, and fail-closed budget and input validation. The saddle, straight silver post, thin spokes, 16 material roles and five source pivots stay unchanged.
+
+## Observed negative and bounded repair (November 6)
+
+The historical ±0.28 fork GLB, SHA-256 ca6351bec0255b0c936c805d32b5664ea4311c1697136d86bedf6645410b19f3, SCAD SHA-256 f59f45679ef51fea3371a087ddf4cf3bde589554d1c57e5a3c62d2395d45f2be, passed finite surface probes but failed continuous ideal-torus certification against the **near-sidewall stripe**. Adaptive subdivided GLB triangles found source tire-local coordinates (−0.09788812, −0.17629050, 0.79626227), signed penetration −0.0016128317 authoring units. Original source preserved under rounded_fork_source.
+
+A single source-locked repair increases symmetric leg centreplanes from ±0.28 to ±0.30. New SCAD SHA-256: 828dcd0c63348e06987cab09fc03d678287a187c6c52103c122539742fef7d1a. Preliminary locally exported **full fork STL**, not final GLB, certified against ideal main tire and stripe by depth 5 with conservative stripe lower bound +0.00403381 units. Independent hosted real GLB, materials, pivots and visual review remain required. No owner approval, source 1994 recovery, faceted GLB Boolean guarantee, or all-pose claim.

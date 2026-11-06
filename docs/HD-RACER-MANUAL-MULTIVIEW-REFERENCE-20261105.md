@@ -4,6 +4,9 @@
 
 ## November 6 owner-informed collar interpretation and real-GLB result
 
+**Latest owner clarification:** In the source-authored upright racer the visible silver saddle post should **emerge straight from the coloured collar**, with no off-axis or angled connection. The owner identified the slight 0.02-unit rod lean after seeing the first #3207 comparison. The updated review candidate aligns the rod's upper and lower X/Y with the collar centreline and aligns the dark saddle support's attachment, while keeping the lower fork's curvature, saddle and selected slim spokes. Printed p14 and p16 illustrate the desired visual continuity, but they do not establish numerical 1994 dimensions or a unique hidden original mesh.
+
+
 The owner considers the existing 2026 five-part racer a **reasonable reconstruction foundation**, with its saddle already close and **thin spokes retained**. The near-side bulky welded hub is **rejected**. In a head-on view, a plausible racer can read as laterally symmetrical across the wheel, fork and frame except the mechanically opposing crank/pedal positions; one-sided housing/stripe details in the 2026 model are not therefore automatically approved.
 
 The original printed **page 14 cyan near-front unicycle** shows a relatively long, narrow exposed saddle post standing above a **compact rounded coloured fork-crown collar**, with the saddle remaining its broad original shape. These are *visible illustrated 2D relationships*, not recovered 1994 3D dimensions or a verified metal material. The owner specifically named the coloured-collar-to-bare-metal-seatpost transition as the first sculpting priority. A first source-locked attempt left only a tiny visible rod; the revised version lowers/rounds the collar and exposes a substantially longer rod, while leaving the existing saddle, thin spokes, wheel and part pivots unchanged.

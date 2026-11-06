@@ -57,6 +57,57 @@ def lateral_reflection_error(scene, part: str) -> dict:
             "exact_surface_mirror_recovered_1994": False}
 
 
+
+def silver_post_cross_section_centers(candidate_scene):
+    """Prove upright 3D metal post is straight from blue collar, after export.
+
+    Independently section the actual silver material mesh at two heights.
+    The section's signed polygon AREA CENTROID, not a source-text coordinate,
+    must lie on the shared coloured-collar X/Y axis. The previous candidate
+    drifts measurably between the slices and is a negative test.
+    """
+    import numpy as np
+    node = "fork_and_frame__material_1"
+    geometry = candidate_scene.geometry[node]
+    if not geometry.is_watertight:
+        raise ValueError("silver post surface is not watertight")
+    centers = []
+    for height in (1.90, 2.10):
+        cross = geometry.section(
+            plane_origin=[0, 0, height], plane_normal=[0, 0, 1])
+        # A single source-authored tube yields one ordered Line entity.
+        # Avoid trimesh.path.Path.discrete: it requires optional networkx
+        # that the existing lean model-export virtualenv does not install.
+        if cross is None or len(cross.entities) != 1:
+            raise ValueError("one exposed silver post cross-section required")
+        indices = np.asarray(cross.entities[0].points, dtype=int)
+        points = np.asarray(cross.vertices, dtype=float)
+        if (len(indices) < 5 or indices[0] != indices[-1]
+                or np.any(indices < 0) or np.any(indices >= len(points))):
+            raise ValueError("closed ordered silver post edge loop required")
+        ring = points[indices]
+        if (ring.ndim != 2 or ring.shape[1] != 3 or len(ring) < 5
+                or not np.isfinite(ring).all()
+                or not np.allclose(ring[0], ring[-1], rtol=0, atol=1e-7)):
+            raise ValueError("invalid closed cross-section of 2026 silver post")
+        x, y = ring[:,0], ring[:,1]
+        signed = x[:-1] * y[1:] - x[1:] * y[:-1]
+        area6 = 3 * signed.sum()
+        if abs(area6) < 1e-8:
+            raise ValueError("degenerate silver post cross-section")
+        center = [float(np.sum((x[:-1] + x[1:]) * signed) / area6),
+                  float(np.sum((y[:-1] + y[1:]) * signed) / area6)]
+        if not np.allclose(center, [-.22, 0], atol=.001, rtol=0):
+            raise ValueError("actual exported silver seatpost is angled or off-centre")
+        centers.append(center)
+    if not np.allclose(centers[0], centers[1], atol=.001, rtol=0):
+        raise ValueError("actual exported silver rod is not straight between heights")
+    return {"source_heights": [1.90, 2.10],
+            "xy_centerline_at_each_height": centers,
+            "strict_coaxial_tolerance_source_units": .001,
+            "source_1994_camera_or_rod_geometry_recovered": False}
+
+
 def inspect(base_glb: Path, candidate_glb: Path, baseline_scad: Path,
             candidate_scad: Path) -> dict:
     import numpy as np
@@ -96,6 +147,7 @@ def inspect(base_glb: Path, candidate_glb: Path, baseline_scad: Path,
     for part in PART_COUNTS:
         if not np.array_equal(a.graph.get(part)[0],b.graph.get(part)[0]):
             raise ValueError("source-authored part pivot changed: "+part)
+    silver_post_sections = silver_post_cross_section_centers(b)
     # The owner explicitly expects a laterally symmetric coloured frame/seat.
     # Pedals are intentionally opposite, and tire/rim asymmetry remains a
     # nonblocking documented design question rather than an invented fix.
@@ -116,6 +168,7 @@ def inspect(base_glb: Path, candidate_glb: Path, baseline_scad: Path,
         "source_material_roles_unchanged":True,
         "unchanged_nonframe_material_nodes":12,
         "changed_frame_material_nodes":changed,
+        "actual_exported_silver_post_sections":silver_post_sections,
         "lateral_y_mirror_vertex_audit":symmetry,
         "saddle_and_coloured_frame_y_mirror_certified":True,
         "wheel_rim_mirror_deviations_are_unreviewed":True,

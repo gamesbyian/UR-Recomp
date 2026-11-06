@@ -5,7 +5,8 @@ import unittest
 from pathlib import Path
 
 from tools.art.collar_transition_review import (
-    BASELINE_SOURCE_SHA256, OLD, NEW, canonical_source_bytes, sculpt, make_candidate,
+    BASELINE_SOURCE_SHA256, OLD, NEW, assert_seatpost_aligned,
+    canonical_source_bytes, sculpt, make_candidate,
 )
 from tools.art.export_articulated_unicycle import (
     PARTS, POSES, source_without_entrypoint, saddle_mount_from_source,
@@ -37,13 +38,33 @@ class OwnerDirectedCollarTests(unittest.TestCase):
         self.assertIn("translate([-0.22,0,1.65])",NEW)
         # All new mechanical primitive centers are exactly on Y=0.
         self.assertNotIn("translate([-0.22,0.2",NEW)
-        self.assertIn("[-0.20,0,2.235]",NEW)
+        self.assertIn("[-0.22,0,1.67],[-0.22,0,2.235]",NEW)
+        self.assertIn("[-0.22,0,2.225],[-0.03,0,2.2]",NEW)
+        assert_seatpost_aligned(sculpt(canonical_source_bytes(SOURCE.read_bytes())).decode())
         self.assertIn("[-0.22,0,1.60]",NEW)
         self.assertIn("r=0.14,$fn=48",NEW)
         self.assertIn("1.775",NEW)
         self.assertIn("0.065,0.058",NEW)
         self.assertNotIn("rim_and_hub()",NEW)
         self.assertNotIn("saddle_section(",NEW)
+
+    def test_seatpost_cannot_lean_or_enter_coloured_collar_eccentrically(self):
+        candidate = sculpt(canonical_source_bytes(SOURCE.read_bytes())).decode()
+        assert_seatpost_aligned(candidate)
+        for changed in (
+            candidate.replace("[-0.22,0,1.67],[-0.22,0,2.235]",
+                              "[-0.22,0,1.67],[-0.20,0,2.235]"),
+            candidate.replace("[-0.22,0,1.67],[-0.22,0,2.235]",
+                              "[-0.22,0.02,1.67],[-0.22,0.02,2.235]"),
+            candidate.replace("translate([-0.22,0,1.59])",
+                              "translate([-0.24,0,1.59])"),
+            candidate.replace("[-0.22,0,2.225],[-0.03,0,2.2]",
+                              "[-0.20,0,2.225],[-0.03,0,2.2]"),
+        ):
+            self.assertNotEqual(candidate,changed)
+            with self.subTest(index=changed.index("frame_member",changed.index("module fork_and_frame"))):
+                with self.assertRaisesRegex(ValueError,"collar|post|axis"):
+                    assert_seatpost_aligned(changed)
 
     def test_windows_checkout_crlf_is_not_source_drift(self):
         original=canonical_source_bytes(SOURCE.read_bytes())

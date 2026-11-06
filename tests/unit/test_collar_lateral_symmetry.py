@@ -1,12 +1,12 @@
 """Front-plane lateral symmetry diagnostic for actual GLB world geometry."""
 import unittest
-import numpy as np
+import importlib.util
 
-try:
+AVAILABLE = all(importlib.util.find_spec(name) is not None
+                for name in ("numpy","scipy","trimesh"))
+if AVAILABLE:
     import trimesh
     from tools.art.verify_collar_transition_review import lateral_reflection_error
-except ImportError:
-    trimesh = None
 
 
 @unittest.skipUnless(trimesh is not None, "optional real GLB geometry dependencies")

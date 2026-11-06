@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "scope": "one real Windows native display baseline/control, not four-agent visual integration",
+  "source_sha": "6c57ff4f4ef68c7f4f2a038df6a39a17675890f3",
+  "exe_sha256": "df2a647960b4513424d59c06f5bda7a1d51a0d519da3d56e24475e1367bde8d8",
+  "native_process_exit": 0,
+  "actual_sdl_renderer_output": [
+    1280,
+    720
+  ],
+  "observed_in_draw": 65,
+  "observed_guest_frame": null,
+  "native_semantic_route": "options-p1",
+  "execution_mode": "modern",
+  "native_route_marker_observed": true,
+  "requested_window_size": [
+    1280,
+    720
+  ],
+  "SDL_driver": "windows",
+  "native_process_log_sha256": "1218b18a349f263db8c0403b96ef8fc41eb62f31803ef39fb18b7da6711d667c",
+  "p7_sha256": "3bc09861462d283ccb4df3d5f33f3cd78fc525222d15b16d9a80094d19d93c77",
+  "png_sha256": "b19f251b2d188f01b2303a256b5b61dabb723f8b3c020a173d6262e2c2a35db3",
+  "conversion": {
+    "source_p7_sha256": "3bc09861462d283ccb4df3d5f33f3cd78fc525222d15b16d9a80094d19d93c77",
+    "converted_png_sha256": "b19f251b2d188f01b2303a256b5b61dabb723f8b3c020a173d6262e2c2a35db3",
+    "source_bytes": 3686470,
+    "png_bytes": 18770,
+    "pixels": [
+      1280,
+      720
+    ],
+    "transform": "row-exact-P7-RGBA-to-filter0-PNG-RGBA",
+    "actual_sdl_proven": false,
+    "visual_approved": false,
+    "hardware_approved": false,
+    "release_gate_credit": 0
+  },
+  "source_bound_by_independent_rebuild": false,
+  "controller": "scripted semantic host path, no physical joystick",
+  "visual_approved": false,
+  "hardware_approved": false,
+  "authentic_isolation_approved": false,
+  "release_gate_credit": 0
+}

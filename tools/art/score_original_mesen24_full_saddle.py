@@ -24,6 +24,7 @@ from tools.art.experimental_upper_frame_stretch import temporary_upper_frame_str
 from tools.art.experimental_saddle_span import temporary_saddle_span
 from tools.art.experimental_saddle_cup import temporary_saddle_cup
 from tools.art.experimental_fork_crown_volume import temporary_fork_crown_volume
+from tools.art.experimental_oblique_hub_cover import temporary_hub_cover_volume
 from tools.art.no_replace_report import publish_text_once
 
 SCHEMA="UR-ART4K-ORIGINAL-24TICK-REAL-2026-SADDLE-LEAN-GENERALIZATION/3"
@@ -95,7 +96,17 @@ CROWN_TRIALS=(
     ("axle_root_fork_crown_full110_fixed_tick_24deg","fixed_tick",1.10),
 )
 CROWN_SETTINGS={name:(mode,scale) for name,mode,scale in CROWN_TRIALS}
-ALL_GEOMETRY_TRIALS=ALL_CONTOUR_TRIALS+tuple((name,mode) for name,mode,_ in CROWN_TRIALS)
+# One 2026 source-material hub housing proposal, matched to the unchanged
+# world-level saddle reference under BOTH existing, fixed wheel drive laws.
+# The actual 1994 printed manual p15 supplies 2D evidence only; no recovered
+# source 3D housing shape, physical attachment or artist camera is claimed.
+HUB_TRIALS=(
+    ("axle_root_hub_cover_rom_phase_15deg","rom_phase"),
+    ("axle_root_hub_cover_fixed_tick_24deg","fixed_tick"),
+)
+HUB_SETTINGS={name:mode for name,mode in HUB_TRIALS}
+ALL_GEOMETRY_TRIALS=(ALL_CONTOUR_TRIALS+
+                     tuple((name,mode) for name,mode,_ in CROWN_TRIALS)+HUB_TRIALS)
 ARMS=BASE_ARMS+tuple(name for name,_ in ALL_GEOMETRY_TRIALS)
 
 
@@ -216,7 +227,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
 
     def model4(angle:int,lean:float,wheel:float=0.,saddle_level:bool=False,
                saddle_stroke:float=0.,upper_stretch:float=0.,
-               saddle_span:float=0.,saddle_cup:float=0.,crown_scale:float=0.):
+               saddle_span:float=0.,saddle_cup:float=0.,crown_scale:float=0.,
+               hub_cover:bool=False):
         apply_root_scene(scene,angle,"wheel_axle",wheel,0.)
         with temporary_saddle_pitch(scene,lean):
             adjustment=(temporary_saddle_world_attitude(scene,level_reference)
@@ -237,10 +249,13 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                                 crown=(temporary_fork_crown_volume(scene,crown_scale)
                                        if crown_scale else nullcontext())
                                 with crown:
-                                    world=(scene.to_geometry() if callable(
-                                        getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
-                                    result=render_mask(np.asarray(world.vertices),
-                                                       np.asarray(world.faces),camera)
+                                    hub=(temporary_hub_cover_volume(scene)
+                                         if hub_cover else nullcontext())
+                                    with hub:
+                                        world=(scene.to_geometry() if callable(
+                                            getattr(scene,"to_geometry",None)) else scene.dump(concatenate=True))
+                                        result=render_mask(np.asarray(world.vertices),
+                                                           np.asarray(world.faces),camera)
         return result.astype(bool)
 
     neutral=model4(0,0.)
@@ -279,7 +294,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                 span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
                 cup=CUP_SETTINGS[name][1] if name in CUP_SETTINGS else 0.
                 crown=CROWN_SETTINGS[name][1] if name in CROWN_SETTINGS else 0.
-                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS
+                is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS or name in HUB_SETTINGS
                 key=(frame["angle"],15.,wheel,"world_level","crown",crown) if crown else (
                     (frame["angle"],15.,wheel,"world_level","cup",cup) if cup else (
                     (frame["angle"],15.,wheel,"world_level","span",span) if span else (
@@ -287,8 +302,11 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
                     (frame["angle"],15.,wheel))))))
+                if name in HUB_SETTINGS:
+                    key=(frame["angle"],15.,wheel,"world_level","hub_cover")
                 if key not in renders:
-                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span,cup,crown)
+                    renders[key]=model4(frame["angle"],15.,wheel,is_level,stroke,stretch,span,cup,crown,
+                                        hub_cover=name in HUB_SETTINGS)
                 arms[name]=registered_mask4(renders[key],original_anchor,neutral_anchor)
             if set(arms)!=set(ARMS):
                 raise ValueError("incomplete original 24-tick 2D/3D model controls")
@@ -330,7 +348,7 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
             span=SPAN_SETTINGS[name][1] if name in SPAN_SETTINGS else 0.
             cup=CUP_SETTINGS[name][1] if name in CUP_SETTINGS else 0.
             crown=CROWN_SETTINGS[name][1] if name in CROWN_SETTINGS else 0.
-            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS
+            is_level=name in LEVEL_NAMES or name in SLIDE_SETTINGS or name in STRETCH_SETTINGS or name in SPAN_SETTINGS or name in CUP_SETTINGS or name in CROWN_SETTINGS or name in HUB_SETTINGS
             for tick in (first,last):
                 frame=original[tick]
                 wheel=drive_delta_degrees(frame["phase"],original[1601]["phase"],tick,mode)
@@ -341,6 +359,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                     (frame["angle"],15.,wheel,"world_level",stroke) if stroke else (
                     (frame["angle"],15.,wheel,"world_level") if is_level else
                     (frame["angle"],15.,wheel))))))
+                if name in HUB_SETTINGS:
+                    key=(frame["angle"],15.,wheel,"world_level","hub_cover")
                 if key not in renders:
                     raise ValueError("same already rendered actual GLB pose missing")
                 apply_root_scene(scene,frame["angle"],"wheel_axle",wheel,0.)
@@ -363,7 +383,10 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
                                         volume=(temporary_fork_crown_volume(scene,crown)
                                                 if crown else nullcontext())
                                         with volume:
-                                            parent256=project_real_parent_masks256(scene,camera)
+                                            hub=(temporary_hub_cover_volume(scene)
+                                                 if name in HUB_SETTINGS else nullcontext())
+                                            with hub:
+                                                parent256=project_real_parent_masks256(scene,camera)
                 union=np.logical_or.reduce(list(parent256.values()))
                 if not np.array_equal(union,renders[key]):
                     raise ValueError("authored 2026 GLB parents do not reproduce whole")
@@ -410,6 +433,8 @@ def analyze(zip_raw:bytes,pose_raw:bytes,axis_raw:bytes,
         "2026_authored_saddle_longitudinal_span_controls":list(SPAN_TRIALS),
         "2026_authored_upper_cupped_saddle_contour_controls":list(CUP_TRIALS),
         "2026_authored_local_fork_crown_volumetric_controls":list(CROWN_TRIALS),
+        "2026_authored_dark_hub_cover_controls_same_drive_as_world_level":list(HUB_TRIALS),
+        "2026_hub_cover_is_two_closed_2026_model_solids_not_original_1994_3d":True,
         "2026_crown_volume_not_measured_original_1994_source_geometry":True,
         "2026_saddle_cup_is_not_recovered_original_1994_surface":True,
         "2026_saddle_shape_magnitude_not_original_1994_geometry":True,

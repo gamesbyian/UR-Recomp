@@ -1,0 +1,23 @@
+# Matched-mechanics original-Mesen24 audit of the experimental 2026 dark hub cover
+
+**Source-locked research only, November 5, 2026. No original 1994 production 3D or shipping art approval.**
+
+## Why this comparison is the next discriminating question
+
+The exact original USA printed p15 illustration reveals one irregular, dark, partly occluded image-plane hub-region face. It **does not** determine original production wheel casing volume, artist camera, surface ownership or hidden attachments. The experimental model's new closed 16-vertex/28-triangle near-side housing shell, introduced under #3182 in the existing #3124 stack, therefore remains one **2026 authoring hypothesis**.
+
+The source-registered real-GLB original-game evaluator already measures **24 consecutive original Mesen PPU frames per blue/red racer**, with each source timeline's **23 genuine consecutive-motion edges** and a second static score that gives equal weight to distinct source silhouettes. It preserves a separate authentic 2D rigid null. The previous upper/saddle/crown studies retained two *fixed, independently tested* artificial wheel laws: +15 degrees per ROM presentation phase, and +24 degrees per chronological tick. Their physical truth is unproven, so the new hub must share those two laws exactly, not pick a custom drive per racer, per tick or per source angle.
+
+The added predeclared arms are `axle_root_hub_cover_rom_phase_15deg` and `axle_root_hub_cover_fixed_tick_24deg`. Each is to be contrasted **within each role**, under the same camera, original model, source registration and drive, against the unchanged controls `axle_root_saddle_world_level_rom_phase_15deg` and `axle_root_saddle_world_level_fixed_tick_24deg`. They retain the already frozen globally world-level 2026 saddle rather than reoptimizing the upper assembly.
+
+## Exact model perturbation and correctness
+
+In `tools/art/score_original_mesen24_full_saddle.py`, all existing arms, names, motion rules and source evidence are untouched. The new research model invokes the existing `temporary_hub_cover_volume(scene)` context manager from `experimental_oblique_hub_cover.py` around only the added dark `rim_and_hub__material_4` housing, generating the same 16 extra vertices and 28 triangles, **with guaranteed full rollback** of all 16 source material arrays after each render.
+
+The same reversible perturbation is applied in the **independent real parent-part attribution** for selected original source upper-motion events; the parent-union projection must still match the real whole-object candidate mask or the experiment raises an error. Model/root/pedal/camera transformations remain the original fixed 2026 controls. No extra GLB, renderer, viewer, GHA workflow, original-game image, source art, hidden original mesh or ownership assumption is created or committed.
+
+The output gains two clearly marked hub-cover arms in the same machine-readable schema and retains the previous original blue/red 24-frame/23-edge static-and-motion census and unchanged baseline metrics. The existing six-objective cross-role Pareto scorer may then evaluate whether either candidate is jointly nondominated. **It is entirely plausible that the added housing improves period-print qualitative resemblance but worsens original 64px silhouette overlap or real temporal motion. Such a negative or mixed result must be retained.**
+
+## Qualification and nonpromotion
+
+Run the same unit/hygiene suite and unchanged source-owned Windows real-GLB/Mesen24 job on the exact experimental head, feeding it the already SHA-verified original ROM, no-frame-skip Mesen 48-frame archive, frozen 7:6 camera and existing five-parent/16-material GLB exporter artifact. Report the two hub arms **alongside their same-law controls for both racers and all six metrics**; do not cherry-pick a drive or replace the authentic 1994 sprite art. This code change **does not itself claim a measured score**: only a completed exact-head real source run can establish it. Do not merge this child straight to `main`; keep it under the intentional unapproved #3124 evidence stack. The owner character-likeness veto and Windows ART/release gating remain authoritative.

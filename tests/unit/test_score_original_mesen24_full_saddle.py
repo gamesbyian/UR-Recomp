@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from tools.art.score_original_mesen24_full_saddle import (
     SCHEMA,TICKS,ARMS,BASE_ARMS,SADDLE_TRIALS,DRIVE_TRIALS,LEVEL_TRIALS,
-    MOTION_TRIALS,SLIDE_TRIALS,ALL_MOTION_TRIALS,STRETCH_TRIALS,FULL_MOTION_TRIALS,SPAN_TRIALS,ALL_SHAPE_TRIALS,CUP_TRIALS,ALL_CONTOUR_TRIALS,CROWN_TRIALS,ALL_GEOMETRY_TRIALS,drive_delta_degrees,
+    MOTION_TRIALS,SLIDE_TRIALS,ALL_MOTION_TRIALS,STRETCH_TRIALS,FULL_MOTION_TRIALS,SPAN_TRIALS,ALL_SHAPE_TRIALS,CUP_TRIALS,ALL_CONTOUR_TRIALS,CROWN_TRIALS,HUB_TRIALS,HUB_SETTINGS,ALL_GEOMETRY_TRIALS,drive_delta_degrees,
     aggregate_original_timeline,main,analyze,
     summary_for_exact_original_source,check_exact_source_evidence,
 )
@@ -59,6 +59,20 @@ class AllOriginalSourceSaddleLeanTests(unittest.TestCase):
             ("axle_root_fork_crown_full110_rom_phase_15deg","rom_phase",1.10),
             ("axle_root_fork_crown_narrow090_fixed_tick_24deg","fixed_tick",.90),
             ("axle_root_fork_crown_full110_fixed_tick_24deg","fixed_tick",1.10)))
+        self.assertEqual(HUB_TRIALS,(
+            ("axle_root_hub_cover_rom_phase_15deg","rom_phase"),
+            ("axle_root_hub_cover_fixed_tick_24deg","fixed_tick")))
+        self.assertEqual(HUB_SETTINGS,dict(HUB_TRIALS))
+        self.assertEqual({name for name,_ in ALL_GEOMETRY_TRIALS if name in HUB_SETTINGS},
+                         set(HUB_SETTINGS))
+        for candidate,control in (
+            ("axle_root_hub_cover_rom_phase_15deg",
+             "axle_root_saddle_world_level_rom_phase_15deg"),
+            ("axle_root_hub_cover_fixed_tick_24deg",
+             "axle_root_saddle_world_level_fixed_tick_24deg"),
+        ):
+            self.assertIn(candidate,ARMS)
+            self.assertIn(control,ARMS)
         self.assertEqual(drive_delta_degrees(3,3,1601,"rom_phase"),0.)
         self.assertEqual(drive_delta_degrees(5,3,1602,"rom_phase"),30.)
         self.assertEqual(drive_delta_degrees(1,23,1602,"rom_phase"),30.)

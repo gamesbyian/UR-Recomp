@@ -46,7 +46,7 @@ jobs:
             # after occasional incomplete 100-row GitHub API responses.
             census_args=()
             if [[ "$repo" == "gamesbyian/UR-Recomp" ]]; then
-              census_args=(--page-size 25 --max-pages 400 --recheck-first-page)
+              census_args=(--page-size 25 --max-pages 400 --recheck-first-page --workers 4)
             fi
             if python3 tools/actions_storage_inventory.py --repo "$repo" "${census_args[@]}" \
                 --json-out "$RUNNER_TEMP/storage-census/$name.json" \

@@ -45,6 +45,59 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(len(rows), 51)
         self.assertEqual(called, [1, 2, 3, 1])
 
+    def test_ur_parallel_pages_keep_exact_completeness_and_ids(self):
+        items = [a(i + 1, "qa01-receipt", i + 1) for i in range(76)]
+        calls = []
+        def api(*argv):
+            q = argv[-1]
+            self.assertIn("per_page=25", q)
+            page = int(q.split("page=")[-1])
+            calls.append(page)
+            return {"total_count": len(items),
+                    "artifacts": items[(page - 1) * 25:page * 25]}
+        result = inv.artifact_inventory(
+            "gamesbyian/UR-Recomp", api=api, page_size=25, max_pages=400,
+            recheck_first_page=True, workers=4)
+        self.assertEqual([x["id"] for x in result], list(range(1, 77)))
+        self.assertEqual(calls[0], 1)
+        self.assertEqual(calls[-1], 1)
+        self.assertEqual(sorted(calls[1:-1]), [2, 3, 4])
+
+    def test_ur_parallel_exact_multiple_checks_empty_terminal_page(self):
+        items = [a(i + 1, "receipt", 9) for i in range(50)]
+        calls = []
+        def api(*argv):
+            page = int(argv[-1].split("page=")[-1])
+            calls.append(page)
+            return {"total_count": 50, "artifacts": items[(page - 1) * 25:page * 25]}
+        found = inv.artifact_inventory("gamesbyian/UR-Recomp", api=api,
+                                      page_size=25, workers=2,
+                                      recheck_first_page=True)
+        self.assertEqual(len(found), 50)
+        self.assertIn(3, calls)
+        self.assertEqual(calls[-1], 1)
+
+    def test_ur_parallel_changed_total_still_fails_closed(self):
+        items = [a(i + 1, "receipt", 1) for i in range(26)]
+        def api(*argv):
+            n = int(argv[-1].split("page=")[-1])
+            return {"total_count": 26 if n == 1 else 27,
+                    "artifacts": items[(n - 1) * 25:n * 25]}
+        with self.assertRaisesRegex(RuntimeError, "count changed"):
+            inv.artifact_inventory("gamesbyian/UR-Recomp", api=api,
+                                   page_size=25, workers=4)
+
+    def test_ur_parallel_duplicate_id_still_fails_closed(self):
+        items = [a(i + 1, "receipt", 1) for i in range(26)]
+        items[25]["id"] = items[0]["id"]
+        def api(*argv):
+            n = int(argv[-1].split("page=")[-1])
+            return {"total_count": 26,
+                    "artifacts": items[(n - 1) * 25:n * 25]}
+        with self.assertRaisesRegex(RuntimeError, "duplicate artifact"):
+            inv.artifact_inventory("gamesbyian/UR-Recomp", api=api,
+                                   page_size=25, workers=4)
+
     def test_ur_first_page_drift_fails_closed(self):
         items = [a(i + 1, "receipt", 1) for i in range(26)]
         count = 0
@@ -71,6 +124,10 @@ class InventoryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             inv.artifact_inventory("gamesbyian/UR-Recomp", api=no_network,
                                    page_size=25, recheck_first_page=1)
+        for invalid in (0, 3, True, "4", None):
+            with self.subTest(workers=invalid), self.assertRaises(ValueError):
+                inv.artifact_inventory("gamesbyian/UR-Recomp", api=no_network,
+                                       page_size=25, workers=invalid)
 
     def test_refuse_partial_inventory(self):
         def api(*argv):

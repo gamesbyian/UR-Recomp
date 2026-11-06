@@ -8,6 +8,7 @@ the account's accrued GB-hours or a billing statement.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 from datetime import datetime, timezone
 import json
@@ -76,7 +77,7 @@ def repositories(owner, api=gh_json):
 
 
 def artifact_inventory(repo, api=gh_json, max_pages=200, *,
-                       page_size=PAGE_SIZE, recheck_first_page=False):
+                       page_size=PAGE_SIZE, recheck_first_page=False, workers=1):
     if not isinstance(repo, str) or not REPO.fullmatch(repo):
         raise ValueError("invalid repository")
     if type(max_pages) is not int or not 1 <= max_pages <= 1000:
@@ -85,11 +86,48 @@ def artifact_inventory(repo, api=gh_json, max_pages=200, *,
         raise ValueError("invalid page_size")
     if type(recheck_first_page) is not bool:
         raise ValueError("invalid recheck_first_page")
+    if type(workers) is not int or workers not in (1, 2, 4):
+        raise ValueError("invalid workers")
+    # Only an explicitly requested parallel inventory prefetches pages.
+    # Existing account-repo scans remain serial. Fetching all numbered
+    # pages from one initial count shortens the opportunity for offset
+    # pagination to drift; post-scan count and first-page ID checks still
+    # reject a changing population rather than treating it as complete.
+    pages = {}
+    page_limit = max_pages
+    if workers > 1:
+        first = api("api", f"repos/{repo}/actions/artifacts?per_page={page_size}&page=1")
+        if not isinstance(first, dict) or type(first.get("total_count")) is not int \
+                or first["total_count"] < 0 or not isinstance(first.get("artifacts"), list):
+            raise ValueError(f"{repo}: invalid first artifact page")
+        total = first["total_count"]
+        required = max(1, (total + page_size - 1) // page_size)
+        # Exact multiples need the expected empty terminal page; otherwise
+        # the current fail-closed parser would refuse to certify completeness.
+        if total > 0 and total % page_size == 0:
+            required += 1
+        if required > max_pages:
+            raise RuntimeError(f"{repo}: reached {max_pages} pages; refusing truncated inventory")
+        pages[1] = first
+        def fetch(index):
+            return index, api("api", f"repos/{repo}/actions/artifacts?per_page={page_size}&page={index}")
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = [pool.submit(fetch, index) for index in range(2, required + 1)]
+            try:
+                for completed in as_completed(futures):
+                    index, result = completed.result()
+                    pages[index] = result
+            except Exception:
+                for pending in futures:
+                    pending.cancel()
+                raise
+        page_limit = required
     artifacts, seen = [], set()
     expected = None
     first_page_ids = None
-    for page in range(1, max_pages + 1):
-        response = api("api", f"repos/{repo}/actions/artifacts?per_page={page_size}&page={page}")
+    for page in range(1, page_limit + 1):
+        response = (pages[page] if workers > 1 else
+                    api("api", f"repos/{repo}/actions/artifacts?per_page={page_size}&page={page}"))
         if not isinstance(response, dict) or not isinstance(response.get("artifacts"), list):
             raise ValueError(f"{repo}: invalid artifact page {page}")
         total = response.get("total_count")
@@ -221,6 +259,8 @@ def main():
                    help="bounded artifacts per API page (smaller for very large repositories)")
     p.add_argument("--recheck-first-page", action="store_true",
                    help="fail if the newest artifact IDs or count changed while paging")
+    p.add_argument("--workers", type=int, choices=(1, 2, 4), default=1,
+                   help="bounded parallel read-only API pages (default serial)")
     p.add_argument("--json-out", type=Path)
     args = p.parse_args()
     repos = args.repo or repositories(args.owner)
@@ -228,7 +268,7 @@ def main():
         raise SystemExit("No repositories discovered")
     rows = [summarize(repo, artifact_inventory(
         repo, max_pages=args.max_pages, page_size=args.page_size,
-        recheck_first_page=args.recheck_first_page))
+        recheck_first_page=args.recheck_first_page, workers=args.workers))
             for repo in sorted(set(repos))]
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

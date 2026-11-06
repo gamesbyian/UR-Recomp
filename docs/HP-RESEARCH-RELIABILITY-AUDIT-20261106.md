@@ -36,6 +36,10 @@ Dispatch [#41599042074](https://github.com/gamesbyian/UR-Recomp/actions/runs/415
 
 Local task status at **2026-11-06 01:20:47 UTC** recorded `decision=dispatch:missed-research-window`, `dispatched=true`, then GitHub created [run #42143234781](https://github.com/gamesbyian/UR-Recomp/actions/runs/42143234781) at **01:20:58 UTC**. That workflow executed on **`hpmini-ur-recomp`** from **01:21:01** to **01:26:11 UTC** and completed **success**. This is one verified decision-to-success recovery, not proof of continuous perfect availability. The installed scheduled task reported `Ready` and last result `0` on the readback; no local service, task, security or workflow setting was changed.
 
+## Complete seven-day cross-check (same verified code; November 6 UTC)
+
+A separate approved read-only collection extended the settled created-at window to **October 30–November 5 UTC**, using the same SHA-verified trusted-main P5 collector without an HP configuration change. It returned **86 completed runs**, **83 successes and three failures**, **655.17 valid started-job minutes**, **301.75 queue minutes**, and **one** >30-minute queue, the unchanged November 3 incident. Nine earlier October 31–November 1 runs contributed **141.69** job-interval minutes and only **0.40** queue minutes. Two additional October 31 failures were one deliberate offscreen-fanout `refused_event` and one zero-seed real research failure. The full [seven-day source, UTC distribution, EventLog and fallback-task receipt](HP-RESEARCH-SEVEN-DAY-CENSUS-20261106.md) preserves exact run IDs, limits and timestamp provenance. No post-November-3 Windows unexpected-shutdown event was observed at the November 6 check. The original four-day results above remain intact and continue to reconcile exactly.
+
 ## P5 operational decision and repeatable review
 
 1. **Keep the existing trusted-main, single-runner workflows and 60-minute fallback cooldown unchanged for now.** There is no source-grounded >10-minute fallback-attributable priority product delay in this cohort. Continue giving product Windows builds priority over optional research.

@@ -1,0 +1,27 @@
+{
+  "schema": "ur-daily-estimate-snapshot/1",
+  "day_utc": "2026-11-06",
+  "source_main_sha": "0dd33247b78516ae6e75fce9beac9a7a9053d4e8",
+  "reviewed_inventory_sha": "82111a8cbc690d729a16355d35fc35b3621200f3",
+  "contract": "32c62b80",
+  "milestone_allocation_sha256": "2c3595f86ac49e7aceb9046da6378f8e29757c073a5d157e7abc24921c0ae80f",
+  "effort_prior_sha256": "b4e8b3dbefb7866825b5c27d516dfe328e711cdd6afb553ada1567cb9fe2c9d5",
+  "calculator_source_sha256": "67bee21693a3871ddc6c182a9327320a1e6e6e7d3c704aa2bb9aeefee8429c25",
+  "engineering_estimate_percent": 56.3,
+  "engineering_recorded_evidence_range_percent": [
+    56,
+    56.6
+  ],
+  "remaining_relative_work_units": 895.6,
+  "formal_bounded_percent": 56,
+  "independently_reviewed_percent": 14,
+  "usa_events_accepted": 0,
+  "release_gates_passed": 0,
+  "evidence_event_ids": [
+    "backfill-art-03-baseline-20261106",
+    "backfill-art-05-pivots-20261106",
+    "backfill-wide-07-raster-20261106"
+  ],
+  "effort_revision_effects": [],
+  "caveat": "Partial source-linked ledger, NOT a complete calibrated uncertainty range or release acceptance; source-linked milestone and effort evidence may still be incomplete"
+}

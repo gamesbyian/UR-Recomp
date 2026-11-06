@@ -6,6 +6,7 @@ import {spawn} from 'node:child_process';
 import {readFileSync,existsSync,mkdirSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {resolve,join,sep} from 'node:path';
 import {tmpdir} from 'node:os';
+import {SOURCE_SHA,sourcePhaseDelta} from './direct_drive_hypothesis.mjs';
 
 const site=resolve(process.argv[2]||'.'), out=resolve(process.argv[3]||'.');
 if(!existsSync(join(site,'model-review','sprites.json')))throw Error('Assemble atlas first');
@@ -443,6 +444,10 @@ try{
      if(q('hubFaceStatus').dataset.mode!=='cover'||
         q('hubFaceStatus').dataset.sourceVertices!=='100')
        issues.push('real 2026 hub cover geometry mode unavailable');
+     hub.value='axle-locked';hub.dispatchEvent(new Event('change',{bubbles:true}));
+     if(q('hubFaceStatus').dataset.mode!=='axle-locked'||
+        q('hubFaceStatus').dataset.counterspinDegrees!=='0')
+       issues.push('source axle-locked 2026 hub preview not available');
      hub.value='original';hub.dispatchEvent(new Event('change',{bubbles:true}));
      if(q('hubFaceStatus').dataset.mode!=='original'||
         q('sourceInfo').textContent!==priorSource||
@@ -705,6 +710,30 @@ try{
      throw Error('source 2026 dark hub cover did not restore exact GLB framebuffer');
    writeFileSync(join(out,'model-review-hub-cover-original-412.png'),originalHub);
    writeFileSync(join(out,'model-review-hub-cover-proposed-412.png'),coveredHub);
+   const stepped=await evaluate("(()=>{const c=document.getElementById('crankScrub');if(c.disabled)return false;c.value='4';c.dispatchEvent(new Event('input',{bubbles:true}));return Number(document.getElementById('crankStatus').dataset.step)===4||Number(c.value)===4})()");
+   if(!stepped)throw Error('source 2026 crank step for axle-locked housing unavailable');
+   const originalAtPhase=await capture();
+   if(!await setHubFace('cover'))throw Error('source wheel-rotating hub comparison unavailable');
+   const rotatingAtPhase=await capture();
+   if(!await setHubFace('axle-locked'))throw Error('source axle-locked 2026 hub preview not available');
+   const lockedAtPhase=await capture();
+   const axleDegrees=await evaluate("document.getElementById('hubFaceStatus').dataset.counterspinDegrees");
+   // The browser smoke may be on any of the five authored GLB named poses.
+   // Wheel phase = immutable named-pose offset PLUS 45 degrees of scrub.
+   // Never assume the checked pose is upright or change the source pose to
+   // accommodate a test expectation.
+   const activePose=await evaluate("([...document.querySelectorAll('[id^=pose-]')].find(x=>x.getAttribute('aria-pressed')==='true')?.id||'').slice(5)");
+   const expectedDegrees=sourcePhaseDelta(activePose,SOURCE_SHA)+45;
+   if(Number(axleDegrees)!==expectedDegrees)
+     throw Error('source axle-locked housing phase not coupled to existing crank and named pose: '+activePose+' measured '+axleDegrees+' expected '+expectedDegrees);
+   if(rotatingAtPhase.equals(lockedAtPhase))
+     throw Error('axle-locked hub and wheel-rotating hub did not differ at a genuine wheel phase');
+   if(!await setHubFace('original'))throw Error('original GLB hub cannot restore from axle-locked view');
+   const restoredPhase=await capture();
+   if(!originalAtPhase.equals(restoredPhase))
+     throw Error('axle-locked cover lost exact same-pose source GLB framebuffer restoration');
+   writeFileSync(join(out,'model-review-hub-cover-rotating-45deg-412.png'),rotatingAtPhase);
+   writeFileSync(join(out,'model-review-hub-cover-axle-locked-45deg-412.png'),lockedAtPhase);
    await evaluate("window.__urArt4kVisualReadback.resume()");
   }
   const shot=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},session);

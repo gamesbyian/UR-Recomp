@@ -22,6 +22,9 @@ class HubCoverViewerTests(unittest.TestCase):
             "function restoreHubFace()",
             "function applyHubFace(mode)",
             "clone.computeVertexNormals()",
+            "axleLockedAuthoredHubFace(hubCounterspinDegrees())",
+            "hubFaceMode==='axle-locked'",
+            "status.dataset.counterspinDegrees",
             "mesh.geometry=clone;hubFaceMode=mode",
             "restoreHubFace();restoreBladeSpokes()",
             "temporary?.dispose()",
@@ -40,6 +43,9 @@ class HubCoverViewerTests(unittest.TestCase):
             "real source 2026 hub cover did not alter fixed-view GLB pixels",
             "source 2026 dark hub cover did not restore exact GLB framebuffer",
             "model-review-hub-cover-proposed-412.png",
+            "source axle-locked 2026 hub preview not available",
+            "axle-locked hub and wheel-rotating hub did not differ at a genuine wheel phase",
+            "axle-locked cover lost exact same-pose source GLB framebuffer restoration",
         ):
             self.assertIn(marker, smoke)
         self.assertTrue(HELPER.is_file())

@@ -2,14 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
  SOURCE_2026_HUB_NODE,SOURCE_2026_HUB_VERTICES,SOURCE_2026_HUB_FACES,
- SOURCE_2026_HUB_MODES,experimentalAuthoredHubFace
+ SOURCE_2026_HUB_MODES,experimentalAuthoredHubFace,axleLockedAuthoredHubFace
 } from "./source_hub_cover_view.mjs";
 
 test("one authentic 2026 material and frozen reversible 3D cover proposal",()=>{
  assert.equal(SOURCE_2026_HUB_NODE,"rim_and_hub__material_4");
  assert.equal(SOURCE_2026_HUB_VERTICES,100);
  assert.equal(SOURCE_2026_HUB_FACES,196);
- assert.deepEqual(SOURCE_2026_HUB_MODES,["original","cover"]);
+ assert.deepEqual(SOURCE_2026_HUB_MODES,["original","cover","axle-locked"]);
  const shape=experimentalAuthoredHubFace();
  assert.equal(shape.original_1994_camera_or_physical_hub_recovered,false);
  assert.equal(shape.original_source_model_material_graph_changed,false);
@@ -56,4 +56,27 @@ test("authored cover is a closed, coherently oriented 2-manifold, positive volum
    assert.equal(directions[0]+directions[1],0,"opposite oriented incidence");
  }
  assert.ok(Math.abs(sixVolume/6-.06592)<1e-12,"closed authored cover signed volume");
+});
+
+test("axle-locked source 2026 housing exactly cancels a rotating wheel parent",()=>{
+ const {vertices:original,faces}=experimentalAuthoredHubFace();
+ for(const degrees of [0,11.25,24,45,90,180,345,360,720,900]){
+   const locked=axleLockedAuthoredHubFace(degrees);
+   assert.deepEqual(locked.faces,faces);
+   assert.equal(locked.vertices.length,16);
+   const theta=degrees*Math.PI/180,c=Math.cos(theta),s=Math.sin(theta);
+   for(let i=0;i<original.length;i++){
+     const [x,y,z]=original[i];
+     const [xx,yy,zz]=locked.vertices[i];
+     assert.ok(Math.abs(c*xx-s*zz-x)<1e-12);
+     assert.ok(Math.abs(s*xx+c*zz-z)<1e-12);
+     assert.equal(yy,y);
+   }
+   assert.equal(locked.original_1994_camera_or_physical_hub_recovered,false);
+ }
+ assert.deepEqual(axleLockedAuthoredHubFace(0).vertices,original);
+ assert.notDeepEqual(axleLockedAuthoredHubFace(45).vertices,original);
+ for(const bad of [NaN,Infinity,-Infinity,1081,-1081,"45",null,undefined]){
+   assert.throws(()=>axleLockedAuthoredHubFace(bad));
+ }
 });

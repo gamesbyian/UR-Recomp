@@ -12,6 +12,8 @@ The [daily progress and remaining-work estimation plan](progress/DAILY-ENGINEERI
 
 The shared measurement workflow now offers `python3 tools/record_agent_measurement.py --help` to generate a source-bound event in the ongoing PR without manually editing schema fields. Use only for material findings, and never invent a reduction in remaining units solely to record activity. The 50 registered milestones correspond to ten unfinished criteria, not automatic owner or release approval.
 
+**Progress comparison helper:** `python3 tools/daily_estimate_snapshot.py --dry-run` previews an immutable, version-tagged daily report without modifying the repo. Only a qualified agent performing a deliberate daily reporting/integration task should persist one dated snapshot. Ordinary hourly agents should continue attaching compact task entries in their existing PR; no five-per-hour snapshot spam, no duplicate calendar-day files.
+
 ## Five identical workers, staggered starts
 
 | Scheduled agent | Start minute | Selection pool | Only hard constraints |

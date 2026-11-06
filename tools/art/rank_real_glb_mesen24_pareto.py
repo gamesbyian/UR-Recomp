@@ -87,8 +87,10 @@ def matched_control(arm:str, available:set[str])->str|None:
     """Only compare sculpted 2026 meshes with an identical wheel/attitude arm.
 
     A different wheel speed or saddle attitude would confound the measured
-    contribution of geometry. This optional annotation never changes the
-    existing six-objective Pareto ranking or omits any candidate.
+    contribution of geometry. The axle-locked proposal is compared to the
+    SAME 2026 physical shell still rotating with the wheel, isolating the
+    prospective joint attachment only. This optional annotation never changes
+    the six-objective Pareto ranking or omits any candidate.
     """
     if not isinstance(arm,str):
         return None
@@ -103,9 +105,14 @@ def matched_control(arm:str, available:set[str])->str|None:
               "axle_root_saddle_cup_deep008","axle_root_saddle_cup_soft008",
               "axle_root_fork_crown_narrow090","axle_root_fork_crown_full110",
               "axle_root_hub_cover")
-    if prefix not in prefixes:
+    if prefix=="axle_root_hub_cover_axle_locked":
+        # Exact same physical 2026 dark cover, unchanged drive/camera/material
+        # and root frame. Only whether it rotates with the wheel changes.
+        control="axle_root_hub_cover_"+suffix
+    elif prefix in prefixes:
+        control="axle_root_saddle_world_level_"+suffix
+    else:
         return None
-    control="axle_root_saddle_world_level_"+suffix
     return control if control in available else None
 
 
@@ -140,12 +147,13 @@ def analyze(report:dict)->dict:
         dominance[arm]=sorted(x for x in glb_arms if x!=arm and dominates(scores[x],scores[arm]))
     nondominated=[arm for arm in glb_arms if not dominance[arm]]
     matched={}
+    matched_attachment={}
     for arm in glb_arms:
         base=matched_control(arm,set(glb_arms))
         if base is None:
             continue
         delta=[round(a-b,8) for a,b in zip(scores[arm],scores[base])]
-        matched[arm]={
+        evidence={
             "same_wheel_drive_and_saddle_attitude_control":base,
             "signed_six_objective_delta":delta,
             "shape_improves_both_original_racers":delta[1]>0 and delta[4]>0,
@@ -153,6 +161,10 @@ def analyze(report:dict)->dict:
             "strictly_dominates_own_matched_control":dominates(scores[arm],scores[base]),
             "mixed_shape_or_motion_tradeoff":any(d>0 for d in delta) and any(d<0 for d in delta),
         }
+        if arm.startswith("axle_root_hub_cover_axle_locked_"):
+            matched_attachment[arm]=evidence
+        else:
+            matched[arm]=evidence
     # A numerical gain in static silhouette cannot erase temporal regressions:
     # the complete six-coordinate vector is always preserved with every arm.
     return {
@@ -167,6 +179,7 @@ def analyze(report:dict)->dict:
         "candidate_2026_GLB_arm_count":len(glb_arms),
         "pareto_nondominated_2026_GLB_arms":nondominated,
         "matched_geometry_only_deltas":matched,
+        "matched_attachment_only_deltas":matched_attachment,
         "per_2026_GLB_arm":{
             arm:{
                 "source_six_objective_values":list(scores[arm]),

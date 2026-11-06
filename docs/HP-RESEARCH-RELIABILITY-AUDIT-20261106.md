@@ -44,6 +44,26 @@ Local task status at **2026-11-06 01:20:47 UTC** recorded `decision=dispatch:mis
 4. **Weekly reproducibility:** pin exact `created` UTC bounds; use fully paginated authenticated GitHub run/job inventories with explicit `filter=latest`; validate counts/IDs, job timestamps, runner identity, event/conclusion, all attempts where relevant, and source. Report total started-job minutes separately from queue, scheduled vs dispatch and successful/failed runs. Re-read installed fallback receipt and HP machine state where authorized. Separate **nominal cron slots** from actually observed events and never infer API caller identity from `workflow_dispatch` alone.
 5. **Preserve safeguards:** no execution of PR/fork code on owner HP, no additional heavyweight local broker, no weakening product packaging or original/native gates. The [existing fallback runbook](HP-RESEARCH-FALLBACK.md) and [plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) govern any further tested change.
 
+## Manual repeatable census (source implementation under review)
+
+The optional read-only Python CLI `tools/ci/hp_research_delivery_census.py` is intended to reproduce source-bound workflow and latest-attempt job timing without opening a second scheduler or executing game code. It uses `GH_TOKEN` / `GITHUB_TOKEN` or existing authenticated GitHub CLI credentials (`gh auth token`), without printing them or changing host settings.
+
+```sh
+python3 tools/ci/hp_research_delivery_census.py \
+  --start 2026-11-02T00:00:00Z \
+  --end 2026-11-05T23:59:59Z \
+  --workers 4 \
+  --json-out hp-research-4day.json \
+  --markdown-out hp-research-4day.md
+python3 -m unittest tests.unit.test_hp_research_delivery_census
+```
+
+**Qualification order:** first exact committed-head full unit/hygiene checks and independent source review, then a genuinely authenticated live run through an approved route. The original 77-run four-day tally was collected through independent GitHub API readings; do not assert that the new CLI reproduced it before that separate live check.
+
+The CLI bounds the created-UTC window to seven days and GitHub's 1,000-run API ceiling. It requires complete paginated run/job populations, exact main-only source/workflow/runner identity, one completed `hpmini-ur-recomp` job per workflow run, nonnegative queue/job timing and unique IDs. Its explicit `filter=latest` excludes prior rerun attempts. Changed topology, unstarted runs, unknown timestamps or API failures **fail closed** rather than count as zero.
+
+The receipt separates observed GitHub job intervals, queue intervals, longest queue, all remaining queues, UTC-day counts, source SHA, event and conclusion. Queues over 30 minutes are marked for **external manual host availability checks**, never automatically attributed to scheduler contention. It does not read Windows System events, diagnose outages, estimate billed/avoidable compute, dispatch work or change product release gates.
+
 ## Evidence links
 
 - [Owner HP research workflow](../.github/workflows/owner-hp-seeded-2p-research.yml), source-guarded main-only caller.

@@ -11,14 +11,24 @@ import json
 from pathlib import Path
 import numpy as np
 import trimesh
-from tools.art.glb_roundtrip_guard import geometry_signature
-from tools.art.rounded_fork_clearance_review import (
-    STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256, rounded_fork_source
-)
-from tools.art.verify_collar_transition_review import (
-    EXPECTED, PART_COUNTS, lateral_reflection_error,
-    silver_post_cross_section_centers,
-)
+try:
+    from tools.art.glb_roundtrip_guard import geometry_signature
+    from tools.art.rounded_fork_clearance_review import (
+        STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256, rounded_fork_source
+    )
+    from tools.art.verify_collar_transition_review import (
+        EXPECTED, PART_COUNTS, lateral_reflection_error,
+        silver_post_cross_section_centers,
+    )
+except ModuleNotFoundError:
+    from glb_roundtrip_guard import geometry_signature
+    from rounded_fork_clearance_review import (
+        STRAIGHT_SOURCE_SHA256, PROPOSED_SOURCE_SHA256, rounded_fork_source
+    )
+    from verify_collar_transition_review import (
+        EXPECTED, PART_COUNTS, lateral_reflection_error,
+        silver_post_cross_section_centers,
+    )
 
 BLUE_FRAME_NODE="fork_and_frame__material_0"
 

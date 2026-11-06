@@ -75,9 +75,17 @@ def silver_post_cross_section_centers(candidate_scene):
     for height in (1.90, 2.10):
         cross = geometry.section(
             plane_origin=[0, 0, height], plane_normal=[0, 0, 1])
-        if cross is None or len(cross.discrete) != 1:
+        # A single source-authored tube yields one ordered Line entity.
+        # Avoid trimesh.path.Path.discrete: it requires optional networkx
+        # that the existing lean model-export virtualenv does not install.
+        if cross is None or len(cross.entities) != 1:
             raise ValueError("one exposed silver post cross-section required")
-        ring = np.asarray(cross.discrete[0], dtype=float)
+        indices = np.asarray(cross.entities[0].points, dtype=int)
+        points = np.asarray(cross.vertices, dtype=float)
+        if (len(indices) < 5 or indices[0] != indices[-1]
+                or np.any(indices < 0) or np.any(indices >= len(points))):
+            raise ValueError("closed ordered silver post edge loop required")
+        ring = points[indices]
         if (ring.ndim != 2 or ring.shape[1] != 3 or len(ring) < 5
                 or not np.isfinite(ring).all()
                 or not np.allclose(ring[0], ring[-1], rtol=0, atol=1e-7)):

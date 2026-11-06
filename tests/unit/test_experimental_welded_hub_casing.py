@@ -63,7 +63,8 @@ class WeldedSourceDarkHubTopologyTests(unittest.TestCase):
         self.assertTrue(shape.is_watertight)
         self.assertTrue(shape.is_winding_consistent)
         self.assertEqual(shape.euler_number,2)
-        self.assertEqual(len(shape.split(only_watertight=True)),1)
+        # Full connectivity, one shell and reverse winding are independently
+        # checked without optional NetworkX in assert_closed_positive_one_solid.
         self.assertAlmostEqual(shape.volume,assert_closed_positive_one_solid(vertices,faces),places=9)
 
 if __name__=="__main__":

@@ -21,6 +21,19 @@ Requires the existing optional NumPy/Trimesh authoring dependencies; no new work
 
 **Physical-clearance limitation and owner decision (November 6):** The existing [one-piece candidate](../../welded_hub_review.py) and in-browser `welded` selector both prove a **watertight replacement material shell**, not a non-intersecting five-part assembly. On the actual source GLB, a local VTK signed-distance sample found 54/8,822 original coloured-fork samples already inside the tire; the same 8,822 fork samples inside dark hub increased from 808 (old sleeve) to 1,685 (welded case). The hub and tire showed zero inside samples with their unchanged world transforms. Those counts are sampling evidence, not exact Boolean intersection volumes; axle/case/frame interfaces may be intentional connections that need proper merging, rather than forbidden touch. Both variants remain unapproved. Human side/front/three-quarter/ride review must choose whether the new visual mass is worthwhile *before* redesigning the mount; no numerical score or mere manifold certificate awards a 1994 likeness or clearance gate.
 
+## Owner-approved direction: focused collar study (2026-11-06)
+
+The owner considers the unapproved five-part 2026 rig a reasonable foundation and its saddle already close. Retain **thin spokes**. Reject the oversized asymmetric welded hub as a design choice; its legacy selector is retained only for historical comparison. Aim for lateral symmetry of the wheel/frame/hub in a head-on view, aside from opposite linked pedals/cranks. The first new sculpt should define the **coloured frame collar and exposed bare-metal saddle rod**, followed by more rounded fork/frame mass. Use authentic retained promotional art for surfaces and finish. Plan all pedalling, balance, saddle-flex, jump, flip and twist families without pretending original 1994 3D timings have been recovered.
+
+The existing canonical SCAD is left untouched pending visual evaluation. Produce a **single-source** candidate with:
+
+```sh
+python3 tools/art/collar_transition_review.py tools/art/candidates/unicycle_shared_rig.scad /tmp/ur-collar-study.scad
+python3 tools/art/export_articulated_unicycle.py /tmp/ur-collar-study.scad /tmp/ur-collar-study-export --rig-pose upright
+```
+
+The *existing* PR Visual Atlas real-model job also exports source and collar GLBs and uses [the independent real GLB checker](../verify_collar_transition_review.py), which checks all 12 non-frame materials' oriented geometry fingerprints, material identities and all five pivots. Load the actual candidate and baseline GLBs locally in the existing viewer. A source-locked candidate is an **unapproved** art proposal, not a default model, a new rig, a new Pages site, or a recovered original asset.
+
 ## Launch
 
 Serve this directory over HTTP (for example `python3 -m http.server 8000 --directory tools/art/model-review`). The viewer also accepts a local .glb upload entirely within the browser. Browser import-map support and internet access to pinned Three.js 0.170.0 CDN modules are required. Pin and vendor these dependencies for offline use before a release-quality publication. No ROM input is needed.

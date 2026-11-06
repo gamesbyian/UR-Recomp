@@ -4,6 +4,10 @@
 
 The [collective qualification proposal](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) describes optional shared-test integration without assigning permanent specializations. Its [installed prompt snapshot](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md) reflects a live scheduler readback; no proposed amendments have been installed. This board continues to decide each run's actual work.
 
+## Daily engineering progress estimation handoff (November 6 proposal)
+
+The [daily progress and remaining-work estimation plan](progress/DAILY-ENGINEERING-PROGRESS-ESTIMATION-PLAN-20261106.md) describes how the project should make a **fresh on-demand engineering estimate even when the formal 135-criterion audit trails newer main**. It is a **proposal** and does not change the five agents' schedule, rank order, release acceptance authority, or the installed task prompts. During ordinary PR/issue handoffs, attach a short note when a real player-facing deliverable, verified intermediate subtask, causal discovery, regression or independently qualified criterion changes: work ID/criterion, bounded result, evidence, what remains, and the expected direction of remaining effort (or `not measured`). A CI-only or research-only PR earns no automatic product completion. Avoid new repeated expensive tests or documents just to feed an estimator. Existing queue and release authority remain controlling.
+
 ## Five identical workers, staggered starts
 
 | Scheduled agent | Start minute | Selection pool | Only hard constraints |

@@ -728,10 +728,18 @@ try{
      throw Error('source axle-locked housing phase not coupled to existing crank and named pose: '+activePose+' measured '+axleDegrees+' expected '+expectedDegrees);
    if(rotatingAtPhase.equals(lockedAtPhase))
      throw Error('axle-locked hub and wheel-rotating hub did not differ at a genuine wheel phase');
-   if(!await setHubFace('original'))throw Error('original GLB hub cannot restore from axle-locked view');
+   if(!await setHubFace('welded'))throw Error('one source 2026 physical welded hub mode unavailable');
+   const weldedAtPhase=await capture();
+   const weldedVertices=await evaluate("document.querySelector('[name=source-hub-count]')?.value||document.getElementById('hubFaceStatus').dataset.mode");
+   if(weldedVertices!=='welded')
+     throw Error('source 2026 welded mode did not select actual geometry');
+   if(weldedAtPhase.equals(originalAtPhase))
+     throw Error('one 2026 physical welded housing did not render');
+   if(!await setHubFace('original'))throw Error('original GLB hub cannot restore from welded view');
    const restoredPhase=await capture();
    if(!originalAtPhase.equals(restoredPhase))
-     throw Error('axle-locked cover lost exact same-pose source GLB framebuffer restoration');
+     throw Error('source 2026 welded housing failed exact in-memory rollback');
+   writeFileSync(join(out,'model-review-hub-welded-45deg-412.png'),weldedAtPhase);
    writeFileSync(join(out,'model-review-hub-cover-rotating-45deg-412.png'),rotatingAtPhase);
    writeFileSync(join(out,'model-review-hub-cover-axle-locked-45deg-412.png'),lockedAtPhase);
    await evaluate("window.__urArt4kVisualReadback.resume()");

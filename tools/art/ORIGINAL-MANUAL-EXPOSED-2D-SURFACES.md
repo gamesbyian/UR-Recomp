@@ -6,6 +6,8 @@ The original full-PDF SHA is `50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc20
 
 Add an **optional** `visible_surface_regions` collection, with at most eight **simple** polygons of 3–24 actual visible image-plane points per figure, human-readable original print appearance/occlusion notes, independent genuine source crop SHA and explicit `original_3d_part_identity_verified: false` and `entire_original_3d_surface_visible: false`. The report computes only the **visible printed 2D polygon area** and its 2D bounds in square printed scan pixels. It refuses out-of-crop or self-crossing polygons, repeated points, duplicate IDs, degenerate areas, or statements implying the original historical part or camera was recovered. The existing seven group-level part observations and their unmeasurable reasons remain required **unchanged**, and prior no-polygon original-image reports reproduce byte-for-byte in semantics. A polygon can supply legitimate evidence when all seven *whole* part groups are hidden, with no physically imaginary wheel diameter or part ownership.
 
+The source report is **durably retained** in `analysis/data/racer-original-manual-exposed-surface-pdf-verified-20261105.json` and the on-demand workflow recomputes it from real PDF RGB source bytes, requiring exact deep JSON equality before publishing its short-lived artifact.
+
 The actual visually reviewed first polygon examples live in `analysis/data/racer-original-manual-exposed-structural-surfaces-20261105.json`:
 
 - Near-front p14: a small turquoise bridge-like **visible patch** between original printed dark legs, polygon area ~**2,134 px²**, ±9px point uncertainty. It is NOT a measured full original 1994 fork or crown mesh.

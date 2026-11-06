@@ -11,6 +11,7 @@ from tools.art.extract_manual_3d_reference_views import SOURCE, extract
 
 ROOT=Path(__file__).resolve().parents[2]
 INPUT=ROOT/"analysis/data/racer-original-manual-exposed-structural-surfaces-20261105.json"
+FROZEN=ROOT/"analysis/data/racer-original-manual-exposed-surface-pdf-verified-20261105.json"
 PDF_SHA="50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235"
 REGIONS={
  "p14-twist-fork-front":("cfbbc7b3e3cd1e3786897eba580bffec2ee9ceec268bcf4cdb4b5b6e30f4642b",
@@ -26,6 +27,11 @@ class OriginalPrintExposedSurfaceTests(unittest.TestCase):
         self.assertEqual(source["schema"],"UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D/1")
         self.assertEqual(source["source_pdf_sha256"],PDF_SHA)
         self.assertEqual(len(source["annotations"]),2)
+        numerical=json.loads(FROZEN.read_text(encoding="utf-8"))
+        self.assertEqual(numerical["authenticated_source_pdf_sha256"],PDF_SHA)
+        self.assertEqual(numerical["reviewed_print_figure_count"],2)
+        self.assertFalse(numerical["three_dimensional_source_geometry_calibrated"])
+        self.assertFalse(numerical["shipping_art_approved"])
         seen=set()
         for row in source["annotations"]:
             name=row["reference_id"]
@@ -62,6 +68,8 @@ class OriginalPrintExposedSurfaceTests(unittest.TestCase):
             self.assertEqual(receipt["source_pdf_sha256"],PDF_SHA)
             report=measure(json.loads(INPUT.read_text(encoding="utf-8")),folder,original)
             self.assertEqual(report["reviewed_print_figure_count"],2)
+            self.assertEqual(report,json.loads(FROZEN.read_text(encoding="utf-8")),
+                "original 1994 PDF and observed partial source surface 2D report drifted")
             for row in report["observations"]:
                 expected=REGIONS[row["reference_id"]]
                 self.assertEqual(row["crop_png_sha256"],expected[0])

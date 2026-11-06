@@ -16,6 +16,7 @@ on:
       - analysis/data/racer-original-manual-fork-clamp-pdf-verified-20261105.json
       - tests/unit/test_original_manual_fork_clamp_2d.py
       - analysis/data/racer-original-manual-exposed-structural-surfaces-20261105.json
+      - analysis/data/racer-original-manual-exposed-surface-pdf-verified-20261105.json
       - tests/unit/test_original_manual_exposed_surface_polygons.py
       - tests/unit/test_manual_visible_surface_regions.py
 
@@ -164,6 +165,8 @@ jobs:
           from pathlib import Path
           result=json.loads(Path("art4k-original-manual-crop-evidence/p14-p15-exposed-surface-observations-2d.json").read_text(encoding="utf-8"))
           assert result["reviewed_print_figure_count"]==2
+          frozen=json.loads(Path("analysis/data/racer-original-manual-exposed-surface-pdf-verified-20261105.json").read_text(encoding="utf-8"))
+          assert result==frozen, "original printed source-PDF RGB replay changed frozen partial surface measurements"
           assert not result["three_dimensional_source_geometry_calibrated"]
           assert not result["owner_character_likeness_approved"]
           assert not result["shipping_art_approved"]

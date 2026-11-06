@@ -84,9 +84,9 @@ For prioritization, the larger observed cancelled **step-duration** buckets were
 
 The full evidence, individual job-name breakdown and limitations were also recorded in [P3 discussion](https://github.com/gamesbyian/UR-Recomp/pull/3156#issuecomment-6670947983). This report establishes the observational baseline and nothing about individual-source acceptance, Windows PE/ZIP identity, HP PR-code authorization or measured recoverable compute.
 
-## P3 source-methodology correction: schema 4 (qualification pending)
+## P3 source-methodology correction: schema 4 (merged and live-verified)
 
-An independent source inspection of P3 head `ff3553f8a1b1853cdc6948b1a97aa4b144e62c1b` identified three incomplete-evidence cases that were not covered by the earlier green hosted tests. The proposed schema **4** correction and new synthetic negatives make the manual collector refuse or separately count them:
+An independent source inspection of P3 head `ff3553f8a1b1853cdc6948b1a97aa4b144e62c1b` identified three incomplete-evidence cases not covered by the earlier green hosted tests. The subsequent reviewed schema **4** correction and negative controls made the manual collector refuse or separately count them. That final source merged via [PR #3156](https://github.com/gamesbyian/UR-Recomp/pull/3156) at `6543dc19eb351ea8c0c0bc9c3a9b4d1467e1a0d3` after exact-head [full tooling #42172618663](https://github.com/gamesbyian/UR-Recomp/actions/runs/42172618663) (7,209 discovered tests, 119 reported skips, all four shards green) and [hygiene #42172618702](https://github.com/gamesbyian/UR-Recomp/actions/runs/42172618702):
 
 1. A job with `completed_at` but **no `started_at`** now increments a distinct `missing_starts` counter rather than disappearing into the unstarted-job category. Both timestamps absent still mean no started interval was observed; it is never proof of zero actual resource use.
 2. A step whose timestamps fall outside the parent job or overlap an earlier accepted step is now counted as an invalid step interval and **excluded** from the sum of valid step durations. One-sided step timestamps are also counted as incomplete evidence. The first-step gap only uses valid retained steps.
@@ -94,7 +94,25 @@ An independent source inspection of P3 head `ff3553f8a1b1853cdc6948b1a97aa4b144e
 
 The source changes are **not** a retroactive remeasurement. Retain the original **605.63 observed GitHub job-interval minutes** and the later **494.22 recorded-step minutes** as their own historical source populations and earlier counting rules. A future schema-4 collector result must be labelled with its **new retrieval date**, attempt policy, schema, exact fixed UTC window, missing/invalid evidence counters and tested source SHA. A changed step total after excluding out-of-job or overlapping intervals is a *methodology correction*, not a measured resource saving.
 
-Independent follow-up review of the corrected exact PR SHA and the usual complete hosted unit/hygiene checks remain required before merging this collector. This does not relax P1 whole-tree trust, Windows/native packaging acceptance or HP unmerged-code restrictions.
+A separate review execution and exact-head hosted unit/hygiene checks were completed before merging; the [technical review](https://github.com/gamesbyian/UR-Recomp/pull/3156#issuecomment-6681146682) was not a GitHub second-account `APPROVED` review. No P1 whole-tree trust, Windows/native packaging acceptance or HP unmerged-code restrictions were relaxed.
+## First live source-verified schema-4 observation (November 6 UTC)
+
+The reviewed collector was fetched by immutable **merged-main** commit `6543dc19eb351ea8c0c0bc9c3a9b4d1467e1a0d3`, checked against Git blob `d4520a7d449839047d9bf587ba248b7f323e79c4` using `git hash-object`, and executed manually with the HP's existing GitHub CLI authentication. Its temporary source copy was removed after the successful read-only run (`P3_COLLECTOR_EXIT=0`, 166.84s). It selected the *same* frozen source-run creation interval `2026-10-29T08:14:05Z..2026-11-05T08:14:05Z` and explicit `--attempts latest`, without dispatches, system changes or product code execution.
+
+| Workflow | Cancelled runs | Valid GitHub job intervals (min) | Schema-4 valid step durations (min) | Invalid step spans | Jobs with valid step evidence |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Tooling | 308 | 295.02 | 219.10 | 144 | 185 |
+| Hygiene | 164 | 67.23 | 31.12 | 15 | 103 |
+| Visual Atlas | 66 | 88.85 | 71.05 | 74 | 103 |
+| Windows candidate | 36 | 111.15 | 107.08 | 0 | 30 |
+| Windows native | 8 | 43.38 | 42.97 | 0 | 8 |
+| HP research | 0 | 0.00 | 0.00 | 0 | 0 |
+| **Total** | **582** | **605.63** | **471.32** | **233** | **429** |
+
+Total workflows considered: **2,810**. Job intervals: **704** valid, **114** inverted (tooling), with zero missing starts/completions in the inspected sample. The earliest original historical run snapshot included **583 cancelled** because Visual Atlas then showed 67; the later snapshot and schema 4 each found 582. All three source readings report the same **605.63 valid GitHub job-interval minutes**. The older v2 step reading found **494.22** minutes but permitted step spans now rejected as outside their parent job or overlapping, leaving **471.32** in schema 4, a **22.90-minute methodological exclusion**. It is not actual compute saved, a drop in billing, a more efficient build, or evidence of causal improvement.
+
+Pre-first-valid-step gaps across the six workflow groups total about **6.54 minutes** among jobs with suitable step evidence. They are not a general queue-time adjustment, and recorded steps do not prove active CPU. The first complete schema-4 live source/limits receipt is preserved [on P3 #3156](https://github.com/gamesbyian/UR-Recomp/pull/3156#issuecomment-6681288435). These historical comparisons should be retained rather than silently rewriting earlier values.
+
 ## Reproducibility and decision rules
 
 1. Obtain each workflow's exact seven-day `total_count`. For large workflows, separately read `GET /repos/gamesbyian/UR-Recomp/actions/workflows/{workflow_id}/runs?created=2026-10-29T08:14:05Z..2026-11-05T08:14:05Z&status=cancelled&per_page=100&page=N`, advancing pages until the filtered `total_count` is retrieved. Read additional `status=success`, `failure`, `skipped`, `in_progress`, etc. counts to reconcile outcome totals; do not treat an unfiltered 1,000-row sample as complete.

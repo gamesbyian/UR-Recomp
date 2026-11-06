@@ -20,6 +20,12 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
         self.assertIn("Upper-shape preview unavailable:",page)
         self.assertIn("No original 1994 speed or saddle stroke law recovered.",page)
         self.assertIn("min-height:44px",page)
+        self.assertIn('id="bladeSpokes"',page)
+        self.assertIn('id="bladeSpokesStatus"',page)
+        self.assertIn("broadenOriginal2026Spoke",page)
+        self.assertIn("restoreBladeSpokes();restoreUpperShape()",page)
+        self.assertIn("pos.count!==SOURCE_2026_SPOKE_VERTICES",page)
+        self.assertIn("SOURCE_2026_BLADE_MODES.includes(mode)",page)
         self.assertIn("Original 1994 sprite",page)
         for marker in (
             '<option value="saddle-narrow">Saddle contour 10% narrower</option>',
@@ -63,6 +69,14 @@ class AuthoredUpperShapeViewerTests(unittest.TestCase):
         for filename in ("tools/windows_visual_atlas.py","tools/art/model-review/stage_pages.py"):
             source=(ROOT/filename).read_text(encoding="utf-8")
             self.assertIn("authored_upper_shape_controls.mjs",source)
+            self.assertIn("source_spoke_blade_view.mjs",source)
+
+    @unittest.skipUnless(shutil.which("node"),"node not available")
+    def test_real_source_wheel_spoke_blade_python_and_js_shape_match(self):
+        proc=subprocess.run(["node","--test",
+            "tools/art/model-review/test_source_spoke_blade_view.mjs"],
+            cwd=ROOT,text=True,capture_output=True,timeout=20)
+        self.assertEqual(proc.returncode,0,proc.stdout+proc.stderr)
 
     @unittest.skipUnless(shutil.which("node"),"node not available")
     def test_frozen_source_authored_3d_interventions(self):

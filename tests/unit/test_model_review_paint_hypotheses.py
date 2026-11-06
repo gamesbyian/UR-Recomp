@@ -21,9 +21,9 @@ class ModelReviewPaintHypothesesTests(unittest.TestCase):
             "updatePaintHypothesisStatus(origin)",
         ):
             self.assertIn(marker,html)
-        self.assertIn("function clear(){if(current){restoreUpperShape();restorePaintMaterials();",html)
+        self.assertIn("function clear(){if(current){restoreBladeSpokes();restoreUpperShape();restorePaintMaterials();",html)
         self.assertIn("paintMode='original';paintState=null",html)
-        self.assertIn("restoreUpperShape();restorePaintMaterials();restoreModelColourway();scene.remove(current)",html)
+        self.assertIn("restoreBladeSpokes();restoreUpperShape();restorePaintMaterials();restoreModelColourway();scene.remove(current)",html)
 
     def test_recolor_only_clone_material_not_source_vertex_or_geometry(self):
         html=(ROOT/"tools/art/model-review/index.html").read_text()

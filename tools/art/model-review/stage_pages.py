@@ -76,7 +76,7 @@ def stage(exports, site, source_commit):
         if (target.is_symlink() or not target.is_dir() or
                 not {"index.html", "manifest.json"}.issubset({p.name for p in target.iterdir()}) or
                 not {p.name for p in target.iterdir()}.issubset(
-                    {"index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs", "authored_upper_shape_controls.mjs", "manual_view_directions.mjs", "manual_landmark_marking.mjs", "manual-landmarks.html", "original-mesen24", "original-index-lookup.json", "sprites", "sprites.json"}) or
+                    {"index.html", "manifest.json", "measurement_overlay.mjs", "wheel_hypothesis.mjs", "root_lean_hypothesis.mjs", "frame_hinge_hypothesis.mjs", "direct_drive_hypothesis.mjs", "index_overlay.mjs", "original_mesen24_rail.mjs", "authored_upper_shape_controls.mjs", "manual_view_directions.mjs", "manual_landmark_marking.mjs", "manual-landmarks.html", "source_spoke_blade_view.mjs", "original-mesen24", "original-index-lookup.json", "sprites", "sprites.json"}) or
                 not manifest_path.is_file() or manifest_path.is_symlink() or
                 json.loads(manifest_path.read_text()).get("model_url") is not None):
             raise ValueError("refusing to replace a non-placeholder model-review site")
@@ -104,6 +104,7 @@ def stage(exports, site, source_commit):
         shutil.copy2(here / "manual_view_directions.mjs", work / "manual_view_directions.mjs")
         shutil.copy2(here / "manual_landmark_marking.mjs", work / "manual_landmark_marking.mjs")
         shutil.copy2(here / "manual-landmarks.html", work / "manual-landmarks.html")
+        shutil.copy2(here / "source_spoke_blade_view.mjs", work / "source_spoke_blade_view.mjs")
         shutil.copy2(here.parents[2] / "analysis/data/racer-original-index-lookup-20261102.json", work / "original-index-lookup.json")
         # Preserve the independently SHA-authenticated 24-tick original source
         # rail when replacing the same Pages route with opt-in model GLBs.

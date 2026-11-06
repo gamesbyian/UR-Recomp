@@ -1,0 +1,222 @@
+import importlib.util
+import pathlib
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+SCRIPT = pathlib.Path(__file__).resolve().parents[2] / 'tools/art/scad_materials.py'
+spec = importlib.util.spec_from_file_location('scad_materials', SCRIPT)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+SOURCE = '''
+rig_color=is_undef(rig_color)?[0.11,0.35,0.87]:rig_color;
+module helper() { color([0.9,0.1,0.1]) sphere(0.4); }
+module fork() { color(rig_color) cube(1); helper(); }
+module tire() { color([0.1,0.1,0.1]) cylinder(r=1,h=1); }
+'''
+
+class CsgSafety(unittest.TestCase):
+    def test_mixed_material_subtraction_rejected(self):
+        bad = SOURCE.replace('module fork() { color(rig_color) cube(1); helper(); }',
+                             'module fork() { difference(){ color(rig_color) cube(1); helper(); } }')
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'fork')
+
+    def test_reachable_helper_intersection_rejected(self):
+        bad = SOURCE.replace('module helper() { color([0.9,0.1,0.1]) sphere(0.4); }',
+                             'module helper() { intersection(){ color([0.9,0.1,0.1]) sphere(0.4); cube(1); } }')
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'fork')
+
+    def test_unrelated_csg_does_not_block_source_part(self):
+        source = SOURCE + '\nmodule unused() { difference(){ cube(2); cube(1); } }\n'
+        self.assertEqual(module.materials_for_part(source, 'tire'), [(26,26,26,255)])
+
+    def test_cross_color_hull_rejected(self):
+        bad = SOURCE.replace('color(rig_color) cube(1); helper();',
+                             'hull(){ color(rig_color) cube(1); color([0.9,0.1,0.1]) sphere(0.4); }')
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'fork')
+
+    def test_cross_color_minkowski_rejected(self):
+        bad = SOURCE.replace('color(rig_color) cube(1); helper();',
+                             'minkowski(){ color(rig_color) cube(1); color([0.9,0.1,0.1]) sphere(0.4); }')
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'fork')
+
+    def test_cross_color_hull_via_helper_modules_rejected(self):
+        bad = SOURCE.replace('color(rig_color) cube(1); helper();',
+                             'hull(){ helper(); other(); }') + '\nmodule other(){ color(rig_color) cube(1); }\n'
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'fork')
+
+    def test_single_color_hull_remains_supported(self):
+        good = SOURCE.replace('color(rig_color) cube(1); helper();',
+                              'hull(){ color(rig_color) cube(1); color(rig_color) sphere(0.4); } helper();')
+        self.assertEqual(len(module.materials_for_part(good, 'fork')), 2)
+
+    def test_unreachable_cross_color_hull_does_not_block_part(self):
+        source = SOURCE + '\nmodule unused(){ hull(){ color(rig_color) cube(1); color([0.9,0.1,0.1]) sphere(1); } }\n'
+        self.assertEqual(module.materials_for_part(source, 'tire'), [(26,26,26,255)])
+
+    def test_outer_color_with_inner_mixed_hull_rejected(self):
+        # Both exported material passes would be nonempty, but the bridge is lost.
+        bad = SOURCE + """
+module bad() {
+  color([1,0,0]) hull() {
+    sphere(r=1,$fn=48);
+    color([0,0,1]) translate([5,0,0]) sphere(r=1,$fn=48);
+  }
+  color([0,0,1]) translate([0,3,0]) cube(1);
+}
+"""
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'bad')
+
+    def test_outer_color_with_inner_mixed_minkowski_rejected(self):
+        bad = SOURCE + """
+module bad() {
+  color([1,0,0]) minkowski() {
+    cube(2);
+    color([0,0,1]) sphere(1);
+  }
+}
+"""
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'bad')
+
+    def test_braced_outer_color_with_inner_mixed_hull_rejected(self):
+        bad = SOURCE + """
+module bad() {
+  color([1,0,0]) {
+    cube(1);
+    hull() { sphere(1); color([0,0,1]) translate([3,0,0]) sphere(1); }
+  }
+}
+"""
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'bad')
+
+    def test_outer_color_propagates_to_called_helper_csg(self):
+        bad = SOURCE + """
+module bridge() { hull() { sphere(1); color([0,0,1]) translate([3,0,0]) sphere(1); } }
+module bad() { color([1,0,0]) bridge(); }
+"""
+        with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+            module.materials_for_part(bad, 'bad')
+
+    def test_same_color_enclosing_hull_still_supported(self):
+        good = SOURCE + """
+module good() {
+  color([1,0,0]) hull() { sphere(1); color([1,0,0]) translate([3,0,0]) sphere(1); }
+}
+"""
+        self.assertEqual(module.materials_for_part(good, 'good'), [(255,0,0,255)])
+
+    def test_finished_sibling_color_does_not_enclose_hull(self):
+        good = SOURCE + """
+module good() {
+  color([1,0,0]) cube(1);
+  hull() { color([0,0,1]) sphere(1); color([0,0,1]) translate([3,0,0]) sphere(1); }
+}
+"""
+        self.assertEqual(set(module.materials_for_part(good, 'good')),
+                         {(255,0,0,255), (0,0,255,255)})
+
+    def test_nested_different_colors_fail_closed_even_without_csg(self):
+        # Both independent material passes suppress the inner sphere.
+        for geometry in (
+            'color([1,0,0]) { color([0,0,1]) sphere(1); }',
+            'color([1,0,0]) color([0,0,1]) sphere(1);',
+            'color([1,0,0]) translate([0,0,0]) { color([0,0,1]) sphere(1); }',
+        ):
+            with self.subTest(geometry=geometry):
+                source = SOURCE + '\nmodule nested(){' + geometry + '}\n'
+                with self.assertRaisesRegex(ValueError, 'nested OpenSCAD color'):
+                    module.materials_for_part(source, 'nested')
+
+    def test_nested_color_override_through_called_helper_fails_closed(self):
+        source = SOURCE + '''
+module blue_helper() { color([0,0,1]) sphere(1); }
+module nested() { color([1,0,0]) blue_helper(); }
+'''
+        with self.assertRaisesRegex(ValueError, 'nested OpenSCAD color'):
+            module.materials_for_part(source, 'nested')
+
+    def test_same_color_nesting_and_separate_siblings_remain_supported(self):
+        source = SOURCE + '''
+module same() { color([1,0,0]) { color([1,0,0]) sphere(1); } }
+module siblings() { color([1,0,0]) sphere(1); color([0,0,1]) translate([3,0,0]) sphere(1); }
+'''
+        self.assertEqual(module.materials_for_part(source, 'same'), [(255,0,0,255)])
+        self.assertEqual(set(module.materials_for_part(source, 'siblings')),
+                         {(255,0,0,255), (0,0,255,255)})
+
+    def test_real_openscad_nested_color_override_would_erase_geometry(self):
+        if not shutil.which('openscad'):
+            self.skipTest('OpenSCAD unavailable')
+        source = SOURCE + '''
+module nested() { color([1,0,0]) { color([0,0,1]) sphere(1,$fn=24); } }
+nested();
+'''
+        with self.assertRaisesRegex(ValueError, 'nested OpenSCAD color'):
+            module.materials_for_part(source, 'nested')
+        with tempfile.TemporaryDirectory() as tmp:
+            for label, content in (
+                ('whole', source),
+                ('outer', module.material_pass_source(source, (255,0,0,255))),
+                ('inner', module.material_pass_source(source, (0,0,255,255))),
+            ):
+                scad = pathlib.Path(tmp) / (label + '.scad')
+                stl = pathlib.Path(tmp) / (label + '.stl')
+                scad.write_text(content, encoding='utf-8')
+                run = subprocess.run(['openscad','-o',str(stl),str(scad)],
+                                     capture_output=True, text=True, timeout=30)
+                if label == 'whole':
+                    self.assertEqual(run.returncode, 0, run.stderr)
+                    self.assertTrue(stl.is_file())
+                else:
+                    self.assertNotEqual(run.returncode, 0, 'split pass should be empty')
+                    self.assertFalse(stl.is_file())
+
+    def test_real_openscad_cross_color_csg_loses_volume_when_split(self):
+        if not shutil.which('openscad'):
+            self.skipTest('OpenSCAD unavailable')
+        try:
+            import trimesh
+        except ImportError:
+            self.skipTest('trimesh unavailable')
+        cases = {
+            'hull': ('color([1,0,0])translate([-3,0,0])sphere(1,$fn=24);'
+                     'color([0,0,1])translate([3,0,0])sphere(1,$fn=24);'),
+            'minkowski': ('color([1,0,0])cube([2,2,2],center=true);'
+                          'color([0,0,1])sphere(1,$fn=20);'),
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            for operator, children in cases.items():
+                with self.subTest(operator=operator):
+                    source = SOURCE + f'\nmodule bad(){{{operator}(){{{children}}}}}\nbad();\n'
+                    with self.assertRaisesRegex(ValueError, 'whole-part material equivalence'):
+                        module.materials_for_part(source, 'bad')
+                    volumes = []
+                    for label, text in (
+                        ('whole', source),
+                        ('red', module.material_pass_source(source, (255, 0, 0, 255))),
+                        ('blue', module.material_pass_source(source, (0, 0, 255, 255))),
+                    ):
+                        scad = pathlib.Path(tmp) / f'{operator}-{label}.scad'
+                        stl = pathlib.Path(tmp) / f'{operator}-{label}.stl'
+                        scad.write_text(text, encoding='utf-8')
+                        run = subprocess.run(['openscad', '-o', str(stl), str(scad)],
+                                             capture_output=True, text=True, timeout=30)
+                        self.assertEqual(run.returncode, 0, run.stderr)
+                        volumes.append(abs(trimesh.load(stl, force='mesh').volume))
+                    self.assertGreater(volumes[0], volumes[1] + volumes[2] + 1.0)
+
+    def test_current_additive_hull_and_minkowski_remain_supported(self):
+        source = SOURCE.replace('cube(1); helper();',
+                                'hull(){ cube(1); sphere(0.1); } helper();')
+        self.assertEqual(len(module.materials_for_part(source, 'fork')), 2)
+
+if __name__ == '__main__': unittest.main()

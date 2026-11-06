@@ -19,6 +19,8 @@ on:
       - "tools/art/model-review/**"
       - "tools/art/collar_transition_review.py"
       - "tools/art/verify_collar_transition_review.py"
+      - "tools/art/rounded_fork_clearance_review.py"
+      - "tools/art/verify_rounded_fork_clearance_review.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
       - "tools/art/racer_source_pixels.py"
       - "analysis/data/racer-hd-replacement-prototype.json"
@@ -186,6 +188,41 @@ jobs:
         with:
           name: ur-owner-saddle-collar-unapproved-review
           path: ${{ runner.temp }}/collar-review/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Compare rounded fork against source-verified straight collar and sampled tire clearance
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/rounded-fork-review"
+          python3 tools/art/rounded_fork_clearance_review.py \
+            tools/art/candidates/unicycle_shared_rig.scad \
+            "$RUNNER_TEMP/rounded-fork-review/rounded.scad"
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/export_articulated_unicycle.py \
+            "$RUNNER_TEMP/rounded-fork-review/rounded.scad" \
+            "$RUNNER_TEMP/rounded-fork-review/export" --rig-pose upright --timeout 120 \
+            > "$RUNNER_TEMP/rounded-fork-review/export-result.json"
+          python3 - <<'PY'
+          import os,json,pathlib,shutil
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])
+          src=root/"rounded-fork-review/export"
+          ptr=json.loads((src/"articulated_blockout_current.json").read_text())
+          last=json.loads((src/"articulated_blockout_last_attempt.json").read_text())
+          assert last["status"]=="succeeded" and ptr["attempt_id"]==last["attempt_id"]
+          target=root/"rounded-fork-review/rounded.glb"
+          shutil.copyfile(src/ptr["glb_path"],target)
+          PY
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_rounded_fork_clearance_review.py \
+            --baseline-scad tools/art/candidates/unicycle_shared_rig.scad \
+            --rounded-scad "$RUNNER_TEMP/rounded-fork-review/rounded.scad" \
+            --straight-glb "$RUNNER_TEMP/collar-review/collar.glb" \
+            --rounded-glb "$RUNNER_TEMP/rounded-fork-review/rounded.glb" \
+            --out "$RUNNER_TEMP/rounded-fork-review/physical-clearance-report.json"
+      - name: Preserve one rounded 2026 fork candidate for visual review (not approved or default)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-rounded-fork-crown-unapproved-review
+          path: ${{ runner.temp }}/rounded-fork-review/
           if-no-files-found: warn
           retention-days: 14
       - uses: actions/setup-node@v4

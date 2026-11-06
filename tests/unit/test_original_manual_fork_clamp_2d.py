@@ -12,6 +12,7 @@ from tools.art.extract_manual_3d_reference_views import SOURCE, extract
 ROOT=Path(__file__).resolve().parents[2]
 OBSERVED=ROOT/"analysis/data/racer-original-manual-fork-clamp-image-traces-20261105.json"
 PREVIOUS=ROOT/"analysis/data/racer-original-manual-saddle-estimates-20261105.json"
+QUALIFIED=ROOT/"analysis/data/racer-original-manual-fork-clamp-pdf-verified-20261105.json"
 PDF_SHA="50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235"
 KNOWN={
     "p14-twist-fork-front": {
@@ -35,6 +36,11 @@ class PrintedOriginalForkClampObservationsTests(unittest.TestCase):
         self.assertEqual(d["schema"],"UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D/1")
         self.assertEqual(d["source_pdf_sha256"],PDF_SHA)
         self.assertEqual(len(d["annotations"]),2)
+        frozen=json.loads(QUALIFIED.read_text(encoding="utf-8"))
+        self.assertEqual(frozen["authenticated_source_pdf_sha256"],PDF_SHA)
+        self.assertEqual(frozen["reviewed_print_figure_count"],2)
+        self.assertFalse(frozen["three_dimensional_source_geometry_calibrated"])
+        self.assertFalse(frozen["shipping_art_approved"])
         existing=json.loads(PREVIOUS.read_text(encoding="utf-8"))
         orig={r["reference_id"]:r for r in existing["annotations"]}
         for r in d["annotations"]:
@@ -72,6 +78,7 @@ class PrintedOriginalForkClampObservationsTests(unittest.TestCase):
             reviewed=measure(json.loads(OBSERVED.read_text(encoding="utf-8")),
                              cropped,original)
             self.assertEqual(reviewed["reviewed_print_figure_count"],2)
+            self.assertEqual(reviewed,json.loads(QUALIFIED.read_text(encoding="utf-8")), "real original 1994 printed PDF RGB re-render or frozen 2D evidence drift")
             self.assertFalse(reviewed["three_dimensional_source_geometry_calibrated"])
             self.assertFalse(reviewed["owner_character_likeness_approved"])
             self.assertFalse(reviewed["shipping_art_approved"])

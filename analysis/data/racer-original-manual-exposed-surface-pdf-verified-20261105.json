@@ -1,0 +1,214 @@
+{
+  "schema": "UR-ART4K-OFFICIAL-MANUAL-SPARSE-2D-REPORT/1",
+  "authenticated_source_pdf_sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235",
+  "authenticated_pdf_git_blob_sha1": "a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3",
+  "reviewed_print_figure_count": 2,
+  "observations": [
+    {
+      "reference_id": "p14-twist-fork-front",
+      "source_original_print_page": 14,
+      "crop_png_sha256": "cfbbc7b3e3cd1e3786897eba580bffec2ee9ceec268bcf4cdb4b5b6e30f4642b",
+      "crop_dimensions_pixels": [
+        358,
+        369
+      ],
+      "view_approximation": "front",
+      "original_print_pixel_aspect": "square",
+      "annotator": "GPT-6 1994 printed surface visible-pixel trace; not independently artist reviewed",
+      "pixel_uncertainty": 9,
+      "perspective_and_occlusion_notes": "Original p14 near-frontal illustration has an exposed cyan bridge between the dark vertical legs. This is a visible coloured patch outline only, with no original 1994 source GLB geometry, camera, complete fork or hub inferred.",
+      "visible_points": {
+        "saddle": {
+          "saddle_left": [
+            72,
+            53
+          ],
+          "saddle_right": [
+            226,
+            53
+          ],
+          "saddle_top": [
+            185,
+            29
+          ],
+          "saddle_bottom": [
+            142,
+            95
+          ]
+        }
+      },
+      "unmeasurable": {
+        "wheel": "wheel is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "hub": "hub is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "crown": "crown is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "fork": "fork is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "clamp": "clamp is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "crank": "crank is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced"
+      },
+      "projected_pixel_distances": {
+        "saddle": {
+          "width_px": 154,
+          "height_px": 66
+        }
+      },
+      "projected_ratios_only_if_whole_wheel_visible": {
+        "saddle": {
+          "width_over_projected_wheel_diameter": null,
+          "height_over_projected_wheel_diameter": null
+        }
+      },
+      "historical_1994_3d_camera_calibrated": false,
+      "original_source_mesh_dimensions_recovered": false,
+      "visible_surface_regions": [
+        {
+          "region_id": "cyan-fork-bridge-exposed",
+          "visible_appearance_notes": "Exposed turquoise curved printed bridge between two darker fork-like regions",
+          "cutoff_or_occlusion_notes": "Purple and green track overlaps and hidden wheel obscure its true continuation and surface backside",
+          "visible_polygon_xy": [
+            [
+              133,
+              173
+            ],
+            [
+              185,
+              174
+            ],
+            [
+              196,
+              186
+            ],
+            [
+              194,
+              207
+            ],
+            [
+              135,
+              209
+            ],
+            [
+              129,
+              190
+            ]
+          ],
+          "projected_visible_2d_area_px2": 2134,
+          "projected_bounds_xyxy": [
+            129,
+            173,
+            196,
+            209
+          ],
+          "original_3d_part_identity_verified": false,
+          "entire_original_3d_surface_visible": false,
+          "original_production_camera_calibrated": false
+        }
+      ]
+    },
+    {
+      "reference_id": "p15-mega-underside",
+      "source_original_print_page": 15,
+      "crop_png_sha256": "4c9242a0126891a2d6a6e8f574eec4179c4cdbcd30cb34a1cdff8589e9290d22",
+      "crop_dimensions_pixels": [
+        900,
+        1151
+      ],
+      "view_approximation": "three-quarter",
+      "original_print_pixel_aspect": "square",
+      "annotator": "GPT-6 1994 printed surface visible-pixel trace; not independently artist reviewed",
+      "pixel_uncertainty": 24,
+      "perspective_and_occlusion_notes": "Original p15 oversized oblique print exposes a large near-side dark casing face but other physical hub volume is behind rim, spokes and fork. The polygon is a projected visible fragment only; source production part identity, camera and unexposed surface are all unknown.",
+      "visible_points": {
+        "saddle": {
+          "saddle_left": [
+            501,
+            165
+          ],
+          "saddle_right": [
+            819,
+            229
+          ],
+          "saddle_top": [
+            564,
+            34
+          ],
+          "saddle_bottom": [
+            655,
+            307
+          ]
+        }
+      },
+      "unmeasurable": {
+        "wheel": "wheel is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "hub": "hub is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "crown": "crown is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "fork": "fork is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "clamp": "clamp is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced",
+        "crank": "crank is not fully visible as a distinct bounded 1994 printed part because of occluded or composited surface boundaries; only a partial 2D surface polygon is traced"
+      },
+      "projected_pixel_distances": {
+        "saddle": {
+          "width_px": 318,
+          "height_px": 273
+        }
+      },
+      "projected_ratios_only_if_whole_wheel_visible": {
+        "saddle": {
+          "width_over_projected_wheel_diameter": null,
+          "height_over_projected_wheel_diameter": null
+        }
+      },
+      "historical_1994_3d_camera_calibrated": false,
+      "original_source_mesh_dimensions_recovered": false,
+      "visible_surface_regions": [
+        {
+          "region_id": "dark-near-hub-housing-face",
+          "visible_appearance_notes": "Dark front polygonal printed casing patch between metallic wheel supports and crank axle",
+          "cutoff_or_occlusion_notes": "Tire, turquoise fork stem and cranks hide the far-side casing and much of its outer boundaries; only exposed dark face is traced",
+          "visible_polygon_xy": [
+            [
+              548,
+              500
+            ],
+            [
+              686,
+              495
+            ],
+            [
+              720,
+              535
+            ],
+            [
+              736,
+              677
+            ],
+            [
+              709,
+              701
+            ],
+            [
+              560,
+              710
+            ],
+            [
+              544,
+              572
+            ]
+          ],
+          "projected_visible_2d_area_px2": 35973.5,
+          "projected_bounds_xyxy": [
+            544,
+            495,
+            736,
+            710
+          ],
+          "original_3d_part_identity_verified": false,
+          "entire_original_3d_surface_visible": false,
+          "original_production_camera_calibrated": false
+        }
+      ]
+    }
+  ],
+  "print_observations_are_independent_original_game_3d_views": false,
+  "three_dimensional_source_geometry_calibrated": false,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false
+}

@@ -1,0 +1,157 @@
+{
+  "schema": "UR-ART4K-ORIGINAL-MESEN24-2026-HUB-COVER-QUALIFIED-SCORES/1",
+  "repository": "gamesbyian/UR-Recomp",
+  "qualified_experimental_PR": 3185,
+  "qualified_experimental_branch_head": "3cd01574f4cb65acc92e2f0a8a9588faae56f15f",
+  "merged_experimental_stack_commit": "719e46c726e3fdab73d0c04fc728a726dd6a566d",
+  "source_qualified_ci_run_id": 42162100681,
+  "source_qualified_job_id": 127710388527,
+  "source_artifact_id": 13477622595,
+  "source_artifact_outer_zip_sha256": "b4223869c2ec569867df58416a2f2b3050f1ee12aae7eddcca7c095400842693",
+  "source_original_full_report_member": "real-model-evidence/original-all24-saddle-only-generalization.json",
+  "source_original_full_report_sha256": "8531418406006a447fbf8a0e234bdf2fe393587cd87c56fc35c53f458c00a747",
+  "source_verified_2026_GLB_sha256": "bc917b6a9d00f851b02bc6efe70cfeee145154a9c9b0da936220cc20f8ff3c71",
+  "source_original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_original_no_skip_Mesen24_zip_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+  "source_2026_authored_SCAD_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+  "source_provisional_7_6_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+  "frozen_historical_original_28_control_certificate_git_blob_sha1": "8257e87d070758136b4b8a67f36db636eaa08902",
+  "same_original_source_2d_null_and_same_drive_controls_reproduced_exactly": true,
+  "source_original_1994_production_3D_geometry_or_camera_recovered": false,
+  "source_original_manual_print_is_partly_occluded_2D_only": true,
+  "authored_hub_shell_2026_new_vertices": 16,
+  "authored_hub_shell_2026_new_triangles": 28,
+  "two_closed_overlapping_model_solids_not_boolean_fused": true,
+  "owner_character_likeness_approved": false,
+  "shipping_art_approved": false,
+  "retrospective_2D_source_not_prospective_blind_3D_holdout": true,
+  "original_Mesen24_racer_roles": [
+    "blue",
+    "red"
+  ],
+  "original_source_tick_count_per_role": 24,
+  "original_true_motion_edges_per_role": 23,
+  "metric_names": [
+    "source_frame_pooled_alpha_iou",
+    "source_unique_shape_equal_vote_mean_alpha_iou",
+    "source_actual_23_consecutive_edge_change_pooled_iou"
+  ],
+  "measured_original_source_role_results": {
+    "blue": {
+      "unique_original_64px_binary_shapes": 19,
+      "original_consecutive_frames": 24,
+      "original_true_adjacent_edges": 23,
+      "modes": {
+        "rom_phase_15deg": {
+          "unchanged_glb_control": {
+            "source_frame_pooled_alpha_iou": 0.56757653,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.57006528,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.13202247
+          },
+          "physical_dark_hub_candidate": {
+            "source_frame_pooled_alpha_iou": 0.58449851,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58595129,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.14199396
+          },
+          "signed_hub_minus_control_delta": {
+            "source_frame_pooled_alpha_iou": 0.01692198,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.01588601,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.00997149
+          }
+        },
+        "fixed_tick_24deg": {
+          "unchanged_glb_control": {
+            "source_frame_pooled_alpha_iou": 0.56870778,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.5709925,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.16134061
+          },
+          "physical_dark_hub_candidate": {
+            "source_frame_pooled_alpha_iou": 0.58718429,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58885246,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.17647059
+          },
+          "signed_hub_minus_control_delta": {
+            "source_frame_pooled_alpha_iou": 0.01847651,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.01785996,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.01512998
+          }
+        }
+      }
+    },
+    "red": {
+      "unique_original_64px_binary_shapes": 23,
+      "original_consecutive_frames": 24,
+      "original_true_adjacent_edges": 23,
+      "modes": {
+        "rom_phase_15deg": {
+          "unchanged_glb_control": {
+            "source_frame_pooled_alpha_iou": 0.58549568,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58761115,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.17943262
+          },
+          "physical_dark_hub_candidate": {
+            "source_frame_pooled_alpha_iou": 0.60110314,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.6034064,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.17766911
+          },
+          "signed_hub_minus_control_delta": {
+            "source_frame_pooled_alpha_iou": 0.01560746,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.01579525,
+            "source_actual_23_consecutive_edge_change_pooled_iou": -0.00176351
+          }
+        },
+        "fixed_tick_24deg": {
+          "unchanged_glb_control": {
+            "source_frame_pooled_alpha_iou": 0.58471835,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.58663941,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.15871833
+          },
+          "physical_dark_hub_candidate": {
+            "source_frame_pooled_alpha_iou": 0.59986692,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.60185905,
+            "source_actual_23_consecutive_edge_change_pooled_iou": 0.14596003
+          },
+          "signed_hub_minus_control_delta": {
+            "source_frame_pooled_alpha_iou": 0.01514857,
+            "source_unique_shape_equal_vote_mean_alpha_iou": 0.01521964,
+            "source_actual_23_consecutive_edge_change_pooled_iou": -0.0127583
+          }
+        }
+      }
+    }
+  },
+  "old_real_2026_GLB_arms": 27,
+  "new_hub_cover_2026_GLB_arms": 2,
+  "combined_real_2026_GLB_arms": 29,
+  "six_objectives_in_order": [
+    "blue:source_frame_pooled_alpha_iou",
+    "blue:source_unique_shape_equal_vote_mean_alpha_iou",
+    "blue:source_actual_23_consecutive_edge_change_pooled_iou",
+    "red:source_frame_pooled_alpha_iou",
+    "red:source_unique_shape_equal_vote_mean_alpha_iou",
+    "red:source_actual_23_consecutive_edge_change_pooled_iou"
+  ],
+  "six_objective_strict_unweighted_2026_GLB_pareto_nondominated_names": [
+    "axle_root_fork_crown_full110_fixed_tick_24deg",
+    "axle_root_fork_crown_full110_rom_phase_15deg",
+    "axle_root_hub_cover_fixed_tick_24deg",
+    "axle_root_hub_cover_rom_phase_15deg",
+    "axle_root_saddle_cup_soft008_fixed_tick_24deg",
+    "axle_root_saddle_cup_soft008_rom_phase_15deg",
+    "axle_root_saddle_slide_down012_rom_phase_15deg",
+    "axle_root_saddle_slide_up012_fixed_tick_24deg",
+    "axle_root_saddle_slide_up012_rom_phase_15deg",
+    "axle_root_saddle_span110_fixed_tick_24deg",
+    "axle_root_saddle_span110_rom_phase_15deg",
+    "axle_root_saddle_world_level_fixed_tick_24deg",
+    "axle_root_saddle_world_level_rom_phase_15deg",
+    "axle_root_upper_stretch096_fixed_tick_24deg",
+    "axle_root_upper_stretch096_rom_phase_15deg",
+    "axle_root_upper_stretch104_fixed_tick_24deg",
+    "axle_root_upper_stretch104_rom_phase_15deg"
+  ],
+  "both_hub_cover_candidates_nondominated_among_29": true,
+  "both_hub_cover_candidates_have_red_original_motion_regression": true,
+  "neither_hub_cover_candidate_strictly_dominates_own_same_drive_control": true,
+  "conclusion": "Both new experimental 2026 dark-hub physical-shell variants improve both racers static silhouettes and blue motion, but worsen red true 23-edge motion. Both are strictly six-objective nondominated among 29 retrospective source-registered 2026 GLB arms. No original 1994 production 3D recovery, owner artwork approval, or shipping promotion."
+}

@@ -1,0 +1,35 @@
+[Launcher] ROM: D:\a\UR-Recomp\UR-Recomp\reference\roms\retail\Uniracers_USA.sfc
+[Keybinds] Wrote keybinds.ini
+[snes_load] name=UNIRACERS             coproc=0 chips=2 maker=01 -> cartType=1
+UR_DISPLAY vsync panel_hz=64.000 guest_hz=60.0988 wait=setting
+[Gamepad] SDL reports 0 joystick(s). enable_gamepad=[1,1]
+[Gamepad] No joysticks detected. On Windows, plug controller in BEFORE launching, or check that XInput drivers are installed.
+UR_DISPLAY placement saved=1 display=HyperVMonitor
+
+[host +0.000s] host_report: Uniracers 0.1.0
+[Launcher] Config/saves anchored to 'D:\a\_temp\atlas-motion\captures\URV-MD-010\probe_first\Fresh Modern Screenshot State'.
+UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1
+UR_BALDOSA_MODERN_ROOT options_boot row=DISPLAY display=WINDOWED vsync=ON volume=100 status=NONE help=0 load=missing
+UR_BALDOSA_MODERN_ROOT opened=1
+[host +0.001s] config parsed: output=0 new_renderer=0 scale=0 fullscreen=0 audio=0 freq=32040 samples=512
+[host +0.011s] rom resolved: D:\a\UR-Recomp\UR-Recomp\reference\roms\retail\Uniracers_USA.sfc
+[host +0.061s] SDL init ok: video=windows audio=dummy
+[host +0.062s] rom loaded: 2097152 bytes
+[host +0.073s] SnesInit: ok
+[host +0.110s] window created: 1280x720 flags=0x20
+[host +0.123s] renderer initialized: sdl
+[host +0.123s] audio disabled in config
+script: loaded 1 entries from 'D:\a\_temp\atlas-motion\captures\URV-MD-010\probe_first\stock-guest.route'
+[snes_rewind] 60 snapshots every 6 frames (6.0s of history)
+[host +0.124s] entering main loop
+UR_BALDOSA_GUEST_SNAPSHOT frame=1 p1=0x0000 p2=0x0000
+[host +0.126s] first frame simulated
+UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view
+UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared
+[snes_rewind] snapshot is 305603 bytes; ring is 17.5 MB
+UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=40 guest_frame=40 output=1280x720 source=SDL_RenderReadPixels backend=sdl3
+UR_BALDOSA_GUEST_SNAPSHOT frame=120 p1=0x0000 p2=0x0000
+UR_BALDOSA_GUEST_SNAPSHOT frame=480 p1=0x0000 p2=0x0000
+script f=480 quit
+[host +8.112s] exit: script quit after 480 frames
+[host +8.112s] video totals: simulations=480 presentations=480 seconds=7.988

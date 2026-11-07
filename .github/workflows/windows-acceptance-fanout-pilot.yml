@@ -97,6 +97,7 @@ jobs:
           GROUP: ${{ matrix.group }}
           # Only the independent group owns the 13th (Practice) script.
           # Do not alter its original Bash source, 13 scripts or assertions.
+          UR_PRACTICE_SELECTED_WORKERS: ${{ inputs.practice_case_workers || '1' }}
           UR_PRACTICE_CASE_WORKERS: ${{ matrix.group == 'independent' && inputs.practice_case_workers || '1' }}
         run: |
           set -euo pipefail

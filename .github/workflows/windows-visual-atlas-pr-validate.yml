@@ -23,6 +23,10 @@ on:
       - "tools/art/verify_rounded_fork_clearance_review.py"
       - "tools/art/pedal_axle_clearance_review.py"
       - "tools/art/verify_pedal_axle_clearance_review.py"
+      - "tools/art/rotating_axle_bearing_review.py"
+      - "tools/art/verify_rotating_axle_bearing_review.py"
+      - "tests/unit/test_rotating_axle_bearing_review.py"
+      - "tests/unit/test_verify_rotating_axle_bearing_review.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
       - "tools/art/racer_source_pixels.py"
       - "analysis/data/racer-hd-replacement-prototype.json"
@@ -276,6 +280,37 @@ jobs:
             --old-glb "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.glb" \
             --mirrored-glb "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.glb" \
             --out "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/physical-report.json"
+          # Correct source-only 2026 shaft parent semantics, retaining the
+          # owner's wider+mirrored optional sculpt. One additional candidate
+          # GLB in the EXISTING OpenSCAD review job, not a new runner or
+          # shipped art. Both blue lower legs and silver fixed sleeve gain
+          # a through-bore; silver drive shaft joins the rotating crank parent.
+          mkdir -p "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle"
+          python3 tools/art/rotating_axle_bearing_review.py \
+            tools/art/candidates/unicycle_shared_rig.scad \
+            "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/candidate.scad"
+          "$RUNNER_TEMP/rig-venv/bin/python" -m unittest tests.unit.test_verify_rotating_axle_bearing_review
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/export_articulated_unicycle.py \
+            "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/candidate.scad" \
+            "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/export" \
+            --rig-pose upright --timeout 120 \
+            > "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/export-result.json"
+          python3 - <<'PY'
+          import json,os,pathlib,shutil
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"rounded-fork-review/owner-rotating-axle"
+          source=root/"export"
+          pointer=json.loads((source/"articulated_blockout_current.json").read_text())
+          attempt=json.loads((source/"articulated_blockout_last_attempt.json").read_text())
+          assert attempt["status"]=="succeeded" and pointer["attempt_id"]==attempt["attempt_id"]
+          shutil.copyfile(source/pointer["glb_path"],root/"candidate.glb")
+          PY
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_rotating_axle_bearing_review.py \
+            --canonical-source tools/art/candidates/unicycle_shared_rig.scad \
+            --owner-source "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.scad" \
+            --candidate-source "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/candidate.scad" \
+            --owner-glb "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.glb" \
+            --candidate-glb "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/candidate.glb" \
+            --out "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/physical-report.json"
           # Reuse the five real source GLBs already exported above; no extra
           # OpenSCAD exports or new runner. The repaired source patch leaves
           # the global pose formula/pivots alone; verify rigid transport,

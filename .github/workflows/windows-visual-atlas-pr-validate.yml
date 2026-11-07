@@ -82,6 +82,8 @@ jobs:
           python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-site"
           node --check tools/visual_atlas_web/browser-smoke.mjs
           node --check tools/art/model-review/browser-smoke.mjs
+          node --check tools/art/model-review/pedal_level_motion.mjs
+          node tools/art/model-review/pedal_level_motion.test.mjs
       - name: Exercise 320–1440px layouts, real DOM interactions and screenshot both surfaces
         run: |
           set -euo pipefail
@@ -271,6 +273,7 @@ jobs:
           CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME_BIN"
           export CHROME_BIN
+          node tools/art/model-review/pedal_level_motion.test.mjs
           UR_MODEL_SMOKE_REAL=1 node tools/art/model-review/browser-smoke.mjs \
             "$RUNNER_TEMP/real-model-site" "$RUNNER_TEMP/real-model-evidence"
       - name: Summarize exact art provenance without approval

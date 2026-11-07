@@ -1,14 +1,26 @@
 """ROM-free mathematical guards for the actual five-source-GLB pedal census."""
 import unittest
-import numpy as np
-import trimesh
 
-from tools.art.verify_source_pedal_pose_sweep import (
-    bidirectional_nearest, rigid_crank_cloud, sided_cloud,
-    translated_platform, verify_source_pedalling,
-)
+# The general tooling suite intentionally stays dependency-free. Run the same
+# full, unskipped checks inside the already-installed OpenSCAD rig venv, where
+# all real GLBs are also available. Never silently replace these libraries
+# with mocked geometry or relax the actual source/mesh assertions.
+try:
+    import numpy as np
+    import scipy
+    import trimesh
+except ModuleNotFoundError:
+    np = scipy = trimesh = None
+
+if np is not None and scipy is not None and trimesh is not None:
+    from tools.art.verify_source_pedal_pose_sweep import (
+        bidirectional_nearest, rigid_crank_cloud, sided_cloud,
+        translated_platform, verify_source_pedalling,
+    )
 
 
+@unittest.skipUnless(np is not None and scipy is not None and trimesh is not None,
+                     "real-GLB unit cases require the isolated art rig dependencies")
 class FivePosePedalMathTests(unittest.TestCase):
     def fixture(self):
         vertices = np.array([

@@ -1660,6 +1660,11 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
                SNESREF_INPUT_FILE=str(source_input),
                SNESREF_TRACE_FILE=str(scan / "trace.jsonl"),
                SNESREF_DUMP_DIR=str(scan))
+    # RF095's exclusive frame map belongs to the paired replay, not this
+    # two-pass original-source scan. Both source passes share cwd=scan:
+    # inheriting SNESREF_PCM_FRAME_MAP makes the anchor rerun emit a false
+    # QA01RF095ORIG_OPEN_FAILED after the first pass created that file.
+    env.pop("SNESREF_PCM_FRAME_MAP", None)
     p = subprocess.run([str(args.snesref), str(args.core), str(args.rom)],
                        env=env, cwd=scan, capture_output=True, text=True,
                        timeout=900)

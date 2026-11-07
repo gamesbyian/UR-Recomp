@@ -256,6 +256,14 @@ jobs:
             --rounded-upright-glb "$RUNNER_TEMP/rounded-fork-review/rounded.glb" \
             --canonical-pose-exports-root "$RUNNER_TEMP/model-exports" \
             --out "$RUNNER_TEMP/rounded-fork-review/five-pose-transport-report.json"
+          # Reuse the five SOURCE-2026 real GLBs above. This distinct receipt
+          # proves the viewer's two moving platforms are translated rather
+          # than rigidly spun, while recording OpenSCAD rod faceting drift.
+          "$RUNNER_TEMP/rig-venv/bin/python" -m unittest tests.unit.test_source_pedal_pose_sweep
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_source_pedal_pose_sweep.py \
+            --canonical-source tools/art/candidates/unicycle_shared_rig.scad \
+            --source-pose-exports-root "$RUNNER_TEMP/model-exports" \
+            --out "$RUNNER_TEMP/rounded-fork-review/source-pedal-five-pose-report.json"
       - name: Preserve one rounded 2026 fork candidate for visual review (not approved or default)
         if: always()
         uses: actions/upload-artifact@v4

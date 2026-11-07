@@ -37,9 +37,9 @@ class MirroredOutboardTreadTests(unittest.TestCase):
             old = center-.124
             new = center + (-.124 if center >= 0 else .124)
             if center > 0:
-                self.assertEqual(new,old)
+                self.assertAlmostEqual(new,old,places=12)
             else:
-                self.assertEqual(new,-(.56-.124))
+                self.assertAlmostEqual(new,-(.56-.124),places=12)
         self.assertEqual(.56-.124,.436)
 
     def test_source_drift_no_overwrite_and_immutable_candidate(self):

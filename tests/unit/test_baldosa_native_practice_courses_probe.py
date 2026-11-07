@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import struct
 import sys
+import tempfile
+import threading
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "native"))
@@ -120,6 +123,75 @@ class PracticeCoursesProbeTests(unittest.TestCase):
                     good(1) + "UR_BALDOSA_NATIVE_PAUSE FAIL=x\n"):
             with self.assertRaises(ValueError):
                 probe.verify_pause_options(bad, 1)
+
+    def test_parallel_course_workers_preserve_all_ten_real_process_calls(self):
+        # Synthetic subprocess seam; no Windows game/ROM execution in this
+        # unit. A Barrier proves both selected course cases run concurrently
+        # while restart and both paused-Options routes remain separate.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            exe = root / "candidate.exe"
+            rom = root / "rom.sfc"
+            exe.write_bytes(b"fake-exe")
+            rom.write_bytes(b"fake-rom")
+            started = threading.Barrier(2, timeout=4)
+            guard = threading.Lock()
+            seen = []
+            def fake_run_native(exe_arg, rom_arg, user, work, steps, video, timeout, extra_env=None):
+                work.mkdir(parents=True, exist_ok=False)
+                with guard:
+                    seen.append((user.name, work.name, steps, extra_env))
+                    ordinal = len(seen)
+                if ordinal <= 2:
+                    started.wait()
+                if work.name.startswith("pause-options-"):
+                    (work / "config.ini").write_text("[Sound]\\nVolume = 90\\n")
+                return "synthetic-output"
+            with mock.patch.object(probe, "sha256", return_value=probe.USA_SHA256), \
+                 mock.patch.object(probe, "run_native", side_effect=fake_run_native), \
+                 mock.patch.object(probe, "verify_case"), \
+                 mock.patch.object(probe, "verify_restart"), \
+                 mock.patch.object(probe, "verify_pause_options"):
+                result = probe.run(exe, rom, root / "out", timeout=20,
+                                   video="dummy", case_workers=2)
+            self.assertEqual(result["experimental_practice_case_workers"], 2)
+            self.assertEqual(result["courses_admitted"], 10)
+            self.assertEqual([x["case"] for x in result["cases"]],
+                             [x[0] for x in probe.TIER0] + [x[0] for x in probe.TIER2])
+            self.assertEqual(len(seen), 13)
+            self.assertEqual(len({x[0] for x in seen}), 13)
+            self.assertEqual(len({x[1] for x in seen}), 13)
+            self.assertEqual(sum(x[3] is not None for x in seen), 3)
+            self.assertFalse(any((root / "out").rglob("*.urrun")))
+
+    def test_worker_parameter_rejects_unsafe_values_before_source_io(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for invalid in (0, 3, True, -1, "2", None):
+                with self.subTest(invalid=invalid), self.assertRaisesRegex(ValueError, "worker count"):
+                    probe.run(root / "missing.exe", root / "missing-rom",
+                              root / "no-output", timeout=1, video="dummy",
+                              case_workers=invalid)
+            self.assertFalse((root / "no-output").exists())
+
+    def test_parallel_case_failure_never_emits_success_report(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            exe, rom = root / "exe", root / "rom"
+            exe.write_bytes(b"fake-exe")
+            rom.write_bytes(b"fake-rom")
+            def broken_native(exe_arg, rom_arg, user, work, steps, video, timeout, extra_env=None):
+                work.mkdir(parents=True, exist_ok=False)
+                if "bowl_stunt" in work.name:
+                    raise RuntimeError("synthetic native process failed")
+                return "synthetic-output"
+            with mock.patch.object(probe, "sha256", return_value=probe.USA_SHA256), \
+                 mock.patch.object(probe, "run_native", side_effect=broken_native), \
+                 mock.patch.object(probe, "verify_case"):
+                with self.assertRaisesRegex(RuntimeError, "synthetic native process failed"):
+                    probe.run(exe, rom, root / "out", timeout=20,
+                              video="dummy", case_workers=2)
+            self.assertFalse((root / "out" / "report.json").exists())
 
     def test_claims_no_hardware_or_release_credit(self):
         text = Path(probe.__file__).read_text()

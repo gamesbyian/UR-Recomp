@@ -12,6 +12,12 @@ on:
         required: false
         default: ""
         type: string
+      practice_case_workers:
+        description: "EXPERIMENTAL: isolated Practice course process workers (1 keeps all original serial behavior)"
+        required: true
+        type: choice
+        options: ["1", "2"]
+        default: "1"
 permissions:
   contents: read
   actions: read
@@ -89,6 +95,9 @@ jobs:
       - name: Execute original 13-journey group with fresh private storage
         env:
           GROUP: ${{ matrix.group }}
+          # Only the independent group owns the 13th (Practice) script.
+          # Do not alter its original Bash source, 13 scripts or assertions.
+          UR_PRACTICE_CASE_WORKERS: ${{ matrix.group == 'independent' && inputs.practice_case_workers || '1' }}
         run: |
           set -euo pipefail
           python tools/qa_windows_acceptance_fanout.py run \

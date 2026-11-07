@@ -9,7 +9,7 @@ except ModuleNotFoundError:
 
 if np is not None and trimesh is not None:
     from tools.art.verify_rotating_axle_bearing_review import (
-        projected_triangle_origin_radius,
+        projected_triangle_origin_radius, watertight_surface_component_count,
     )
 
 
@@ -39,6 +39,21 @@ class ShaftTriangleSurfaceTests(unittest.TestCase):
         points=np.array([[.08,0.,0.],[.08,1.,0.],[.08,2.,0.]])
         self.assertAlmostEqual(
             projected_triangle_origin_radius(points,[[0,1,2]]),.08)
+
+    def test_real_watertight_crank_shell_union_not_just_touching_solids(self):
+        shell=trimesh.creation.box(extents=(.1,.1,.4))
+        separate=shell.copy()
+        separate.apply_translation([0,.6,0])
+        disconnected=trimesh.util.concatenate((shell,separate))
+        self.assertTrue(disconnected.is_watertight)
+        self.assertEqual(watertight_surface_component_count(disconnected),2)
+        self.assertEqual(watertight_surface_component_count(shell),1)
+        # Opening one face makes a nominally connected shell physically
+        # invalid, even if its vertices remain visually close.
+        open_shell=trimesh.Trimesh(
+            vertices=shell.vertices, faces=shell.faces[:-1], process=False)
+        with self.assertRaisesRegex(ValueError,"watertight"):
+            watertight_surface_component_count(open_shell)
 
     def test_refuse_invalid_or_missing_source_surfaces(self):
         for vertices, faces in (

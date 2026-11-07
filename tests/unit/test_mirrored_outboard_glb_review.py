@@ -20,11 +20,10 @@ class MirroredTreadRealGeometryTests(unittest.TestCase):
         mesh=trimesh.Trimesh(vertices=points,
             faces=[[0,1,2],[3,5,4]],process=False)
         # At least 8 per side is required to rule out degenerate test meshes.
-        mesh=trimesh.util.concatenate([mesh,mesh.copy().apply_translation([0,0,0])])
         scene=trimesh.Scene()
         scene.add_geometry(mesh,geom_name="pedals__material_2")
         self.assertRaisesRegex(ValueError,"two opposite",bilateral_tread_report,scene)
-        
+
     def test_mirror_observation_and_nonmirror_control(self):
         points=[]
         for sign in (1,-1):

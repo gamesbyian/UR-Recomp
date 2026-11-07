@@ -16,8 +16,8 @@ _NUMBER = re.compile(r'\A\s*(?:\d+(?:\.\d*)?|\.\d+)\s*\Z')
 _RIG_DEFAULT = re.compile(
     r'\brig_color\s*=\s*is_undef\s*\(\s*rig_color\s*\)\s*\?\s*'
     r'(\[[^\[\]()]+\])\s*:\s*rig_color\s*;')
-# Subtractive CSG does not distribute across separately rendered color passes.
-# Until whole-part equivalence is checked, reject it in reachable modules.
+# Subtractive CSG is safe to extract ONLY as a completely single-colour,
+# braced, enveloped operation. Other CSG remains fail-closed.
 _UNSUPPORTED_CSG = re.compile(r'\b(?:difference|intersection|intersection_for)\s*\(')
 # Hull and Minkowski are additive but still do not distribute across
 # separately colored children. A single enclosing color is safe.
@@ -187,14 +187,35 @@ def materials_for_part(source: str, part: str, *,
             if len(effective) > 1:
                 raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
 
+    def guard_monochrome_difference(
+            body: str, name: str,
+            inherited: frozenset[tuple[int, int, int, int]]) -> None:
+        """Permit only braced, whole-operation single-colour difference.
+
+        The enclosing material decorator is replaced with if(true/false)
+        by material_pass_source, so one pass retains *both* source geometry
+        and its cutter, while every other pass suppresses the entire CSG.
+        A bare difference or a cross-colour Boolean is still unsafe.
+        """
+        for operator in _UNSUPPORTED_CSG.finditer(body):
+            if not operator.group(0).startswith("difference"):
+                raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
+            opening = body.find('{', operator.end())
+            if opening < 0 or body[operator.end():opening].strip() != ')':
+                raise ValueError('unbraced subtractive CSG cannot be material-extracted: ' + name)
+            closing = _body_end(body, opening)
+            child = body[opening+1:closing]
+            enclosing = enclosing_colors(body, operator.start()) | inherited
+            if len(enclosing) != 1 or not nested_colors(child, frozenset()).issubset(enclosing):
+                raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
+
     def visit(name, inherited=frozenset()):
         key = (name, inherited)
         if key in visited:
             return
         visited.add(key)
         body = modules[name]
-        if _UNSUPPORTED_CSG.search(body):
-            raise ValueError('non-distributive OpenSCAD CSG needs whole-part material equivalence: ' + name)
+        guard_monochrome_difference(body, name, inherited)
         guard_additive_csg(body, name, inherited)
         matches = list(_COLOR.finditer(body))
         if len(matches) != len(_ANY_COLOR.findall(body)):

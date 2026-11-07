@@ -8,13 +8,19 @@ The existing, reviewed manual collector `tools/ci/hp_research_delivery_census.py
 
 The collector verified the complete GitHub API inventory of one exact trusted-main research workflow (ID `402410752`), source SHA/attempt/event, all latest-job records and expected `hpmini-ur-recomp` runner identities, valid UTC job timestamps, no duplicate IDs, and an end-of-job re-read of the run population. It makes authenticated GitHub REST GET requests only. It did not dispatch a run, monitor the PC persistently, execute a game, alter a service or configure hardware.
 
+**November 7, 2026 independent correction: the seven-day interval total below is NOT fully validated.** An actual job/step GET of [research run #41286835360](https://github.com/gamesbyian/UR-Recomp/actions/runs/41286835360) (workflow `402410752`, job `124789740782`, November 1) found job start **07:57:43Z**, reported completion **09:10:52Z**, and actual final recorded Actions step completion **08:10:48Z**. The alleged interval is **4,389 seconds / 73m09s**; final-step evidence reaches **785 seconds / 13m05s** after the start, leaving **3,604 seconds / 60m04s** of unexplained job-end lag. The final-step endpoint is **a lower bound**, never an invented corrected job end.
+
+A separate read-only survey of all **six November 1 HP research runs** found final-step-to-job-end lags of **3, 4, 3, 4 and 3 seconds** for the other five; this one was **3,604 seconds**. Historical collector blob `3a9d8356ca2f53f2a29dfb3f176069883cd4afef` validated UTC order but did **not** compare job ends with final step completion. Its original **655.17-minute seven-day job-interval total** contains the bad 73m09s entry; its reported **6.50% occupancy** and **141.69-minute added October 30–November 1 interval subtotal** are consequently **UNTRUSTED**. Do not silently subtract a guessed hour and label the result a newly verified total. The **86-run count, 83/3 outcomes and recorded job-creation-to-start queues** are distinct data unaffected by this specific finish-time discrepancy; they still have the separately stated coverage limitations. The November 2–5 four-day window does not contain this November 1 anomaly, but its complete per-step end metadata has not been reaudited here. This is a *bounded six-run November 1 check*, not a new 86-job step-level audit.
+
+The [P5 fail-closed correction #3252](https://github.com/gamesbyian/UR-Recomp/pull/3252) now proposes to reject any job end more than ten minutes after or one minute before its last reported finished step, with source-linked offline regression controls. This is **proposed, not merged or executed on HP**; exact-head hosted validation and independent source review are separate from the historical discovery. No scheduler, runner, billing, physical QA or release evidence changed.
+
 ## Measured full-week results
 
 | Measure | Complete seven days | Meaning |
 | --- | ---: | --- |
 | Research workflow runs | **86** | 20 `schedule`, 66 `workflow_dispatch`; the latter does not identify its caller |
 | Outcomes | **83 success, 3 failure** | Complete latest-attempt outcome population; not all failures are the same cause |
-| Valid started/completed research job intervals | **655.17 minutes** | 6.50% of 10,080 calendar minutes, this one research workflow only |
+| Historical GitHub job intervals, **not fully trustworthy** | **655.17 minutes, UNTRUSTED** | Includes one known 3,604-second final-step/job-end discrepancy; the originally reported 6.50% calendar-window share is **not an accepted occupancy measurement** |
 | Total run-creation-to-job-start delay | **301.75 minutes** | Includes offline time and other causes, not necessarily blocked CPU |
 | Largest single queue | **291.61667 minutes** | [Scheduled run #41660067090](https://github.com/gamesbyian/UR-Recomp/actions/runs/41660067090), November 3 |
 | Other 85 queues combined | **10.13333 minutes** | Median/p90 queue both **0.06667 minutes** (about 4 seconds) |
@@ -22,7 +28,7 @@ The collector verified the complete GitHub API inventory of one exact trusted-ma
 
 **Actual UTC creation-day counts:** October 30 **0**, October 31 **3**, November 1 **6**, November 2 **17**, November 3 **18**, November 4 **21**, November 5 **21**. The October 30 zero count is *not* proof that the HP was off for that entire day; workflow setup, source eligibility, dispatch policy or other causes may explain it.
 
-The original separately measured **November 2–5** subset still exactly reconciles: **77 runs**, **14 schedule/63 dispatch**, **76 success/1 failure**, **513.48 job-interval minutes**, and **301.35 queue minutes**. The added October 30–November 1 portion consists of nine runs (six schedule, three dispatch), seven successes and two failures, **141.69** more observed job-interval minutes and only **0.40** more queue minutes, subject to displayed rounding. The change from four-day 8.91% to seven-day 6.50% is partly the larger period and sparse initial days, *not* demonstrated performance degradation.
+The original separately measured **November 2–5** subset still exactly reconciles: **77 runs**, **14 schedule/63 dispatch**, **76 success/1 failure**, **513.48 job-interval minutes**, and **301.35 queue minutes**. The added October 30–November 1 portion consists of nine runs (six schedule, three dispatch), seven successes and two failures, **141.69 untrusted** additional GitHub job-interval minutes and only **0.40** more queue minutes, subject to displayed rounding. The change from four-day 8.91% to seven-day 6.50% is partly the larger period and sparse initial days, *not* demonstrated performance degradation.
 
 ## Three failures: distinct classifications
 

@@ -1,0 +1,151 @@
+{
+  "schema": "UR-ART4K-AUTHENTIC-MESEN24-EDGE-COVERAGE/1",
+  "historical_original_and_real_glb_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41892738666",
+  "historical_witness_artifact_id": 13354178658,
+  "original_witness_json_sha256": "fbc5534aacaac13d3ab9eae3463853abe0009bf9c7ab56a87bf8968d4039e137",
+  "historical_2026_glb_sha256": "c8c4930825bb2d55bbbe0988862d826a3a46199f51e7741fd6e16b8e594cd65a",
+  "original_frames_per_player": 24,
+  "original_edges_per_player": 23,
+  "original_distinct_shapes": {
+    "blue": 19,
+    "red": 23
+  },
+  "roles_and_fixed_control_arms": {
+    "blue": {
+      "original_source_2d_rotation": {
+        "original_nonempty_edges": 23,
+        "predicted_nonempty_edges": 1,
+        "predicted_change_edge_ticks": [
+          [
+            1602,
+            1603
+          ]
+        ],
+        "original_changed_alpha_pixels": 660,
+        "predicted_changed_alpha_pixels": 101,
+        "matched_changed_alpha_pixels": 63,
+        "false_positive_changed_alpha_pixels": 38,
+        "unexplained_original_changed_alpha_pixels": 597,
+        "pooled_changed_alpha_iou": 0.09025788
+      },
+      "axle_root_saddle_neutral": {
+        "original_nonempty_edges": 23,
+        "predicted_nonempty_edges": 1,
+        "predicted_change_edge_ticks": [
+          [
+            1602,
+            1603
+          ]
+        ],
+        "original_changed_alpha_pixels": 660,
+        "predicted_changed_alpha_pixels": 93,
+        "matched_changed_alpha_pixels": 15,
+        "false_positive_changed_alpha_pixels": 78,
+        "unexplained_original_changed_alpha_pixels": 645,
+        "pooled_changed_alpha_iou": 0.0203252
+      },
+      "axle_root_saddle_plus15": {
+        "original_nonempty_edges": 23,
+        "predicted_nonempty_edges": 1,
+        "predicted_change_edge_ticks": [
+          [
+            1602,
+            1603
+          ]
+        ],
+        "original_changed_alpha_pixels": 660,
+        "predicted_changed_alpha_pixels": 87,
+        "matched_changed_alpha_pixels": 13,
+        "false_positive_changed_alpha_pixels": 74,
+        "unexplained_original_changed_alpha_pixels": 647,
+        "pooled_changed_alpha_iou": 0.01771117
+      },
+      "axle_root_saddle_minus15": {
+        "original_nonempty_edges": 23,
+        "predicted_nonempty_edges": 1,
+        "predicted_change_edge_ticks": [
+          [
+            1602,
+            1603
+          ]
+        ],
+        "original_changed_alpha_pixels": 660,
+        "predicted_changed_alpha_pixels": 90,
+        "matched_changed_alpha_pixels": 15,
+        "false_positive_changed_alpha_pixels": 75,
+        "unexplained_original_changed_alpha_pixels": 645,
+        "pooled_changed_alpha_iou": 0.02040816
+      }
+    },
+    "red": {
+      "original_source_2d_rotation": {
+        "original_nonempty_edges": 23,
+        "predicted_nonempty_edges": 1,
+        "predicted_change_edge_ticks": [
+          [
+            1605,
+            1606
+          ]
+        ],
+        "original_changed_alpha_pixels": 659,
+        "predicted_changed_alpha_pixels": 105,
+        "matched_changed_alpha_pixels": 73,
+        "false_positive_changed_alpha_pixels": 32,
+        "unexplained_original_changed_alpha_pixels": 586,
+        "pooled_changed_alpha_iou": 0.10564399
+      },
+      "axle_root_saddle_neutral": {
+        "original_nonempty_edges": 23,
+        "predicted_nonempty_edges": 1,
+        "predicted_change_edge_ticks": [
+          [
+            1605,
+            1606
+          ]
+        ],
+        "original_changed_alpha_pixels": 659,
+        "predicted_changed_alpha_pixels": 84,
+        "matched_changed_alpha_pixels": 13,
+        "false_positive_changed_alpha_pixels": 71,
+        "unexplained_original_changed_alpha_pixels": 646,
+        "pooled_changed_alpha_iou": 0.01780822
+      },
+      "axle_root_saddle_plus15": {
+        "original_nonempty_edges": 23,
+        "predicted_nonempty_edges": 1,
+        "predicted_change_edge_ticks": [
+          [
+            1605,
+            1606
+          ]
+        ],
+        "original_changed_alpha_pixels": 659,
+        "predicted_changed_alpha_pixels": 84,
+        "matched_changed_alpha_pixels": 12,
+        "false_positive_changed_alpha_pixels": 72,
+        "unexplained_original_changed_alpha_pixels": 647,
+        "pooled_changed_alpha_iou": 0.01641587
+      },
+      "axle_root_saddle_minus15": {
+        "original_nonempty_edges": 23,
+        "predicted_nonempty_edges": 1,
+        "predicted_change_edge_ticks": [
+          [
+            1605,
+            1606
+          ]
+        ],
+        "original_changed_alpha_pixels": 659,
+        "predicted_changed_alpha_pixels": 83,
+        "matched_changed_alpha_pixels": 13,
+        "false_positive_changed_alpha_pixels": 70,
+        "unexplained_original_changed_alpha_pixels": 646,
+        "pooled_changed_alpha_iou": 0.01783265
+      }
+    }
+  },
+  "orientation_only_controls_cover_all_source_edges": false,
+  "previous_owner_selected_wider_pedal_model_tested": false,
+  "original_1994_mechanics_recovered": false,
+  "shipping_art_approved": false
+}

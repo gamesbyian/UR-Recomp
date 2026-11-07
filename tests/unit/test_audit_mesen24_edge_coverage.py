@@ -117,6 +117,46 @@ class OriginalEdgeCoverageTests(unittest.TestCase):
             with self.subTest(label=label), self.assertRaises(ValueError):
                 analyze_witness(data)
 
+    def test_saved_recomputed_historical_edge_summary_is_complete(self):
+        path = (Path(__file__).resolve().parents[2] /
+                "analysis/data/racer-original-mesen24-sparse-edge-coverage-20261107.json")
+        result = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(result["original_witness_json_sha256"], WITNESS_SHA256)
+        self.assertEqual(result["historical_2026_glb_sha256"], WITNESS_GLB_SHA256)
+        self.assertEqual(result["original_frames_per_player"], 24)
+        self.assertEqual(result["original_edges_per_player"], 23)
+        self.assertFalse(result["orientation_only_controls_cover_all_source_edges"])
+        expected = {
+            "blue": {
+                "original_source_2d_rotation": (63, 38, 597),
+                "axle_root_saddle_neutral": (15, 78, 645),
+                "axle_root_saddle_plus15": (13, 74, 647),
+                "axle_root_saddle_minus15": (15, 75, 645),
+            },
+            "red": {
+                "original_source_2d_rotation": (73, 32, 586),
+                "axle_root_saddle_neutral": (13, 71, 646),
+                "axle_root_saddle_plus15": (12, 72, 647),
+                "axle_root_saddle_minus15": (13, 70, 646),
+            },
+        }
+        for role in ROLES:
+            self.assertEqual(set(result["roles_and_fixed_control_arms"][role]), set(ARMS))
+            for arm in ARMS:
+                v = result["roles_and_fixed_control_arms"][role][arm]
+                tp, fp, fn = expected[role][arm]
+                self.assertEqual(v["matched_changed_alpha_pixels"], tp)
+                self.assertEqual(v["false_positive_changed_alpha_pixels"], fp)
+                self.assertEqual(v["unexplained_original_changed_alpha_pixels"], fn)
+                self.assertEqual(v["original_changed_alpha_pixels"], tp + fn)
+                self.assertEqual(v["predicted_changed_alpha_pixels"], tp + fp)
+                self.assertEqual(v["original_nonempty_edges"], 23)
+                self.assertEqual(v["predicted_nonempty_edges"], 1)
+                self.assertEqual(v["pooled_changed_alpha_iou"], iou(tp, fp, fn))
+                self.assertEqual(
+                    v["predicted_change_edge_ticks"],
+                    [[1602, 1603]] if role == "blue" else [[1605, 1606]])
+
     def test_actual_artifact_pin_blocks_arbitrary_zip_substitution(self):
         self.assertEqual(len(WITNESS_SHA256), 64)
         data = example()

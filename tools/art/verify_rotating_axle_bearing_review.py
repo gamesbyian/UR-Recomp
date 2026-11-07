@@ -72,8 +72,12 @@ def projected_triangle_origin_radius(vertices, faces):
         cross(c - b, -b),
         cross(a - c, -c),
     ), axis=1)
-    contains_origin = ((signed >= -1e-12).all(axis=1)
-                       | (signed <= 1e-12).all(axis=1))
+    # Collinear XZ projections have no interior area; test their segments,
+    # never declare the axle covered merely because all cross signs are 0.
+    nondegenerate = np.abs(cross(b - a, c - a)) > 1e-12
+    contains_origin = (nondegenerate
+                       & ((signed >= -1e-12).all(axis=1)
+                          | (signed <= 1e-12).all(axis=1)))
     min_squared = np.full(len(triangles), np.inf, dtype=np.float64)
     for start, finish in ((a, b), (b, c), (c, a)):
         edge = finish - start

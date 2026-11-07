@@ -40,7 +40,7 @@ class MirroredOutboardTreadTests(unittest.TestCase):
                 self.assertAlmostEqual(new,old,places=12)
             else:
                 self.assertAlmostEqual(new,-(.56-.124),places=12)
-        self.assertEqual(.56-.124,.436)
+        self.assertAlmostEqual(.56-.124,.436,places=12)
 
     def test_source_drift_no_overwrite_and_immutable_candidate(self):
         original=CANON.read_bytes()

@@ -144,6 +144,59 @@ class CancelledRunnerSampleTests(unittest.TestCase):
         self.assertEqual(result["verified_job_censuses"], 0)
         self.assertIn("UNKNOWN", result["unknown_censuses"][0]["reason"])
 
+
+    def test_missing_or_mismatched_job_total_never_claims_complete(self):
+        runs = [{"id": 77, "name": "Partial", "conclusion": "cancelled"}]
+        valid = make_job("2026-10-21T08:00:00Z", "2026-10-21T08:01:00Z")
+        for count in (None, "1", False, -1, 0, 2):
+            with self.subTest(count=count):
+                response = {"jobs": [valid]}
+                if count is not None:
+                    response["total_count"] = count
+                result = sample_cancelled_jobs(
+                    lambda _: response, "/repos/gamesbyian/UR-Recomp", runs)
+                self.assertEqual(result["verified_job_censuses"], 0)
+                self.assertEqual(result["observed_runner_seconds"], 0)
+                self.assertEqual(len(result["unknown_censuses"]), 1)
+        good = sample_cancelled_jobs(
+            lambda _: {"total_count": 1, "jobs": [valid]},
+            "/repos/gamesbyian/UR-Recomp", runs)
+        self.assertEqual(good["verified_job_censuses"], 1)
+        self.assertEqual(good["observed_runner_seconds"], 60)
+
+    def test_untrusted_job_end_relative_to_observed_step_is_unknown(self):
+        runs = [{"id": 78, "name": "HP", "conclusion": "cancelled"}]
+        result = sample_cancelled_jobs(
+            lambda _: {"total_count": 1, "jobs": [{
+                "id": 780, "conclusion": "cancelled",
+                "started_at": "2026-11-01T08:00:00Z",
+                "completed_at": "2026-11-01T09:02:00Z",
+                "steps": [{
+                    "name": "Actual final source step",
+                    "started_at": "2026-11-01T08:00:00Z",
+                    "completed_at": "2026-11-01T08:02:00Z",
+                }],
+            }]}, "/repos/gamesbyian/UR-Recomp", runs)
+        self.assertEqual(result["verified_job_censuses"], 0)
+        self.assertEqual(result["observed_runner_seconds"], 0)
+        self.assertIn("untrusted job completion", result["unknown_censuses"][0]["reason"])
+
+    def test_duplicate_run_ids_are_excluded_from_double_counting(self):
+        rows = [{"id": 79, "name": "Unit", "conclusion": "cancelled"}] * 2
+        reads = []
+        def read(path):
+            reads.append(path)
+            return {"total_count": 1, "jobs": [
+                make_job("2026-10-21T08:00:00Z", "2026-10-21T08:02:00Z")
+            ]}
+        result = sample_cancelled_jobs(
+            read, "/repos/gamesbyian/UR-Recomp", rows)
+        self.assertEqual(len(reads), 1)
+        self.assertEqual(result["verified_job_censuses"], 1)
+        self.assertEqual(result["observed_runner_seconds"], 120)
+        self.assertEqual(result["unknown_censuses"],
+                         [{"run_id": 79, "reason": "duplicate sampled run ID"}])
+
     def test_bad_limits_and_missing_ids_fail_closed(self):
         for limit in (0, 21, -1, 1.5, "8"):
             with self.subTest(limit=limit), self.assertRaises(ValueError):

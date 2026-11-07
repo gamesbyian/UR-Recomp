@@ -7,9 +7,11 @@ attempt; incomplete/paginated job lists are UNKNOWN, not zero.
 from collections import defaultdict
 
 try:
-    from .report_ci_runtime import job_parallelism_profile, parse_time
+    from .report_ci_runtime import (job_parallelism_profile, parse_time,
+                                    untrusted_job_completion_time)
 except ImportError:
-    from report_ci_runtime import job_parallelism_profile, parse_time
+    from report_ci_runtime import (job_parallelism_profile, parse_time,
+                                   untrusted_job_completion_time)
 
 
 
@@ -37,6 +39,11 @@ def check_complete_intervals(jobs):
         if (start is None or end is None or start.tzinfo is None
                 or end.tzinfo is None or end < start):
             raise ValueError("invalid or reversed job interval is UNKNOWN")
+        # The platform has reported an hour-late HP completion timestamp in
+        # the past. A valid start/end pair can still contain a known-invalid
+        # completion relative to the final source-observed step.
+        if untrusted_job_completion_time(job):
+            raise ValueError("untrusted job completion evidence is UNKNOWN")
         # Equal timestamps can describe a legitimate sub-second job rounded
         # by the API to whole seconds; zero observed seconds is conservative.
 
@@ -52,18 +59,28 @@ def sample_cancelled_jobs(read, base, runs, *, limit=8):
                                   "zero_started_jobs": 0})
     complete = 0
     unknown = []
+    seen_run_ids = set()
     for run in selected:
         run_id = run.get("id")
         if type(run_id) is not int or run_id < 1:
             unknown.append({"run_id": None, "reason": "missing run ID"})
             continue
+        if run_id in seen_run_ids:
+            unknown.append({"run_id": run_id, "reason": "duplicate sampled run ID"})
+            continue
+        seen_run_ids.add(run_id)
         try:
             data = read(base + f"/actions/runs/{run_id}/jobs?per_page=100&page=1")
             jobs = data["jobs"]
             count = data.get("total_count")
             if not isinstance(jobs, list) or any(not isinstance(j, dict) for j in jobs):
                 raise ValueError("invalid job list")
-            if len(jobs) >= 100 or (type(count) is int and count > len(jobs)):
+            # Missing, malformed, or *smaller* totals are just as untrusted as
+            # larger totals. Never turn a partial Actions page into apparent
+            # zero/low runner occupancy or a complete sample.
+            if type(count) is not int or count < 0:
+                raise ValueError("job census missing valid total_count")
+            if len(jobs) >= 100 or count != len(jobs):
                 raise ValueError("job census not complete")
             check_complete_intervals(jobs)
             profile = job_parallelism_profile(jobs)

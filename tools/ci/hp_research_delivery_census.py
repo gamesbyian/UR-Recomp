@@ -172,6 +172,11 @@ def read_one_job(get, run):
     if (type(job.get("id")) is not int or job["id"] <= 0
             or type(job.get("run_id")) is not int
             or job["run_id"] != rid
+            # Explicit filter=latest is useful, but not proof of attempt
+            # identity if an API/cache response contains an older retry.
+            # The real workflow/job endpoints both expose run_attempt.
+            or type(job.get("run_attempt")) is not int
+            or job["run_attempt"] != run.get("run_attempt", 1)
             or job.get("name") != JOB_NAME
             or job.get("runner_name") != RUNNER_NAME
             or job.get("status") != "completed"

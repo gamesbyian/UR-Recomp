@@ -18,6 +18,12 @@ The new [source derivative](rotating_axle_bearing_review.py) retains the owner-p
 
 The 80-facet bore's inscribed polygonal radius minus shaft radius is approximately 0.005945 authored 2026 units. This is a *source-level analytic candidate margin*, not a real surface-intersection proof.
 
+## Confirmed actual surface and connectivity measurements
+
+The [qualified exact-head real-model run #42339141969](https://github.com/gamesbyian/UR-Recomp/actions/runs/42339141969) and [retained physical GLB review artifact 13561180837](https://github.com/gamesbyian/UR-Recomp/actions/runs/42339141969/artifacts/13561180837) now independently prove source-drafted source-2026 bores. The original owner-preferred fixed blue fork and grey sleeve triangle surfaces both intersected the radius-0.065 shaft's axial envelope (zero minimum projected XZ radius). The new actual surfaces clear it by **0.005944440807759105** and **0.005944492040210955** authored units respectively, checked over all actual source triangles and not only vertices. Exactly three of sixteen material meshes changed; other thirteen and all five part pivots were preserved.
+
+A further independent inspection of the source-exported silver crank material found **two disconnected, individually watertight crank components** in the old owner-preferred GLB and **one connected watertight crank-plus-shaft shell** in the newly exported optional candidate. The source-defined rotating axle therefore actually joins both crank arms in the 2026 mesh. This new topology distinction is now an explicit fail-closed real-GLB gate, not merely a reviewer observation. It does not certify physical welding strength, the independent wheel's keying, original 1994 joint design, or the whole character's likeness.
+
 ## Fail-closed actual GLB qualification
 
 [Independent verifier](verify_rotating_axle_bearing_review.py) must consume the original and candidate independently authored actual GLBs in the EXISTING Windows Visual Atlas art-review export job and establish:
@@ -31,4 +37,4 @@ The 80-facet bore's inscribed polygonal radius minus shaft radius is approximate
 
 Local OpenSCAD CSG parsing succeeded for this optional candidate. A *monolithic* local STL export exceeded the execution budget; it **is not** independent proof of actual new mesh topology or clearance. This candidate must fail qualification if the actual modular GLB export is unsuccessful or lacks the required air gap. Until then the prior source design remains owner-preferred and this variant is experimental.
 
-Even after the bearing/shaft surface test passes, independent wheel/rim and crank GLB parents must be rotationally coupled in any plausible drive model; source 1994 axle keying, original 3D joints, authentic time law and physically Boolean-fused crank/shaft/hub union remain unproved. The earlier original-ROM phase-motion study used the older canonical 2026 GLB, not this wider/rotating-axle candidate, and must be repeated with real 48-frame original source registration before its numerical fit can be transferred.
+Even with the new **watertight, connected crank-plus-shaft** topology, independent wheel/rim and crank GLB parents must be rotationally coupled in any plausible drive model. The silver rotating crank/shaft shell remains a separate source material/parent from the wheel hub, so physical wheel-to-shaft keying, original 1994 axle design, authentic time law and full-character likeness are unproved. The earlier original-ROM phase-motion study used the older canonical 2026 GLB, not this wider/rotating-axle candidate, and must be repeated with real 48-frame original source registration before its numerical fit can be transferred.

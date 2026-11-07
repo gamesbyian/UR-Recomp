@@ -1,0 +1,17 @@
+{
+  "schema": "ur-agent-work-measurement/1",
+  "event_id": "backfill-art-05-pivots-20261106",
+  "recorded_at": "2026-11-06T22:05:00Z",
+  "source_main_sha": "3e721add5e03b65e625e2207a653e18dca00603e",
+  "source_pr": "https://github.com/gamesbyian/UR-Recomp/pull/3101",
+  "kind": "milestone",
+  "work_id": "UR-ART-4K",
+  "recorded_by": "initial-ledger-reconstruction",
+  "milestone_id": "ART-05-PIVOTS",
+  "milestone_state": "provisional",
+  "outcome": "Source-authenticated 2026 five-part GLB contains coupled direct-drive wheel/crank and frame/saddle pivot transforms with real exported GLB round-trip tests",
+  "remaining": "Source-authentic original animated joint law and actual game runtime art remain unimplemented and owner-unapproved",
+  "evidence": [
+    "https://github.com/gamesbyian/UR-Recomp/pull/3101"
+  ]
+}

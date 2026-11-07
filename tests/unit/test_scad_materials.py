@@ -31,6 +31,40 @@ shared_rig();
 '''
 
 class MaterialContract(unittest.TestCase):
+    def test_braced_same_colour_csg_difference_retains_both_boolean_operands(self):
+        old = 'color(rig_color) cube(1);'
+        replacement = ('color(rig_color)difference(){'
+                       'cube([2,2,2],center=true);'
+                       'rotate([90,0,0]) cylinder(h=4,r=0.2,center=true);}')
+        source = SOURCE.replace(old, replacement)
+        self.assertNotEqual(source, SOURCE)
+        self.assertEqual(materials_for_part(source, 'fork_and_frame'),
+                         materials_for_part(SOURCE, 'fork_and_frame'))
+        on = material_pass_source(source, (28,89,222,255))
+        off = material_pass_source(source, (230,26,26,255))
+        self.assertIn('if (true)difference(){', on)
+        self.assertIn('if (false)difference(){', off)
+        self.assertIn('cube([2,2,2],center=true);', on)
+        self.assertIn('cylinder(h=4,r=0.2,center=true)', on)
+        self.assertIn('if (true) sphere(0.4)', off)
+        self.assertIn('if (false) sphere(0.4)', on)
+        probe=uncolored_probe_source(source)
+        self.assertIn('if (false)difference(){', probe)
+
+    def test_other_or_cross_material_or_uncolored_csg_remains_fail_closed(self):
+        old='color(rig_color) cube(1);'
+        unsafe=(
+            'difference(){ color(rig_color) cube(1); cube(2); }',
+            'color(rig_color)difference(){ cube(1); color([0.2,0.3,0.4])cube(2); }',
+            'color(rig_color)difference() cube(1);',
+            'color(rig_color)intersection(){ cube(1); cube(2); }',
+            'color(rig_color)intersection_for(a=[1:2]){ cube(1); cube(2); }',
+        )
+        for candidate in unsafe:
+            source=SOURCE.replace(old,candidate)
+            with self.subTest(source=candidate), self.assertRaises(ValueError):
+                materials_for_part(source,'fork_and_frame')
+
     def test_source_owned_part_and_recursive_helper_colors(self):
         self.assertEqual(materials_for_part(SOURCE, 'tire'),
                          [(19,21,23,255),(36,41,41,255)])

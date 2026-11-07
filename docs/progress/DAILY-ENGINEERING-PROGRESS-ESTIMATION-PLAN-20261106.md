@@ -2,7 +2,11 @@
 
 **Status:** proposed measurement operating contract, **not** an independently audited new completion score or a replacement release authority. **Prepared:** 2026-11-06. **Repository:** `gamesbyian/UR-Recomp`. **Snapshot reviewed:** current `main` at `770b2902549075a702afe1e3cc057b170d1ecf02`; frozen v2 source checkpoint `82111a8cbc690d729a16355d35fc35b3621200f3`. **Owner requirement:** a useful new estimate on any day, even after hundreds of merges since the last independent criterion audit. Never answer "too many commits since review, so no estimate."
 
-This is a *measurement specification and staged implementation plan*. Existing commands do **not** yet implement the proposed engineering estimate, partial-credit model, calibrated delivery times, or daily snapshot. No real time data or owner approval should be inferred from the examples.
+**November 6 implementation checkpoint:** [PR #3219](https://github.com/gamesbyian/UR-Recomp/pull/3219) merged the operational first slice: source-linked per-agent entries, 25 bounded milestones across five active criteria, deterministic provisional engineering and relative-work output, tests and integration with the existing live reporter. All five installed shared-pool prompts were updated in-place with a low-overhead measurement handoff. **Still unimplemented:** full historical backfill, all-criteria milestone coverage, empirically calibrated task effort, and immutable dated daily snapshot publication. See [operational guide](daily/README.md). The original design below remains the long-term contract.
+
+This is a *measurement specification and staged implementation plan*. The pilot implements source-linked partial-credit arithmetic; it does **not** claim calibrated delivery times, a complete current engineering estimate, or authoritative release approval. No real time data or owner approval should be inferred from the examples.
+
+**November 6 second implementation stage:** a separate source-bound `tools/daily_estimate_snapshot.py` now supports **no-overwrite UTC daily output and version-fingerprinted comparison**, with regression tests for changed milestones, changed effort assumptions, removed evidence and snapshot immutability. This is an on-demand operator tool, not a new recurring agent or automatically filled historical timeline. See [operational guide](daily/README.md). The initial milestone ledger remains provisional and incomplete.
 
 ## 1. Four independent quantities, with an unambiguous answer every day
 

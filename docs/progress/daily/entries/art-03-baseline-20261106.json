@@ -1,0 +1,17 @@
+{
+  "schema": "ur-agent-work-measurement/1",
+  "event_id": "backfill-art-03-baseline-20261106",
+  "recorded_at": "2026-11-06T22:06:00Z",
+  "source_main_sha": "3e721add5e03b65e625e2207a653e18dca00603e",
+  "source_pr": "https://github.com/gamesbyian/UR-Recomp/pull/3168",
+  "kind": "milestone",
+  "work_id": "UR-ART-4K",
+  "recorded_by": "initial-ledger-reconstruction",
+  "milestone_id": "ART-03-BASELINE",
+  "milestone_state": "provisional",
+  "outcome": "Two original racer roles each have 24 authenticated chronological Mesen source frames and retained quantitative source silhouette metrics for model fitting",
+  "remaining": "The 2026 model has demonstrable original silhouette and motion mismatches and no final shape approval",
+  "evidence": [
+    "https://github.com/gamesbyian/UR-Recomp/pull/3168"
+  ]
+}

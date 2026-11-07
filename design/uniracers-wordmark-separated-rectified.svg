@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1740" height="450" viewBox="70 0 1570 405" role="img" aria-labelledby="title desc">
+<title id="title">Uniracers reconstructed separated front-face wordmark</title>
+<desc id="desc">Editable nine individually closed and separated vector glyphs, recovered from the illustrated three-dimensional Uniracers logo. Front face contours rather than bevel or extruded side silhouettes; gentle rectification applied to the entire set.</desc>
+<metadata>Source: user-provided 1424 by 1055 illustration, November 7 2026. Manual cubic-Bezier reconstruction of the implied pre-bevel outer front-face letter geometry; hidden sections reconstructed; letter-level spacing is editable. This is an interpretive first-pass reconstruction and is not a mathematically calibrated camera inverse.</metadata>
+<g id="rectified-faces" transform="matrix(1 0 0.025 1.085 -2 -15)">
+  <g id="glyph-1-u" data-character="U" transform="translate(0 0)">
+    <path id="face-1" d="M 130 35 C 120 35 117 42 115 58 L 107 201 C 102 273 118 315 157 327 C 212 349 265 310 283 250 C 294 217 297 180 297 144 L 298 56 C 298 46 292 41 282 41 L 247 43 C 236 44 231 49 230 62 L 229 172 C 227 224 216 248 199 250 C 182 250 173 223 174 181 L 181 57 C 181 45 176 36 167 35 Z" fill="#1750f5" fill-rule="evenodd" stroke="none"/>
+  </g>
+  <g id="glyph-2-n" data-character="N" transform="translate(34 0)">
+    <path id="face-2" d="M 321 54 C 314 54 308 59 307 69 L 293 272 C 292 283 297 291 307 291 L 339 292 C 350 293 355 286 356 276 L 365 155 L 427 276 C 432 286 440 293 448 292 C 458 290 460 282 460 272 L 467 58 C 467 48 460 43 451 44 L 422 44 C 412 44 408 50 407 60 L 404 163 L 345 63 C 339 56 332 53 321 54 Z" fill="#3858f0" fill-rule="evenodd" stroke="none"/>
+  </g>
+  <g id="glyph-3-i" data-character="I" transform="translate(72 0)">
+    <path id="face-3" d="M 488 43 C 478 43 473 49 473 60 L 474 69 C 474 80 482 84 491 84 L 486 251 C 476 253 469 258 469 269 L 468 280 C 468 291 474 297 486 297 L 538 298 C 550 298 557 292 557 281 L 558 268 C 558 259 552 253 541 251 L 544 87 C 557 85 563 78 563 67 L 563 57 C 563 47 558 42 546 43 Z" fill="#ed73d6" fill-rule="evenodd" stroke="none"/>
+  </g>
+  <g id="glyph-4-r" data-character="R" transform="translate(103 0)">
+    <path id="face-4" d="M 586 43 C 576 43 572 50 571 62 L 554 276 C 553 289 558 298 570 299 L 592 301 C 603 301 608 293 609 282 L 614 197 L 650 289 C 653 300 660 305 670 302 L 690 296 C 701 292 702 283 697 273 L 668 191 C 689 179 698 161 699 135 C 704 86 678 52 635 45 C 619 43 602 42 586 43 Z M 621 93 C 640 90 652 105 651 125 C 650 144 637 151 614 152 L 618 94 Z" fill="#ffb95c" fill-rule="evenodd" stroke="none"/>
+  </g>
+  <g id="glyph-5-a" data-character="A" transform="translate(135 0)">
+    <path id="face-5" d="M 760 54 C 752 54 747 58 744 68 L 685 275 C 681 285 684 292 695 296 L 712 302 C 724 306 732 301 736 290 L 752 239 L 802 239 L 817 291 C 820 301 829 305 839 300 L 855 293 C 866 289 870 282 866 271 L 790 67 C 786 56 778 51 769 53 Z M 774 145 L 790 199 L 761 199 Z" fill="#ffe126" fill-rule="evenodd" stroke="none"/>
+  </g>
+  <g id="glyph-6-c" data-character="C" transform="translate(170 0)">
+    <path id="face-6" d="M 944 43 C 936 40 929 45 921 49 C 875 70 842 109 837 170 C 833 224 858 273 916 296 C 926 299 934 295 939 285 L 950 264 C 955 254 951 248 942 243 C 914 229 900 205 901 173 C 903 143 916 115 944 96 C 955 90 957 83 953 71 L 951 57 C 950 49 948 45 944 43 Z" fill="#ffe62e" fill-rule="evenodd" stroke="none"/>
+  </g>
+  <g id="glyph-7-e" data-character="E" transform="translate(207 0)">
+    <path id="face-7" d="M 982 43 C 972 43 966 49 966 62 L 964 280 C 964 292 969 299 982 299 L 1054 299 C 1065 299 1072 293 1072 282 L 1072 260 C 1072 249 1066 243 1055 243 L 1020 243 L 1020 193 L 1047 193 C 1057 193 1063 186 1063 176 L 1062 157 C 1062 146 1056 142 1047 142 L 1021 142 L 1021 96 L 1051 96 C 1062 96 1068 90 1068 79 L 1068 60 C 1068 48 1061 43 1050 43 Z" fill="#ff9d20" fill-rule="evenodd" stroke="none"/>
+  </g>
+  <g id="glyph-8-r" data-character="R" transform="translate(244 0)">
+    <path id="face-8" d="M 1092 44 C 1081 44 1076 51 1076 63 L 1075 282 C 1075 294 1080 300 1092 300 L 1114 301 C 1127 301 1132 295 1131 284 L 1129 196 L 1172 291 C 1177 302 1184 305 1194 299 L 1212 288 C 1222 282 1223 274 1217 264 L 1182 188 C 1204 171 1210 150 1207 126 C 1201 78 1170 51 1120 46 C 1110 44 1100 43 1092 44 Z M 1130 92 C 1150 96 1161 110 1160 131 C 1159 146 1147 153 1129 151 Z" fill="#f34529" fill-rule="evenodd" stroke="none"/>
+  </g>
+  <g id="glyph-9-s" data-character="S" transform="translate(283 0)">
+    <path id="face-9" d="M 1270 35 C 1263 32 1256 36 1248 42 C 1204 69 1188 99 1191 132 C 1194 158 1211 179 1227 201 C 1246 226 1252 244 1241 261 C 1231 277 1215 289 1192 308 C 1180 316 1177 323 1185 334 L 1204 358 C 1213 369 1221 371 1231 363 C 1279 327 1304 294 1310 256 C 1317 216 1296 180 1270 147 C 1255 128 1246 115 1251 104 C 1257 93 1270 84 1284 74 C 1293 67 1293 60 1287 51 L 1280 40 C 1277 37 1274 35 1270 35 Z" fill="#f51d2c" fill-rule="evenodd" stroke="none"/>
+  </g>
+</g>
+</svg>

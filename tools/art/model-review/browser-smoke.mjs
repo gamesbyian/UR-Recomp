@@ -308,6 +308,9 @@ try{
          return get();
        }
        const one=scrub(1),two=scrub(2),three=scrub(3),four=scrub(4);
+       if(q('crankStatus').dataset.footpadMotion!=='level'||
+          !/^[0-9]+:[0-9]+\|[0-9]+:[0-9]+$/.test(q('crankStatus').dataset.platformSurfaces||''))
+         issues.push('source-qualified opposing level-footpad geometry unavailable');
        for(const k of ['tireMatrix','rimMatrix','pedalsMatrix']){
          if(one[k]===original[k]||one[k]===two[k]||two[k]===three[k]||three[k]===four[k])
            issues.push('continuous crank failed to advance '+k);
@@ -317,9 +320,13 @@ try{
            issues.push('continuous crank moved independent '+k);
        }
        const end=scrub(64);
+       if(q('crankStatus').dataset.footpadMotion!=='level')
+         issues.push('720 degree crank wrap lost level-footpad motion');
        if(end.pedalsMatrix!==original.pedalsMatrix)
          issues.push('720-degree crank did not return pedals exactly');
        const reset=scrub(0);
+       if(q('crankStatus').dataset.footpadMotion!=='source')
+         issues.push('crank scrub zero did not restore original source platform meshes');
        if(Object.keys(original).some(k=>reset[k]!==original[k]))
          issues.push('continuous crank zero did not restore original TRS');
        if(q('wheelDrive').value!=='0')

@@ -21,6 +21,12 @@ on:
       - "tools/art/verify_collar_transition_review.py"
       - "tools/art/rounded_fork_clearance_review.py"
       - "tools/art/verify_rounded_fork_clearance_review.py"
+      - "tools/art/pedal_axle_clearance_review.py"
+      - "tools/art/verify_pedal_axle_clearance_review.py"
+      - "tools/art/rotating_axle_bearing_review.py"
+      - "tools/art/verify_rotating_axle_bearing_review.py"
+      - "tests/unit/test_rotating_axle_bearing_review.py"
+      - "tests/unit/test_verify_rotating_axle_bearing_review.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
       - "tools/art/racer_source_pixels.py"
       - "analysis/data/racer-hd-replacement-prototype.json"
@@ -80,6 +86,8 @@ jobs:
           python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-site"
           node --check tools/visual_atlas_web/browser-smoke.mjs
           node --check tools/art/model-review/browser-smoke.mjs
+          node --check tools/art/model-review/pedal_level_motion.mjs
+          node tools/art/model-review/pedal_level_motion.test.mjs
       - name: Exercise 320–1440px layouts, real DOM interactions and screenshot both surfaces
         run: |
           set -euo pipefail
@@ -190,7 +198,7 @@ jobs:
           path: ${{ runner.temp }}/collar-review/
           if-no-files-found: warn
           retention-days: 14
-      - name: Compare rounded fork against source-verified straight collar and sampled tire clearance
+      - name: Compare source-locked rounded fork and optional outboard pedal/axle studies
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/rounded-fork-review"
@@ -217,6 +225,109 @@ jobs:
             --straight-glb "$RUNNER_TEMP/collar-review/collar.glb" \
             --rounded-glb "$RUNNER_TEMP/rounded-fork-review/rounded.glb" \
             --out "$RUNNER_TEMP/rounded-fork-review/physical-clearance-report.json"
+          # Keep this as one CI/review artifact with the same real-model
+          # execution. No secondary rig, new runner or production assets.
+          mkdir -p "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle"
+          python3 tools/art/pedal_axle_clearance_review.py \
+            tools/art/candidates/unicycle_shared_rig.scad \
+            "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.scad"
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/export_articulated_unicycle.py \
+            "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.scad" \
+            "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/export" \
+            --rig-pose upright --timeout 120 \
+            > "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/export-result.json"
+          python3 - <<'PY'
+          import json, os, pathlib, shutil
+          root = pathlib.Path(os.environ["RUNNER_TEMP"])/"rounded-fork-review/outboard-pedal-axle"
+          export = root/"export"
+          current=json.loads((export/"articulated_blockout_current.json").read_text())
+          last=json.loads((export/"articulated_blockout_last_attempt.json").read_text())
+          assert current["attempt_id"] == last["attempt_id"] and last["status"]=="succeeded"
+          shutil.copyfile(export/current["glb_path"],root/"candidate.glb")
+          PY
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_pedal_axle_clearance_review.py \
+            --canonical-source tools/art/candidates/unicycle_shared_rig.scad \
+            --candidate-source "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.scad" \
+            --baseline-rounded-glb "$RUNNER_TEMP/rounded-fork-review/rounded.glb" \
+            --candidate-glb "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.glb" \
+            --out "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/physical-report.json"
+          # Reuse the very same real-geometry job and previously qualified
+          # outboard source/export. Owner chose wider assembly, but requires
+          # bilateral orange markings. No canonical or 1994 source changes.
+          mkdir -p "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread"
+          python3 tools/art/mirrored_outboard_tread_review.py \
+            tools/art/candidates/unicycle_shared_rig.scad \
+            "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.scad"
+          "$RUNNER_TEMP/rig-venv/bin/python" -m unittest tests.unit.test_mirrored_outboard_glb_review
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/export_articulated_unicycle.py \
+            "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.scad" \
+            "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/export" \
+            --rig-pose upright --timeout 120 \
+            > "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/export-result.json"
+          python3 - <<'PY'
+          import json, os, pathlib, shutil
+          target=pathlib.Path(os.environ["RUNNER_TEMP"])/"rounded-fork-review/owner-mirrored-tread"
+          export=target/"export"
+          current=json.loads((export/"articulated_blockout_current.json").read_text())
+          last=json.loads((export/"articulated_blockout_last_attempt.json").read_text())
+          assert current["attempt_id"]==last["attempt_id"] and last["status"]=="succeeded"
+          shutil.copyfile(export/current["glb_path"],target/"candidate.glb")
+          PY
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_mirrored_outboard_tread_review.py \
+            --canonical-source tools/art/candidates/unicycle_shared_rig.scad \
+            --old-source "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.scad" \
+            --mirrored-source "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.scad" \
+            --old-glb "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.glb" \
+            --mirrored-glb "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.glb" \
+            --out "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/physical-report.json"
+          # Correct source-only 2026 shaft parent semantics, retaining the
+          # owner's wider+mirrored optional sculpt. One additional candidate
+          # GLB in the EXISTING OpenSCAD review job, not a new runner or
+          # shipped art. Both blue lower legs and silver fixed sleeve gain
+          # a through-bore; silver drive shaft joins the rotating crank parent.
+          mkdir -p "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle"
+          python3 tools/art/rotating_axle_bearing_review.py \
+            tools/art/candidates/unicycle_shared_rig.scad \
+            "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/candidate.scad"
+          "$RUNNER_TEMP/rig-venv/bin/python" -m unittest tests.unit.test_verify_rotating_axle_bearing_review
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/export_articulated_unicycle.py \
+            "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/candidate.scad" \
+            "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/export" \
+            --rig-pose upright --timeout 120 \
+            > "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/export-result.json"
+          python3 - <<'PY'
+          import json,os,pathlib,shutil
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"rounded-fork-review/owner-rotating-axle"
+          source=root/"export"
+          pointer=json.loads((source/"articulated_blockout_current.json").read_text())
+          attempt=json.loads((source/"articulated_blockout_last_attempt.json").read_text())
+          assert attempt["status"]=="succeeded" and pointer["attempt_id"]==attempt["attempt_id"]
+          shutil.copyfile(source/pointer["glb_path"],root/"candidate.glb")
+          PY
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_rotating_axle_bearing_review.py \
+            --canonical-source tools/art/candidates/unicycle_shared_rig.scad \
+            --owner-source "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.scad" \
+            --candidate-source "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/candidate.scad" \
+            --owner-glb "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.glb" \
+            --candidate-glb "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/candidate.glb" \
+            --out "$RUNNER_TEMP/rounded-fork-review/owner-rotating-axle/physical-report.json"
+          # Reuse the five real source GLBs already exported above; no extra
+          # OpenSCAD exports or new runner. The repaired source patch leaves
+          # the global pose formula/pivots alone; verify rigid transport,
+          # material identity and positive ideal-torus proof independently.
+          "$RUNNER_TEMP/rig-venv/bin/python" -m unittest tests.unit.test_fork_pose_transport
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_fork_pose_transport.py \
+            --rounded-upright-glb "$RUNNER_TEMP/rounded-fork-review/rounded.glb" \
+            --canonical-pose-exports-root "$RUNNER_TEMP/model-exports" \
+            --out "$RUNNER_TEMP/rounded-fork-review/five-pose-transport-report.json"
+          # Reuse the five SOURCE-2026 real GLBs above. This distinct receipt
+          # proves the viewer's two moving platforms are translated rather
+          # than rigidly spun, while recording OpenSCAD rod faceting drift.
+          "$RUNNER_TEMP/rig-venv/bin/python" -m unittest tests.unit.test_source_pedal_pose_sweep
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_source_pedal_pose_sweep.py \
+            --canonical-source tools/art/candidates/unicycle_shared_rig.scad \
+            --source-pose-exports-root "$RUNNER_TEMP/model-exports" \
+            --out "$RUNNER_TEMP/rounded-fork-review/source-pedal-five-pose-report.json"
       - name: Preserve one rounded 2026 fork candidate for visual review (not approved or default)
         if: always()
         uses: actions/upload-artifact@v4
@@ -234,6 +345,7 @@ jobs:
           CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME_BIN"
           export CHROME_BIN
+          node tools/art/model-review/pedal_level_motion.test.mjs
           UR_MODEL_SMOKE_REAL=1 node tools/art/model-review/browser-smoke.mjs \
             "$RUNNER_TEMP/real-model-site" "$RUNNER_TEMP/real-model-evidence"
       - name: Summarize exact art provenance without approval

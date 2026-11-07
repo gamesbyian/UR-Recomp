@@ -1,0 +1,283 @@
+{
+  "schema": "UR-ART4K-MESEN24-SOURCE-LOCKED-PHASE-DRIVE-COMPARISON/1",
+  "historical_static_original_rom_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41892738666",
+  "qualified_dynamic_original_rom_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/42172010215",
+  "static_witness_sha256": "fbc5534aacaac13d3ab9eae3463853abe0009bf9c7ab56a87bf8968d4039e137",
+  "dynamic_witness_sha256": "ae90fc1639789633832d63861c9d9c89bda9d71aa2293c2fc392696b504a80c9",
+  "original_source_sha256": {
+    "original_source_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_Mesen24_archive_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+    "original_pose_report_sha256": "6286aedcda6080acf832ecece9fcdb879354db008e870bc00ada02db3ff3aa20",
+    "original_axis_sha256": "23aa563c094471a3d7f1b5dcb12489cc1b5ca45b1240aee06fde3934a932bbd0",
+    "provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+    "current_2026_authored_SCAD_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984"
+  },
+  "old_2026_static_glb_sha256": "c8c4930825bb2d55bbbe0988862d826a3a46199f51e7741fd6e16b8e594cd65a",
+  "old_2026_dynamic_glb_sha256": "2cbebdd2c274299d2711d17abb031414a0bf6cddf64b075e64af18ea8327f42f",
+  "historical_glb_byte_equality_asserted": false,
+  "true_original_24_frames_and_23_edges_each": true,
+  "authentic_1994_original_masks_identical_between_runs": true,
+  "static_four_arm_baselines_preserved_pixel_exactly": true,
+  "fixed_phase_controls_exceed_source_2d_null_edge_iou_both_roles": {
+    "axle_root_saddle_world_level_rom_phase_15deg": true,
+    "axle_root_saddle_world_level_fixed_tick_24deg": true
+  },
+  "fixed_phase_controls_keep_saddle_plus15_unique_shape_gain_both_roles": {
+    "axle_root_saddle_world_level_rom_phase_15deg": true,
+    "axle_root_saddle_world_level_fixed_tick_24deg": true
+  },
+  "experimental_hub_cover_dominates_matched_no_hub_all_metrics_both_roles": {
+    "axle_root_hub_cover_rom_phase_15deg": false,
+    "axle_root_hub_cover_fixed_tick_24deg": false
+  },
+  "role_metrics": {
+    "blue": {
+      "original_source_2d_rotation": {
+        "chronological_shape_iou": 0.82069294,
+        "unique_source_shape_equal_vote_iou": 0.82528384,
+        "original_edge_change_iou": 0.09025788,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 1,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 101,
+        "matched_changed_alpha_pixel_instances": 63,
+        "false_positive_changed_alpha_pixel_instances": 38,
+        "missed_original_changed_alpha_pixel_instances": 597
+      },
+      "axle_root_saddle_neutral": {
+        "chronological_shape_iou": 0.50895141,
+        "unique_source_shape_equal_vote_iou": 0.51233488,
+        "original_edge_change_iou": 0.0203252,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 1,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 93,
+        "matched_changed_alpha_pixel_instances": 15,
+        "false_positive_changed_alpha_pixel_instances": 78,
+        "missed_original_changed_alpha_pixel_instances": 645
+      },
+      "axle_root_saddle_plus15": {
+        "chronological_shape_iou": 0.55176933,
+        "unique_source_shape_equal_vote_iou": 0.55443157,
+        "original_edge_change_iou": 0.01771117,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 1,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 87,
+        "matched_changed_alpha_pixel_instances": 13,
+        "false_positive_changed_alpha_pixel_instances": 74,
+        "missed_original_changed_alpha_pixel_instances": 647
+      },
+      "axle_root_saddle_minus15": {
+        "chronological_shape_iou": 0.48967116,
+        "unique_source_shape_equal_vote_iou": 0.49233279,
+        "original_edge_change_iou": 0.02040816,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 1,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 90,
+        "matched_changed_alpha_pixel_instances": 15,
+        "false_positive_changed_alpha_pixel_instances": 75,
+        "missed_original_changed_alpha_pixel_instances": 645
+      },
+      "axle_root_saddle_world_level_rom_phase_15deg": {
+        "chronological_shape_iou": 0.56757653,
+        "unique_source_shape_equal_vote_iou": 0.57006528,
+        "original_edge_change_iou": 0.13202247,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 549,
+        "matched_changed_alpha_pixel_instances": 141,
+        "false_positive_changed_alpha_pixel_instances": 408,
+        "missed_original_changed_alpha_pixel_instances": 519
+      },
+      "axle_root_saddle_world_level_fixed_tick_24deg": {
+        "chronological_shape_iou": 0.56870778,
+        "unique_source_shape_equal_vote_iou": 0.5709925,
+        "original_edge_change_iou": 0.16134061,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 830,
+        "matched_changed_alpha_pixel_instances": 207,
+        "false_positive_changed_alpha_pixel_instances": 623,
+        "missed_original_changed_alpha_pixel_instances": 453
+      },
+      "axle_root_hub_cover_rom_phase_15deg": {
+        "chronological_shape_iou": 0.58449851,
+        "unique_source_shape_equal_vote_iou": 0.58595129,
+        "original_edge_change_iou": 0.14199396,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 474,
+        "matched_changed_alpha_pixel_instances": 141,
+        "false_positive_changed_alpha_pixel_instances": 333,
+        "missed_original_changed_alpha_pixel_instances": 519
+      },
+      "axle_root_hub_cover_fixed_tick_24deg": {
+        "chronological_shape_iou": 0.58718429,
+        "unique_source_shape_equal_vote_iou": 0.58885246,
+        "original_edge_change_iou": 0.17647059,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 640,
+        "matched_changed_alpha_pixel_instances": 195,
+        "false_positive_changed_alpha_pixel_instances": 445,
+        "missed_original_changed_alpha_pixel_instances": 465
+      },
+      "axle_root_hub_cover_axle_locked_rom_phase_15deg": {
+        "chronological_shape_iou": 0.58098166,
+        "unique_source_shape_equal_vote_iou": 0.58322363,
+        "original_edge_change_iou": 0.11226611,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 410,
+        "matched_changed_alpha_pixel_instances": 108,
+        "false_positive_changed_alpha_pixel_instances": 302,
+        "missed_original_changed_alpha_pixel_instances": 552
+      },
+      "axle_root_hub_cover_axle_locked_fixed_tick_24deg": {
+        "chronological_shape_iou": 0.58238855,
+        "unique_source_shape_equal_vote_iou": 0.58482355,
+        "original_edge_change_iou": 0.15176152,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 660,
+        "model_predicted_changed_alpha_pixel_instances": 615,
+        "matched_changed_alpha_pixel_instances": 168,
+        "false_positive_changed_alpha_pixel_instances": 447,
+        "missed_original_changed_alpha_pixel_instances": 492
+      }
+    },
+    "red": {
+      "original_source_2d_rotation": {
+        "chronological_shape_iou": 0.82181906,
+        "unique_source_shape_equal_vote_iou": 0.82604553,
+        "original_edge_change_iou": 0.10564399,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 1,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 105,
+        "matched_changed_alpha_pixel_instances": 73,
+        "false_positive_changed_alpha_pixel_instances": 32,
+        "missed_original_changed_alpha_pixel_instances": 586
+      },
+      "axle_root_saddle_neutral": {
+        "chronological_shape_iou": 0.55119306,
+        "unique_source_shape_equal_vote_iou": 0.55143555,
+        "original_edge_change_iou": 0.01780822,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 1,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 84,
+        "matched_changed_alpha_pixel_instances": 13,
+        "false_positive_changed_alpha_pixel_instances": 71,
+        "missed_original_changed_alpha_pixel_instances": 646
+      },
+      "axle_root_saddle_plus15": {
+        "chronological_shape_iou": 0.5819645,
+        "unique_source_shape_equal_vote_iou": 0.58231923,
+        "original_edge_change_iou": 0.01641587,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 1,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 84,
+        "matched_changed_alpha_pixel_instances": 12,
+        "false_positive_changed_alpha_pixel_instances": 72,
+        "missed_original_changed_alpha_pixel_instances": 647
+      },
+      "axle_root_saddle_minus15": {
+        "chronological_shape_iou": 0.52993562,
+        "unique_source_shape_equal_vote_iou": 0.53053689,
+        "original_edge_change_iou": 0.01783265,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 1,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 83,
+        "matched_changed_alpha_pixel_instances": 13,
+        "false_positive_changed_alpha_pixel_instances": 70,
+        "missed_original_changed_alpha_pixel_instances": 646
+      },
+      "axle_root_saddle_world_level_rom_phase_15deg": {
+        "chronological_shape_iou": 0.58549568,
+        "unique_source_shape_equal_vote_iou": 0.58761115,
+        "original_edge_change_iou": 0.17943262,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 1004,
+        "matched_changed_alpha_pixel_instances": 253,
+        "false_positive_changed_alpha_pixel_instances": 751,
+        "missed_original_changed_alpha_pixel_instances": 406
+      },
+      "axle_root_saddle_world_level_fixed_tick_24deg": {
+        "chronological_shape_iou": 0.58471835,
+        "unique_source_shape_equal_vote_iou": 0.58663941,
+        "original_edge_change_iou": 0.15871833,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 896,
+        "matched_changed_alpha_pixel_instances": 213,
+        "false_positive_changed_alpha_pixel_instances": 683,
+        "missed_original_changed_alpha_pixel_instances": 446
+      },
+      "axle_root_hub_cover_rom_phase_15deg": {
+        "chronological_shape_iou": 0.60110314,
+        "unique_source_shape_equal_vote_iou": 0.6034064,
+        "original_edge_change_iou": 0.17766911,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 786,
+        "matched_changed_alpha_pixel_instances": 218,
+        "false_positive_changed_alpha_pixel_instances": 568,
+        "missed_original_changed_alpha_pixel_instances": 441
+      },
+      "axle_root_hub_cover_fixed_tick_24deg": {
+        "chronological_shape_iou": 0.59986692,
+        "unique_source_shape_equal_vote_iou": 0.60185905,
+        "original_edge_change_iou": 0.14596003,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 660,
+        "matched_changed_alpha_pixel_instances": 168,
+        "false_positive_changed_alpha_pixel_instances": 492,
+        "missed_original_changed_alpha_pixel_instances": 491
+      },
+      "axle_root_hub_cover_axle_locked_rom_phase_15deg": {
+        "chronological_shape_iou": 0.60282904,
+        "unique_source_shape_equal_vote_iou": 0.60487746,
+        "original_edge_change_iou": 0.17026578,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 750,
+        "matched_changed_alpha_pixel_instances": 205,
+        "false_positive_changed_alpha_pixel_instances": 545,
+        "missed_original_changed_alpha_pixel_instances": 454
+      },
+      "axle_root_hub_cover_axle_locked_fixed_tick_24deg": {
+        "chronological_shape_iou": 0.60197844,
+        "unique_source_shape_equal_vote_iou": 0.60406188,
+        "original_edge_change_iou": 0.14550265,
+        "original_source_nonempty_change_edges": 23,
+        "model_predicted_nonempty_change_edges": 23,
+        "source_changed_alpha_pixel_instances": 659,
+        "model_predicted_changed_alpha_pixel_instances": 640,
+        "matched_changed_alpha_pixel_instances": 165,
+        "false_positive_changed_alpha_pixel_instances": 475,
+        "missed_original_changed_alpha_pixel_instances": 494
+      }
+    }
+  },
+  "owner_selected_later_outboard_mirrored_model_tested": false,
+  "proven_1994_physical_animation": false,
+  "owner_likeness_approved": false,
+  "shipping_art_approved": false
+}

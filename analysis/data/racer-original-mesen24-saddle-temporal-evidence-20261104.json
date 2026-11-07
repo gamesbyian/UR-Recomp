@@ -1,0 +1,69 @@
+{
+  "schema": "UR-ART4K-EXACT-ORIGINAL-MESEN24-SADDLE-TEMPORAL-EVIDENCE/1",
+  "producer": {
+    "original_source_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/41892738666",
+    "exact_tested_implementation_head": "68439277cd285e91b12ae1486ff0b90cf8cb4dc1",
+    "original_source_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_Mesen24_archive_sha256": "28dda3647fecb382fdbf824da7383a8116080df6ec8c98da0b3357a018986cf6",
+    "original_pose_report_sha256": "6286aedcda6080acf832ecece9fcdb879354db008e870bc00ada02db3ff3aa20",
+    "original_axis_sha256": "23aa563c094471a3d7f1b5dcb12489cc1b5ca45b1240aee06fde3934a932bbd0",
+    "provisional_camera_sha256": "1261016b22524795ce434b0524df3b09c61dff9c71c11180d44acb45355c6028",
+    "current_2026_authored_SCAD_sha256": "e99ef45bfe72f09ee97f51b7d7449c501aee2ca2d93596106ede4b56caddc984",
+    "original_1994_physical_3d_model_or_camera_recovered": false,
+    "original_art_likeness_approved": false
+  },
+  "reported_per_role": {
+    "blue": {
+      "original_source_2d_rotation": {
+        "unique_shapes": 19,
+        "chronological_pooled_iou": 0.82069294,
+        "unique_shape_equal_vote_mean_iou": 0.82528384,
+        "real_23_tick_edge_change_pooled_iou": 0.09025788
+      },
+      "axle_root_saddle_neutral": {
+        "unique_shapes": 19,
+        "chronological_pooled_iou": 0.50895141,
+        "unique_shape_equal_vote_mean_iou": 0.51233488,
+        "real_23_tick_edge_change_pooled_iou": 0.0203252
+      },
+      "axle_root_saddle_plus15": {
+        "unique_shapes": 19,
+        "chronological_pooled_iou": 0.55176933,
+        "unique_shape_equal_vote_mean_iou": 0.55443157,
+        "real_23_tick_edge_change_pooled_iou": 0.01771117
+      },
+      "axle_root_saddle_minus15": {
+        "unique_shapes": 19,
+        "chronological_pooled_iou": 0.48967116,
+        "unique_shape_equal_vote_mean_iou": 0.49233279,
+        "real_23_tick_edge_change_pooled_iou": 0.02040816
+      }
+    },
+    "red": {
+      "original_source_2d_rotation": {
+        "unique_shapes": 23,
+        "chronological_pooled_iou": 0.82181906,
+        "unique_shape_equal_vote_mean_iou": 0.82604553,
+        "real_23_tick_edge_change_pooled_iou": 0.10564399
+      },
+      "axle_root_saddle_neutral": {
+        "unique_shapes": 23,
+        "chronological_pooled_iou": 0.55119306,
+        "unique_shape_equal_vote_mean_iou": 0.55143555,
+        "real_23_tick_edge_change_pooled_iou": 0.01780822
+      },
+      "axle_root_saddle_plus15": {
+        "unique_shapes": 23,
+        "chronological_pooled_iou": 0.5819645,
+        "unique_shape_equal_vote_mean_iou": 0.58231923,
+        "real_23_tick_edge_change_pooled_iou": 0.01641587
+      },
+      "axle_root_saddle_minus15": {
+        "unique_shapes": 23,
+        "chronological_pooled_iou": 0.52993562,
+        "unique_shape_equal_vote_mean_iou": 0.53053689,
+        "real_23_tick_edge_change_pooled_iou": 0.01783265
+      }
+    }
+  }
+}

@@ -184,10 +184,14 @@ def analyze_historical_artifact(archive: Path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("historical_artifact_zip", type=Path)
+    parser.add_argument("--expected", type=Path, default=None,
+                        help="match an immutable checked-in derived summary")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
-    text = json.dumps(analyze_historical_artifact(args.historical_artifact_zip),
-                      indent=2, sort_keys=True) + "\n"
+    report = analyze_historical_artifact(args.historical_artifact_zip)
+    if args.expected and report != json.loads(args.expected.read_text(encoding="utf-8")):
+        parser.error("historical original edge witness disagrees with saved source-locked summary")
+    text = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.out:
         if args.out.exists():
             parser.error("refusing to overwrite retained independent evidence")

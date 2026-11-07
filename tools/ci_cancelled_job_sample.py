@@ -15,7 +15,7 @@ except ImportError:
 
 
 
-def check_complete_intervals(jobs, run_id):
+def check_complete_intervals(jobs, run_id, run_attempt):
     """Never count a started but incomplete/corrupt job as zero occupancy."""
     seen_ids = set()
     for job in jobs:
@@ -30,6 +30,15 @@ def check_complete_intervals(jobs, run_id):
         if "run_id" in job and (type(job["run_id"]) is not int
                                 or job["run_id"] != run_id):
             raise ValueError("job run_id conflicts with selected run")
+        # The real run/jobs APIs expose a run_attempt on both sides. An
+        # old retry's job must not be charged to the selected latest attempt.
+        # Both absent is accepted only for older/synthetic sparse receipts;
+        # when either source supplies an attempt, require both to agree.
+        if run_attempt is not None or "run_attempt" in job:
+            job_attempt = job.get("run_attempt")
+            if (type(job_attempt) is not int or job_attempt <= 0
+                    or job_attempt != run_attempt):
+                raise ValueError("job run_attempt conflicts with selected attempt")
         # A skipped job is unstarted even if GitHub emits synthetic/reversed
         # timestamps. Preserve job ID uniqueness without treating it as time.
         if job.get("conclusion") == "skipped":
@@ -82,6 +91,10 @@ def sample_cancelled_jobs(read, base, runs, *, limit=8):
             continue
         seen_run_ids.add(run_id)
         try:
+            run_attempt = run.get("run_attempt")
+            if "run_attempt" in run and (type(run_attempt) is not int
+                                         or run_attempt <= 0):
+                raise ValueError("invalid selected run_attempt")
             data = read(base + f"/actions/runs/{run_id}/jobs?filter=latest&per_page=100&page=1")
             jobs = data["jobs"]
             count = data.get("total_count")
@@ -94,7 +107,7 @@ def sample_cancelled_jobs(read, base, runs, *, limit=8):
                 raise ValueError("job census missing valid total_count")
             if len(jobs) >= 100 or count != len(jobs):
                 raise ValueError("job census not complete")
-            check_complete_intervals(jobs, run_id)
+            check_complete_intervals(jobs, run_id, run_attempt)
             profile = job_parallelism_profile(jobs)
             secs = profile["runner_seconds"] if profile else 0.0
             workflow = str(run.get("name") or "unnamed workflow")[:120]

@@ -277,6 +277,61 @@ class CancelledRunnerSampleTests(unittest.TestCase):
         self.assertEqual(good["verified_job_censuses"], 1)
         self.assertEqual(good["observed_runner_seconds"], 60)
 
+    def test_latest_attempt_identity_rejects_stale_or_missing_jobs(self):
+        runs = [{"id": 83, "name": "Retry", "conclusion": "cancelled",
+                 "run_attempt": 2}]
+        for attempt in (None, 1, 0, "2", False, -1):
+            with self.subTest(job_attempt=attempt):
+                first = make_job("2026-10-21T08:00:00Z",
+                                 "2026-10-21T08:01:00Z")
+                if attempt is not None:
+                    first["run_attempt"] = attempt
+                sample = sample_cancelled_jobs(
+                    lambda _: {"total_count": 1, "jobs": [first]},
+                    "/repos/gamesbyian/UR-Recomp", runs)
+                self.assertEqual(sample["verified_job_censuses"], 0)
+                self.assertEqual(sample["observed_runner_seconds"], 0)
+                self.assertIn("run_attempt", sample["unknown_censuses"][0]["reason"])
+        job = make_job("2026-10-21T08:00:00Z",
+                       "2026-10-21T08:01:00Z")
+        job.update({"run_id": 83, "run_attempt": 2})
+        valid = sample_cancelled_jobs(
+            lambda _: {"total_count": 1, "jobs": [job]},
+            "/repos/gamesbyian/UR-Recomp", runs)
+        self.assertEqual(valid["verified_job_censuses"], 1)
+        self.assertEqual(valid["observed_runner_seconds"], 60)
+
+    def test_latest_attempt_source_and_mixed_jobs_fail_closed(self):
+        normal = make_job("2026-10-21T08:00:00Z",
+                          "2026-10-21T08:01:00Z", jid=11)
+        normal["run_attempt"] = 2
+        old = make_job("2026-10-21T08:00:00Z",
+                       "2026-10-21T08:01:00Z", jid=12)
+        old["run_attempt"] = 1
+        for invalid in (None, 0, "2", False, -1):
+            with self.subTest(selected_attempt=invalid):
+                run = {"id": 84, "name": "Attempt", "conclusion": "cancelled",
+                       "run_attempt": invalid}
+                result = sample_cancelled_jobs(
+                    lambda _: {"total_count": 1, "jobs": [normal]},
+                    "/repos/gamesbyian/UR-Recomp", [run])
+                self.assertEqual(result["verified_job_censuses"], 0)
+                self.assertIn("run_attempt", result["unknown_censuses"][0]["reason"])
+        run = {"id": 84, "name": "Attempt", "conclusion": "cancelled",
+               "run_attempt": 2}
+        mixed = sample_cancelled_jobs(
+            lambda _: {"total_count": 2, "jobs": [normal, old]},
+            "/repos/gamesbyian/UR-Recomp", [run])
+        self.assertEqual(mixed["verified_job_censuses"], 0)
+        self.assertEqual(mixed["observed_runner_seconds"], 0)
+        self.assertIn("run_attempt", mixed["unknown_censuses"][0]["reason"])
+        absent_run = {"id": 84, "conclusion": "cancelled"}
+        unknown = sample_cancelled_jobs(
+            lambda _: {"total_count": 1, "jobs": [normal]},
+            "/repos/gamesbyian/UR-Recomp", [absent_run])
+        self.assertEqual(unknown["verified_job_censuses"], 0)
+        self.assertIn("run_attempt", unknown["unknown_censuses"][0]["reason"])
+
     def test_bad_limits_and_missing_ids_fail_closed(self):
         for limit in (0, 21, -1, 1.5, "8"):
             with self.subTest(limit=limit), self.assertRaises(ValueError):

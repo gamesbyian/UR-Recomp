@@ -55,7 +55,8 @@ for(const pose of Object.keys(PEDAL_PHASE)){
 }
 for(const step of [-1,65,.5,NaN,Infinity])
  assert.throws(()=>levelFootpadGeometry(sample('upright'),sample('upright').clone(),'upright',SOURCE_SHA,step));
-assert.throws(()=>levelFootpadGeometry(sample('upright'),sample('upright'),'upright',SOURCE_SHA,1),/source GLB buffer/);
+const sameGeometry=sample('upright');
+assert.throws(()=>levelFootpadGeometry(sameGeometry,sameGeometry,'upright',SOURCE_SHA,1),/source GLB buffer/);
 assert.throws(()=>levelFootpadGeometry(sample('upright'),sample('upright').clone(),'upright','untrusted',1));
 assert.throws(()=>levelFootpadGeometry(sample('upright'),sample('upright').clone(),'no-pose',SOURCE_SHA,1));
 const bad=sample('upright');bad.p.setXYZ(0,0,0,0);

@@ -145,7 +145,7 @@ class PracticeCoursesProbeTests(unittest.TestCase):
                 if ordinal <= 2:
                     started.wait()
                 if work.name.startswith("pause-options-"):
-                    (work / "config.ini").write_text("[Sound]\\nVolume = 90\\n")
+                    (work / "config.ini").write_text("[Sound]\nVolume = 90\n")
                 return "synthetic-output"
             with mock.patch.object(probe, "sha256", return_value=probe.USA_SHA256), \
                  mock.patch.object(probe, "run_native", side_effect=fake_run_native), \

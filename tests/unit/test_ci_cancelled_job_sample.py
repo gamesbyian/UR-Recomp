@@ -7,8 +7,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 from ci_cancelled_job_sample import sample_cancelled_jobs
 
 
-def make_job(start, end):
-    return {"started_at": start, "completed_at": end, "conclusion": "cancelled"}
+def make_job(start, end, *, jid=1):
+    return {"id": jid, "started_at": start, "completed_at": end,
+            "conclusion": "cancelled"}
 
 
 class CancelledRunnerSampleTests(unittest.TestCase):
@@ -22,11 +23,13 @@ class CancelledRunnerSampleTests(unittest.TestCase):
             if "/runs/1/jobs" in path:
                 return {"total_count": 2, "jobs": [
                     make_job("2026-10-21T08:00:00Z", "2026-10-21T08:00:10Z"),
-                    make_job("2026-10-21T08:00:00Z", "2026-10-21T08:00:15Z"),
+                    make_job("2026-10-21T08:00:00Z", "2026-10-21T08:00:15Z",
+                             jid=2),
                 ]}
             if "/runs/2/jobs" in path:
                 return {"total_count": 1, "jobs": [
-                    {"started_at": None, "completed_at": None, "conclusion": "cancelled"}
+                    {"id": 3, "started_at": None, "completed_at": None,
+                     "conclusion": "cancelled"}
                 ]}
             raise AssertionError("should not fetch successful run")
         s = sample_cancelled_jobs(read, "/repos/gamesbyian/UR-Recomp", runs)
@@ -92,7 +95,7 @@ class CancelledRunnerSampleTests(unittest.TestCase):
         s = sample_cancelled_jobs(
             lambda path: {"jobs": [
                 make_job("2026-10-21T08:02:00Z", "2026-10-21T08:00:00Z"),
-                {"started_at": None, "completed_at": None},
+                {"id": 2, "started_at": None, "completed_at": None},
             ], "total_count": 2},
             "/repos/gamesbyian/UR-Recomp", rows,
         )
@@ -210,6 +213,69 @@ class CancelledRunnerSampleTests(unittest.TestCase):
         self.assertEqual(result["observed_runner_seconds"], 120)
         self.assertEqual(result["unknown_censuses"],
                          [{"run_id": 79, "reason": "duplicate sampled run ID"}])
+
+    def test_missing_or_invalid_job_id_never_certifies_a_page(self):
+        runs = [{"id": 80, "name": "Partial", "conclusion": "cancelled"}]
+        for bad in (None, 0, False, "1", -1):
+            with self.subTest(job_id=bad):
+                entry = make_job("2026-10-21T08:00:00Z",
+                                 "2026-10-21T08:01:00Z")
+                if bad is None:
+                    del entry["id"]
+                else:
+                    entry["id"] = bad
+                result = sample_cancelled_jobs(
+                    lambda _: {"total_count": 1, "jobs": [entry]},
+                    "/repos/gamesbyian/UR-Recomp", runs)
+                self.assertEqual(result["verified_job_censuses"], 0)
+                self.assertEqual(result["observed_runner_seconds"], 0)
+                self.assertIn("job ID", result["unknown_censuses"][0]["reason"])
+
+    def test_parent_job_run_id_must_match_requested_run_when_supplied(self):
+        runs = [{"id": 81, "name": "Checked", "conclusion": "cancelled"}]
+        for bad in (None, 80, "81", False, 0):
+            with self.subTest(parent_id=bad):
+                entry = make_job("2026-10-21T08:00:00Z",
+                                 "2026-10-21T08:01:00Z")
+                entry["run_id"] = bad
+                result = sample_cancelled_jobs(
+                    lambda _: {"total_count": 1, "jobs": [entry]},
+                    "/repos/gamesbyian/UR-Recomp", runs)
+                self.assertEqual(result["verified_job_censuses"], 0)
+                self.assertIn("run_id", result["unknown_censuses"][0]["reason"])
+
+        request_paths = []
+        def consistent(path):
+            request_paths.append(path)
+            entry = make_job("2026-10-21T08:00:00Z",
+                             "2026-10-21T08:01:00Z")
+            entry["run_id"] = 81
+            return {"total_count": 1, "jobs": [entry]}
+        good = sample_cancelled_jobs(
+            consistent, "/repos/gamesbyian/UR-Recomp", runs)
+        self.assertEqual(good["verified_job_censuses"], 1)
+        self.assertEqual(good["observed_runner_seconds"], 60)
+        self.assertEqual(request_paths, [
+            "/repos/gamesbyian/UR-Recomp/actions/runs/81/jobs"
+            "?filter=latest&per_page=100&page=1"])
+
+    def test_skipped_row_still_needs_positive_unique_job_id(self):
+        runs = [{"id": 82, "name": "Skipped", "conclusion": "cancelled"}]
+        good_job = make_job("2026-10-21T08:00:00Z",
+                            "2026-10-21T08:01:00Z")
+        skipped = {"conclusion": "skipped", "started_at": None,
+                   "completed_at": None}
+        bad = sample_cancelled_jobs(
+            lambda _: {"total_count": 2, "jobs": [good_job, skipped]},
+            "/repos/gamesbyian/UR-Recomp", runs)
+        self.assertEqual(bad["verified_job_censuses"], 0)
+        self.assertIn("job ID", bad["unknown_censuses"][0]["reason"])
+        skipped["id"] = 2
+        good = sample_cancelled_jobs(
+            lambda _: {"total_count": 2, "jobs": [good_job, skipped]},
+            "/repos/gamesbyian/UR-Recomp", runs)
+        self.assertEqual(good["verified_job_censuses"], 1)
+        self.assertEqual(good["observed_runner_seconds"], 60)
 
     def test_bad_limits_and_missing_ids_fail_closed(self):
         for limit in (0, 21, -1, 1.5, "8"):

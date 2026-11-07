@@ -2,6 +2,7 @@
 import hashlib
 import json
 import sys
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 import qa_windows_acceptance_fanout as fanout
 import run_baldosa_parallel_windows_journeys as bridge
+import baldosa_native_practice_courses_probe as practice
 
 SHA = "a" * 40
 WHO = {"source_sha": SHA, "exe_sha256": "b" * 64,
@@ -27,7 +29,13 @@ def packet(group, who=None):
              "log_sha256": "b" * 64, "log_bytes": 82,
              "summary_sha256": "c" * 64, "summary_bytes": 16}
             for i in indices]
+    mode = ({"requested_workers": 1, "reported_workers": 1,
+             "report_sha256": "a" * 64, "report_cases": 10}
+            if group == "independent" else
+            {"requested_workers": 1, "reported_workers": None,
+             "report_sha256": None, "report_cases": None})
     result = {"schema": fanout.SCHEMA, "group": group,
+              "practice_mode": mode,
               "candidate_identity": dict(who or WHO),
               "expected_indices": list(indices), "cases": rows,
               "all_passed": True, "release_gate_credit": 0,
@@ -50,6 +58,33 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
     def update(self, group, receipt):
         (self.path / ("windows-fanout-" + group) / "result.json").write_text(
             json.dumps(receipt))
+
+    @staticmethod
+    def practice_source_report(*, reported_workers=1, exe=None):
+        seed = practice.tier2_seed()
+        table = (("tier0_never_played", practice.TIER0),
+                 ("tier2_formatted_save", practice.TIER2))
+        return {
+            "experimental_practice_case_workers": reported_workers,
+            "source_binding": {
+                "github_sha": SHA,
+                "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest()
+                if exe else WHO["exe_sha256"],
+                "rom_sha256": practice.USA_SHA256},
+            "cases": [
+                {"group": group, "case": label, "picker_steps": steps,
+                 "track": track, "course": name}
+                for group, cases in table for label, steps, track, name in cases
+            ],
+            "courses_admitted": 10,
+            "pause_options_in_practice": ["sdl_keys", "p1_pad_semantic"],
+            "restart_in_practice": "pause_delayed_restart_rewound_sram_equal",
+            "available_tier0": 20, "available_tier2": 40,
+            "hunter_admitted": False, "player_save_bytes_unchanged": True,
+            "practice_results_published": False,
+            "physical_gamepad_certified": False, "release_gate_credit": 0,
+            "tier2_seed_sha256": hashlib.sha256(seed).hexdigest(),
+        }
 
     def test_exact_full_inventory(self):
         r = fanout.aggregate(self.path, SHA)
@@ -137,6 +172,99 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         self.update("seed-dependent", bad)
         self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
 
+    def test_mode_attestation_fails_closed_on_changed_selection(self):
+        for selected, effective, group in (
+            ("0", "1", "independent"), ("3", "3", "independent"),
+            ("2", "1", "independent"), ("1", "2", "seed-dependent"),
+            ("2", "2", "seed-dependent"), (None, "1", "independent"),
+            ("1", None, "seed-dependent")):
+            with self.subTest(selected=selected, effective=effective, group=group):
+                with self.assertRaisesRegex(ValueError, "Practice worker selection"):
+                    fanout.selected_practice_workers(
+                        {"UR_PRACTICE_SELECTED_WORKERS": selected,
+                         "UR_PRACTICE_CASE_WORKERS": effective}, group)
+
+    def test_mode_attestation_rejects_old_schema_even_with_new_fields(self):
+        data = packet("independent")
+        data["schema"] = "ur-win32-acceptance-fanout/3"
+        data["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in data.items() if k != "receipt_sha256"})
+        self.update("independent", data)
+        r = fanout.aggregate(self.path, SHA)
+        self.assertFalse(r["transport_complete"])
+
+    def test_recomputed_digest_cannot_forge_selected_mode(self):
+        for changed in (
+            {"requested_workers": 2},
+            {"reported_workers": 2},
+            {"report_cases": 9},
+            {"report_sha256": None},
+            {"reported_workers": True},
+            {"requested_workers": "2"}):
+            with self.subTest(changed=changed):
+                data = packet("independent")
+                data["practice_mode"].update(changed)
+                data["receipt_sha256"] = fanout.digest(
+                    {k: v for k, v in data.items() if k != "receipt_sha256"})
+                self.update("independent", data)
+                self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+
+    def test_group_receipt_mode_disagreement_fails_even_with_valid_digests(self):
+        for group in fanout.GROUPS:
+            self.update(group, packet(group))
+        seed = packet("seed-dependent")
+        seed["practice_mode"]["requested_workers"] = 2
+        seed["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in seed.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", seed)
+        aggregate = fanout.aggregate(self.path, SHA)
+        self.assertFalse(aggregate["transport_complete"])
+        self.assertIn("worker mode differs", " ".join(aggregate["issues"]))
+
+    def test_real_source_report_binds_worker_cases_exe_and_seed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            workflow = bridge.extract_commands(bridge.WORKFLOW.read_text())
+            output = root / bridge.OUT_RE.findall(workflow[12])[0]
+            output.mkdir(parents=True)
+            fixture = self.practice_source_report(reported_workers=2)
+            path = output / "report.json"
+            path.write_text(json.dumps(fixture))
+            env = {"RUNNER_TEMP": str(root)}
+            witness = fanout.practice_report_witness(workflow, env, WHO, 2)
+            self.assertEqual(witness["reported_workers"], 2)
+            self.assertEqual(witness["report_cases"], 10)
+            self.assertEqual(witness["report_sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
+            modifications = (
+                ("experimental_practice_case_workers", 1),
+                ("source_binding", {**fixture["source_binding"], "github_sha": "f"*40}),
+                ("source_binding", {**fixture["source_binding"], "exe_sha256": "0"*64}),
+                ("courses_admitted", 9),
+                ("cases", fixture["cases"][:-1]),
+                ("player_save_bytes_unchanged", False),
+                ("physical_gamepad_certified", True),
+                ("tier2_seed_sha256", "0"*64))
+            for field, replacement in modifications:
+                with self.subTest(field=field):
+                    path.write_text(json.dumps({**fixture, field: replacement}))
+                    with self.assertRaises(ValueError):
+                        fanout.practice_report_witness(workflow, env, WHO, 2)
+            path.write_text(json.dumps(fixture))
+            path.unlink()
+            with self.assertRaisesRegex(ValueError, "missing or redirected"):
+                fanout.practice_report_witness(workflow, env, WHO, 2)
+            path.symlink_to(root / "not-present.json")
+            with self.assertRaisesRegex(ValueError, "missing or redirected"):
+                fanout.practice_report_witness(workflow, env, WHO, 2)
+
+    def test_mode_attestation_seed_group_never_claims_original_practice(self):
+        seed = packet("seed-dependent")
+        seed["practice_mode"]["reported_workers"] = 1
+        seed["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in seed.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", seed)
+        self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+
     def test_no_duplicate_or_replaced_source_scenarios(self):
         source = bridge.WORKFLOW.read_text(encoding="utf-8")
         commands = bridge.extract_commands(source)
@@ -207,7 +335,9 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
     def test_exact_original_script_groups_execute_without_rebuilding(self):
         # Synthetic subprocess seam, not a substitute Windows/game witness.
         env = {"GITHUB_SHA": SHA, "RUNNER_TEMP": str(self.path),
-               "GITHUB_STEP_SUMMARY": str(self.path / "summary.md")}
+               "GITHUB_STEP_SUMMARY": str(self.path / "summary.md"),
+               "UR_PRACTICE_SELECTED_WORKERS": "1",
+               "UR_PRACTICE_CASE_WORKERS": "1"}
         exe = self.path / "candidate.exe"
         fixture = self.path / "fixture.exe"
         archive = self.path / "candidate.zip"
@@ -223,6 +353,14 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                         "saves" / "save.srm")
                 save.parent.mkdir(parents=True, exist_ok=True)
                 save.write_bytes(bytes(8192))
+            if i == 12:
+                report = self.practice_source_report(
+                    reported_workers=int(environ["UR_PRACTICE_CASE_WORKERS"]),
+                    exe=exe)
+                original_out = bridge.OUT_RE.findall(script)[0]
+                output = Path(environ["RUNNER_TEMP"]) / original_out
+                output.mkdir(parents=True, exist_ok=False)
+                (output / "report.json").write_text(json.dumps(report))
             return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
                     "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
                     "summary": "step-%02d.md" % i}
@@ -243,6 +381,9 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             self.assertEqual([r["index"] for r in independent["cases"]],
                              list(range(3, 13)))
             self.assertTrue(independent["all_passed"])
+            self.assertEqual(independent["practice_mode"]["reported_workers"], 1)
+            self.assertEqual(independent["practice_mode"]["report_cases"], 10)
+            self.assertEqual(len(independent["practice_mode"]["report_sha256"]), 64)
 
     def test_pre_digest_v1_receipt_cannot_be_misread_as_current(self):
         old = packet("seed-dependent")

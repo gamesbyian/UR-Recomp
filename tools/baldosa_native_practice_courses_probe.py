@@ -28,6 +28,7 @@ import os
 import re
 import struct
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from baldosa_windows_native_pause_route import USA_SHA256, sha256
@@ -197,32 +198,54 @@ def verify_pause_options(log: str, mode: int) -> None:
         raise ValueError("Native pause reported a failed invariant")
 
 
-def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
+def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str,
+        case_workers: int = 1) -> dict:
+    # Bounded, experimental concurrency: only the TEN independent course
+    # entries may overlap. Never combine player saves, result roots, or source
+    # verification. Restart and both paused-Options journeys remain serial.
+    if type(case_workers) is not int or case_workers not in (1, 2):
+        raise ValueError("Practice course worker count must be 1 or 2")
     for path in (exe, rom, CLEAN_SRAM):
         if path.is_symlink() or not path.is_file():
             raise ValueError(f"Missing/redirected Practice probe input {path}")
     if sha256(rom) != USA_SHA256:
         raise ValueError("Practice probe requires the pinned USA retail ROM")
     out.mkdir(parents=True, exist_ok=False)
-    cases = []
-    for group, seed, expected_open, table in (
-            ("tier0_never_played", None, 20, TIER0),
-            ("tier2_formatted_save", tier2_seed(), 40, TIER2)):
-        for label, steps, track, name in table:
-            user = out / f"{group}-{label}-user"
-            (user / "saves").mkdir(parents=True)
-            save = user / "saves" / "save.srm"
-            if seed is not None:
-                save.write_bytes(seed)
-            log = run_native(exe, rom, user, out / f"{group}-{label}",
-                             steps, video, timeout)
-            verify_case(log, track, name, expected_open)
-            if seed is not None and save.read_bytes() != seed:
-                raise ValueError(f"Practice altered the player's save: {label}")
-            if list(user.rglob("*.urrun")):
-                raise ValueError("Practice published an earned run")
-            cases.append({"group": group, "case": label, "track": track,
-                          "course": name, "picker_steps": steps})
+    groups = (
+        ("tier0_never_played", None, 20, TIER0),
+        ("tier2_formatted_save", tier2_seed(), 40, TIER2),
+    )
+    # Each uniquely named case owns its own user/save and work directories.
+    # Mapping results in source-table order prevents concurrency from
+    # changing the 10-course evidence inventory or reporting order.
+    specs = [
+        (group, seed, expected_open, label, steps, track, name)
+        for group, seed, expected_open, table in groups
+        for label, steps, track, name in table
+    ]
+
+    def run_course(spec: tuple) -> dict:
+        group, seed, expected_open, label, steps, track, name = spec
+        user = out / f"{group}-{label}-user"
+        (user / "saves").mkdir(parents=True)
+        save = user / "saves" / "save.srm"
+        if seed is not None:
+            save.write_bytes(seed)
+        log = run_native(exe, rom, user, out / f"{group}-{label}",
+                         steps, video, timeout)
+        verify_case(log, track, name, expected_open)
+        if seed is not None and save.read_bytes() != seed:
+            raise ValueError(f"Practice altered the player's save: {label}")
+        if list(user.rglob("*.urrun")):
+            raise ValueError("Practice published an earned run")
+        return {"group": group, "case": label, "track": track,
+                "course": name, "picker_steps": steps}
+
+    if case_workers == 1:
+        cases = [run_course(spec) for spec in specs]
+    else:
+        with ThreadPoolExecutor(max_workers=case_workers) as pool:
+            cases = list(pool.map(run_course, specs))
     user = out / "restart-in-practice-user"
     (user / "saves").mkdir(parents=True)
     restart_log = run_native(exe, rom, user, out / "restart-in-practice", 0,
@@ -253,6 +276,7 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
         "scope": "native-windows-practice-breadth-semantic-pad",
         "cases": cases,
         "courses_admitted": len(cases),
+        "experimental_practice_case_workers": case_workers,
         "available_tier0": 20, "available_tier2": 40,
         "hunter_admitted": False,
         "tier2_seed_sha256": hashlib.sha256(tier2_seed()).hexdigest(),
@@ -270,12 +294,21 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--video", default="windows")
     parser.add_argument("--timeout", type=int, default=240)
+    # The production/original bridge remains serial. Only an expressly
+    # opted-in manual Windows fan-out may set this env variable to 2.
+    default_workers = os.environ.get("UR_PRACTICE_CASE_WORKERS", "1")
+    if default_workers not in ("1", "2"):
+        parser.error("UR_PRACTICE_CASE_WORKERS must be 1 or 2")
+    parser.add_argument("--case-workers", type=int, choices=(1, 2),
+                        default=int(default_workers))
     args = parser.parse_args()
     report = run(args.exe.resolve(), args.rom.resolve(), args.out.resolve(),
-                 timeout=args.timeout, video=args.video)
+                 timeout=args.timeout, video=args.video,
+                 case_workers=args.case_workers)
     (args.out.resolve() / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"PASS: {report['courses_admitted']} original courses entered "
+          f"(experimental_case_workers={report['experimental_practice_case_workers']}); "
           "through native Practice with source identity; Hunter closed, "
           "saves unchanged; physical pads and release gates unverified.")
     return 0

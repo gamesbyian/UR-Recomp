@@ -12,9 +12,10 @@ import time
 from pathlib import Path
 
 import run_baldosa_parallel_windows_journeys as bridge
+import baldosa_native_practice_courses_probe as practice
 
-SCHEMA = "ur-win32-acceptance-fanout/3"
-AGGREGATE_SCHEMA = "ur-win32-acceptance-fanout-aggregate/3"
+SCHEMA = "ur-win32-acceptance-fanout/4"
+AGGREGATE_SCHEMA = "ur-win32-acceptance-fanout-aggregate/4"
 GROUPS = {"seed-dependent": (0, 1, 2), "independent": tuple(range(3, 13))}
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
@@ -82,6 +83,80 @@ def attest_private_case_files(rows, work):
     return rows
 
 
+
+def selected_practice_workers(env, group):
+    """Attest the workflow's selected mode, and refuse seed-group leakage."""
+    selected, effective = (env.get("UR_PRACTICE_SELECTED_WORKERS"),
+                           env.get("UR_PRACTICE_CASE_WORKERS"))
+    require(selected in ("1", "2") and effective in ("1", "2"),
+            "Practice worker selection missing or invalid")
+    require(effective == (selected if group == "independent" else "1"),
+            "Practice worker selection differs from the intended matrix group")
+    return int(selected)
+
+
+def practice_report_witness(commands, env, who, selected):
+    """Read the actual original script's private report, never expose its bytes.
+
+    The report is emitted only after all ten actual native launches, Restart,
+    both paused Options modes and private-save checks pass. Its fixed pathname
+    comes from the unchanged original Bash case 12, never from user input.
+    """
+    original_out = bridge.OUT_RE.findall(commands[12])
+    require(len(original_out) == 1, "original Practice output root changed")
+    output_root = Path(env["RUNNER_TEMP"]) / original_out[0]
+    report_path = output_root / "report.json"
+    require(not output_root.is_symlink() and output_root.is_dir()
+            and not report_path.is_symlink() and report_path.is_file(),
+            "missing or redirected genuine Practice source report")
+    require(report_path.stat().st_size <= 64 * 1024,
+            "unbounded original Practice report")
+    raw = report_path.read_bytes()
+    require(len(raw) <= 64 * 1024, "unbounded original Practice report")
+    try:
+        report = json.loads(raw)
+    except (ValueError, UnicodeDecodeError) as error:
+        raise ValueError("invalid original Practice source report") from error
+    require(isinstance(report, dict), "invalid original Practice source report")
+    require(type(report.get("experimental_practice_case_workers")) is int
+            and report["experimental_practice_case_workers"] == selected,
+            "original Practice executed worker count differs from selection")
+    source = report.get("source_binding")
+    require(isinstance(source, dict)
+            and source.get("github_sha") == who["source_sha"]
+            and source.get("exe_sha256") == who["exe_sha256"]
+            and source.get("rom_sha256") == practice.USA_SHA256,
+            "original Practice report source/exe/ROM differs")
+    expected = [("tier0_never_played", *case)
+                for case in practice.TIER0] + [
+                    ("tier2_formatted_save", *case) for case in practice.TIER2]
+    expected_cases = [
+        {"group": group, "case": label, "track": track,
+         "course": name, "picker_steps": steps}
+        for group, label, steps, track, name in expected
+    ]
+    require(report.get("courses_admitted") == 10
+            and report.get("cases") == expected_cases,
+            "original Practice ten source-qualified cases changed")
+    require(report.get("pause_options_in_practice") ==
+            ["sdl_keys", "p1_pad_semantic"]
+            and report.get("restart_in_practice") ==
+            "pause_delayed_restart_rewound_sram_equal"
+            and report.get("available_tier0") == 20
+            and report.get("available_tier2") == 40
+            and report.get("hunter_admitted") is False
+            and report.get("player_save_bytes_unchanged") is True
+            and report.get("practice_results_published") is False
+            and report.get("physical_gamepad_certified") is False
+            and report.get("release_gate_credit") == 0,
+            "original Practice source claims changed")
+    require(report.get("tier2_seed_sha256") ==
+            hashlib.sha256(practice.tier2_seed()).hexdigest(),
+            "original Practice save-seed provenance changed")
+    return {"requested_workers": selected, "reported_workers": selected,
+            "report_sha256": hashlib.sha256(raw).hexdigest(), "report_cases": 10}
+
+
 def validate_receipt(receipt, group, source_sha):
     require(isinstance(receipt, dict) and receipt.get("schema") == SCHEMA, "wrong receipt schema")
     require(group in GROUPS and receipt.get("group") == group, "wrong group")
@@ -98,6 +173,29 @@ def validate_receipt(receipt, group, source_sha):
     unsigned = {k: v for k, v in receipt.items() if k != "receipt_sha256"}
     require(isinstance(stamp, str) and bool(HEX64.fullmatch(stamp))
             and digest(unsigned) == stamp, "altered receipt")
+    mode = receipt.get("practice_mode")
+    require(isinstance(mode, dict) and set(mode) ==
+            {"requested_workers", "reported_workers", "report_sha256", "report_cases"},
+            "missing Practice worker-mode evidence")
+    require(type(mode["requested_workers"]) is int
+            and mode["requested_workers"] in (1, 2),
+            "invalid Practice selected worker mode")
+    original_rows = receipt.get("cases")
+    case12_passed = (isinstance(original_rows, list) and
+                     any(isinstance(row, dict) and row.get("index") == 12
+                         and row.get("exit_code") == 0 for row in original_rows))
+    if group == "independent" and case12_passed:
+        require(type(mode["reported_workers"]) is int
+                and mode["reported_workers"] == mode["requested_workers"]
+                and mode["report_cases"] == 10
+                and type(mode["report_sha256"]) is str
+                and bool(HEX64.fullmatch(mode["report_sha256"])),
+                "invalid original Practice executed-mode evidence")
+    else:
+        require(mode["reported_workers"] is None
+                and mode["report_sha256"] is None
+                and mode["report_cases"] is None,
+                "failed/non-Practice group falsely claimed Practice success")
     expected = GROUPS[group]
     original_hashes = original_script_hashes()
     require(receipt.get("expected_indices") == list(expected), "case inventory changed")
@@ -134,6 +232,7 @@ def validate_receipt(receipt, group, source_sha):
 def run_group(group, source_sha, archive, work, env=None, workers=2):
     require(group in GROUPS and workers in (1, 2), "invalid group/parallelism")
     env = dict(os.environ if env is None else env)
+    selected = selected_practice_workers(env, group)
     require(env.get("GITHUB_SHA") == source_sha, "not the checked-out source")
     require(bool(env.get("RUNNER_TEMP") and env.get("GITHUB_STEP_SUMMARY")),
             "not a pinned Actions run")
@@ -172,8 +271,15 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
     for row in rows:
         row["script_sha256"] = original_hashes[row["index"]]
     attest_private_case_files(rows, work)
+    practice_passed = (group == "independent" and
+                       next(row for row in rows if row["index"] == 12)["exit_code"] == 0)
+    mode = (practice_report_witness(commands, env, who, selected)
+            if practice_passed else
+            {"requested_workers": selected, "reported_workers": None,
+             "report_sha256": None, "report_cases": None})
     report = {
         "schema": SCHEMA, "group": group, "candidate_identity": who,
+        "practice_mode": mode,
         "expected_indices": list(GROUPS[group]), "cases": rows,
         "all_passed": len(rows) == len(GROUPS[group]) and all(row["exit_code"] == 0 for row in rows),
         "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -198,13 +304,14 @@ def summarize_case_failures(group, rows):
 
 
 def aggregate(root, source_sha):
-    problems, cases, identities, failures = [], [], [], []
+    problems, cases, identities, failures, modes = [], [], [], [], {}
     for group in GROUPS:
         path = root / ("windows-fanout-" + group) / "result.json"
         try:
             require(path.is_file() and not path.is_symlink(), "missing group receipt")
             row = json.loads(path.read_text(encoding="utf-8"))
             identities.append(validate_receipt(row, group, source_sha))
+            modes[group] = row["practice_mode"]
             cases.extend(row["cases"])
             failures.extend(summarize_case_failures(group, row["cases"]))
             if not row["all_passed"]:
@@ -214,12 +321,16 @@ def aggregate(root, source_sha):
             problems.append(group + ": " + str(error))
     if len(identities) == 2 and identities[0] != identities[1]:
         problems.append("different source/EXE/fixture/ZIP identities across groups")
+    if len(modes) == 2 and (modes["seed-dependent"]["requested_workers"] !=
+                            modes["independent"]["requested_workers"]):
+        problems.append("Practice selected worker mode differs across group receipts")
     indices = [row["index"] for row in cases]
     if sorted(indices) != list(range(13)):
         problems.append("original thirteen-journey inventory incomplete or duplicated")
     return {
         "schema": AGGREGATE_SCHEMA,
         "source_sha": source_sha, "candidate_identity": identities[0] if identities else None,
+        "practice_mode": modes.get("independent") if len(modes) == 2 else None,
         "cases": sorted(({"index": row["index"], "exit_code": row["exit_code"],
                           "script_sha256": row["script_sha256"],
                           "elapsed_seconds": row["elapsed_seconds"],

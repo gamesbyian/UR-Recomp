@@ -3,6 +3,7 @@ import hashlib
 import json
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -243,6 +244,133 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             self.assertEqual([r["index"] for r in independent["cases"]],
                              list(range(3, 13)))
             self.assertTrue(independent["all_passed"])
+
+    def _seed_followup_fake_inputs(self):
+        env = {"GITHUB_SHA": SHA, "RUNNER_TEMP": str(self.path),
+               "GITHUB_STEP_SUMMARY": str(self.path / "summary.md")}
+        paths = [self.path / "candidate.exe", self.path / "fixture.exe",
+                 self.path / "candidate.zip"]
+        for path in paths:
+            path.write_bytes(path.name.encode())
+        return env, paths
+
+    def test_opt_in_seed_followups_start_only_after_real_seed_and_overlap(self):
+        # A barrier is an execution-order witness. The original shell cases
+        # are replaced by synthetic Python runners, never real Windows games.
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        barrier = threading.Barrier(2, timeout=5)
+        lock = threading.Lock()
+        events = []
+        seed = (self.path / "UR Baldosa Win32 Pause Route" / "baseline" /
+                "Modern Player Data With Spaces" / "saves" / "save.srm")
+        def runner(i, script, work, environ):
+            if i == 0:
+                seed.parent.mkdir(parents=True, exist_ok=False)
+                seed.write_bytes(bytes(range(256)) * 32)
+            else:
+                self.assertTrue(seed.is_file())
+                self.assertEqual(seed.read_bytes(), bytes(range(256)) * 32)
+                barrier.wait()
+            with lock:
+                events.append(i)
+            (work / ("step-%02d.log" % i)).write_text("synthetic case")
+            (work / ("step-%02d.md" % i)).write_text("synthetic summary")
+            return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
+                    "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
+                    "summary": "step-%02d.md" % i}
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "run_one", side_effect=runner):
+            result = fanout.run_group("seed-dependent", SHA, archive,
+                                      self.path / "two-seed-workers", env,
+                                      seed_followup_workers=2)
+        self.assertEqual(result["schema"], fanout.SCHEMA)
+        self.assertTrue(result["all_passed"])
+        self.assertEqual([r["index"] for r in result["cases"]], [0, 1, 2])
+        self.assertEqual(events[0], 0)
+        self.assertEqual(set(events[1:]), {1, 2})
+        self.assertEqual(seed.read_bytes(), bytes(range(256)) * 32)
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_seed_followup_parallel_refuses_changed_original_seed_argument(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        source = bridge.WORKFLOW.read_text(encoding="utf-8")
+        scripts = bridge.extract_commands(source)
+        needle = 'baseline/Modern Player Data With Spaces/saves/save.srm'
+        self.assertIn(needle, scripts[1])
+        bad = list(scripts)
+        bad[1] = bad[1].replace(needle, "other/save.srm")
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "extract_commands", return_value=bad), \
+             mock.patch.object(bridge, "run_one") as runner:
+            with self.assertRaisesRegex(ValueError, "source path changed"):
+                fanout.run_group("seed-dependent", SHA, archive,
+                                 self.path / "source-drift", env,
+                                 seed_followup_workers=2)
+            runner.assert_not_called()
+        self.assertFalse((self.path / "source-drift").exists())
+
+    def test_seed_followup_parallel_fails_closed_if_original_seed_is_mutated(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        seed = (self.path / "UR Baldosa Win32 Pause Route" / "baseline" /
+                "Modern Player Data With Spaces" / "saves" / "save.srm")
+        barrier = threading.Barrier(2, timeout=5)
+        def runner(i, script, work, environ):
+            if i == 0:
+                seed.parent.mkdir(parents=True, exist_ok=False)
+                seed.write_bytes(bytes(8192))
+            else:
+                barrier.wait()
+                if i == 1:
+                    seed.write_bytes(b"X" + bytes(8191))
+            (work / ("step-%02d.log" % i)).write_text("synthetic case")
+            (work / ("step-%02d.md" % i)).write_text("synthetic summary")
+            return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
+                    "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
+                    "summary": "step-%02d.md" % i}
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "run_one", side_effect=runner):
+            with self.assertRaisesRegex(ValueError, "baseline SRAM changed"):
+                fanout.run_group("seed-dependent", SHA, archive,
+                                 self.path / "seed-mutated", env,
+                                 seed_followup_workers=2)
+        self.assertFalse((self.path / "seed-mutated" / "result.json").exists())
+
+    def test_seed_followup_parallel_never_runs_without_authentic_seed(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        seen = []
+        def runner(i, script, work, environ):
+            seen.append(i)
+            (work / ("step-%02d.log" % i)).write_text("synthetic case")
+            (work / ("step-%02d.md" % i)).write_text("synthetic summary")
+            return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
+                    "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
+                    "summary": "step-%02d.md" % i}
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "run_one", side_effect=runner):
+            result = fanout.run_group("seed-dependent", SHA, archive,
+                                      self.path / "no-real-seed", env,
+                                      seed_followup_workers=2)
+        self.assertEqual(seen, [0])
+        self.assertFalse(result["all_passed"])
+        self.assertEqual([r["index"] for r in result["cases"]], [0])
+
+    def test_invalid_seed_followup_mode_rejected_before_file_io(self):
+        env = {"GITHUB_SHA": SHA}
+        for setting in (0, 3, -1, True, None, "2"):
+            with self.subTest(setting=setting), self.assertRaisesRegex(ValueError, "follow-up workers"):
+                fanout.run_group("seed-dependent", SHA,
+                                 self.path / "missing-archive",
+                                 self.path / "bad-mode", env,
+                                 seed_followup_workers=setting)
+        with self.assertRaisesRegex(ValueError, "only to the seed-dependent"):
+            fanout.run_group("independent", SHA, self.path / "missing-archive",
+                             self.path / "bad-mode", env,
+                             seed_followup_workers=2)
+        self.assertFalse((self.path / "bad-mode").exists())
 
     def test_pre_digest_v1_receipt_cannot_be_misread_as_current(self):
         old = packet("seed-dependent")

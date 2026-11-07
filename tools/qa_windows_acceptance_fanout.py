@@ -131,8 +131,15 @@ def validate_receipt(receipt, group, source_sha):
     return who
 
 
-def run_group(group, source_sha, archive, work, env=None, workers=2):
+def run_group(group, source_sha, archive, work, env=None, workers=2,
+              seed_followup_workers=1):
     require(group in GROUPS and workers in (1, 2), "invalid group/parallelism")
+    # This is an opt-in engineering seam. Hosted/manual GHA defaults remain
+    # unchanged until a separately reviewed source/mode receipt is available.
+    require(type(seed_followup_workers) is int
+            and seed_followup_workers in (1, 2), "invalid seed follow-up workers")
+    require(group == "seed-dependent" or seed_followup_workers == 1,
+            "seed follow-up workers apply only to the seed-dependent group")
     env = dict(os.environ if env is None else env)
     require(env.get("GITHUB_SHA") == source_sha, "not the checked-out source")
     require(bool(env.get("RUNNER_TEMP") and env.get("GITHUB_STEP_SUMMARY")),
@@ -143,6 +150,18 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
     bridge.independent_priority_indices(len(commands))
     require(len(commands) == 13, "missing original Windows journeys")
     original_hashes = original_script_hashes(commands)
+    if group == "seed-dependent" and seed_followup_workers == 2:
+        # The two authentic Records scripts are the *only* consumers of the
+        # real baseline seed. Reject an upstream shell-body change before any
+        # game launch instead of guessing whether both follow-ups are read-only.
+        canonical_seed = ('--seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/'
+                          'baseline/Modern Player Data With Spaces/saves/save.srm"')
+        require(all(commands[i].count(canonical_seed) == 1
+                    for i in (1, 2)),
+                "seed-dependent original source path changed")
+        require(all(commands[i].count("baseline/") == 1
+                    for i in (1, 2)),
+                "seed-dependent source has a second baseline dependency")
     work.mkdir(parents=True)
     started = time.monotonic()
     if group == "seed-dependent":
@@ -151,7 +170,23 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
         seed = (Path(env["RUNNER_TEMP"]) / "UR Baldosa Win32 Pause Route" /
                 "baseline" / "Modern Player Data With Spaces" / "saves" / "save.srm")
         if first["exit_code"] == 0 and seed.is_file() and not seed.is_symlink() and seed.stat().st_size == 8192:
-            rows.extend(bridge.run_one(i, commands[i], work, env) for i in (1, 2))
+            if seed_followup_workers == 1:
+                rows.extend(bridge.run_one(i, commands[i], work, env)
+                            for i in (1, 2))
+            else:
+                # Reuse the already-proven per-case bridge rather than
+                # replacing original Bash/guest assertions. Source case 0
+                # must finish first, and the produced 8KiB seed must remain
+                # byte-identical through *both* independent Records journeys.
+                seed_sha = bridge.sha256_file(seed)
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    rows.extend(pool.map(
+                        lambda i: bridge.run_one(i, commands[i], work, env),
+                        (1, 2)))
+                require(seed.is_file() and not seed.is_symlink()
+                        and seed.stat().st_size == 8192
+                        and bridge.sha256_file(seed) == seed_sha,
+                        "original baseline SRAM changed during parallel Records")
     else:
         for idx in GROUPS[group]:
             require("baseline/" not in commands[idx],
@@ -243,6 +278,10 @@ def main():
     run.add_argument("--source-sha", required=True)
     run.add_argument("--archive", type=Path, required=True)
     run.add_argument("--work", type=Path, required=True)
+    # The current GitHub workflow does not supply this option. Serial default
+    # and original thirteen source bodies remain unchanged.
+    run.add_argument("--seed-followup-workers", type=int,
+                     choices=(1, 2), default=1)
     agg = commands.add_parser("aggregate")
     agg.add_argument("--source-sha", required=True)
     agg.add_argument("--results", type=Path, required=True)
@@ -250,7 +289,8 @@ def main():
     agg.add_argument("--summary", type=Path)
     args = parser.parse_args()
     if args.mode == "run":
-        result = run_group(args.group, args.source_sha, args.archive, args.work)
+        result = run_group(args.group, args.source_sha, args.archive, args.work,
+                           seed_followup_workers=args.seed_followup_workers)
         print("original Windows journeys:", len(result["cases"]), "passed:", result["all_passed"])
         return 0 if result["all_passed"] else 1
     result = aggregate(args.results, args.source_sha)

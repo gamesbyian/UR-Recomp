@@ -123,6 +123,20 @@ class CancelledRunnerSampleTests(unittest.TestCase):
         self.assertEqual(result["verified_job_censuses"], 0)
         self.assertIn("duplicate", result["unknown_censuses"][0]["reason"])
 
+    def test_reported_executed_job_without_timestamps_is_unknown(self):
+        rows = [{"id": 90, "name": "Cancelled parent", "conclusion": "cancelled"}]
+        for conclusion in ("success", "failure", "timed_out", "neutral", "startup_failure"):
+            with self.subTest(conclusion=conclusion):
+                s = sample_cancelled_jobs(
+                    lambda _: {"total_count": 1, "jobs": [{
+                        "id": 90, "conclusion": conclusion,
+                        "started_at": None, "completed_at": None,
+                    }]}, "/repos/gamesbyian/UR-Recomp", rows)
+                self.assertEqual(s["verified_job_censuses"], 0)
+                self.assertEqual(s["observed_runner_seconds"], 0)
+                self.assertIn("without timestamps",
+                              s["unknown_censuses"][0]["reason"])
+
     def test_queued_jobs_with_both_timestamps_missing_count_zero(self):
         rows = [{"id": 10, "name": "Queue", "conclusion": "cancelled"}]
         result = sample_cancelled_jobs(lambda path: {

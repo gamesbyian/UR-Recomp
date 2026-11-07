@@ -31,6 +31,12 @@ def check_complete_intervals(jobs):
         started = job.get("started_at")
         completed = job.get("completed_at")
         if started is None and completed is None:
+            # Cancelled/skipped or not-yet-started jobs can legitimately have
+            # zero observed runner time. A reported successful/failed job
+            # cannot be silently treated as unstarted: its timings are missing.
+            if job.get("conclusion") in (
+                    "success", "failure", "timed_out", "neutral", "startup_failure"):
+                raise ValueError("completed job without timestamps is UNKNOWN")
             continue  # explicitly unstarted/queued job: zero observed occupancy
         if started is None or completed is None:
             raise ValueError("incomplete job timing is UNKNOWN, not zero")

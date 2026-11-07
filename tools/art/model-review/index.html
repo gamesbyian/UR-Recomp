@@ -52,7 +52,7 @@ border-radius:8px;border:1px solid #465573}
 <div id="hubFaceStatus" class="tiny" role="status">Requires the published exact-source 2026 GLB.</div>
 <div class="tiny">2026 model-only, source-authored, reversible. Original manual p15 suggests broad metallic supports but does not establish the 1994 source mesh/camera/spoke count. No game geometry or file is modified.</div></div>
 <div class="group"><h2>Direct-drive wheel phase</h2><label for="wheelDrive">Experimental wheel/spoke synchronisation</label><select id="wheelDrive" disabled><option value="0">Original source spokes</option><option value="1">Follow authored pedal phase</option></select><div id="wheelDriveStatus" class="tiny" role="status">Requires the original SHA-verified 2026 experimental five-part model.</div><div class="tiny">Reversible tire and rim parent rotation only. Pedals, fork, saddle and material meshes stay unchanged. No authentic 1994 wheel timing or likeness claimed.</div></div>
-<div class="group"><h2>Experimental continuous crank</h2><label for="crankScrub">Source-authored crank cycle · <output id="crankStep">0/64</output></label><input id="crankScrub" class="crank-scrub" type="range" min="0" max="64" step="1" value="0" disabled><div id="crankStatus" class="tiny" role="status">A published source-verified five-part GLB is required. This controls only 2026 authored mechanics.</div><div class="tiny">Each of 64 steps advances the wheel and pedals by 11.25°. This grid deliberately avoids the old spoke-symmetry alias. It is not observed original-game frame timing.</div></div>
+<div class="group"><h2>Experimental continuous crank</h2><label for="crankScrub">Source-authored crank cycle · <output id="crankStep">0/64</output></label><input id="crankScrub" class="crank-scrub" type="range" min="0" max="64" step="1" value="0" disabled><div id="crankStatus" class="tiny" role="status">A published source-verified five-part GLB is required. This controls only 2026 authored mechanics.</div><div class="tiny">Each of 64 steps advances the wheel and crank rods by 11.25° while both pedal platforms stay level and orbit their axle. This grid deliberately avoids the old spoke-symmetry alias. It is not observed original-game frame timing.</div></div>
 <div class="group"><h2>Experimental model colourway</h2>
 <label for="modelColourway">2026 rig material, independent of original sprite</label>
 <select id="modelColourway" style="min-height:44px;min-width:0;width:100%;max-width:100%" disabled><option value="p2">Original 2026 blue model</option><option value="p1">Provisional P1 red frame</option></select>
@@ -78,6 +78,7 @@ import {applyWheelWidthHypothesis} from './wheel_hypothesis.mjs';
 import {rootLeanQuaternion,tireVisualLift} from './root_lean_hypothesis.mjs';
 import {frameHingeSourceRotation} from './frame_hinge_hypothesis.mjs';
 import {SOURCE_SHA,sourceDriveMatrix,sourcePhaseDelta,sourceCrankMatrix,sourceWheelPoseMatrix,sourceCrankDegrees,CRANK_STEPS} from './direct_drive_hypothesis.mjs';
+import {verifySeparatedFootpadGeometry,levelFootpadGeometry} from './pedal_level_motion.mjs';
 import {mountOriginalMesen24Rail} from './original_mesen24_rail.mjs';
 import {sourceShapeIntervention,saddleCupZ,forkCrownXYZ} from './authored_upper_shape_controls.mjs';
 import {SOURCE_2026_SPOKE_NODE,SOURCE_2026_SPOKE_VERTICES,SOURCE_2026_BLADE_MODES,broadenOriginal2026Spoke} from './source_spoke_blade_view.mjs';
@@ -89,7 +90,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.set
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1.7,0);
 const hemi=new THREE.HemisphereLight(0xddeeff,0x43546e,1.5);scene.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(5,8,6);scene.add(sun);
 const grid=new THREE.GridHelper(12,24,0x7089ad,0x34445b),axes=new THREE.AxesHelper(1.5);scene.add(grid,axes);
-const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,crankStep=0,driveBeforeScrub=false,paintMode='original',paintState=null,modelColourway='p2',colourState=null,upperShapeMode='original',upperShapeState=null,bladeSpokeState=null,bladeSpokeMode='original',hubFaceState=null,hubFaceMode='original';
+const clock=new THREE.Clock(),raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let current=null,selected='upright',spinning=false,manifest=null,objectURL=null, nodeMarkers=[],wheelFactor=1,rootLean=0,tireBaselineY=null,rootLeanVisualLift=0,frameHinge=0,frameHingeState=null,wheelDrive=false,wheelDriveState=null,pedalLevelState=null,crankStep=0,driveBeforeScrub=false,paintMode='original',paintState=null,modelColourway='p2',colourState=null,upperShapeMode='original',upperShapeState=null,bladeSpokeState=null,bladeSpokeMode='original',hubFaceState=null,hubFaceMode='original';
 const PAINT_HYPOTHESES=Object.freeze({
  original:Object.freeze([]),
  area:Object.freeze(['rim_and_hub__material_1','pedals__material_1']),
@@ -113,7 +114,7 @@ function resetCameraForModel(obj){
  camera.near=Math.max(.001,span/1000);camera.far=span*100;
  camera.updateProjectionMatrix();controls.update();
 }
-function clear(){if(current){restoreHubFace();restoreBladeSpokes();restoreUpperShape();restorePaintMaterials();restoreModelColourway();scene.remove(current);current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;crankStep=0;driveBeforeScrub=false;paintMode='original';paintState=null;modelColourway='p2';colourState=null;upperShapeMode='original';upperShapeState=null;bladeSpokeState=null;bladeSpokeMode='original';hubFaceState=null;hubFaceMode='original';nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
+function clear(){if(current){restoreHubFace();restoreBladeSpokes();restoreUpperShape();restorePaintMaterials();restoreModelColourway();scene.remove(current);restoreLevelFootpads();current.traverse(x=>{if(x.isMesh){x.geometry?.dispose();const mats=Array.isArray(x.material)?x.material:[x.material];mats.forEach(m=>m?.dispose())}})}current=null;tireBaselineY=null;rootLeanVisualLift=0;frameHinge=0;frameHingeState=null;wheelDrive=false;wheelDriveState=null;pedalLevelState=null;crankStep=0;driveBeforeScrub=false;paintMode='original';paintState=null;modelColourway='p2';colourState=null;upperShapeMode='original';upperShapeState=null;bladeSpokeState=null;bladeSpokeMode='original';hubFaceState=null;hubFaceMode='original';nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[]}
 function markers(){nodeMarkers.forEach(x=>scene.remove(x));nodeMarkers=[];if(!current||!$('nodes').checked)return;current.updateMatrixWorld(true);const parts=['tire','rim_and_hub','fork_and_frame','pedals','saddle'];for(const n of parts){const x=current.getObjectByName(n);if(!x)continue;const p=x.getWorldPosition(new THREE.Vector3());const marker=new THREE.Mesh(new THREE.SphereGeometry(.055,10,8),new THREE.MeshBasicMaterial({color:0xffcc62,depthTest:false}));marker.position.copy(p);marker.renderOrder=100;scene.add(marker);nodeMarkers.push(marker)}}
 function wheelControls(available, origin=''){
  $('wheelOriginal').disabled=!available;$('wheelWide').disabled=!available;
@@ -240,6 +241,47 @@ function captureWheelDrive(origin){
                  quaternion:n.quaternion.clone(),scale:n.scale.clone()});
  return {axle,parts:[[nodes[0],save(nodes[0])],[nodes[1],save(nodes[1])]],pedals:[nodes[2],save(nodes[2])]};
 }
+function capturePedalLevelState(){
+ if(!wheelDriveState||!current)return null;
+ const parent=current.getObjectByName('pedals');
+ if(!parent)return null;
+ const records=[];
+ for(const name of ['pedals__material_1','pedals__material_2']){
+  const mesh=current.getObjectByName(name);
+  if(!mesh?.isMesh||mesh.parent!==parent||!mesh.geometry?.getIndex()||
+     mesh.material===undefined||Array.isArray(mesh.material))return null;
+  mesh.updateMatrix();
+  if(mesh.matrix.elements.some((v,i)=>Math.abs(v-(i%5===0?1:0))>1e-7))
+   return null;
+  const proof=verifySeparatedFootpadGeometry(mesh.geometry);
+  records.push({mesh,original:mesh.geometry,temporary:null,proof});
+ }
+ return {records};
+}
+function restoreLevelFootpads(){
+ if(!pedalLevelState)return;
+ for(const record of pedalLevelState.records){
+  if(record.mesh.geometry!==record.original){
+   const temporary=record.mesh.geometry;
+   record.mesh.geometry=record.original;temporary?.dispose();
+  }
+  record.temporary=null;
+ }
+}
+function applyLevelFootpads(){
+ if(!wheelDriveState)return;
+ if(crankStep===0){restoreLevelFootpads();return}
+ if(!pedalLevelState)throw Error('source platform topology not qualified');
+ for(const record of pedalLevelState.records){
+  if(!record.temporary){
+   record.temporary=record.original.clone();
+   record.mesh.geometry=record.temporary;
+  }
+  levelFootpadGeometry(record.original,record.temporary,selected,
+                      manifest.source_model_sha256,crankStep);
+ }
+}
+
 function applyWheelDrive(){
  if(!current||!wheelDriveState)return;
  const axle=wheelDriveState.axle;
@@ -253,8 +295,10 @@ function applyWheelDrive(){
   }else k.clone().multiply(old.matrix).decompose(node.position,node.quaternion,node.scale);
   node.updateMatrix();
  }
- // Unlike the prior fixed-pose direct-drive toggle, a continuously scrubbed
- // crank needs its already-baked pedal mesh parent to turn with the wheel.
+ // The 2026 authored crank arms spin rigidly about the axle, while their
+ // two independent level platforms ORBIT without rolling around the axle.
+ // Keep the source mesh buffers immutable and counter-rotate temporary
+ // in-memory platform geometry (including normals) at every scrub step.
  const [cranks,source]=wheelDriveState.pedals;
  if(crankStep===0){
   cranks.position.copy(source.position);
@@ -266,6 +310,7 @@ function applyWheelDrive(){
   c.multiply(source.matrix).decompose(cranks.position,cranks.quaternion,cranks.scale);
  }
  cranks.updateMatrix();
+ applyLevelFootpads();
  current.updateMatrixWorld(true);
  // A stationary-axle housing must counterspin as the wheel phase changes.
  // Rebuild its tiny temporary 2026 mesh only, never the original GLB buffers.
@@ -293,13 +338,17 @@ function updateWheelDriveStatus(origin=''){
 
 function updateCrankScrubStatus(){
  const input=$('crankScrub'),label=$('crankStep'),status=$('crankStatus');
- input.disabled=!wheelDriveState;
+ input.disabled=!wheelDriveState||!pedalLevelState;
+ status.dataset.footpadMotion=!pedalLevelState?'unavailable':crankStep===0?'source':'level';
+ status.dataset.platformSurfaces=!pedalLevelState?'':pedalLevelState.records.map(r=>
+  r.proof.positiveFaces+':'+r.proof.negativeFaces).join('|');
  input.value=String(crankStep);
  label.textContent=crankStep+'/'+CRANK_STEPS;
  status.textContent=!wheelDriveState?
-  'Unavailable: exact source-verified 2026 five-part rig required.':
+  'Unavailable: exact source-verified 2026 five-part rig with independent left/right pedal topology required.':
   'Authored normalized rig time '+crankStep+'/'+CRANK_STEPS+
-  '; crank and wheel rotation +'+sourceCrankDegrees(crankStep)+'° from this named pose. '+
+  '; crank and wheel rotation +'+sourceCrankDegrees(crankStep)+'° from this named pose; '+
+  'two pedal platforms remain level on opposing orbits (original source at step zero). '+
   'No 1994 PPU frame timing, joint mapping or likeness approval.';
 }
 
@@ -695,7 +744,7 @@ function useModel(gltf,origin){clear();current=gltf.scene;
 if($('wire').getAttribute('aria-pressed')==='true')current.traverse(o=>{
  if(o.isMesh)for(const m of Array.isArray(o.material)?o.material:[o.material])m.wireframe=true;
 });
-rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);hubFaceMode='original';hubFaceState=captureHubFace(origin);bladeSpokeMode='original';bladeSpokeState=captureBladeSpokes(origin);upperShapeMode='original';upperShapeState=captureUpperShape(origin);paintMode='original';paintState=capturePaintMaterials(origin);modelColourway='p2';colourState=captureModelColourway(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);updateModelColourwayStatus(origin);updateUpperShapeStatus(origin);updateBladeSpokesStatus(origin);updateHubFaceStatus(origin);
+rootLean=0;frameHinge=0;frameHingeState=captureFrameHinge();wheelDrive=false;crankStep=0;driveBeforeScrub=false;wheelDriveState=captureWheelDrive(origin);pedalLevelState=capturePedalLevelState();hubFaceMode='original';hubFaceState=captureHubFace(origin);bladeSpokeMode='original';bladeSpokeState=captureBladeSpokes(origin);upperShapeMode='original';upperShapeState=captureUpperShape(origin);paintMode='original';paintState=capturePaintMaterials(origin);modelColourway='p2';colourState=captureModelColourway(origin);applyFrameHinge();applyWheelDrive();applyRootLean();updateRootLeanStatus(origin);updateFrameHingeStatus(origin);updateWheelDriveStatus(origin);updateCrankScrubStatus();updatePaintHypothesisStatus(origin);updateModelColourwayStatus(origin);updateUpperShapeStatus(origin);updateBladeSpokesStatus(origin);updateHubFaceStatus(origin);
 let widthAvailable=false;
 try{applyWheelWidthHypothesis(current,wheelFactor);widthAvailable=true}catch(e){wheelFactor=1}
 wheelControls(widthAvailable,origin);scene.add(current);fit(current);tireBaselineY=sourceTireLowerY();updateRootLeanStatus(origin);const names=[];current.traverse(o=>{if(o.isMesh)names.push(o.name||'(unnamed mesh)')});$('parts').textContent=names.length?names.join(' · '):'No meshes';$('source').textContent=origin;say('Model loaded',names.length+' mesh nodes · '+origin);markers()}
@@ -836,7 +885,7 @@ $('wheelDrive').onchange=()=>{if(!current||!wheelDriveState)return;try{
  driveBeforeScrub=wheelDrive;
  applyWheelDrive();updateWheelDriveStatus($('source').textContent);updateCrankScrubStatus();markers();
 }catch(e){wheelDrive=false;crankStep=0;applyWheelDrive();updateWheelDriveStatus($('source').textContent);updateCrankScrubStatus();$('wheelDriveStatus').textContent='Wheel phase unavailable: '+e.message}};
-$('crankScrub').oninput=()=>{if(!current||!wheelDriveState)return;try{
+$('crankScrub').oninput=()=>{if(!current||!wheelDriveState||!pedalLevelState)return;try{
  const next=Number($('crankScrub').value);
  sourceCrankDegrees(next);
  const previous=crankStep;

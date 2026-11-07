@@ -92,6 +92,20 @@ def projected_triangle_origin_radius(vertices, faces):
     return float(np.sqrt(min_squared.min()))
 
 
+def watertight_surface_component_count(mesh) -> int:
+    """Require one actual connected indexed GLB shell, not overlapped solids.
+
+    A source cylinder visually crossing two crank rods is insufficient:
+    OpenSCAD must deliver an actual united, watertight single surface.
+    """
+    if not isinstance(mesh, trimesh.Trimesh) or not mesh.is_watertight:
+        raise ValueError("original 2026 crank source is not a watertight GLB surface")
+    connected = mesh.split(only_watertight=False)
+    if not connected or any(not part.is_watertight for part in connected):
+        raise ValueError("disconnected or open actual source crank surface")
+    return len(connected)
+
+
 def verify(canonical_source: Path, owner_source: Path, candidate_source: Path,
            owner_glb: Path, candidate_glb: Path) -> dict:
     original = canonical_source.read_bytes()
@@ -147,13 +161,20 @@ def verify(canonical_source: Path, owner_source: Path, candidate_source: Path,
             raise ValueError("real fixed-fork material intersects rotating shaft: " + name)
     if old_fork_radial >= SHAFT_RADIUS or old_sleeve_radial >= SHAFT_RADIUS:
         raise ValueError("historical intersecting stationary candidate control missing")
+    # The original owner-selected crank rods are two independent shells;
+    # the source-authored rotating shaft must *physically connect both* as
+    # one continuous watertight actual GLB silver material.
+    previous_crank_shells = watertight_surface_component_count(owner.geometry[CRANK])
     crank = revised.geometry[CRANK]
+    united_crank_shells = watertight_surface_component_count(crank)
+    if previous_crank_shells != 2 or united_crank_shells != 1:
+        raise ValueError("outboard 2026 shaft is disconnected from either crank")
     p = np.asarray(crank.vertices)
     central = p[np.linalg.norm(p[:, (0, 2)], axis=1) < SHAFT_RADIUS + .002]
     if len(central) < 10 or np.min(central[:, 1]) > -.5 or np.max(central[:, 1]) < .5:
         raise ValueError("new rotating pedal parent missing connected-through-shaft vertices")
     return {
-        "schema": "UR-ART4K-OWNER-ROTATING-AXLE-BEARING-REAL-GLB/1",
+        "schema": "UR-ART4K-OWNER-ROTATING-AXLE-BEARING-REAL-GLB/2",
         "owner_mirrored_source_sha256": MIRRORED_OUTBOARD_SOURCE_SHA256,
         "rotating_bored_source_sha256": ROTATING_AXLE_SOURCE_SHA256,
         "owner_candidate_glb_sha256": hashlib.sha256(glb_bytes[0]).hexdigest(),
@@ -169,7 +190,10 @@ def verify(canonical_source: Path, owner_source: Path, candidate_source: Path,
         "source_real_fork_and_bearing_radial_clearance": radial,
         "rotating_axle_parent": "pedals",
         "stationary_bearing_parent": "fork_and_frame",
-        "rotating_axle_and_crank_independently_boolean_fused": False,
+        "old_two_unconnected_crank_watertight_shells": previous_crank_shells,
+        "new_one_connected_crank_and_shaft_watertight_shell": united_crank_shells,
+        "rotating_axle_and_both_cranks_connected_real_glb_surface_proved": True,
+        "original_1994_steel_joint_strength_or_keying_proved": False,
         "wheel_and_crank_rotation_phase_mechanically_coupled": False,
         "original_1994_bearing_mechanics_recovered": False,
         "shipping_art_approved": False,

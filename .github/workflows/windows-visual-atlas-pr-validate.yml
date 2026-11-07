@@ -247,6 +247,35 @@ jobs:
             --baseline-rounded-glb "$RUNNER_TEMP/rounded-fork-review/rounded.glb" \
             --candidate-glb "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.glb" \
             --out "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/physical-report.json"
+          # Reuse the very same real-geometry job and previously qualified
+          # outboard source/export. Owner chose wider assembly, but requires
+          # bilateral orange markings. No canonical or 1994 source changes.
+          mkdir -p "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread"
+          python3 tools/art/mirrored_outboard_tread_review.py \
+            tools/art/candidates/unicycle_shared_rig.scad \
+            "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.scad"
+          "$RUNNER_TEMP/rig-venv/bin/python" -m unittest tests.unit.test_mirrored_outboard_glb_review
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/export_articulated_unicycle.py \
+            "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.scad" \
+            "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/export" \
+            --rig-pose upright --timeout 120 \
+            > "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/export-result.json"
+          python3 - <<'PY'
+          import json, os, pathlib, shutil
+          target=pathlib.Path(os.environ["RUNNER_TEMP"])/"rounded-fork-review/owner-mirrored-tread"
+          export=target/"export"
+          current=json.loads((export/"articulated_blockout_current.json").read_text())
+          last=json.loads((export/"articulated_blockout_last_attempt.json").read_text())
+          assert current["attempt_id"]==last["attempt_id"] and last["status"]=="succeeded"
+          shutil.copyfile(export/current["glb_path"],target/"candidate.glb")
+          PY
+          "$RUNNER_TEMP/rig-venv/bin/python" tools/art/verify_mirrored_outboard_tread_review.py \
+            --canonical-source tools/art/candidates/unicycle_shared_rig.scad \
+            --old-source "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.scad" \
+            --mirrored-source "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.scad" \
+            --old-glb "$RUNNER_TEMP/rounded-fork-review/outboard-pedal-axle/candidate.glb" \
+            --mirrored-glb "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/candidate.glb" \
+            --out "$RUNNER_TEMP/rounded-fork-review/owner-mirrored-tread/physical-report.json"
           # Reuse the five real source GLBs already exported above; no extra
           # OpenSCAD exports or new runner. The repaired source patch leaves
           # the global pose formula/pivots alone; verify rigid transport,

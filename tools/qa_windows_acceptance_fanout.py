@@ -191,6 +191,7 @@ def practice_report_witness(commands, env, who, selected):
                 type(case) is dict
                 and set(case) == PRACTICE_CASE_KEYS
                 and type(case.get("picker_steps")) is int
+                and type(case.get("track")) is int
                 and case == expected
                 for case, expected in zip(cases, expected_cases)
             ),

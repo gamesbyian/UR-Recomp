@@ -107,3 +107,29 @@ Masks were rasterized at 1536 × 1152 in a shared registered coordinate system. 
 The after values use the full proposed SVG, with the preserved spiral and outlined TM. The measured improvements are modest and **do not constitute owner artistic acceptance** or a recovery of 1994 master vectors. Raster IoU cannot distinguish intended vector geometry from coincidentally matching printing/antialiasing artifacts. All ten sampled closed letter/spiral contours were topologically valid with no self-intersections; cubic join tangents deviated by at most **0.037°** in local validation. XML parsing and CairoSVG rendered both transparent and composited previews.
 
 **Next artistic review:** scrutinize the `a` lower return, the first `r` upper pinch and the `e` inner terminal at high magnification, alongside the earlier spiral uncertainty. Further edits should be localized and backed by cross-reference visual comparisons, avoiding another global blur/fit cycle. Release, 3D character likeness and historical-original-geometry acceptance remain unchanged.
+
+
+## Follow-up: constrained a/e/spiral curvature revision (2026-11-08 UTC)
+
+The user continued to identify rounded edges that were technically continuous but still aesthetically lumpy compared with supplied clean box art. This pass edits only **three** source paths in the existing canonical wordmark SVG, leaving `u`, `n`, `i`, both `r`s, `c`, `s`, the diagonal stroke construction and outlined `TM*` unchanged.
+
+- **a:** source-aware contour relaxation on the lower return and upper inner bend, retaining the hooked terminal. 26 to **25** continuously joined cubic segments.
+- **e:** refit of the inner curl and bowl with a stronger broad-curve smoothness prior. **15** cubic segments before and after.
+- **spiral:** round-trip to a periodic cubic spline, replacing the earlier localized hand-edit's curvature breaks with a continuous-curvature path. **14 to 18** cubic segments. More segments are needed to preserve the tight inner turn without angular jumps; this does not imply adding visual waviness.
+- All three paths are closed, valid, non-self-intersecting polygons when sampled at 100 points per cubic span. All ten original letters and spiral remain present; the backing outline continues to reuse these same yellow-face paths with a 10-pixel rounded stroke displaced (+2,+2).
+
+### Source comparisons
+
+For the clean reference `1000022738.png`, yellow-only Intersection-over-Union using connected-component segmentation in source-pixel coordinates:
+
+| Glyph | Prior SVG | Revised SVG |
+|---|---:|---:|
+| a | 93.57% | **95.14%** |
+| e | 94.20% | **96.24%** |
+| Spiral | 85.47% | **88.76%** |
+
+The spiral also improves overlap against the earlier `1000022665.png` source (78.69% to **81.83%**), although it drops modestly against alternate reference A `1000022735.png` (62.05% to **61.30%**). This is a recorded source tradeoff, not suppressed disagreement. The two cover-image reproductions diverge particularly strongly in the tiny spiral, and direct visual review remains the art authority.
+
+Unlike the earlier spiral path, whose sampled join-curvature discontinuity reached roughly 0.164 inverse source pixels, the revised spiral's maximum sampled absolute curvature jump is below **0.0007** inverse source pixels. The `a` and `e` remain similarly smooth at their joins (below 0.0004). The curvature units are defined by the input SVG's original-pixel coordinates, so they should not be compared to 3D rig curvature.
+
+**Validation limits:** These checks confirm source/reference alignment, polygon topology, SVG renderability and differential geometry, but do not prove that the printed 1994 contours are exactly recovered. The clean cover reference may also contain its own redraw or restoration errors. Do not count this as owner art acceptance or any gameplay/release QA gate.

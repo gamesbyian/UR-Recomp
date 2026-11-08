@@ -86,6 +86,7 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         table = (("tier0_never_played", practice.TIER0),
                  ("tier2_formatted_save", practice.TIER2))
         return {
+            "scope": "native-windows-practice-breadth-semantic-pad",
             "experimental_practice_case_workers": reported_workers,
             "source_binding": {
                 "github_sha": SHA,
@@ -1090,6 +1091,73 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             path.symlink_to(root / "not-present.json")
             with self.assertRaisesRegex(ValueError, "missing or redirected"):
                 fanout.practice_report_witness(workflow, env, WHO, 2)
+
+    def test_original_practice_report_refuses_unreviewed_claims_and_numeric_aliases(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            commands = bridge.extract_commands(bridge.WORKFLOW.read_text())
+            output = root / bridge.OUT_RE.findall(commands[12])[0]
+            output.mkdir(parents=True)
+            path = output / "report.json"
+            env = {"RUNNER_TEMP": str(root)}
+            fixture = self.practice_source_report(reported_workers=1)
+
+            modifications = (
+                ("additional acceptance claim",
+                 lambda data: data.__setitem__("native_overlap_verified", True)),
+                ("additional source binding",
+                 lambda data: data["source_binding"].__setitem__(
+                     "independent_windows_attestation", "yes")),
+                ("additional course claim",
+                 lambda data: data["cases"][0].__setitem__("physical_qa", True)),
+                ("scope changed",
+                 lambda data: data.__setitem__("scope", "verified-native-parity")),
+                ("release credit boolean zero",
+                 lambda data: data.__setitem__("release_gate_credit", False)),
+                ("available tier floating count",
+                 lambda data: data.__setitem__("available_tier0", 20.0)),
+                ("course count floating",
+                 lambda data: data.__setitem__("courses_admitted", 10.0)),
+                ("course picker boolean index",
+                 lambda data: data["cases"][0].__setitem__("picker_steps", False)),
+                ("course track floating index",
+                 lambda data: data["cases"][0].__setitem__("track", 0.0)),
+            )
+            for label, mutate in modifications:
+                with self.subTest(label=label):
+                    altered = json.loads(json.dumps(fixture))
+                    mutate(altered)
+                    path.write_text(json.dumps(altered))
+                    with self.assertRaises(ValueError):
+                        fanout.practice_report_witness(commands, env, WHO, 1)
+            path.write_text(json.dumps(fixture))
+            self.assertEqual(fanout.practice_report_witness(
+                commands, env, WHO, 1)["report_cases"], 10)
+
+    def test_original_practice_report_read_bound_survives_growth_after_stat(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            commands = bridge.extract_commands(bridge.WORKFLOW.read_text())
+            output = root / bridge.OUT_RE.findall(commands[12])[0]
+            output.mkdir(parents=True)
+            path = output / "report.json"
+            path.write_text(json.dumps(self.practice_source_report()))
+            original_open = Path.open
+            grew = False
+
+            def grow_at_open(subject, *args, **kwargs):
+                nonlocal grew
+                if subject == path and args and args[0] == "rb" and not grew:
+                    grew = True
+                    path.write_bytes(b"x" * (64 * 1024 + 1))
+                return original_open(subject, *args, **kwargs)
+
+            with mock.patch.object(Path, "open", grow_at_open):
+                with self.assertRaisesRegex(
+                        ValueError, "unbounded original Practice report"):
+                    fanout.practice_report_witness(
+                        commands, {"RUNNER_TEMP": str(root)}, WHO, 1)
+            self.assertTrue(grew)
 
     def test_original_practice_json_rejects_duplicate_source_and_mode_members(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -1,0 +1,125 @@
+name: P2 real Win32 seed-sharing unit qualification (manual only)
+
+# One source-locked Windows 2022 ROM-free job, no native game or producer.
+# Initial research lane: two existing real-OS tests from held P2 draft #3274.
+# Deliberately no pull_request, push, schedule, workflow_call or auto trigger.
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Open same-repository P2 draft PR number"
+        required: true
+        type: string
+        default: "3274"
+      expected_sha:
+        description: "Full exact 40-character P2 draft head SHA; stale heads fail closed"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: p2-win32-seed-share-${{ inputs.pr_number }}-${{ inputs.expected_sha }}
+  cancel-in-progress: false
+
+jobs:
+  real-windows-source-guard:
+    runs-on: windows-2022
+    timeout-minutes: 8
+    steps:
+      - name: Refuse non-main manual workflow, forks, ready PRs and stale source
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_PR: ${{ inputs.pr_number }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:GITHUB_REF -cne 'refs/heads/main') {
+            throw 'Dispatch must use reviewed default-branch workflow source'
+          }
+          if ($env:TARGET_PR -cnotmatch '^[1-9][0-9]{0,8}$') {
+            throw 'Invalid P2 PR number'
+          }
+          if ($env:EXPECTED_SHA -cnotmatch '^[0-9a-f]{40}$') {
+            throw 'Expected source SHA must be exactly 40 lowercase hex characters'
+          }
+          $raw = gh api "repos/$env:GITHUB_REPOSITORY/pulls/$env:TARGET_PR"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not authenticate P2 PR head' }
+          $pr = $raw | ConvertFrom-Json
+          if ($pr.state -cne 'open' -or $pr.draft -ne $true) {
+            throw 'Only open held P2 draft PRs may use the research probe'
+          }
+          if ($pr.head.repo.full_name -cne $env:GITHUB_REPOSITORY -or
+              $pr.base.repo.full_name -cne $env:GITHUB_REPOSITORY -or
+              $pr.head.ref -cnotmatch '^ci/p2-' -or
+              $pr.head.sha -cne $env:EXPECTED_SHA) {
+            throw 'Fork, non-P2 ref, or stale source: no Windows run'
+          }
+          Write-Output "P2_WIN32_SOURCE_PREFLIGHT PR=$env:TARGET_PR SHA=$env:EXPECTED_SHA"
+
+      - name: Check out only the validated exact PR commit without persistent credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.expected_sha }}
+          path: qualified-pr
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Exercise genuine Windows sharing and exception-release controls
+        shell: bash
+        working-directory: qualified-pr
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          python - <<'PY'
+          import os
+          import sys
+          import unittest
+
+          cases = [
+              "tests.unit.test_qa_windows_acceptance_fanout.WindowsAcceptanceFanoutTests.test_real_windows_share_guard_blocks_writes_delete_and_releases",
+              "tests.unit.test_qa_windows_acceptance_fanout.WindowsAcceptanceFanoutTests.test_real_windows_share_guard_releases_after_child_failure",
+          ]
+          suite = unittest.defaultTestLoader.loadTestsFromNames(cases)
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          if os.name != "nt" or result.testsRun != 2 or result.skipped or not result.wasSuccessful():
+              print("P2_WIN32_SHARE_CONTROL_INVALID: require exactly two real Windows tests, no skips/failures", file=sys.stderr)
+              sys.exit(1)
+          print("P2_WIN32_SHARE_CONTROL_PASS: two actual Windows filesystem tests; no native-game PID/SDL claim")
+          PY
+
+      - name: Refuse head drift and publish bounded scope to job summary
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_PR: ${{ inputs.pr_number }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $actual = git -C qualified-pr rev-parse HEAD
+          if ($LASTEXITCODE -ne 0 -or $actual.Trim() -cne $env:EXPECTED_SHA) {
+            throw 'Tested checkout SHA differs from requested P2 head'
+          }
+          $raw = gh api "repos/$env:GITHUB_REPOSITORY/pulls/$env:TARGET_PR"
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot recheck P2 PR source after run' }
+          $pr = $raw | ConvertFrom-Json
+          if ($pr.state -cne 'open' -or $pr.draft -ne $true -or
+              $pr.head.sha -cne $env:EXPECTED_SHA) {
+            throw 'P2 source changed or PR promoted during OS test'
+          }
+          @(
+            '### Manual P2 Win32 seed-sharing OS control'
+            ''
+            "- Tested exact PR head: `$env:EXPECTED_SHA` (PR #$env:TARGET_PR)"
+            '- Two actual Win32 tests, zero skips: read permitted; write/delete blocked while guarded; write restored after release/exception'
+            '- No ROM, native game, input/controller, SDL, original-journey, speed or release QA acceptance claimed'
+            '- Keep P2 parallelism DRAFT/HOLD pending separate independent review and native-PID/SDL controls'
+          ) | Add-Content -Path $env:GITHUB_STEP_SUMMARY

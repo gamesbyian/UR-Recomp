@@ -23,7 +23,7 @@ The five letter contours are taken from the owner-selected Uniracers interior so
 | `u n i r a` | Canonical geometry, original large-cover arrangement | The **same** geometry uniformly rescaled and moved to PAL cover positions |
 | Spiral over `i` | Exact newly provided canonical spiral, scaled to its former dot location | The **same** exact spiral, scaled to PAL dot location |
 | Remaining letters | Original owner-approved `c e r s` | Original owner-provided `l l y` |
-| Border | Yellow `#ffea00`; black `#090409` 8-unit stroke offset (+2,+2), plus centered 2.4-unit black keyline | Identical |
+| Border | Letter bodies: yellow `#ffea00`; black `#090409` 8-unit stroke offset (+2,+2), plus centered 2.4-unit black keyline. Spiral uses **5-unit offset stroke at (+1.25,+1.25) and centered 1.5-unit keyline** | Identical |
 | Trademark | Original separate small `TM*` vector treatment retained | No trademark added in this glyph-normalization change |
 
 The baseline shared letter positions and heights are retained approximately from each existing canonical SVG. To ensure undistorted glyph shapes, width is an outcome of **uniform height-matched scaling**, rather than a forced fit to the former scan-derived width. This can shift a few horizontal pixels; that is preferable to introducing an artificial second geometry. The original per-wordmark non-shared shapes and composition remain independent.
@@ -42,3 +42,17 @@ The standard-library-only guard checks:
 After editing **any** of the six glyph contours, update the library **and both self-contained SVGs together**, run the guard, and inspect both logo renders at 1× and magnified scale. Do not independently smooth the shared `unira` letters in one wordmark or reintroduce raster-specific divergence.
 
 **Limit:** This guarantees source-vector identity of the shared shapes, not proof of the original 1994 control points or automatic visual signoff. Human-scale likeness against both original boxes remains the objective. Prior art research and divergent independent traces remain recoverable from Git history.
+
+
+## 2026-11-08: lighter spiral border (presentation-only change)
+
+Owner review identified the spiral as having **disproportionately heavy black edging** compared with the letter bodies. The fine spiral whorl is much narrower than a full letter stem, so treating both with the same 8-unit stroked underlay crowds the spiral's inner curl.
+
+The correction applies **identically to Uniracers and Unirally**, preserving the exact `shared-spiral` `d` string and all five shared letter source paths. The spiral's own wordmark instance (`i-spiral-dot` or `i-spiral`) now lives in a separate `spiral-contours` group in `<defs>`, but still uses `href="#shared-spiral"` and its unchanged uniform-scale placement transform.
+
+- Letter bodies: unchanged 8-unit black rounded stroke at (+2,+2), unchanged centered 2.4-unit keyline, yellow face `#ffea00`.
+- Spiral: black rounded stroke reduced to **5 units**, offset (+1.25,+1.25); centered black keyline reduced to **1.5 units**; same yellow `#ffea00` face.
+- Black remains `#090409`, and all three spiral layers are composed from the same shared spiral master path, without any independently traced outer/inner shape.
+- Dedicated shared-spiral regression tests now verify separate compositing, exact styling equality between wordmarks, and no drift of the six canonical source paths.
+
+This is a **visual-weight correction**, not a change to the canonical geometry. Rendered variants at 8/6/5/4.4 black-stroke units were compared at enlarged scale, with 5 units selected to retain a clearly readable offset edge without swallowing the inner yellow turn. Final owner judgment of border aesthetics remains appropriate. No gameplay/release qualification effect.

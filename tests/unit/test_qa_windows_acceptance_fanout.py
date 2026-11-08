@@ -1,4 +1,5 @@
 """ROM-free, fail-closed contract tests for exact Windows fan-out."""
+import ast
 from contextlib import contextmanager
 import hashlib
 from contextlib import nullcontext
@@ -1091,6 +1092,45 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             path.symlink_to(root / "not-present.json")
             with self.assertRaisesRegex(ValueError, "missing or redirected"):
                 fanout.practice_report_witness(workflow, env, WHO, 2)
+
+    def test_practice_report_schema_matches_real_source_producer_ast(self):
+        # Unlike a hand-authored fixture, this scans the genuine Practice
+        # producer's source. If run() changes its report/course shape, the
+        # validator's reviewed allowlist must be reconsidered before Windows.
+        tree = ast.parse(Path(practice.__file__).read_text(encoding="utf-8"))
+        run = next(node for node in tree.body
+                   if isinstance(node, ast.FunctionDef) and node.name == "run")
+        def string_keys(dictionary):
+            self.assertIsInstance(dictionary, ast.Dict)
+            self.assertTrue(all(isinstance(key, ast.Constant)
+                                and isinstance(key.value, str)
+                                for key in dictionary.keys))
+            return {key.value for key in dictionary.keys}
+        report = [
+            node for node in ast.walk(run)
+            if isinstance(node, ast.Dict)
+            and any(isinstance(key, ast.Constant)
+                    and key.value == "scope" for key in node.keys)
+        ]
+        self.assertEqual(len(report), 1, "ambiguous original Practice report")
+        self.assertEqual(string_keys(report[0]), fanout.PRACTICE_REPORT_KEYS)
+        source_nodes = [
+            value for key, value in zip(report[0].keys, report[0].values)
+            if isinstance(key, ast.Constant) and key.value == "source_binding"
+        ]
+        self.assertEqual(len(source_nodes), 1)
+        self.assertEqual(string_keys(source_nodes[0]),
+                         {"github_sha", "exe_sha256", "rom_sha256"})
+        course_records = [
+            node for node in ast.walk(run)
+            if isinstance(node, ast.Return) and isinstance(node.value, ast.Dict)
+            and any(isinstance(key, ast.Constant)
+                    and key.value == "picker_steps"
+                    for key in node.value.keys)
+        ]
+        self.assertEqual(len(course_records), 1)
+        self.assertEqual(string_keys(course_records[0].value),
+                         fanout.PRACTICE_CASE_KEYS)
 
     def test_original_practice_report_refuses_unreviewed_claims_and_numeric_aliases(self):
         with tempfile.TemporaryDirectory() as temp:

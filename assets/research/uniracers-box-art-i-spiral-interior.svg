@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="73" height="82" viewBox="347 62 73 82" role="img" aria-labelledby="title description">
+  <title id="title">Uniracers box-art i spiral, interior shape</title>
+  <desc id="description">Single smooth, closed vector silhouette of the yellow spiral inside the dot over the lowercase i. Original box-art coordinates retained; black outline, letters, and surrounding artwork omitted. The background is transparent.</desc>
+  <metadata>Traced from owner-provided 1536x1152 PNG. Source SHA-256: d714d8a78e1df7460e088f91c0a73f31cd28e845b75a2db9c07713b755f054ec. Source region: x=350..416, y=65..140. Isolated yellow interior with spline-smoothed source contour.</metadata>
+  <path id="i-spiral-interior" fill="#ffe600" d="M 383.202 65.294
+      C 373.570 66.095 364.298 70.674 358.293 77.980
+      C 352.698 84.788 349.941 93.964 350.025 103.010
+      C 350.111 112.189 353.122 121.233 359.034 128.096
+      C 364.996 135.017 373.908 139.720 383.075 140.098
+      C 387.319 140.273 391.618 139.520 395.928 138.640
+      C 398.255 138.164 400.585 137.652 402.108 136.003
+      C 403.632 134.355 404.348 131.572 403.360 129.984
+      C 402.484 128.578 400.271 128.111 398.161 128.132
+      C 396.051 128.153 394.043 128.664 391.969 128.954
+      C 387.953 129.515 383.686 129.249 379.917 128.037
+      C 370.693 125.073 364.452 116.447 363.052 106.849
+      C 361.793 98.220 364.445 88.805 370.881 83.017
+      C 377.552 77.018 388.289 74.916 395.827 79.166
+      C 400.060 81.552 403.284 85.942 404.141 91.024
+      C 404.854 95.257 403.924 99.971 400.978 103.090
+      C 397.533 106.738 391.330 108.204 388.158 105.157
+      C 386.675 103.732 385.854 101.320 386.648 99.043
+      C 387.441 96.767 389.849 94.627 389.856 92.812
+      C 389.864 90.997 387.472 89.507 385.237 89.425
+      C 382.875 89.338 380.687 90.824 378.997 92.750
+      C 375.982 96.186 374.551 101.021 375.279 105.055
+      C 376.812 113.541 387.902 118.480 397.009 117.124
+      C 406.641 115.691 414.056 107.215 415.785 97.758
+      C 417.397 88.946 414.073 79.282 407.767 73.183
+      C 401.462 67.083 392.176 64.548 383.202 65.294 Z"/>
+</svg>

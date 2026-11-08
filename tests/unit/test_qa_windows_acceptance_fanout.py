@@ -363,6 +363,37 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                 self.assertEqual(kernel.closed, [])
         self.assertEqual(kernel.closed, [0x1234])
 
+    @unittest.skipUnless(os.name == "nt", "real Win32 share-mode control")
+    def test_real_windows_share_guard_blocks_writes_delete_and_releases(self):
+        # This is the real OS negative, not the Linux-compatible API mock.
+        # It runs only when an independently authorized Windows unit suite
+        # actually executes this unchanged code; no new CI run is enabled.
+        original = bytes(range(256)) * 32
+        seed = self.path / "real-win32-source.srm"
+        seed.write_bytes(original)
+        with fanout.protect_windows_seed_readonly(seed):
+            self.assertEqual(seed.read_bytes(), original)
+            with self.assertRaises(OSError):
+                seed.write_bytes(bytes(8192))
+            with self.assertRaises(OSError):
+                seed.unlink()
+            self.assertEqual(seed.read_bytes(), original)
+        # The file must become writable once the read-sharing handle closes.
+        seed.write_bytes(bytes(8192))
+        self.assertEqual(seed.read_bytes(), bytes(8192))
+        seed.unlink()
+        self.assertFalse(seed.exists())
+
+    @unittest.skipUnless(os.name == "nt", "real Win32 share-mode control")
+    def test_real_windows_share_guard_releases_after_child_failure(self):
+        seed = self.path / "real-win32-failure-source.srm"
+        seed.write_bytes(bytes(8192))
+        with self.assertRaisesRegex(RuntimeError, "synthetic game failure"):
+            with fanout.protect_windows_seed_readonly(seed):
+                raise RuntimeError("synthetic game failure")
+        seed.write_bytes(b"recovered")
+        self.assertEqual(seed.read_bytes(), b"recovered")
+
     def test_win32_seed_sharing_guard_refuses_invalid_open_handle(self):
         class Kernel:
             def __init__(self):

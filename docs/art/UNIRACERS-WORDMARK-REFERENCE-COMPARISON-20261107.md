@@ -175,3 +175,25 @@ Against the clean cover reference `1000022738.png`, yellow-face IoU is:
 The small measured `i` decline is accepted provisionally in exchange for simplifying two Bézier segments and improving the subjective long-stem flow. Agreement against alternate reference A also declines slightly for the `i` and second `r`, so this does **not** claim universal fidelity improvement. Clean box-art raster measurements are evidence for review, not the 1994 editable vector master or owner artistic signoff.
 
 The owner should compare the large-source crop to the exact revised SVG at ordinary viewing scale and 3× magnification before art acceptance. No ROM, gameplay, HD racer, Windows package, release QA gate or 3D geometry is affected.
+
+
+## 2026-11-08: reconstruct the `u` and `n` as designed curves, not raster-bound fits
+
+**Owner correction:** Earlier passes put too much importance on pixel-mask Intersection-over-Union (IoU) with cover scans, even while the owner identified lumpy, wavering letter edges. The intended finish is a smooth, coherent *vector design*, so for this revision **raster overlap is not the objective function, approval metric, or selection criterion**. The earlier IoU tables remain historical diagnostic evidence only.
+
+Only the `u` and `n` path data change in the canonical `uniracers-box-wordmark-traced.svg`. This is a deliberate silhouette redraw, not another global blur/spline fit over the printed pixels.
+
+### Construction
+
+- **`u`:** rebuild both rounded cap transitions, long descending sides, inner horseshoe and outer bowl as a small set of intentionally shaped cubic arcs. Reduce from **18** cubic spans to **12**. Remove the meandering sequence of curvature changes along long edges, while retaining the letter's slant, width and general personality.
+- **`n`:** reconstruct the two vertical legs, rounded bottoms, small top notch and broad shoulder as continuous designed sweeps. Reduce from **22** cubic spans to **16**. The notch is intentional; the ripples previously visible along the stems are not.
+- Align adjacent cubic tangents, then regularize handle lengths to reduce abrupt curvature discontinuities, **without asking the curves to pass through every source-raster contour fluctuation**. The final candidate uses a moderate geometric-regularization weight selected by enlarged contour inspection.
+- Preserve the other **eight** paths byte-for-byte, plus the existing shared-source black border with 10 px round stroke and (+2,+2) displacement, color palette, TM and asterisk.
+
+### Validation and limitations
+
+Both redrawn polygons remain closed, valid and non-self-intersecting on dense numerical sampling. The maximum sampled adjacent-tangent directional discrepancies are under **0.006 degrees**. Compared with the last master, the `u` face area changes about **−2.4%** and the `n` about **+2.5%**; this is the acceptable cost of removing raster-driven geometry rather than a pixel-error score.
+
+The curves are tangent-continuous (geometric G1) at the Bézier joins but are **not claimed to be exactly curvature-continuous C2**: maximum sampled curvature jumps are about 0.0063 in source-pixel inverse units at the most tightly curved joins. The broad strokes and joins were inspected in a magnified before/after render and in the full wordmark. This is a new owner-review candidate rather than original 1994 control points or final art signoff.
+
+**Future review criterion:** judge the quality of long arcs, consistency of stem widths, intentional terminal shapes and absence of unwanted inflections at multiple render scales. Do not reintroduce pixel-fitting merely to increase IoU. Release/gameplay QA gates remain unchanged.

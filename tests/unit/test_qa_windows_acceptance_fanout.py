@@ -21,6 +21,14 @@ WHO = {"source_sha": SHA, "exe_sha256": "b" * 64,
        "fixture_sha256": "c" * 64, "zip_sha256": "d" * 64}
 
 
+class Win32MockCall:
+    """Callable with writable ctypes argtypes/restype for ROM-free tests."""
+    def __init__(self, delegate):
+        self.delegate = delegate
+    def __call__(self, *args):
+        return self.delegate(*args)
+
+
 def packet(group, who=None):
     indices = fanout.GROUPS[group]
     original_hashes = fanout.original_script_hashes()
@@ -333,8 +341,8 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                 self.request = None
                 self.closed = []
                 self.handle = 0x1234
-                self.CreateFileW = self.open
-                self.CloseHandle = self.close
+                self.CreateFileW = Win32MockCall(self.open)
+                self.CloseHandle = Win32MockCall(self.close)
             def open(self, *args):
                 self.request = args
                 return self.handle
@@ -358,8 +366,8 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
     def test_win32_seed_sharing_guard_refuses_invalid_open_handle(self):
         class Kernel:
             def __init__(self):
-                self.CreateFileW = lambda *args: 0
-                self.CloseHandle = lambda *args: 1
+                self.CreateFileW = Win32MockCall(lambda *args: 0)
+                self.CloseHandle = Win32MockCall(lambda *args: 1)
         with mock.patch.object(fanout.os, "name", "nt"), \
              mock.patch.object(fanout.ctypes, "WinDLL",
                                return_value=Kernel(), create=True), \

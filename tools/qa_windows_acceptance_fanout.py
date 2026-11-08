@@ -22,6 +22,7 @@ AGGREGATE_SCHEMA = "ur-win32-acceptance-fanout-aggregate/5"
 GROUPS = {"seed-dependent": (0, 1, 2), "independent": tuple(range(3, 13))}
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
+MAX_PRIVATE_OUTPUT_BYTES = 50_000_000
 
 RECEIPT_KEYS = frozenset((
     "schema", "group", "candidate_identity", "practice_mode",
@@ -91,6 +92,31 @@ def candidate_identity(source_sha, exe, fixture, archive):
             "zip_sha256": bridge.sha256_file(archive)}
 
 
+def require_unredirected_parents(path, label):
+    """Reject symlink/junction ancestors of a receipt or private output.
+
+    This static path check is not a defense against concurrent hostile swaps;
+    caller-owned artifact directories are expected to stay stable while read.
+    """
+    for parent in path.parents:
+        require(not parent.is_symlink()
+                and not getattr(parent, "is_junction", lambda: False)(),
+                "redirected " + label + " ancestor")
+
+
+def private_output_digest(path):
+    """Stream the genuine bridge's private output with a producer-side cap."""
+    total = 0
+    hasher = hashlib.sha256()
+    with path.open("rb") as source:
+        while chunk := source.read(1024 * 1024):
+            total += len(chunk)
+            require(total < MAX_PRIVATE_OUTPUT_BYTES,
+                    "unbounded original Windows private output")
+            hasher.update(chunk)
+    return hasher.hexdigest(), total
+
+
 def attest_private_case_files(rows, work):
     """Bind private original script outputs without publishing their contents.
 
@@ -110,14 +136,15 @@ def attest_private_case_files(rows, work):
             # The existing original bridge permits an absent optional .md
             # summary; only the subprocess's combined .log is mandatory.
             require(not path.is_symlink(), "redirected original Windows " + label)
+            require_unredirected_parents(path, "original Windows " + label)
             if label == "summary" and not path.exists():
                 row["summary_sha256"] = None
                 row["summary_bytes"] = 0
                 continue
             require(path.is_file(), "missing original Windows " + label)
-            data = path.read_bytes()
-            row[label + "_sha256"] = hashlib.sha256(data).hexdigest()
-            row[label + "_bytes"] = len(data)
+            checksum, size = private_output_digest(path)
+            row[label + "_sha256"] = checksum
+            row[label + "_bytes"] = size
     return rows
 
 
@@ -144,6 +171,7 @@ def practice_report_witness(commands, env, who, selected):
     require(len(original_out) == 1, "original Practice output root changed")
     output_root = Path(env["RUNNER_TEMP"]) / original_out[0]
     report_path = output_root / "report.json"
+    require_unredirected_parents(report_path, "original Practice report")
     require(not output_root.is_symlink() and output_root.is_dir()
             and not report_path.is_symlink() and report_path.is_file(),
             "missing or redirected genuine Practice source report")
@@ -434,7 +462,7 @@ def validate_receipt(receipt, group, source_sha):
                     or (type(value) is str and bool(HEX64.fullmatch(value))),
                     "missing original output SHA256")
             require(type(row.get(label + "_bytes")) is int
-                    and 0 <= row[label + "_bytes"] < 50_000_000,
+                    and 0 <= row[label + "_bytes"] < MAX_PRIVATE_OUTPUT_BYTES,
                     "invalid private original output size")
     require(type(receipt.get("release_gate_credit")) is int
             and receipt["release_gate_credit"] == 0

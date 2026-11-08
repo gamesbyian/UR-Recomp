@@ -162,6 +162,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("$pr.head.sha -cne $env:EXPECTED_SHA", source)
         self.assertIn("ref: ${{ inputs.expected_sha }}", source)
         self.assertIn("persist-credentials: false", source)
+        self.assertIn("actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065", source)
         self.assertIn('python-version: "3.12"', source)
         self.assertIn('test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"', source)
         self.assertIn("result.testsRun != 2 or result.skipped", source)

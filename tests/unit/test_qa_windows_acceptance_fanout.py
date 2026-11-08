@@ -1159,6 +1159,32 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                         commands, {"RUNNER_TEMP": str(root)}, WHO, 1)
             self.assertTrue(grew)
 
+    def test_original_practice_report_rejects_redirected_runner_ancestor(self):
+        # The private report filename and immediate directory remain real;
+        # a shared symlink above both used to be accepted.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            physical = root / "physical-runner"
+            physical.mkdir()
+            commands = bridge.extract_commands(bridge.WORKFLOW.read_text())
+            output = physical / bridge.OUT_RE.findall(commands[12])[0]
+            output.mkdir(parents=True)
+            (output / "report.json").write_text(
+                json.dumps(self.practice_source_report()))
+            alias = root / "redirected-runner"
+            try:
+                alias.symlink_to(physical, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("directory symlinks unavailable")
+            with self.assertRaisesRegex(
+                    ValueError, "redirected original Practice report ancestor"):
+                fanout.practice_report_witness(
+                    commands, {"RUNNER_TEMP": str(alias)}, WHO, 1)
+            # The physical source report remains admissible.
+            self.assertEqual(fanout.practice_report_witness(
+                commands, {"RUNNER_TEMP": str(physical)}, WHO, 1)[
+                    "report_cases"], 10)
+
     def test_original_practice_json_rejects_duplicate_source_and_mode_members(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -1377,6 +1403,43 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                          hashlib.sha256(contents).hexdigest())
         self.assertEqual(rows[0]["summary_bytes"], len(b"summary"))
         self.assertEqual(rows[0]["log_bytes"], len(contents))
+
+    def test_private_original_log_is_streamed_and_bounded_before_receipt(self):
+        work = self.path / "bounded-private"
+        work.mkdir()
+        log = work / "step-08.log"
+        payload = b"private-original-bridge-log-contents"
+        log.write_bytes(payload)
+        rows = [{"index": 8, "log": "step-08.log",
+                 "summary": "step-08.md"}]
+        with mock.patch.object(fanout, "MAX_PRIVATE_OUTPUT_BYTES",
+                               len(payload)):
+            with self.assertRaisesRegex(
+                    ValueError, "unbounded original Windows private output"):
+                fanout.attest_private_case_files(rows, work)
+        self.assertNotIn("log_sha256", rows[0])
+        with mock.patch.object(fanout, "MAX_PRIVATE_OUTPUT_BYTES",
+                               len(payload) + 1):
+            fanout.attest_private_case_files(rows, work)
+        self.assertEqual(rows[0]["log_bytes"], len(payload))
+        self.assertEqual(rows[0]["log_sha256"],
+                         hashlib.sha256(payload).hexdigest())
+        self.assertIsNone(rows[0]["summary_sha256"])
+
+    def test_private_original_log_rejects_redirected_work_ancestor(self):
+        physical = self.path / "physical-original-log"
+        physical.mkdir()
+        (physical / "step-00.log").write_bytes(b"genuine bytes")
+        alias = self.path / "redirected-original-log"
+        try:
+            alias.symlink_to(physical, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("directory symlinks unavailable")
+        with self.assertRaisesRegex(
+                ValueError, "redirected original Windows log ancestor"):
+            fanout.attest_private_case_files(
+                [{"index": 0, "log": "step-00.log",
+                  "summary": "step-00.md"}], alias)
 
     def test_missing_private_original_log_is_not_success(self):
         work = self.path / "missing-proof"

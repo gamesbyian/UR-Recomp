@@ -350,6 +350,7 @@ def validate_receipt(receipt, group, source_sha):
     if group == "independent" and case12_passed:
         require(type(mode["reported_workers"]) is int
                 and mode["reported_workers"] == mode["requested_workers"]
+                and type(mode["report_cases"]) is int
                 and mode["report_cases"] == 10
                 and type(mode["report_sha256"]) is str
                 and bool(HEX64.fullmatch(mode["report_sha256"])),
@@ -361,12 +362,17 @@ def validate_receipt(receipt, group, source_sha):
                 "failed/non-Practice group falsely claimed Practice success")
     expected = GROUPS[group]
     original_hashes = original_script_hashes()
-    require(receipt.get("expected_indices") == list(expected), "case inventory changed")
+    require(type(receipt.get("expected_indices")) is list
+            and len(receipt["expected_indices"]) == len(expected)
+            and all(type(actual) is int and actual == intended
+                    for actual, intended in zip(receipt["expected_indices"], expected)),
+            "case inventory changed")
     rows = receipt.get("cases")
     require(isinstance(rows, list) and len(rows) == len(expected),
             "missing / duplicated original cases")
     for idx, row in zip(expected, rows):
-        require(isinstance(row, dict) and row.get("index") == idx
+        require(isinstance(row, dict) and type(row.get("index")) is int
+                and row["index"] == idx
                 and row.get("name") == bridge.STEPS[idx], "original case identity changed")
         # The original bridge includes a nullable subprocess exception class.
         # Synthetic pre-existing receipts omit that optional source field.
@@ -398,7 +404,8 @@ def validate_receipt(receipt, group, source_sha):
             require(type(row.get(label + "_bytes")) is int
                     and 0 <= row[label + "_bytes"] < 50_000_000,
                     "invalid private original output size")
-    require(receipt.get("release_gate_credit") == 0
+    require(type(receipt.get("release_gate_credit")) is int
+            and receipt["release_gate_credit"] == 0
             and receipt.get("independent_physical_qa") is False,
             "producer attempted QA promotion")
     require(receipt.get("all_passed") is
@@ -611,14 +618,28 @@ def aggregate(root, source_sha):
     for group in GROUPS:
         path = root / ("windows-fanout-" + group) / "result.json"
         try:
+            # The group directory is only the final ancestor. A symlink
+            # or Windows junction at the caller-provided root (or higher)
+            # would otherwise redirect the source of BOTH signed receipts.
+            require(not path.parent.is_symlink()
+                    and not getattr(path.parent, "is_junction", lambda: False)(),
+                    "redirected group receipt directory")
+            for ancestor in path.parent.parents:
+                require(not ancestor.is_symlink()
+                        and not getattr(ancestor, "is_junction", lambda: False)(),
+                        "redirected group receipt path ancestor")
             require(path.is_file() and not path.is_symlink(), "missing group receipt")
             # A self-consistent digest of Python's last-key-wins object
             # cannot authenticate two conflicting raw JSON member values.
-            require(not path.parent.is_symlink(),
-                    "redirected group receipt directory")
+            # Bound the actual read, not just a pre-read stat: the file
+            # could grow between stat and open.
             require(path.stat().st_size <= 1024 * 1024,
                     "unbounded group receipt")
-            row = json.loads(path.read_text(encoding="utf-8"),
+            with path.open("rb") as source:
+                raw = source.read(1024 * 1024 + 1)
+            require(len(raw) <= 1024 * 1024,
+                    "unbounded group receipt")
+            row = json.loads(raw.decode("utf-8"),
                              parse_constant=reject_nonfinite_json_number,
                              object_pairs_hook=unique_json_object)
             identities.append(validate_receipt(row, group, source_sha))

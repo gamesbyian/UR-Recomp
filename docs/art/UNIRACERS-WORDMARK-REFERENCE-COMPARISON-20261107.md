@@ -217,3 +217,37 @@ The owner noted three remaining artistic problems: the **right side of the `u` i
 - **No raster-overlap score was used to decide or qualify this change**; the criterion is coherent broad-curve shape and reasonable outline consistency.
 
 The previous master is preserved in Git history. This remains a candidate for owner art review, not a recovered original editable vector file, owner sign-off, or any release/QA acceptance.
+
+
+## 2026-11-08: white-outline artwork becomes the primary geometric guide for `u`, `n`, `a`
+
+**Owner direction:** The supplied high-contrast white-outline artwork is considered a better practical *design-shape guide* than the earlier raster-derived yellow contour reconstruction, despite not necessarily being a perfect reproduction of the original 1994 box. The goal is flowing, coherent, intentional curves, with cover art used only as a secondary proportional and stylistic check. This supersedes using raster intersection-over-union as the artistic selection criterion for these letters.
+
+**New source:** user-supplied 1536×464 white-outline screenshot, SHA-256 `655756a08fe44af0025efc46fb2b3563a3515247342d8e0fa0145b1200ef983e`. The raster remains a user-provided reference; it is **not embedded** in the committed SVG.
+
+**New preserved partial SVG:** [white-outline `u`, `n`, `a` reference](../../assets/branding/reference-traces/uniracers-wordmark-white-outline-ref-u-n-a-20261108.svg). It is in the original 1536×464 screenshot's coordinate system and traces **only these three glyphs**. Do not misrepresent it as an all-nine-letter reconstruction.
+
+### Reconstruction procedure
+
+1. Threshold the pale outline, close one-pixel gaps, and flood-identify the enclosed **black glyph interiors** for `u`, `n` and `a`. These are the glyph faces bounded by the pale outline, separated from the unrelated white tubing and decorative lines.
+2. Expand each enclosed face by approximately **four screenshot pixels** to estimate the center of the pale contour rather than adopting its inner or outer raster edge.
+3. Resample its perimeter at uniform ~2.5-pixel intervals; fit **closed periodic cubic B-splines**, choosing curvature regularization visually to eliminate small bends without erasing the `n` shoulder notch, `a` curl, or `u` scoop. Convert B-spline knot spans to exact cubic Bézier paths. The resulting curves are C2-continuous internally and across their periodic closure.
+4. Register each reconstructed glyph into the former master letter's approximate bounding box to retain overall arrangement and scale. This is **three independent shape registrations**, not evidence of perfect historical perspective or proportions. Preserve all other contours.
+5. Render the yellow face, uniform black keyline and offset black underlay from the **same master paths**. Existing TM/asterisk, all seven other glyph/spiral contours, palette and border settings remain unchanged.
+
+| Glyph | Previous cubic segments | New outline-guided segments | Design observation |
+|---|---:|---:|---|
+| `u` | 12 | **16** | More deliberate inner scoop and bowl; long sides flow without trace-driven bending |
+| `n` | 16 | **24** | Smooth right-leg sweep and controlled shoulder, retaining its subtle notch |
+| `a` | 25 | **25** | More coherent curl, diagonal transition and lower hooked return |
+
+**Segment count is not a proxy for visual lumpiness:** regularized periodic B-spline spans are curvature-continuous; fewer arbitrary hand-fitted segments can still produce a worse curve. Review their resulting silhouettes and smoothness instead.
+
+### Bounded validation and artistic limits
+
+- CairoSVG rendered the new master as a high-density transparent PNG and against charcoal/lavender backgrounds. Enlarged before/after and source comparisons were visually inspected.
+- All three newly fitted contours sampled into **valid, closed, non-self-intersecting polygons**. The unchanged seven paths and TM/asterisk remain in the master.
+- The original source scan, a modern outline redraw, and this reconstruction are **not** a recovered 1994 editable master. The reference may have slight shape distortions; visually acceptable geometry is being restored rather than historical Bézier control points being authenticated.
+- The previous wordmark is retained in Git history. Owner artistic acceptance, release gates and gameplay QA are unchanged.
+
+**Next review:** judge the refreshed `u`/ `n`/ `a` as smooth *letter design*, not as pixel-fit data; then, if accepted, apply the same independent outline-first method to remaining glyphs where the white reference is not clipped or obstructed.

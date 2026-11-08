@@ -351,14 +351,19 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
                 "original Records output roots are ambiguous")
         names = [Path(paths[0]) for paths in outputs]
         require(all(not path.is_absolute()
-                    and ".." not in path.parts and len(path.parts) >= 2
+                    and ".." not in path.parts and len(path.parts) >= 1
                     for path in names),
                 "original Records output roots escape runner temp")
-        require(len(set(names)) == 3
-                and all(a not in b.parents and b not in a.parents
-                        for i, a in enumerate(names)
-                        for b in names[i + 1:]),
-                "original Records output roots overlap")
+        # Authentic source layout is intentional: case 0 owns the parent
+        # that contains the seed, while 1P and 2P write separate siblings.
+        # Refuse a source change that moves either sibling into the other's
+        # tree or outside the original baseline parent.
+        parent = Path("UR Baldosa Win32 Pause Route")
+        require(names == [
+                    parent, parent / "native_real_1p_records",
+                    parent / "native_real_2p_records",
+                ],
+                "original Records parent and sibling output layout changed")
         require(all(not (Path(env["RUNNER_TEMP"]) / name).exists()
                     and not (Path(env["RUNNER_TEMP"]) / name).is_symlink()
                     for name in names),

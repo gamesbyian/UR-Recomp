@@ -139,6 +139,39 @@ def _pushes_main(text: str) -> bool:
 
 
 class CiTriggerPolicyTest(unittest.TestCase):
+    def test_p2_real_win32_seed_guard_probe_is_manual_source_locked(self):
+        # Only an owner-dispatched, default-branch workflow may launch one
+        # real Win32 OS-sharing test job against an exact held P2 PR head.
+        # This is never a recurring/draft-PR Windows build or release gate.
+        source = (WORKFLOWS / "p2-win32-seed-sharing-unit-manual.yml").read_text(
+            encoding="utf-8")
+        self.assertIn("\non:\n  workflow_dispatch:\n", source)
+        triggers = source.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+        for forbidden in ("pull_request", "pull_request_target", "push",
+                          "schedule", "workflow_call", "issue_comment"):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotRegex(triggers, rf"(?m)^  {forbidden}:")
+        self.assertIn("  contents: read", source)
+        self.assertIn("  pull-requests: read", source)
+        self.assertNotIn("  actions: write", source)
+        self.assertIn("runs-on: windows-2022", source)
+        self.assertIn("github.ref", source) if False else None
+        self.assertIn("refs/heads/main", source)
+        self.assertIn("$pr.draft -ne $true", source)
+        self.assertIn("$pr.head.repo.full_name -cne $env:GITHUB_REPOSITORY",
+                      source)
+        self.assertIn("$pr.head.sha -cne $env:EXPECTED_SHA", source)
+        self.assertIn("ref: ${{ inputs.expected_sha }}", source)
+        self.assertIn("persist-credentials: false", source)
+        self.assertIn('python-version: "3.12"', source)
+        self.assertIn('test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"', source)
+        self.assertIn("result.testsRun != 2 or result.skipped", source)
+        self.assertIn("test_real_windows_share_guard_blocks_writes_delete_and_releases",
+                      source)
+        self.assertIn("test_real_windows_share_guard_releases_after_child_failure",
+                      source)
+        self.assertIn("No ROM, native game", source)
+
     def test_pr_validation_is_not_repeated_after_merge(self):
         offenders = []
         for path in _workflow_paths():

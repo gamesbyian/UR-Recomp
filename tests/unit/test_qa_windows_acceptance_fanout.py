@@ -379,6 +379,60 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                     env, seed_followup_workers=2)
         self.assertFalse((self.path / "mutated-records" / "result.json").exists())
 
+    def test_parallel_records_missing_authentic_seed_stays_unqualified(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        calls = []
+        def runner(i, script, work, environ):
+            calls.append(i)
+            (work / ("step-%02d.log" % i)).write_text("no actual seed")
+            (work / ("step-%02d.md" % i)).write_text("synthetic summary")
+            return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
+                    "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
+                    "summary": "step-%02d.md" % i}
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "run_one", side_effect=runner):
+            result = fanout.run_group(
+                "seed-dependent", SHA, archive,
+                self.path / "missing-records-seed", env,
+                seed_followup_workers=2)
+        self.assertEqual(calls, [0])
+        self.assertFalse(result["all_passed"])
+        self.assertEqual(result["seed_followup_mode"]["requested_workers"], 2)
+        self.assertEqual(result["seed_followup_mode"]["effective_workers"], 0)
+        self.assertIsNone(result["seed_followup_mode"]["source_seed_sha256"])
+        with self.assertRaises(ValueError):
+            fanout.validate_receipt(result, "seed-dependent", SHA)
+
+    def test_parallel_records_nonzero_original_case_never_reports_success(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        barrier = threading.Barrier(2, timeout=5)
+        seed = (self.path / "UR Baldosa Win32 Pause Route" / "baseline" /
+                "Modern Player Data With Spaces" / "saves" / "save.srm")
+        def runner(i, script, work, environ):
+            if i == 0:
+                seed.parent.mkdir(parents=True, exist_ok=False)
+                seed.write_bytes(bytes(8192))
+            else:
+                barrier.wait()
+            (work / ("step-%02d.log" % i)).write_text("synthetic source case")
+            (work / ("step-%02d.md" % i)).write_text("synthetic summary")
+            return {"index": i, "name": bridge.STEPS[i],
+                    "exit_code": 7 if i == 2 else 0,
+                    "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
+                    "summary": "step-%02d.md" % i}
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "run_one", side_effect=runner):
+            receipt = fanout.run_group(
+                "seed-dependent", SHA, archive,
+                self.path / "failed-records-case", env,
+                seed_followup_workers=2)
+        self.assertFalse(receipt["all_passed"])
+        self.assertEqual(receipt["cases"][2]["exit_code"], 7)
+        self.assertFalse(receipt["seed_followup_mode"]["native_process_overlap_verified"])
+        fanout.validate_receipt(receipt, "seed-dependent", SHA)
+
     def test_parallel_records_reject_changed_original_seed_source(self):
         env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
         old = bridge.extract_commands(bridge.WORKFLOW.read_text())
@@ -560,6 +614,10 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                                     self.path / "seed-work", env)
             self.assertEqual([r["index"] for r in seed["cases"]], [0, 1, 2])
             self.assertTrue(seed["all_passed"])
+            self.assertEqual(seed["seed_followup_mode"]["requested_workers"], 1)
+            self.assertEqual(seed["seed_followup_mode"]["effective_workers"], 1)
+            self.assertEqual(seed["seed_followup_mode"]["invocation_overlap_ns"], 0)
+            self.assertFalse(seed["seed_followup_mode"]["native_process_overlap_verified"])
             # Two independent Windows jobs have separate ephemeral temp roots.
             fresh = self.path / "other-runner"
             fresh.mkdir()

@@ -265,3 +265,21 @@ Owner priority: make the spiral and `i` especially clean, while ensuring that th
 - **Validation:** both SVGs parse and render with CairoSVG; all **ten** canonical contours sample as closed, valid, simple polygons with positive area (100 samples/cubic span). Separate magnified glyph views and complete-wordmark previews were inspected, and the reconstructed white-outline reference curves were overlaid on the source line centre to detect wrong joins. This is still a candidate for owner artistic review: no claim of a perfect 1994 master, owner signoff, gameplay parity or release QA gate.
 
 **Remaining evaluation:** assess the spiral inner tongue and the `e` inner return at normal and extreme scale. If they look properly intentional, stop adjusting these paths based on raster differences; further edits should be owner-directed local curve changes only.
+
+
+## 2026-11-08: owner-selected exact letter interiors supersede speculative refits
+
+The owner supplied `uniracers-logo-letter-interiors.svg` and explicitly endorsed its letter shapes as perfect for present purposes. **This is now the canonical geometry.** All previous attempts to individually smooth, regularize, re-fit, align, or average cover-raster contours are superseded as the source of current glyph shape. Do not reintroduce those earlier letter paths or adjust the approved ten curves without explicit visual direction.
+
+**Original preserved:** [owner source SVG with thirteen contours](../../assets/branding/reference-traces/uniracers-logo-letter-interiors-owner-20261108.svg). It is retained unchanged for traceability.
+
+**Canonical asset:** [yellow wordmark with offset black outline and TM*](../../assets/branding/uniracers-box-wordmark-traced.svg).
+
+- The **ten unchanged, exact source `d` strings** are `u`, `n`, `i`, `i-spiral-dot`, `first-r`, `a`, `c`, `e`, `second-r`, `s`.
+- The **three removed decorative shapes** are `first-r-terminal-flourish`, `post-a-dot`, and `under-n-dot`. These are not part of the desired lettering.
+- Letter faces render in yellow `#ffea00`; an 8-unit black rounded backing translated (+2,+2) units recreates the diagonal border. A 2.4-unit centred black keyline establishes minimum visible edge weight. Both use `<use href="#wordmark-contours">` so the outline is constrained to the *identical source geometry*, not separately traced black silhouettes.
+- The small yellow-and-black `TM*` is a separately authored symbol retained from the prior packaging study; the uploaded SVG does not contain it. The viewBox extends to 1600×464 for breathing room at the right.
+
+**Validation:** Compared all ten retained path-data strings directly to the source SVG: exact matches. No retained character geometry was edited. An SVG renderer produced a transparent PNG preview and a visual sanity-check on black; no source raster is embedded. The old master remains recoverable through Git history.
+
+**Review boundary:** The owner has approved the **source letterform shapes**, not every derived presentation detail. The diagonal border weight, its offset, small TM* placement and colour are editable presentation choices, subject to visual review. This artwork acceptance is independent of gameplay, 3D reconstruction and Windows release gates.

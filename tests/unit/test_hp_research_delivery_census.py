@@ -26,7 +26,8 @@ def run(rid, created="2026-11-02T00:05:00Z",
 def job(jid, rid, started="2026-11-02T00:05:05Z",
         completed="2026-11-02T00:10:05Z", conclusion="success"):
     return {
-        "id": jid, "run_id": rid, "name": hp.JOB_NAME,
+        "id": jid, "run_id": rid, "run_attempt": 1,
+        "name": hp.JOB_NAME,
         "runner_name": hp.RUNNER_NAME, "status": "completed",
         "conclusion": conclusion, "started_at": started,
         "completed_at": completed,
@@ -129,11 +130,50 @@ class HPCensusTests(TestCase):
                 with self.assertRaises(ValueError):
                     hp.measure(f, START, END, workers=1)
 
+    def test_hp_job_end_conflicting_with_observed_steps_is_unknown(self):
+        # A historical HP DST transition yielded a spurious extra hour in
+        # the GitHub job end. No corrected time should be invented.
+        for end in ("2026-11-02T01:10:05Z",
+                    "2026-11-02T00:05:05Z"):
+            with self.subTest(reported_end=end):
+                record = job(301, 17, completed=end)
+                record["steps"] = [{
+                    "name": "Real last step",
+                    "started_at": "2026-11-02T00:09:00Z",
+                    "completed_at": "2026-11-02T00:10:05Z",
+                }]
+                f = FakeGitHub(runs=[run(17)], jobs={17: [record]})
+                with self.assertRaisesRegex(
+                        ValueError, "untrusted job end relative to final step"):
+                    hp.measure(f, START, END, workers=1)
+
+    def test_hp_job_end_step_evidence_normal_envelope_and_offsets(self):
+        record = job(301, 17)
+        record["steps"] = [{
+            "name": "Real final step",
+            "completed_at": "2026-11-02T00:09:59+00:00",
+        }]
+        f = FakeGitHub(runs=[run(17)], jobs={17: [record]})
+        receipt = hp.measure(f, START, END, workers=1)
+        self.assertEqual(receipt["timing"]["observed_job_interval_minutes"], 5)
+
+    def test_malformed_hp_step_end_evidence_fails_closed(self):
+        for steps in ("bad", [None], [{"completed_at": "naive"}],
+                      [{"completed_at": "bad-time"}]):
+            with self.subTest(steps=steps):
+                record = job(301, 17)
+                record["steps"] = steps
+                f = FakeGitHub(runs=[run(17)], jobs={17: [record]})
+                with self.assertRaises(ValueError):
+                    hp.measure(f, START, END, workers=1)
+
     def test_job_source_identity_runner_name_and_outcome_rejected(self):
         overrides = [
             {"id": 0}, {"id": "301"}, {"run_id": 18},
             {"run_id": None},
-            {"run_id": "17"}, {"name": "other job"},
+            {"run_id": "17"}, {"run_attempt": 2},
+            {"run_attempt": False}, {"run_attempt": None},
+            {"run_attempt": "1"}, {"name": "other job"},
             {"runner_name": "github-hosted-windows"}, {"status": "queued"},
             {"conclusion": "failure"},
         ]
@@ -143,6 +183,33 @@ class HPCensusTests(TestCase):
                 f = FakeGitHub(runs=[run(17)], jobs={17: [row]})
                 with self.assertRaises(ValueError):
                     hp.measure(f, START, END, workers=1)
+
+    def test_missing_or_malformed_latest_job_attempt_is_unknown(self):
+        for value in (None, "missing", "1", False, 0, -1, 2):
+            with self.subTest(job_attempt=value):
+                latest = job(301, 17)
+                if value == "missing":
+                    del latest["run_attempt"]
+                else:
+                    latest["run_attempt"] = value
+                f = FakeGitHub(runs=[run(17)], jobs={17: [latest]})
+                with self.assertRaisesRegex(
+                        ValueError, "missing a source-consistent completed HP job"):
+                    hp.measure(f, START, END, workers=1)
+
+    def test_read_only_latest_job_must_match_selected_rerun_attempt(self):
+        run_2 = {**run(17), "run_attempt": 2}
+        latest = {**job(301, 17), "run_attempt": 2}
+        f = FakeGitHub(runs=[run_2], jobs={17: [latest]})
+        self.assertEqual(hp.measure(f, START, END, workers=1)
+                         ["counts"]["rerun_workflow_ids"], 1)
+        # One stale attempt hidden under an otherwise valid filter=latest
+        # response invalidates the whole measurement, never a partial sum.
+        older = {**latest, "run_attempt": 1}
+        with self.assertRaisesRegex(
+                ValueError, "missing a source-consistent completed HP job"):
+            hp.measure(FakeGitHub(runs=[run_2], jobs={17: [older]}),
+                       START, END, workers=1)
 
     def test_run_attempt_or_conclusion_drift_during_job_read_rejected(self):
         class ChangedMidCensus(FakeGitHub):
@@ -268,7 +335,7 @@ class HPCensusTests(TestCase):
 
     def test_rerun_count_is_scope_signal_only(self):
         f = FakeGitHub(runs=[{**run(17), "run_attempt": 2}],
-                       jobs={17: [job(301, 17)]})
+                       jobs={17: [{**job(301, 17), "run_attempt": 2}]})
         r = hp.measure(f, START, END, workers=1)
         self.assertEqual(r["counts"]["rerun_workflow_ids"], 1)
         self.assertEqual(r["job_attempt_policy"], "latest")

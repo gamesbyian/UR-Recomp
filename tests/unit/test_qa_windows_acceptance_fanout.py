@@ -260,6 +260,23 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                 self.update("seed-dependent", data)
                 self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
 
+    def test_records_serial_receipt_requires_original_source_order(self):
+        data = packet("seed-dependent")
+        # Neither interval overlaps, so the earlier v5 validator accepted
+        # this impossible 'serial' 2P-before-1P chronology.
+        data["seed_followup_mode"]["invocation_windows"] = [
+            {"index": 1, "started_ns": 301, "ended_ns": 401},
+            {"index": 2, "started_ns": 100, "ended_ns": 200},
+        ]
+        data["seed_followup_mode"]["invocation_overlap_ns"] = 0
+        data["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in data.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", data)
+        result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertIn("serial Records invocation order",
+                      " ".join(result["issues"]))
+
     def test_records_parallel_bridge_windows_but_no_native_process_proof(self):
         seed = packet("seed-dependent")
         seed["seed_followup_mode"].update({

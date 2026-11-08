@@ -274,6 +274,12 @@ def validate_seed_followup_mode(mode, group, rows):
     overlap = invocation_overlap_ns(windows)
     require(mode["invocation_overlap_ns"] == overlap,
             "Records invocation-overlap calculation contradicted")
+    if mode["requested_workers"] == 1:
+        # The original serial source invokes case 1, waits for completion,
+        # and only then invokes case 2. Non-overlap alone cannot establish
+        # that order; a reversed sequence must not be labeled serial.
+        require(windows[0]["ended_ns"] <= windows[1]["started_ns"],
+                "serial Records invocation order contradicted")
     require((mode["requested_workers"] == 1 and overlap == 0)
             or (mode["requested_workers"] == 2 and overlap > 0),
             "Records requested parallel mode lacks observed bridge overlap")

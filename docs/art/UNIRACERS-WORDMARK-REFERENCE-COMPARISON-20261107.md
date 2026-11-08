@@ -251,3 +251,17 @@ The previous master is preserved in Git history. This remains a candidate for ow
 - The previous wordmark is retained in Git history. Owner artistic acceptance, release gates and gameplay QA are unchanged.
 
 **Next review:** judge the refreshed `u`/ `n`/ `a` as smooth *letter design*, not as pixel-fit data; then, if accepted, apply the same independent outline-first method to remaining glyphs where the white reference is not clipped or obstructed.
+
+
+## White-outline follow-up: spiral, `i`, `c`, `e` (2026-11-08)
+
+Owner priority: make the spiral and `i` especially clean, while ensuring that the `c` and `e` meet the same standard. The black-background/white-outline image remains the **principal shape guide**, with box art only a secondary reference. Raster-mask IoU is explicitly **not** the acceptance objective.
+
+- **Source:** the same 1536×464 white-outline image used for the preceding `u`/`n`/`a` pass (SHA-256 `655756a08fe44af0025efc46fb2b3563a3515247342d8e0fa0145b1200ef983e`).
+- **Independent reference:** [spiral, `i`, `c`, `e` in screenshot coordinates](../../assets/branding/reference-traces/uniracers-wordmark-white-outline-ref-spiral-i-c-e-20261108.svg). This is a *four-glyph partial trace*, not an all-character source master. The previous three-glyph `u`/`n`/`a` reference is unchanged.
+- **Method:** isolate each letter's enclosed black interior using a thresholded pale outline (3×3 closure), recover approximately half the line width with a 9×9 elliptical dilation, uniformly resample, and fit periodic cubic splines. Convert each spline span to cubic SVG Béziers, registering its bounding box to the existing wordmark. The `e` originally resisted segmentation because neighboring curls and decoration looked like separate enclosed faces; the final fit **does use the isolated enclosed `e` face**, not the preliminary path-guided skeleton shortcut that visibly cut diagonally across the inner curl.
+- **Selected results:** spiral 15 cubic spans (delicate smoothing to retain the whorl), `i` 10 (balanced smoothing to preserve its cap and taper), `c` 11 and `e` 14 (balanced to preserve their open ends and inner curls). These paths are smooth, periodic and editable. Counts do not themselves define quality.
+- **Scope:** only `spiral`, `i`, `c` and `e` in the existing main wordmark are replaced. The established `u`, `n`, `a`, both `r`s, `s`, layout, palette, TM/asterisk and the shared thin-keyline-plus-diagonal-underlay are unchanged.
+- **Validation:** both SVGs parse and render with CairoSVG; all **ten** canonical contours sample as closed, valid, simple polygons with positive area (100 samples/cubic span). Separate magnified glyph views and complete-wordmark previews were inspected, and the reconstructed white-outline reference curves were overlaid on the source line centre to detect wrong joins. This is still a candidate for owner artistic review: no claim of a perfect 1994 master, owner signoff, gameplay parity or release QA gate.
+
+**Remaining evaluation:** assess the spiral inner tongue and the `e` inner return at normal and extreme scale. If they look properly intentional, stop adjusting these paths based on raster differences; further edits should be owner-directed local curve changes only.

@@ -197,3 +197,23 @@ Both redrawn polygons remain closed, valid and non-self-intersecting on dense nu
 The curves are tangent-continuous (geometric G1) at the Bézier joins but are **not claimed to be exactly curvature-continuous C2**: maximum sampled curvature jumps are about 0.0063 in source-pixel inverse units at the most tightly curved joins. The broad strokes and joins were inspected in a magnified before/after render and in the full wordmark. This is a new owner-review candidate rather than original 1994 control points or final art signoff.
 
 **Future review criterion:** judge the quality of long arcs, consistency of stem widths, intentional terminal shapes and absence of unwanted inflections at multiple render scales. Do not reintroduce pixel-fitting merely to increase IoU. Release/gameplay QA gates remain unchanged.
+
+
+## 2026-11-08: targeted `u` scoop, `a` curls, and black-outline balance
+
+The owner noted three remaining artistic problems: the **right side of the `u` inner scoop**, unintended shape changes in the **`a`**, and patches of **inconsistent black outline weight**. This pass addresses only those, prioritizing smooth intentional curves rather than raster-mask overlap.
+
+**Geometry changes**
+- **`u`**: adjust the inner right wall and the lower-turn cubic handles together so the scoop flows continuously into its rising left edge, without the prior bulge/flat-bottom transition. Retain the 12-span designed `u` established by #3272. Only a localized portion of its contour changes.
+- **`a`**: reshape the upper curl's inner side (removing an unnecessary sideways reversal) and the lower hooked return (removing the flat shelf). Refit neighboring cubic handles jointly for continuous tangent direction and nearly continuous geometric curvature. Keep 25 spans and preserve the overall `a` envelope.
+- **All eight other source contours**, including `n`, `i`, spiral, both `r`s, `c`, `e`, and `s`, are unchanged byte-for-byte. The TM and asterisk also remain unchanged.
+
+**Border construction**: the previous single 10 px black rounded stroke displaced (+2,+2) created very thin portions opposite the shadow direction and exaggerated weight on other sides. Replace it with two reusable, **path-derived** black layers beneath the yellow faces: (1) 8 px rounded stroke translated (+1.4,+1.4), then (2) a *uniform* 4.2 px centered black keyline. Both reference the very same glyph source paths, so no separate traced black silhouette or font text is introduced. The diagonal offset remains intentional but the keyline establishes a consistent minimum black edge, including around tight inside turns.
+
+**Quality verification**
+- Both changed glyphs use **closed, valid, non-self-intersecting** contours sampled at 100 points per cubic span. All ten existing glyphs likewise remain valid.
+- Maximum adjacent cubic tangent-direction mismatch is approximately **0.086°** across the `u` and **0.016°** across the `a`. The optimized `a`'s targeted join-curvature discontinuity is below **0.0006 inverse source pixels**.
+- CairoSVG successfully rendered the entire asset against neutral and transparent backgrounds. Enlarged side-by-side checks compared each corrected character with the previous SVG and the clean packaging reference.
+- **No raster-overlap score was used to decide or qualify this change**; the criterion is coherent broad-curve shape and reasonable outline consistency.
+
+The previous master is preserved in Git history. This remains a candidate for owner art review, not a recovered original editable vector file, owner sign-off, or any release/QA acceptance.

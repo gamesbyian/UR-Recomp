@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1730" height="510" viewBox="30 65 1680 400" role="img" aria-labelledby="title desc">
+  <title id="title">Юниралли | Russian Unirally wordmark</title>
+  <desc id="desc">Original editable Cyrillic wordmark for the user-supplied Russian title Юниралли (Yuniralli), with playful rounded curves and the established Uniracers yellow fill and diagonally offset black border.</desc>
+  <metadata>Original visual adaptation, not a traced historical Russian release logo. Contains all eight Cyrillic letters: Ю н и р а л л и. Letter paths are independent editable cubic Bezier centerlines, no font dependency, no embedded raster.</metadata>
+  <defs>
+    <g id="cyrillic-centrelines" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g id="glyph-yu" aria-label="Ю">
+      <path id="yu-stroke-1" d="M102 138 C98 207 101 285 99 340" data-weight="52"/>
+      <path id="yu-stroke-2" d="M107 230 C135 223 157 224 186 225" data-weight="42"/>
+      <path id="yu-stroke-3" d="M252 143 C208 135 181 170 180 227 C178 286 197 339 244 340 C293 341 311 294 313 235 C315 185 294 149 252 143 Z" data-weight="49"/>
+    </g>
+    <g id="glyph-en" aria-label="н">
+      <path id="en-stroke-1" d="M400 166 C393 207 397 294 394 337" data-weight="52"/>
+      <path id="en-stroke-2" d="M530 152 C535 210 532 288 529 330" data-weight="48"/>
+      <path id="en-stroke-3" d="M401 246 C438 238 491 244 529 234" data-weight="42"/>
+    </g>
+    <g id="glyph-ee" aria-label="и">
+      <path id="ee-stroke-1" d="M605 165 C599 216 597 290 602 334" data-weight="51"/>
+      <path id="ee-stroke-2" d="M734 156 C730 211 737 284 734 329" data-weight="50"/>
+      <path id="ee-stroke-3" d="M602 329 C646 285 700 215 734 164" data-weight="48"/>
+    </g>
+    <g id="glyph-er" aria-label="р">
+      <path id="er-stroke-1" d="M808 169 C803 223 801 314 801 399" data-weight="54"/>
+      <path id="er-stroke-2" d="M808 181 C839 148 894 142 925 172 C957 202 943 260 915 275 C884 291 837 288 809 268" data-weight="53"/>
+    </g>
+    <g id="glyph-a" aria-label="а">
+      <path id="a-stroke-1" d="M1100 171 C1057 162 1026 197 1026 246 C1026 294 1051 322 1092 320 C1136 318 1158 282 1155 239 C1152 199 1135 174 1100 171 Z" data-weight="51"/>
+      <path id="a-stroke-2" d="M1159 179 C1156 220 1160 286 1165 326" data-weight="48"/>
+    </g>
+    <g id="glyph-el1" aria-label="л">
+      <path id="el1-stroke-1" d="M1200 332 C1228 293 1240 226 1266 173" data-weight="51"/>
+      <path id="el1-stroke-2" d="M1266 173 C1284 224 1302 289 1317 328" data-weight="52"/>
+    </g>
+    <g id="glyph-el2" aria-label="л">
+      <path id="el2-stroke-1" d="M1354 337 C1388 288 1404 217 1426 166" data-weight="50"/>
+      <path id="el2-stroke-2" d="M1426 166 C1448 224 1461 290 1481 327" data-weight="51"/>
+    </g>
+    <g id="glyph-ee2" aria-label="и">
+      <path id="ee2-stroke-1" d="M1533 168 C1527 220 1529 293 1532 331" data-weight="49"/>
+      <path id="ee2-stroke-2" d="M1655 155 C1650 216 1654 289 1653 330" data-weight="50"/>
+      <path id="ee2-stroke-3" d="M1532 330 C1581 279 1624 219 1654 164" data-weight="48"/>
+    </g>
+    </g>
+  </defs>
+  <g id="offset-black-border" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#yu-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="60"/>
+    <use href="#yu-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="50"/>
+    <use href="#yu-stroke-3" transform="translate(2 2)" stroke="#090409" stroke-width="57"/>
+    <use href="#en-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="60"/>
+    <use href="#en-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="56"/>
+    <use href="#en-stroke-3" transform="translate(2 2)" stroke="#090409" stroke-width="50"/>
+    <use href="#ee-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="59"/>
+    <use href="#ee-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="58"/>
+    <use href="#ee-stroke-3" transform="translate(2 2)" stroke="#090409" stroke-width="56"/>
+    <use href="#er-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="62"/>
+    <use href="#er-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="61"/>
+    <use href="#a-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="59"/>
+    <use href="#a-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="56"/>
+    <use href="#el1-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="59"/>
+    <use href="#el1-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="60"/>
+    <use href="#el2-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="58"/>
+    <use href="#el2-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="59"/>
+    <use href="#ee2-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="57"/>
+    <use href="#ee2-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="58"/>
+    <use href="#ee2-stroke-3" transform="translate(2 2)" stroke="#090409" stroke-width="56"/>
+  </g>
+  <g id="uniform-black-keyline" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#yu-stroke-1" stroke="#090409" stroke-width="54.4"/>
+    <use href="#yu-stroke-2" stroke="#090409" stroke-width="44.4"/>
+    <use href="#yu-stroke-3" stroke="#090409" stroke-width="51.4"/>
+    <use href="#en-stroke-1" stroke="#090409" stroke-width="54.4"/>
+    <use href="#en-stroke-2" stroke="#090409" stroke-width="50.4"/>
+    <use href="#en-stroke-3" stroke="#090409" stroke-width="44.4"/>
+    <use href="#ee-stroke-1" stroke="#090409" stroke-width="53.4"/>
+    <use href="#ee-stroke-2" stroke="#090409" stroke-width="52.4"/>
+    <use href="#ee-stroke-3" stroke="#090409" stroke-width="50.4"/>
+    <use href="#er-stroke-1" stroke="#090409" stroke-width="56.4"/>
+    <use href="#er-stroke-2" stroke="#090409" stroke-width="55.4"/>
+    <use href="#a-stroke-1" stroke="#090409" stroke-width="53.4"/>
+    <use href="#a-stroke-2" stroke="#090409" stroke-width="50.4"/>
+    <use href="#el1-stroke-1" stroke="#090409" stroke-width="53.4"/>
+    <use href="#el1-stroke-2" stroke="#090409" stroke-width="54.4"/>
+    <use href="#el2-stroke-1" stroke="#090409" stroke-width="52.4"/>
+    <use href="#el2-stroke-2" stroke="#090409" stroke-width="53.4"/>
+    <use href="#ee2-stroke-1" stroke="#090409" stroke-width="51.4"/>
+    <use href="#ee2-stroke-2" stroke="#090409" stroke-width="52.4"/>
+    <use href="#ee2-stroke-3" stroke="#090409" stroke-width="50.4"/>
+  </g>
+  <g id="yellow-letter-faces" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <use href="#yu-stroke-1" stroke="#ffea00" stroke-width="52"/>
+    <use href="#yu-stroke-2" stroke="#ffea00" stroke-width="42"/>
+    <use href="#yu-stroke-3" stroke="#ffea00" stroke-width="49"/>
+    <use href="#en-stroke-1" stroke="#ffea00" stroke-width="52"/>
+    <use href="#en-stroke-2" stroke="#ffea00" stroke-width="48"/>
+    <use href="#en-stroke-3" stroke="#ffea00" stroke-width="42"/>
+    <use href="#ee-stroke-1" stroke="#ffea00" stroke-width="51"/>
+    <use href="#ee-stroke-2" stroke="#ffea00" stroke-width="50"/>
+    <use href="#ee-stroke-3" stroke="#ffea00" stroke-width="48"/>
+    <use href="#er-stroke-1" stroke="#ffea00" stroke-width="54"/>
+    <use href="#er-stroke-2" stroke="#ffea00" stroke-width="53"/>
+    <use href="#a-stroke-1" stroke="#ffea00" stroke-width="51"/>
+    <use href="#a-stroke-2" stroke="#ffea00" stroke-width="48"/>
+    <use href="#el1-stroke-1" stroke="#ffea00" stroke-width="51"/>
+    <use href="#el1-stroke-2" stroke="#ffea00" stroke-width="52"/>
+    <use href="#el2-stroke-1" stroke="#ffea00" stroke-width="50"/>
+    <use href="#el2-stroke-2" stroke="#ffea00" stroke-width="51"/>
+    <use href="#ee2-stroke-1" stroke="#ffea00" stroke-width="49"/>
+    <use href="#ee2-stroke-2" stroke="#ffea00" stroke-width="50"/>
+    <use href="#ee2-stroke-3" stroke="#ffea00" stroke-width="48"/>
+  </g>
+</svg>

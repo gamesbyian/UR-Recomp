@@ -146,3 +146,32 @@ The owner specifically requested more attention to the spiral and the `i` after 
 The yellow-only source-mask overlap (IoU) against the clean cover illustration `1000022738.png` changes from **94.97% to 97.39%** for the `i` and from **88.76% to 90.24%** for the spiral. Agreement with alternate reference `1000022735.png` changes from **83.45% to 83.37%** for the `i` and **61.30% to 60.68%** for the spiral. The alternate-reference tradeoffs remain visible and documented. Source images may be modern restoration/redraws, so none of these numbers prove true 1994 vector fidelity.
 
 The candidate was rendered in context on a charcoal preview and separately compared beside previous SVG and clean cover, at the same crop and scale. Both updated glyphs were sampled to valid, positively oriented, closed, non-self-intersecting polygons. This is an artistic review candidate, not an owner-approved final logo and not a release gate.
+
+
+## Follow-up: broad-curve cleanup of `u`, `i`, second `r`, and outer `n` leg (2026-11-08)
+
+In response to owner review of lingering *waviness*, this pass edits only the requested four contours. It deliberately freezes the first `r`, `a`, `c`, `e`, `s`, spiral, TM/asterisk, and the single-source black-border offset, avoiding another global smoothing pass.
+
+- `u`: replace 19 periodic cubic spans with **18**, regularizing long descending/returning edges rather than blurring both rounded ends.
+- `i`: replace 13 with **11** continuous spans and simplify its long stem while protecting its cap, lower oval, and original slope.
+- Second `r`: retain **18** spans while smoothing its sidewalls and the transition into the long stem. The upper pinch/terminal remains.
+- `n`: leave the shoulder, opening, left side, and inner right leg in their existing positions. Replace **three** short outer-right-leg spans with **two** broad cubic spans (23→22 total). The new segment is tangent-aligned with its neighbors, with join curvature constrained and maximal old-to-new contour displacement under **0.65 source pixels**.
+
+The rounded black backing remains derived from the **exact same glyph paths** as the yellow faces, with the already accepted **10 px stroke** and **(+2,+2) px offset**. The other six face paths are unchanged.
+
+### Checks and tradeoffs
+
+The intended modest scale of revision is confirmed by maximum nearest-contour displacements: `u` 2.11 px; `i` 1.65 px; second `r` 2.23 px; `n` 0.64 px. All ten paths remain valid closed polygons after dense sampling, with no detected self-intersection or endpoint gaps. Maximum sampled adjacent curvature jumps for the four changed contours are all below **0.0004 inverse source pixels**.
+
+Against the clean cover reference `1000022738.png`, yellow-face IoU is:
+
+| Shape | Prior | Revision |
+|---|---:|---:|
+| `u` | 95.75% | **97.26%** |
+| `i` | **97.39%** | 97.05% |
+| second `r` | 95.07% | **96.72%** |
+| `n` | 94.85% | **94.89%** |
+
+The small measured `i` decline is accepted provisionally in exchange for simplifying two Bézier segments and improving the subjective long-stem flow. Agreement against alternate reference A also declines slightly for the `i` and second `r`, so this does **not** claim universal fidelity improvement. Clean box-art raster measurements are evidence for review, not the 1994 editable vector master or owner artistic signoff.
+
+The owner should compare the large-source crop to the exact revised SVG at ordinary viewing scale and 3× magnification before art acceptance. No ROM, gameplay, HD racer, Windows package, release QA gate or 3D geometry is affected.

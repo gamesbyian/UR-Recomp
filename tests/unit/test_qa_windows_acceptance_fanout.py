@@ -1004,6 +1004,60 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "missing or redirected"):
                 fanout.practice_report_witness(workflow, env, WHO, 2)
 
+    def test_original_practice_json_rejects_duplicate_source_and_mode_members(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            commands = bridge.extract_commands(bridge.WORKFLOW.read_text())
+            out = root / bridge.OUT_RE.findall(commands[12])[0]
+            out.mkdir(parents=True)
+            path = out / "report.json"
+            fixture = self.practice_source_report(reported_workers=1)
+            env = {"RUNNER_TEMP": str(root)}
+            original = json.dumps(fixture)
+            for field, match, forged in (
+                ("Practice workers",
+                 '"experimental_practice_case_workers": 1',
+                 '"experimental_practice_case_workers": 2'),
+                ("original source SHA",
+                 '"github_sha": "' + SHA + '"',
+                 '"github_sha": "' + "f" * 40 + '"'),
+            ):
+                with self.subTest(field=field):
+                    self.assertEqual(original.count(match), 1)
+                    # A last-key-wins JSON parser accepts the genuine
+                    # value and ignores the contradictory first value.
+                    path.write_text(original.replace(
+                        match, forged + ", " + match, 1))
+                    with self.assertRaisesRegex(
+                            ValueError, "invalid original Practice source report"):
+                        fanout.practice_report_witness(commands, env, WHO, 1)
+            # Validate the authentic one-value report still succeeds.
+            path.write_text(original)
+            receipt = fanout.practice_report_witness(commands, env, WHO, 1)
+            self.assertEqual(receipt["reported_workers"], 1)
+            self.assertEqual(receipt["report_cases"], 10)
+
+    def test_original_practice_json_rejects_nonstandard_constants(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            commands = bridge.extract_commands(bridge.WORKFLOW.read_text())
+            out = root / bridge.OUT_RE.findall(commands[12])[0]
+            out.mkdir(parents=True)
+            path = out / "report.json"
+            fixture = self.practice_source_report(reported_workers=1)
+            env = {"RUNNER_TEMP": str(root)}
+            for number in ("NaN", "Infinity", "-Infinity"):
+                with self.subTest(number=number):
+                    # Put a nonstandard field in the source report that
+                    # the old validator would ignore entirely.
+                    original = json.dumps(fixture)
+                    path.write_text(original[:-1] +
+                                    ', "injected_unreviewed_number": ' +
+                                    number + "}")
+                    with self.assertRaisesRegex(
+                            ValueError, "invalid original Practice source report"):
+                        fanout.practice_report_witness(commands, env, WHO, 1)
+
     def test_mode_attestation_seed_group_never_claims_original_practice(self):
         seed = packet("seed-dependent")
         seed["practice_mode"]["reported_workers"] = 1

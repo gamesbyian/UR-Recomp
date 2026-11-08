@@ -130,7 +130,9 @@ def practice_report_witness(commands, env, who, selected):
     raw = report_path.read_bytes()
     require(len(raw) <= 64 * 1024, "unbounded original Practice report")
     try:
-        report = json.loads(raw)
+        report = json.loads(raw,
+                            parse_constant=reject_nonfinite_json_number,
+                            object_pairs_hook=unique_json_object)
     except (ValueError, UnicodeDecodeError) as error:
         raise ValueError("invalid original Practice source report") from error
     require(isinstance(report, dict), "invalid original Practice source report")

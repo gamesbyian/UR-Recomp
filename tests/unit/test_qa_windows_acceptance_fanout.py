@@ -134,6 +134,70 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         self.update("independent", bad)
         self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
 
+    def test_nonfinite_json_numbers_rejected_even_with_legacy_matching_digest(self):
+        for target in ("case", "group"):
+            for value in (float("inf"), float("-inf"), float("nan")):
+                with self.subTest(target=target, value=str(value)):
+                    row = packet("seed-dependent")
+                    if target == "case":
+                        row["cases"][0]["elapsed_seconds"] = value
+                    else:
+                        row["elapsed_seconds"] = value
+                    # Deliberately reproduce the OLD default JSON encoder's
+                    # non-standard Infinity/NaN digest and JSON semantics.
+                    unsigned = {k: v for k, v in row.items()
+                                if k != "receipt_sha256"}
+                    old_payload = json.dumps(
+                        unsigned, sort_keys=True, separators=(",", ":"))
+                    row["receipt_sha256"] = hashlib.sha256(
+                        old_payload.encode()).hexdigest()
+                    self.update("seed-dependent", row)
+                    out = fanout.aggregate(self.path, SHA)
+                    self.assertFalse(out["transport_complete"])
+                    self.assertIn("non-finite JSON number",
+                                  " ".join(out["issues"]))
+
+    def test_digest_refuses_nonstandard_json_numbers(self):
+        for value in (float("inf"), float("-inf"), float("nan")):
+            with self.subTest(value=str(value)):
+                with self.assertRaises(ValueError):
+                    fanout.digest({"elapsed_seconds": value})
+
+    def test_recomputed_digest_cannot_smuggle_extra_qualification_claims(self):
+        for key, value in (
+            ("native_process_overlap_verified", True),
+            ("release_gates", 12),
+            ("billing_savings_minutes", 3600),
+            ("independent_windows_proof", "yes"),
+        ):
+            with self.subTest(key=key):
+                row = packet("seed-dependent")
+                row[key] = value
+                row["receipt_sha256"] = fanout.digest(
+                    {k: v for k, v in row.items()
+                     if k != "receipt_sha256"})
+                self.update("seed-dependent", row)
+                result = fanout.aggregate(self.path, SHA)
+                self.assertFalse(result["transport_complete"])
+                self.assertIn("unexpected or missing receipt fields",
+                              " ".join(result["issues"]))
+
+    def test_receipt_duration_rejects_bool_negative_and_strings(self):
+        for target in ("case", "group"):
+            for value in (True, False, -0.01, "12.0", None):
+                with self.subTest(target=target, value=value):
+                    row = packet("seed-dependent")
+                    if target == "case":
+                        row["cases"][0]["elapsed_seconds"] = value
+                    else:
+                        row["elapsed_seconds"] = value
+                    row["receipt_sha256"] = fanout.digest(
+                        {k: v for k, v in row.items()
+                         if k != "receipt_sha256"})
+                    self.update("seed-dependent", row)
+                    result = fanout.aggregate(self.path, SHA)
+                    self.assertFalse(result["transport_complete"])
+
     def test_missing_case_is_rejected_even_with_matching_digest(self):
         bad = packet("independent")
         bad["cases"].pop()

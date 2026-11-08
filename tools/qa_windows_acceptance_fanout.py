@@ -8,6 +8,7 @@ from contextlib import contextmanager, nullcontext
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
+import math
 import os
 import re
 import time
@@ -22,6 +23,13 @@ GROUPS = {"seed-dependent": (0, 1, 2), "independent": tuple(range(3, 13))}
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 
+RECEIPT_KEYS = frozenset((
+    "schema", "group", "candidate_identity", "practice_mode",
+    "seed_followup_mode", "expected_indices", "cases", "all_passed",
+    "elapsed_seconds", "release_gate_credit", "independent_physical_qa",
+    "receipt_sha256",
+))
+
 
 def require(condition, reason):
     if not condition:
@@ -29,7 +37,8 @@ def require(condition, reason):
 
 
 def digest(obj):
-    return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":"),
+                                     allow_nan=False).encode()).hexdigest()
 
 
 def original_script_hashes(commands=None):
@@ -287,6 +296,12 @@ def validate_seed_followup_mode(mode, group, rows):
 
 def validate_receipt(receipt, group, source_sha):
     require(isinstance(receipt, dict) and receipt.get("schema") == SCHEMA, "wrong receipt schema")
+    # The v5 digest binds an exact, reviewed envelope. Unknown keys must
+    # never smuggle independent QA, release or native-overlap claims.
+    require(set(receipt) == RECEIPT_KEYS, "unexpected or missing receipt fields")
+    elapsed = receipt.get("elapsed_seconds")
+    require(type(elapsed) in (float, int) and math.isfinite(elapsed)
+            and elapsed >= 0, "invalid receipt elapsed time")
     require(group in GROUPS and receipt.get("group") == group, "wrong group")
     who = receipt.get("candidate_identity")
     require(isinstance(who, dict) and set(who) ==
@@ -339,6 +354,7 @@ def validate_receipt(receipt, group, source_sha):
                 "original Windows shell script identity changed")
         require(type(row.get("exit_code")) is int, "invalid original step exit code")
         require(type(row.get("elapsed_seconds")) in (float, int)
+                and math.isfinite(row["elapsed_seconds"])
                 and row["elapsed_seconds"] >= 0, "invalid measured step time")
         for label, ext in (("log", ".log"), ("summary", ".md")):
             require(row.get(label) == f"step-{idx:02d}{ext}",
@@ -527,7 +543,8 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
         "release_gate_credit": 0, "independent_physical_qa": False,
     }
     report["receipt_sha256"] = digest(report)
-    (work / "result.json").write_text(json.dumps(report, sort_keys=True, indent=2) + "\n")
+    (work / "result.json").write_text(json.dumps(
+        report, sort_keys=True, indent=2, allow_nan=False) + "\n")
     return report
 
 
@@ -544,13 +561,18 @@ def summarize_case_failures(group, rows):
     ]
 
 
+def reject_nonfinite_json_number(value):
+    raise ValueError("non-finite JSON number: " + value)
+
+
 def aggregate(root, source_sha):
     problems, cases, identities, failures, modes, seed_modes = [], [], [], [], {}, {}
     for group in GROUPS:
         path = root / ("windows-fanout-" + group) / "result.json"
         try:
             require(path.is_file() and not path.is_symlink(), "missing group receipt")
-            row = json.loads(path.read_text(encoding="utf-8"))
+            row = json.loads(path.read_text(encoding="utf-8"),
+                             parse_constant=reject_nonfinite_json_number)
             identities.append(validate_receipt(row, group, source_sha))
             modes[group] = row["practice_mode"]
             seed_modes[group] = row["seed_followup_mode"]

@@ -1,5 +1,6 @@
 """ROM-free, fail-closed contract tests for exact Windows fan-out."""
 import hashlib
+import threading
 import json
 import sys
 import os
@@ -34,8 +35,18 @@ def packet(group, who=None):
             if group == "independent" else
             {"requested_workers": 1, "reported_workers": None,
              "report_sha256": None, "report_cases": None})
+    seed_mode = ({"requested_workers": 1, "effective_workers": 1,
+                  "source_seed_sha256": "e" * 64,
+                  "invocation_windows": [
+                      {"index": 1, "started_ns": 100, "ended_ns": 200},
+                      {"index": 2, "started_ns": 201, "ended_ns": 301},
+                  ],
+                  "invocation_overlap_ns": 0,
+                  "native_process_overlap_verified": False}
+                 if group == "seed-dependent" else
+                 fanout.seed_mode_default(group, 1))
     result = {"schema": fanout.SCHEMA, "group": group,
-              "practice_mode": mode,
+              "practice_mode": mode, "seed_followup_mode": seed_mode,
               "candidate_identity": dict(who or WHO),
               "expected_indices": list(indices), "cases": rows,
               "all_passed": True, "release_gate_credit": 0,
@@ -220,6 +231,183 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         aggregate = fanout.aggregate(self.path, SHA)
         self.assertFalse(aggregate["transport_complete"])
         self.assertIn("worker mode differs", " ".join(aggregate["issues"]))
+
+    def test_record_mode_denies_forged_serial_as_parallel(self):
+        for selected, effective, overlap in (
+            (2, 1, 0), (2, 2, 0), (1, 2, 0), (1, 1, 100),
+            (True, 1, 0), ("2", 2, 100),
+        ):
+            with self.subTest(selected=selected, effective=effective,
+                              overlap=overlap):
+                data = packet("seed-dependent")
+                data["seed_followup_mode"].update({
+                    "requested_workers": selected,
+                    "effective_workers": effective,
+                    "invocation_overlap_ns": overlap,
+                })
+                data["receipt_sha256"] = fanout.digest(
+                    {k: v for k, v in data.items() if k != "receipt_sha256"})
+                self.update("seed-dependent", data)
+                self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+
+    def test_records_parallel_bridge_windows_but_no_native_process_proof(self):
+        seed = packet("seed-dependent")
+        seed["seed_followup_mode"].update({
+            "requested_workers": 2, "effective_workers": 2,
+            "invocation_windows": [
+                {"index": 1, "started_ns": 100, "ended_ns": 300},
+                {"index": 2, "started_ns": 200, "ended_ns": 400},
+            ],
+            "invocation_overlap_ns": 100,
+        })
+        seed["receipt_sha256"] = fanout.digest(
+            {k: v for k, v in seed.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", seed)
+        receipt = fanout.aggregate(self.path, SHA)
+        self.assertTrue(receipt["transport_complete"])
+        self.assertEqual(receipt["seed_followup_mode"]["requested_workers"], 2)
+        self.assertEqual(receipt["seed_followup_mode"]["invocation_overlap_ns"], 100)
+        self.assertFalse(receipt["native_records_process_overlap_qualified"])
+        self.assertFalse(receipt["seed_followup_mode"]["native_process_overlap_verified"])
+
+    def test_records_worker_mode_rejects_missing_invalid_and_old_receipts(self):
+        for changed in (
+            {"source_seed_sha256": None},
+            {"native_process_overlap_verified": True},
+            {"invocation_windows": []},
+            {"invocation_overlap_ns": -1},
+            {"effective_workers": 0},
+        ):
+            with self.subTest(changed=changed):
+                data = packet("seed-dependent")
+                data["seed_followup_mode"].update(changed)
+                data["receipt_sha256"] = fanout.digest(
+                    {k: v for k, v in data.items() if k != "receipt_sha256"})
+                self.update("seed-dependent", data)
+                self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+        for old in ("ur-win32-acceptance-fanout/3",
+                    "ur-win32-acceptance-fanout/4"):
+            with self.subTest(schema=old):
+                data = packet("seed-dependent")
+                data["schema"] = old
+                data["receipt_sha256"] = fanout.digest(
+                    {k: v for k, v in data.items() if k != "receipt_sha256"})
+                self.update("seed-dependent", data)
+                self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+
+    def test_independent_group_cannot_claim_records_execution(self):
+        for changed in ({"requested_workers": 2},
+                        {"effective_workers": 2},
+                        {"source_seed_sha256": "a" * 64}):
+            with self.subTest(changed=changed):
+                data = packet("independent")
+                data["seed_followup_mode"].update(changed)
+                data["receipt_sha256"] = fanout.digest(
+                    {k: v for k, v in data.items() if k != "receipt_sha256"})
+                self.update("independent", data)
+                self.assertFalse(fanout.aggregate(self.path, SHA)["transport_complete"])
+
+    def _seed_followup_fake_inputs(self):
+        env = {"GITHUB_SHA": SHA, "RUNNER_TEMP": str(self.path),
+               "GITHUB_STEP_SUMMARY": str(self.path / "summary.md"),
+               "UR_PRACTICE_SELECTED_WORKERS": "1",
+               "UR_PRACTICE_CASE_WORKERS": "1"}
+        paths = [self.path / "candidate.exe", self.path / "fixture.exe",
+                 self.path / "candidate.zip"]
+        for path in paths:
+            path.write_bytes(path.name.encode())
+        return env, paths
+
+    def test_opt_in_records_invocations_overlap_after_original_seed(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        barrier = threading.Barrier(2, timeout=5)
+        seed = (self.path / "UR Baldosa Win32 Pause Route" / "baseline" /
+                "Modern Player Data With Spaces" / "saves" / "save.srm")
+        def runner(i, script, work, environ):
+            if i == 0:
+                seed.parent.mkdir(parents=True, exist_ok=False)
+                seed.write_bytes(bytes(range(256)) * 32)
+            else:
+                self.assertEqual(seed.read_bytes(), bytes(range(256)) * 32)
+                barrier.wait()
+            (work / ("step-%02d.log" % i)).write_text("synthetic case")
+            (work / ("step-%02d.md" % i)).write_text("synthetic summary")
+            return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
+                    "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
+                    "summary": "step-%02d.md" % i}
+        with mock.patch.object(bridge, "EXE", exe), \\
+             mock.patch.object(bridge, "FIXTURE", fixture), \\
+             mock.patch.object(bridge, "run_one", side_effect=runner):
+            output = fanout.run_group(
+                "seed-dependent", SHA, archive, self.path / "parallel-records",
+                env, seed_followup_workers=2)
+        mode = output["seed_followup_mode"]
+        self.assertTrue(output["all_passed"])
+        self.assertEqual([r["index"] for r in output["cases"]], [0, 1, 2])
+        self.assertEqual(mode["requested_workers"], 2)
+        self.assertEqual(mode["effective_workers"], 2)
+        self.assertGreater(mode["invocation_overlap_ns"], 0)
+        self.assertEqual(mode["source_seed_sha256"],
+                         hashlib.sha256(seed.read_bytes()).hexdigest())
+        self.assertFalse(mode["native_process_overlap_verified"])
+        fanout.validate_receipt(output, "seed-dependent", SHA)
+
+    def test_parallel_records_reject_mutated_original_seed_without_receipt(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        barrier = threading.Barrier(2, timeout=5)
+        seed = (self.path / "UR Baldosa Win32 Pause Route" / "baseline" /
+                "Modern Player Data With Spaces" / "saves" / "save.srm")
+        def runner(i, script, work, environ):
+            if i == 0:
+                seed.parent.mkdir(parents=True, exist_ok=False)
+                seed.write_bytes(bytes(8192))
+            else:
+                barrier.wait()
+                if i == 1:
+                    seed.write_bytes(b"X" + bytes(8191))
+            (work / ("step-%02d.log" % i)).write_text("synthetic case")
+            (work / ("step-%02d.md" % i)).write_text("synthetic summary")
+            return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
+                    "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
+                    "summary": "step-%02d.md" % i}
+        with mock.patch.object(bridge, "EXE", exe), \\
+             mock.patch.object(bridge, "FIXTURE", fixture), \\
+             mock.patch.object(bridge, "run_one", side_effect=runner):
+            with self.assertRaisesRegex(ValueError, "baseline SRAM changed"):
+                fanout.run_group(
+                    "seed-dependent", SHA, archive, self.path / "mutated-records",
+                    env, seed_followup_workers=2)
+        self.assertFalse((self.path / "mutated-records" / "result.json").exists())
+
+    def test_parallel_records_reject_changed_original_seed_source(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        old = bridge.extract_commands(bridge.WORKFLOW.read_text())
+        bad = list(old)
+        bad[1] = bad[1].replace(
+            "baseline/Modern Player Data With Spaces/saves/save.srm",
+            "unrecognized/saves/save.srm")
+        with mock.patch.object(bridge, "EXE", exe), \\
+             mock.patch.object(bridge, "FIXTURE", fixture), \\
+             mock.patch.object(bridge, "extract_commands", return_value=bad), \\
+             mock.patch.object(bridge, "run_one") as runner:
+            with self.assertRaisesRegex(ValueError, "seed source changed"):
+                fanout.run_group(
+                    "seed-dependent", SHA, archive, self.path / "bad-seed-source",
+                    env, seed_followup_workers=2)
+            runner.assert_not_called()
+        self.assertFalse((self.path / "bad-seed-source").exists())
+
+    def test_record_followup_invalid_worker_setting_fails_before_io(self):
+        for invalid in (0, -1, 3, True, "2", None):
+            with self.subTest(mode=invalid), self.assertRaisesRegex(
+                    ValueError, "invalid Records seed-followup worker count"):
+                fanout.run_group("seed-dependent", SHA, self.path / "no-archive",
+                                 self.path / "bad-mode",
+                                 seed_followup_workers=invalid)
+        with self.assertRaisesRegex(ValueError, "seed-dependent group"):
+            fanout.run_group("independent", SHA, self.path / "no-archive",
+                             self.path / "bad-mode", seed_followup_workers=2)
+        self.assertFalse((self.path / "bad-mode").exists())
 
     def test_real_source_report_binds_worker_cases_exe_and_seed(self):
         with tempfile.TemporaryDirectory() as temp:

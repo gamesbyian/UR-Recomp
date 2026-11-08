@@ -14,8 +14,8 @@ from pathlib import Path
 import run_baldosa_parallel_windows_journeys as bridge
 import baldosa_native_practice_courses_probe as practice
 
-SCHEMA = "ur-win32-acceptance-fanout/4"
-AGGREGATE_SCHEMA = "ur-win32-acceptance-fanout-aggregate/4"
+SCHEMA = "ur-win32-acceptance-fanout/5"
+AGGREGATE_SCHEMA = "ur-win32-acceptance-fanout-aggregate/5"
 GROUPS = {"seed-dependent": (0, 1, 2), "independent": tuple(range(3, 13))}
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
@@ -157,6 +157,89 @@ def practice_report_witness(commands, env, who, selected):
             "report_sha256": hashlib.sha256(raw).hexdigest(), "report_cases": 10}
 
 
+# Source-local invocation windows are a diagnostic of bridge scheduling, not
+# independent proof that two child Windows/SDL native processes ran together.
+SEED_MODE_KEYS = frozenset((
+    "requested_workers", "effective_workers", "source_seed_sha256",
+    "invocation_windows", "invocation_overlap_ns",
+    "native_process_overlap_verified",
+))
+
+
+def invocation_overlap_ns(windows):
+    """Calculate only overlapping bridge.run_one invocation time on one host."""
+    if len(windows) != 2:
+        return 0
+    return max(0, min(w["ended_ns"] for w in windows) -
+               max(w["started_ns"] for w in windows))
+
+
+def seed_mode_default(group, requested):
+    return {
+        "requested_workers": requested if group == "seed-dependent" else 1,
+        "effective_workers": 0,
+        "source_seed_sha256": None,
+        "invocation_windows": [],
+        "invocation_overlap_ns": 0,
+        "native_process_overlap_verified": False,
+    }
+
+
+def validate_seed_followup_mode(mode, group, rows):
+    """Fail closed on unsupported/mislabeled Records execution-mode receipts.
+
+    A self-digested producer receipt never constitutes an independent native
+    subprocess-overlap or Windows-window/focus witness.
+    """
+    require(type(mode) is dict and set(mode) == SEED_MODE_KEYS,
+            "missing Records follow-up worker-mode evidence")
+    require(type(mode["requested_workers"]) is int
+            and mode["requested_workers"] in (1, 2)
+            and type(mode["effective_workers"]) is int
+            and mode["effective_workers"] in (0, 1, 2)
+            and mode["native_process_overlap_verified"] is False,
+            "invalid Records follow-up worker-mode claim")
+    require(type(mode["invocation_overlap_ns"]) is int
+            and mode["invocation_overlap_ns"] >= 0,
+            "invalid Records invocation-overlap claim")
+    windows = mode["invocation_windows"]
+    require(type(windows) is list, "malformed Records invocation windows")
+    if group == "independent":
+        require(mode == seed_mode_default(group, 1),
+                "independent group falsely claimed Records worker execution")
+        return
+    require(type(rows) is list, "missing Records original-case inventory")
+    ran_followups = (len(rows) == 3 and
+                     [row.get("index") for row in rows if isinstance(row, dict)]
+                     == [0, 1, 2])
+    if not ran_followups:
+        require(mode["effective_workers"] == 0
+                and mode["source_seed_sha256"] is None
+                and windows == [] and mode["invocation_overlap_ns"] == 0,
+                "missing Records cases falsely claimed executed follow-ups")
+        return
+    require(mode["effective_workers"] == mode["requested_workers"],
+            "selected Records workers differ from executed mode")
+    require(type(mode["source_seed_sha256"]) is str
+            and bool(HEX64.fullmatch(mode["source_seed_sha256"])),
+            "missing actual source SRAM digest")
+    require(len(windows) == 2, "missing original Records invocation windows")
+    for index, window in zip((1, 2), windows):
+        require(type(window) is dict
+                and set(window) == {"index", "started_ns", "ended_ns"}
+                and type(window["index"]) is int and window["index"] == index
+                and type(window["started_ns"]) is int
+                and type(window["ended_ns"]) is int
+                and 0 < window["started_ns"] < window["ended_ns"],
+                "invalid Records source invocation window")
+    overlap = invocation_overlap_ns(windows)
+    require(mode["invocation_overlap_ns"] == overlap,
+            "Records invocation-overlap calculation contradicted")
+    require((mode["requested_workers"] == 1 and overlap == 0)
+            or (mode["requested_workers"] == 2 and overlap > 0),
+            "Records requested parallel mode lacks observed bridge overlap")
+
+
 def validate_receipt(receipt, group, source_sha):
     require(isinstance(receipt, dict) and receipt.get("schema") == SCHEMA, "wrong receipt schema")
     require(group in GROUPS and receipt.get("group") == group, "wrong group")
@@ -173,6 +256,8 @@ def validate_receipt(receipt, group, source_sha):
     unsigned = {k: v for k, v in receipt.items() if k != "receipt_sha256"}
     require(isinstance(stamp, str) and bool(HEX64.fullmatch(stamp))
             and digest(unsigned) == stamp, "altered receipt")
+    validate_seed_followup_mode(receipt.get("seed_followup_mode"),
+                                group, receipt.get("cases"))
     mode = receipt.get("practice_mode")
     require(isinstance(mode, dict) and set(mode) ==
             {"requested_workers", "reported_workers", "report_sha256", "report_cases"},
@@ -229,8 +314,15 @@ def validate_receipt(receipt, group, source_sha):
     return who
 
 
-def run_group(group, source_sha, archive, work, env=None, workers=2):
+def run_group(group, source_sha, archive, work, env=None, workers=2,
+              seed_followup_workers=1):
     require(group in GROUPS and workers in (1, 2), "invalid group/parallelism")
+    # No current hosted workflow supplies this flag. The default is serial.
+    require(type(seed_followup_workers) is int
+            and seed_followup_workers in (1, 2),
+            "invalid Records seed-followup worker count")
+    require(group == "seed-dependent" or seed_followup_workers == 1,
+            "Records seed-followup workers apply only to seed-dependent group")
     env = dict(os.environ if env is None else env)
     selected = selected_practice_workers(env, group)
     require(env.get("GITHUB_SHA") == source_sha, "not the checked-out source")
@@ -242,6 +334,16 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
     bridge.independent_priority_indices(len(commands))
     require(len(commands) == 13, "missing original Windows journeys")
     original_hashes = original_script_hashes(commands)
+    if group == "seed-dependent" and seed_followup_workers == 2:
+        # The original 1P/2P scripts must each have exactly this seed and
+        # exactly one baseline dependency, with no altered source body.
+        canonical_seed = ('--seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/'
+                          'baseline/Modern Player Data With Spaces/saves/save.srm"')
+        require(all(commands[i].count(canonical_seed) == 1
+                    and commands[i].count("baseline/") == 1
+                    for i in (1, 2)),
+                "original Records seed source changed; no parallel execution")
+    mode_receipt = seed_mode_default(group, seed_followup_workers)
     work.mkdir(parents=True)
     started = time.monotonic()
     if group == "seed-dependent":
@@ -250,7 +352,37 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
         seed = (Path(env["RUNNER_TEMP"]) / "UR Baldosa Win32 Pause Route" /
                 "baseline" / "Modern Player Data With Spaces" / "saves" / "save.srm")
         if first["exit_code"] == 0 and seed.is_file() and not seed.is_symlink() and seed.stat().st_size == 8192:
-            rows.extend(bridge.run_one(i, commands[i], work, env) for i in (1, 2))
+            seed_sha = bridge.sha256_file(seed)
+            def observed_case(index):
+                started_ns = time.monotonic_ns()
+                result = bridge.run_one(index, commands[index], work, env)
+                ended_ns = time.monotonic_ns()
+                return result, {
+                    "index": index, "started_ns": started_ns,
+                    "ended_ns": max(started_ns + 1, ended_ns),
+                }
+            if seed_followup_workers == 1:
+                followups = [observed_case(i) for i in (1, 2)]
+            else:
+                # Two bridge invocations may overlap. This does NOT attest
+                # simultaneous Windows child processes or SDL focus safety.
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    followups = list(pool.map(observed_case, (1, 2)))
+            rows.extend(item[0] for item in followups)
+            windows = [item[1] for item in followups]
+            mode_receipt.update({
+                "effective_workers": seed_followup_workers,
+                "source_seed_sha256": seed_sha,
+                "invocation_windows": windows,
+                "invocation_overlap_ns": invocation_overlap_ns(windows),
+            })
+            require(seed.is_file() and not seed.is_symlink()
+                    and seed.stat().st_size == 8192
+                    and bridge.sha256_file(seed) == seed_sha,
+                    "original baseline SRAM changed during Records")
+            if seed_followup_workers == 2:
+                require(mode_receipt["invocation_overlap_ns"] > 0,
+                        "parallel Records bridge invocations did not overlap")
     else:
         for idx in GROUPS[group]:
             require("baseline/" not in commands[idx],
@@ -279,7 +411,7 @@ def run_group(group, source_sha, archive, work, env=None, workers=2):
              "report_sha256": None, "report_cases": None})
     report = {
         "schema": SCHEMA, "group": group, "candidate_identity": who,
-        "practice_mode": mode,
+        "practice_mode": mode, "seed_followup_mode": mode_receipt,
         "expected_indices": list(GROUPS[group]), "cases": rows,
         "all_passed": len(rows) == len(GROUPS[group]) and all(row["exit_code"] == 0 for row in rows),
         "elapsed_seconds": round(time.monotonic() - started, 3),
@@ -304,7 +436,7 @@ def summarize_case_failures(group, rows):
 
 
 def aggregate(root, source_sha):
-    problems, cases, identities, failures, modes = [], [], [], [], {}
+    problems, cases, identities, failures, modes, seed_modes = [], [], [], [], {}, {}
     for group in GROUPS:
         path = root / ("windows-fanout-" + group) / "result.json"
         try:
@@ -312,6 +444,7 @@ def aggregate(root, source_sha):
             row = json.loads(path.read_text(encoding="utf-8"))
             identities.append(validate_receipt(row, group, source_sha))
             modes[group] = row["practice_mode"]
+            seed_modes[group] = row["seed_followup_mode"]
             cases.extend(row["cases"])
             failures.extend(summarize_case_failures(group, row["cases"]))
             if not row["all_passed"]:
@@ -331,6 +464,9 @@ def aggregate(root, source_sha):
         "schema": AGGREGATE_SCHEMA,
         "source_sha": source_sha, "candidate_identity": identities[0] if identities else None,
         "practice_mode": modes.get("independent") if len(modes) == 2 else None,
+        "seed_followup_mode": (seed_modes.get("seed-dependent")
+                               if len(seed_modes) == 2 else None),
+        "native_records_process_overlap_qualified": False,
         "cases": sorted(({"index": row["index"], "exit_code": row["exit_code"],
                           "script_sha256": row["script_sha256"],
                           "elapsed_seconds": row["elapsed_seconds"],
@@ -354,6 +490,9 @@ def main():
     run.add_argument("--source-sha", required=True)
     run.add_argument("--archive", type=Path, required=True)
     run.add_argument("--work", type=Path, required=True)
+    # Engineering-only opt-in. No existing hosted Actions workflow activates it.
+    run.add_argument("--seed-followup-workers", type=int,
+                     choices=(1, 2), default=1)
     agg = commands.add_parser("aggregate")
     agg.add_argument("--source-sha", required=True)
     agg.add_argument("--results", type=Path, required=True)
@@ -361,7 +500,8 @@ def main():
     agg.add_argument("--summary", type=Path)
     args = parser.parse_args()
     if args.mode == "run":
-        result = run_group(args.group, args.source_sha, args.archive, args.work)
+        result = run_group(args.group, args.source_sha, args.archive, args.work,
+                           seed_followup_workers=args.seed_followup_workers)
         print("original Windows journeys:", len(result["cases"]), "passed:", result["all_passed"])
         return 0 if result["all_passed"] else 1
     result = aggregate(args.results, args.source_sha)

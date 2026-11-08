@@ -29,6 +29,17 @@ RECEIPT_KEYS = frozenset((
     "elapsed_seconds", "release_gate_credit", "independent_physical_qa",
     "receipt_sha256",
 ))
+PRACTICE_REPORT_KEYS = frozenset((
+    "scope", "pause_options_in_practice", "restart_in_practice",
+    "source_binding", "cases", "courses_admitted",
+    "experimental_practice_case_workers", "available_tier0",
+    "available_tier2", "hunter_admitted", "tier2_seed_sha256",
+    "player_save_bytes_unchanged", "practice_results_published",
+    "physical_gamepad_certified", "release_gate_credit",
+))
+PRACTICE_CASE_KEYS = frozenset(
+    ("group", "case", "track", "course", "picker_steps")
+)
 CASE_KEYS = frozenset((
     "index", "name", "script_sha256", "exit_code", "elapsed_seconds",
     "log", "summary", "log_sha256", "log_bytes",
@@ -138,7 +149,10 @@ def practice_report_witness(commands, env, who, selected):
             "missing or redirected genuine Practice source report")
     require(report_path.stat().st_size <= 64 * 1024,
             "unbounded original Practice report")
-    raw = report_path.read_bytes()
+    # Enforce the bound while reading, too: a changed file after the
+    # stat preflight must not trigger an unrestricted read.
+    with report_path.open("rb") as source_file:
+        raw = source_file.read(64 * 1024 + 1)
     require(len(raw) <= 64 * 1024, "unbounded original Practice report")
     try:
         report = json.loads(raw,
@@ -146,12 +160,16 @@ def practice_report_witness(commands, env, who, selected):
                             object_pairs_hook=unique_json_object)
     except (ValueError, UnicodeDecodeError) as error:
         raise ValueError("invalid original Practice source report") from error
-    require(isinstance(report, dict), "invalid original Practice source report")
+    require(type(report) is dict and set(report) == PRACTICE_REPORT_KEYS,
+            "unexpected original Practice report claims")
+    require(report.get("scope") == "native-windows-practice-breadth-semantic-pad",
+            "original Practice source scope changed")
     require(type(report.get("experimental_practice_case_workers")) is int
             and report["experimental_practice_case_workers"] == selected,
             "original Practice executed worker count differs from selection")
     source = report.get("source_binding")
-    require(isinstance(source, dict)
+    require(type(source) is dict
+            and set(source) == {"github_sha", "exe_sha256", "rom_sha256"}
             and source.get("github_sha") == who["source_sha"]
             and source.get("exe_sha256") == who["exe_sha256"]
             and source.get("rom_sha256") == practice.USA_SHA256,
@@ -164,20 +182,33 @@ def practice_report_witness(commands, env, who, selected):
          "course": name, "picker_steps": steps}
         for group, label, steps, track, name in expected
     ]
-    require(report.get("courses_admitted") == 10
-            and report.get("cases") == expected_cases,
+    cases = report.get("cases")
+    require(type(report.get("courses_admitted")) is int
+            and report["courses_admitted"] == 10
+            and type(cases) is list
+            and len(cases) == len(expected_cases)
+            and all(
+                type(case) is dict
+                and set(case) == PRACTICE_CASE_KEYS
+                and type(case.get("picker_steps")) is int
+                and case == expected
+                for case, expected in zip(cases, expected_cases)
+            ),
             "original Practice ten source-qualified cases changed")
     require(report.get("pause_options_in_practice") ==
             ["sdl_keys", "p1_pad_semantic"]
             and report.get("restart_in_practice") ==
             "pause_delayed_restart_rewound_sram_equal"
-            and report.get("available_tier0") == 20
-            and report.get("available_tier2") == 40
+            and type(report.get("available_tier0")) is int
+            and report["available_tier0"] == 20
+            and type(report.get("available_tier2")) is int
+            and report["available_tier2"] == 40
             and report.get("hunter_admitted") is False
             and report.get("player_save_bytes_unchanged") is True
             and report.get("practice_results_published") is False
             and report.get("physical_gamepad_certified") is False
-            and report.get("release_gate_credit") == 0,
+            and type(report.get("release_gate_credit")) is int
+            and report["release_gate_credit"] == 0,
             "original Practice source claims changed")
     require(report.get("tier2_seed_sha256") ==
             hashlib.sha256(practice.tier2_seed()).hexdigest(),

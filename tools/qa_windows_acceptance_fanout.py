@@ -29,6 +29,11 @@ RECEIPT_KEYS = frozenset((
     "elapsed_seconds", "release_gate_credit", "independent_physical_qa",
     "receipt_sha256",
 ))
+CASE_KEYS = frozenset((
+    "index", "name", "script_sha256", "exit_code", "elapsed_seconds",
+    "log", "summary", "log_sha256", "log_bytes",
+    "summary_sha256", "summary_bytes",
+))
 
 
 def require(condition, reason):
@@ -350,6 +355,19 @@ def validate_receipt(receipt, group, source_sha):
     for idx, row in zip(expected, rows):
         require(isinstance(row, dict) and row.get("index") == idx
                 and row.get("name") == bridge.STEPS[idx], "original case identity changed")
+        # The original bridge includes a nullable subprocess exception class.
+        # Synthetic pre-existing receipts omit that optional source field.
+        # Unreviewed row keys cannot claim new QA, native or release evidence.
+        keys = set(row)
+        require(keys == CASE_KEYS or keys == CASE_KEYS | {"error"},
+                "unexpected or missing original case fields")
+        if "error" in row:
+            error = row["error"]
+            require(error is None
+                    or (type(error) is str
+                        and error in ("OSError", "TimeoutExpired")
+                        and row.get("exit_code") == 124),
+                    "contradictory original subprocess error metadata")
         require(row.get("script_sha256") == original_hashes[idx],
                 "original Windows shell script identity changed")
         require(type(row.get("exit_code")) is int, "invalid original step exit code")
@@ -565,14 +583,31 @@ def reject_nonfinite_json_number(value):
     raise ValueError("non-finite JSON number: " + value)
 
 
+def unique_json_object(pairs):
+    """Reject duplicate members at every JSON depth, before any digest check."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate JSON member: " + key)
+        result[key] = value
+    return result
+
+
 def aggregate(root, source_sha):
     problems, cases, identities, failures, modes, seed_modes = [], [], [], [], {}, {}
     for group in GROUPS:
         path = root / ("windows-fanout-" + group) / "result.json"
         try:
             require(path.is_file() and not path.is_symlink(), "missing group receipt")
+            # A self-consistent digest of Python's last-key-wins object
+            # cannot authenticate two conflicting raw JSON member values.
+            require(not path.parent.is_symlink(),
+                    "redirected group receipt directory")
+            require(path.stat().st_size <= 1024 * 1024,
+                    "unbounded group receipt")
             row = json.loads(path.read_text(encoding="utf-8"),
-                             parse_constant=reject_nonfinite_json_number)
+                             parse_constant=reject_nonfinite_json_number,
+                             object_pairs_hook=unique_json_object)
             identities.append(validate_receipt(row, group, source_sha))
             modes[group] = row["practice_mode"]
             seed_modes[group] = row["seed_followup_mode"]

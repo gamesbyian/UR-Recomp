@@ -198,6 +198,99 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                     result = fanout.aggregate(self.path, SHA)
                     self.assertFalse(result["transport_complete"])
 
+    def test_duplicate_json_group_or_nested_case_member_is_refused(self):
+        for target in ("group", "case"):
+            with self.subTest(target=target):
+                data = packet("seed-dependent")
+                text = json.dumps(data, sort_keys=True)
+                if target == "group":
+                    existing = '"group": "seed-dependent"'
+                    replacement = ('"group": "independent", ' + existing)
+                else:
+                    # First source case is zero. A last-key-wins parser
+                    # would authenticate this contradictory raw exit code.
+                    existing = '"exit_code": 0'
+                    replacement = '"exit_code": 7, ' + existing
+                self.assertEqual(text.count(existing), 1 if target == "group"
+                                 else len(fanout.GROUPS["seed-dependent"]))
+                text = text.replace(existing, replacement, 1)
+                path = (self.path / "windows-fanout-seed-dependent" /
+                        "result.json")
+                path.write_text(text)
+                result = fanout.aggregate(self.path, SHA)
+                self.assertFalse(result["transport_complete"])
+                self.assertIn("duplicate JSON member", " ".join(result["issues"]))
+
+    def test_recomputed_digest_rejects_unreviewed_case_fields(self):
+        for name, value in (
+            ("native_process_overlap_verified", True),
+            ("release_gate_credit", 1),
+            ("physical_gamepad_certified", True),
+            ("artifact_source_verified", "yes"),
+        ):
+            with self.subTest(field=name):
+                data = packet("seed-dependent")
+                data["cases"][0][name] = value
+                data["receipt_sha256"] = fanout.digest(
+                    {k: v for k, v in data.items() if k != "receipt_sha256"})
+                self.update("seed-dependent", data)
+                result = fanout.aggregate(self.path, SHA)
+                self.assertFalse(result["transport_complete"])
+                self.assertIn("unexpected or missing original case fields",
+                              " ".join(result["issues"]))
+
+    def test_original_subprocess_error_metadata_is_source_bounded(self):
+        for error, code, accepted in (
+            (None, 0, True),
+            ("TimeoutExpired", 124, True),
+            ("OSError", 124, True),
+            ("TimeoutExpired", 0, False),
+            ("ValueError", 124, False),
+            ("private full subprocess log", 124, False),
+        ):
+            with self.subTest(error=error, code=code):
+                data = packet("seed-dependent")
+                data["cases"][0]["error"] = error
+                data["cases"][0]["exit_code"] = code
+                data["all_passed"] = all(x["exit_code"] == 0
+                                         for x in data["cases"])
+                data["receipt_sha256"] = fanout.digest(
+                    {k: v for k, v in data.items() if k != "receipt_sha256"})
+                self.update("seed-dependent", data)
+                result = fanout.aggregate(self.path, SHA)
+                # A valid nonzero OS failure is still a valid *receipt*,
+                # but it must never make transport_complete True.
+                self.assertEqual(result["transport_complete"],
+                                 accepted and code == 0)
+                if not accepted:
+                    self.assertIn("contradictory original subprocess error",
+                                  " ".join(result["issues"]))
+
+    def test_redirected_group_receipt_parent_is_not_read(self):
+        path = self.path / "windows-fanout-seed-dependent"
+        outside = self.path / "external-group-artifact"
+        outside.mkdir()
+        (outside / "result.json").write_text(
+            json.dumps(packet("seed-dependent")))
+        (path / "result.json").unlink()
+        path.rmdir()
+        try:
+            path.symlink_to(outside, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("directory symlinks unavailable")
+        result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertIn("redirected group receipt directory",
+                      " ".join(result["issues"]))
+
+    def test_oversized_group_receipt_is_rejected_before_json_read(self):
+        path = (self.path / "windows-fanout-seed-dependent" /
+                "result.json")
+        path.write_bytes(b"x" * (1024 * 1024 + 1))
+        result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertIn("unbounded group receipt", " ".join(result["issues"]))
+
     def test_missing_case_is_rejected_even_with_matching_digest(self):
         bad = packet("independent")
         bad["cases"].pop()

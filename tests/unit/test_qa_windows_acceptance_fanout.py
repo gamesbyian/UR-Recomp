@@ -1,4 +1,5 @@
 """ROM-free, fail-closed contract tests for exact Windows fan-out."""
+from contextlib import contextmanager
 import hashlib
 from contextlib import nullcontext
 import threading
@@ -443,6 +444,131 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                          hashlib.sha256(seed.read_bytes()).hexdigest())
         self.assertFalse(mode["native_process_overlap_verified"])
         fanout.validate_receipt(output, "seed-dependent", SHA)
+
+    def test_records_guard_spans_both_parallel_original_invocations(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        seed = (self.path / "UR Baldosa Win32 Pause Route" /
+                "baseline" / "Modern Player Data With Spaces" /
+                "saves" / "save.srm")
+        barrier = threading.Barrier(2, timeout=5)
+        live = threading.Event()
+        trace = []
+        @contextmanager
+        def guard(actual):
+            self.assertEqual(actual, seed)
+            self.assertEqual(trace, [0])
+            live.set()
+            try:
+                yield
+            finally:
+                live.clear()
+                trace.append("released")
+        def runner(index, script, work, environ):
+            trace.append(index)
+            if index == 0:
+                seed.parent.mkdir(parents=True)
+                seed.write_bytes(bytes(8192))
+            else:
+                self.assertTrue(live.is_set())
+                barrier.wait()
+            (work / ("step-%02d.log" % index)).write_text("synthetic log")
+            (work / ("step-%02d.md" % index)).write_text("synthetic summary")
+            return {"index": index, "name": bridge.STEPS[index],
+                    "exit_code": 0, "elapsed_seconds": 1.0,
+                    "log": "step-%02d.log" % index,
+                    "summary": "step-%02d.md" % index}
+        with mock.patch.multiple(bridge, EXE=exe, FIXTURE=fixture):
+            with mock.patch.object(bridge, "run_one", side_effect=runner):
+                with mock.patch.object(fanout, "protect_windows_seed_readonly",
+                                       side_effect=guard):
+                    receipt = fanout.run_group(
+                        "seed-dependent", SHA, archive,
+                        self.path / "guarded-parallel", env,
+                        seed_followup_workers=2)
+        self.assertTrue(receipt["all_passed"])
+        self.assertEqual(trace[0], 0)
+        self.assertEqual(set(trace[1:-1]), {1, 2})
+        self.assertEqual(trace[-1], "released")
+        self.assertFalse(live.is_set())
+        self.assertFalse(receipt["seed_followup_mode"]
+                         ["native_process_overlap_verified"])
+
+    def test_records_guard_acquisition_failure_starts_no_followups(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        seed = (self.path / "UR Baldosa Win32 Pause Route" /
+                "baseline" / "Modern Player Data With Spaces" /
+                "saves" / "save.srm")
+        calls = []
+        def runner(index, script, work, environ):
+            calls.append(index)
+            self.assertEqual(index, 0)
+            seed.parent.mkdir(parents=True)
+            seed.write_bytes(bytes(8192))
+            (work / "step-00.log").write_text("baseline")
+            (work / "step-00.md").write_text("baseline summary")
+            return {"index": 0, "name": bridge.STEPS[0],
+                    "exit_code": 0, "elapsed_seconds": 1.0,
+                    "log": "step-00.log", "summary": "step-00.md"}
+        def reject(actual):
+            self.assertEqual(actual, seed)
+            raise OSError(32, "simulated Windows sharing violation")
+        destination = self.path / "guard-open-denied"
+        with mock.patch.multiple(bridge, EXE=exe, FIXTURE=fixture):
+            with mock.patch.object(bridge, "run_one", side_effect=runner):
+                with mock.patch.object(fanout, "protect_windows_seed_readonly",
+                                       side_effect=reject):
+                    with self.assertRaisesRegex(
+                            OSError, "simulated Windows sharing violation"):
+                        fanout.run_group(
+                            "seed-dependent", SHA, archive, destination,
+                            env, seed_followup_workers=2)
+        self.assertEqual(calls, [0])
+        self.assertFalse((destination / "result.json").exists())
+
+    def test_records_guard_releases_after_parallel_child_exception(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        seed = (self.path / "UR Baldosa Win32 Pause Route" /
+                "baseline" / "Modern Player Data With Spaces" /
+                "saves" / "save.srm")
+        barrier = threading.Barrier(2, timeout=5)
+        state = {"held": False, "releases": 0}
+        @contextmanager
+        def guard(actual):
+            self.assertEqual(actual, seed)
+            state["held"] = True
+            try:
+                yield
+            finally:
+                state["held"] = False
+                state["releases"] += 1
+        def runner(index, script, work, environ):
+            if index == 0:
+                seed.parent.mkdir(parents=True)
+                seed.write_bytes(bytes(8192))
+            else:
+                self.assertTrue(state["held"])
+                barrier.wait()
+                if index == 1:
+                    raise RuntimeError("simulated original Records child failure")
+            (work / ("step-%02d.log" % index)).write_text("synthetic log")
+            (work / ("step-%02d.md" % index)).write_text("synthetic summary")
+            return {"index": index, "name": bridge.STEPS[index],
+                    "exit_code": 0, "elapsed_seconds": 1.0,
+                    "log": "step-%02d.log" % index,
+                    "summary": "step-%02d.md" % index}
+        destination = self.path / "guarded-child-error"
+        with mock.patch.multiple(bridge, EXE=exe, FIXTURE=fixture):
+            with mock.patch.object(bridge, "run_one", side_effect=runner):
+                with mock.patch.object(fanout, "protect_windows_seed_readonly",
+                                       side_effect=guard):
+                    with self.assertRaisesRegex(
+                            RuntimeError, "simulated original Records child failure"):
+                        fanout.run_group(
+                            "seed-dependent", SHA, archive, destination,
+                            env, seed_followup_workers=2)
+        self.assertEqual(state["releases"], 1)
+        self.assertFalse(state["held"])
+        self.assertFalse((destination / "result.json").exists())
 
     def test_parallel_records_reject_mutated_original_seed_without_receipt(self):
         env, (exe, fixture, archive) = self._seed_followup_fake_inputs()

@@ -433,6 +433,55 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         self.assertFalse(receipt["seed_followup_mode"]["native_process_overlap_verified"])
         fanout.validate_receipt(receipt, "seed-dependent", SHA)
 
+    def test_parallel_records_refuses_reused_output_before_new_baseline(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        existing = (self.path / "UR Baldosa Win32 Pause Route" /
+                    "native_real_1p_records")
+        existing.mkdir(parents=True)
+        marker = existing / "keep-existing-evidence.txt"
+        marker.write_text("keep this file")
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "run_one") as runner:
+            with self.assertRaisesRegex(ValueError, "output root already exists"):
+                fanout.run_group(
+                    "seed-dependent", SHA, archive, self.path / "poisoned",
+                    env, seed_followup_workers=2)
+            runner.assert_not_called()
+        self.assertEqual(marker.read_text(), "keep this file")
+        self.assertFalse((self.path / "poisoned").exists())
+
+    def test_parallel_records_same_bytes_new_source_inode_fails_closed(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        seed = (self.path / "UR Baldosa Win32 Pause Route" / "baseline" /
+                "Modern Player Data With Spaces" / "saves" / "save.srm")
+        original = bytes(range(256)) * 32
+        barrier = threading.Barrier(2, timeout=5)
+        def runner(i, script, work, environ):
+            if i == 0:
+                seed.parent.mkdir(parents=True, exist_ok=False)
+                seed.write_bytes(original)
+            else:
+                barrier.wait()
+                if i == 1:
+                    replacement = seed.with_suffix(".new")
+                    replacement.write_bytes(original)
+                    replacement.replace(seed)
+            (work / ("step-%02d.log" % i)).write_text("synthetic journey")
+            (work / ("step-%02d.md" % i)).write_text("synthetic summary")
+            return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
+                    "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
+                    "summary": "step-%02d.md" % i}
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "run_one", side_effect=runner):
+            with self.assertRaisesRegex(ValueError, "SRAM identity changed"):
+                fanout.run_group(
+                    "seed-dependent", SHA, archive, self.path / "replace-records",
+                    env, seed_followup_workers=2)
+        self.assertEqual(seed.read_bytes(), original)
+        self.assertFalse((self.path / "replace-records" / "result.json").exists())
+
     def test_parallel_records_reject_changed_original_seed_source(self):
         env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
         old = bridge.extract_commands(bridge.WORKFLOW.read_text())

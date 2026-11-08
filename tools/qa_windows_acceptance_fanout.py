@@ -343,6 +343,27 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
                     and commands[i].count("baseline/") == 1
                     for i in (1, 2)),
                 "original Records seed source changed; no parallel execution")
+        # The Windows children must not inherit an old Records output root,
+        # whether its contents are regular files or a redirected directory.
+        # Fail before producing a NEW baseline, not after partial gameplay.
+        outputs = [bridge.OUT_RE.findall(commands[i]) for i in (0, 1, 2)]
+        require(all(len(paths) == 1 for paths in outputs),
+                "original Records output roots are ambiguous")
+        names = [Path(paths[0]) for paths in outputs]
+        require(all(not path.is_absolute()
+                    and ".." not in path.parts and len(path.parts) >= 2
+                    for path in names),
+                "original Records output roots escape runner temp")
+        require(len(set(names)) == 3
+                and all(a not in b.parents and b not in a.parents
+                        for i, a in enumerate(names)
+                        for b in names[i + 1:]),
+                "original Records output roots overlap")
+        require(all(not (Path(env["RUNNER_TEMP"]) / name).exists()
+                    and not (Path(env["RUNNER_TEMP"]) / name).is_symlink()
+                    for name in names),
+                "original Records output root already exists")
+
     mode_receipt = seed_mode_default(group, seed_followup_workers)
     work.mkdir(parents=True)
     started = time.monotonic()
@@ -353,6 +374,13 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
                 "baseline" / "Modern Player Data With Spaces" / "saves" / "save.srm")
         if first["exit_code"] == 0 and seed.is_file() and not seed.is_symlink() and seed.stat().st_size == 8192:
             seed_sha = bridge.sha256_file(seed)
+            # The digest alone misses an identical-byte replace. Sampling
+            # file identity and modification metadata adds a separate
+            # negative control; it does not prove no transient write/restore.
+            seed_stat = seed.stat()
+            seed_identity = (seed_stat.st_dev, seed_stat.st_ino,
+                             seed_stat.st_size, seed_stat.st_mtime_ns,
+                             seed_stat.st_ctime_ns)
             def observed_case(index):
                 started_ns = time.monotonic_ns()
                 result = bridge.run_one(index, commands[index], work, env)
@@ -380,6 +408,11 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
                     and seed.stat().st_size == 8192
                     and bridge.sha256_file(seed) == seed_sha,
                     "original baseline SRAM changed during Records")
+            seed_after = seed.stat()
+            require((seed_after.st_dev, seed_after.st_ino,
+                     seed_after.st_size, seed_after.st_mtime_ns,
+                     seed_after.st_ctime_ns) == seed_identity,
+                    "original baseline SRAM identity changed during Records")
             if seed_followup_workers == 2:
                 require(mode_receipt["invocation_overlap_ns"] > 0,
                         "parallel Records bridge invocations did not overlap")

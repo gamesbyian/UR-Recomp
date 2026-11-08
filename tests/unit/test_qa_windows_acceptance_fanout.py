@@ -322,6 +322,62 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         self.assertFalse(result["transport_complete"])
         self.assertIn("unbounded group receipt", " ".join(result["issues"]))
 
+    def test_receipt_numeric_aliases_cannot_relabel_original_cases(self):
+        # JSON true/false compare equal to Python 1/0. Likewise 10.0
+        # compares equal to 10 despite being a different JSON type.
+        mutations = (
+            ("seed-dependent", "case-index", lambda row:
+             row["cases"][1].__setitem__("index", True)),
+            ("seed-dependent", "expected-index", lambda row:
+             row["expected_indices"].__setitem__(0, False)),
+            ("seed-dependent", "release-credit", lambda row:
+             row.__setitem__("release_gate_credit", False)),
+            ("independent", "practice-case-count", lambda row:
+             row["practice_mode"].__setitem__("report_cases", 10.0)),
+        )
+        for group, label, mutate in mutations:
+            with self.subTest(label=label):
+                data = packet(group)
+                mutate(data)
+                data["receipt_sha256"] = fanout.digest({
+                    k: v for k, v in data.items() if k != "receipt_sha256"})
+                self.update(group, data)
+                result = fanout.aggregate(self.path, SHA)
+                self.assertFalse(result["transport_complete"], label)
+                self.update(group, packet(group))
+
+    def test_symlinked_receipt_root_is_not_authenticated(self):
+        # Both signed group files can be valid while their shared evidence
+        # root points to another location. Hashes do not prove provenance.
+        alias = self.path / "redirected-evidence-root"
+        try:
+            alias.symlink_to(self.path, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("directory symlinks unavailable")
+        result = fanout.aggregate(alias, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertIn("redirected group receipt path ancestor",
+                      " ".join(result["issues"]))
+
+    def test_receipt_read_is_bounded_after_precheck(self):
+        # Reproduce growth after path.stat() but before the actual read.
+        path = self.path / "windows-fanout-seed-dependent" / "result.json"
+        original_open = Path.open
+        expanded = False
+
+        def grow_at_open(subject, *args, **kwargs):
+            nonlocal expanded
+            if subject == path and args and args[0] == "rb" and not expanded:
+                expanded = True
+                path.write_bytes(b"x" * (1024 * 1024 + 1))
+            return original_open(subject, *args, **kwargs)
+
+        with mock.patch.object(Path, "open", grow_at_open):
+            result = fanout.aggregate(self.path, SHA)
+        self.assertTrue(expanded)
+        self.assertFalse(result["transport_complete"])
+        self.assertIn("unbounded group receipt", " ".join(result["issues"]))
+
     def test_missing_case_is_rejected_even_with_matching_digest(self):
         bad = packet("independent")
         bad["cases"].pop()

@@ -335,8 +335,8 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
                     "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
                     "summary": "step-%02d.md" % i}
-        with mock.patch.object(bridge, "EXE", exe), \\
-             mock.patch.object(bridge, "FIXTURE", fixture), \\
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
              mock.patch.object(bridge, "run_one", side_effect=runner):
             output = fanout.run_group(
                 "seed-dependent", SHA, archive, self.path / "parallel-records",
@@ -370,8 +370,8 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             return {"index": i, "name": bridge.STEPS[i], "exit_code": 0,
                     "elapsed_seconds": 1.0, "log": "step-%02d.log" % i,
                     "summary": "step-%02d.md" % i}
-        with mock.patch.object(bridge, "EXE", exe), \\
-             mock.patch.object(bridge, "FIXTURE", fixture), \\
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
              mock.patch.object(bridge, "run_one", side_effect=runner):
             with self.assertRaisesRegex(ValueError, "baseline SRAM changed"):
                 fanout.run_group(
@@ -386,9 +386,9 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         bad[1] = bad[1].replace(
             "baseline/Modern Player Data With Spaces/saves/save.srm",
             "unrecognized/saves/save.srm")
-        with mock.patch.object(bridge, "EXE", exe), \\
-             mock.patch.object(bridge, "FIXTURE", fixture), \\
-             mock.patch.object(bridge, "extract_commands", return_value=bad), \\
+        with mock.patch.object(bridge, "EXE", exe), \
+             mock.patch.object(bridge, "FIXTURE", fixture), \
+             mock.patch.object(bridge, "extract_commands", return_value=bad), \
              mock.patch.object(bridge, "run_one") as runner:
             with self.assertRaisesRegex(ValueError, "seed source changed"):
                 fanout.run_group(

@@ -133,3 +133,16 @@ The spiral also improves overlap against the earlier `1000022665.png` source (78
 Unlike the earlier spiral path, whose sampled join-curvature discontinuity reached roughly 0.164 inverse source pixels, the revised spiral's maximum sampled absolute curvature jump is below **0.0007** inverse source pixels. The `a` and `e` remain similarly smooth at their joins (below 0.0004). The curvature units are defined by the input SVG's original-pixel coordinates, so they should not be compared to 3D rig curvature.
 
 **Validation limits:** These checks confirm source/reference alignment, polygon topology, SVG renderability and differential geometry, but do not prove that the printed 1994 contours are exactly recovered. The clean cover reference may also contain its own redraw or restoration errors. Do not count this as owner art acceptance or any gameplay/release QA gate.
+
+
+## Focused spiral and `i` correction (2026-11-08)
+
+The owner specifically requested more attention to the spiral and the `i` after the previous localized `a`/`e` work. This iteration edits **only those two closed yellow-face contour paths**, with all other glyphs and the TM/asterisk left unchanged.
+
+- **`i`**: refitted its cap, left stem and bottom oval against the cleaner box reproduction, reducing a subtly swollen lower stem and improving consistency of the long sides. The candidate uses **13 periodic cubic segments** and has a sampled adjacent-join curvature jump below **0.00003 inverse source pixels**.
+- **Spiral**: preserved the overall spiral turn while rebalancing the inner tongue and rounded lower terminal against the clean source. Uses **20 periodic cubic segments** with sampled maximum adjacent-join curvature jump below **0.00039 inverse source pixels**. The contour stays a single continuous shape with no fill holes or self-intersections.
+- **Outline**: shared paths rendered as black 10 px round stroke translated (+2,+2) under the yellow face. There are no independent manually traced border paths.
+
+The yellow-only source-mask overlap (IoU) against the clean cover illustration `1000022738.png` changes from **94.97% to 97.39%** for the `i` and from **88.76% to 90.24%** for the spiral. Agreement with alternate reference `1000022735.png` changes from **83.45% to 83.37%** for the `i` and **61.30% to 60.68%** for the spiral. The alternate-reference tradeoffs remain visible and documented. Source images may be modern restoration/redraws, so none of these numbers prove true 1994 vector fidelity.
+
+The candidate was rendered in context on a charcoal preview and separately compared beside previous SVG and clean cover, at the same crop and scale. Both updated glyphs were sampled to valid, positively oriented, closed, non-self-intersecting polygons. This is an artistic review candidate, not an owner-approved final logo and not a release gate.

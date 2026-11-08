@@ -417,6 +417,27 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
         seed = (Path(env["RUNNER_TEMP"]) / "UR Baldosa Win32 Pause Route" /
                 "baseline" / "Modern Player Data With Spaces" / "saves" / "save.srm")
         if first["exit_code"] == 0 and seed.is_file() and not seed.is_symlink() and seed.stat().st_size == 8192:
+            if seed_followup_workers == 2:
+                # The preflight runs before the original baseline writes its
+                # parent. Recheck after baseline: it must not have created
+                # either Records child's output or redirected the seed path.
+                require(all(
+                    not (Path(env["RUNNER_TEMP"]) / name).exists()
+                    and not (Path(env["RUNNER_TEMP"]) / name).is_symlink()
+                    for name in names[1:]),
+                    "baseline created a Records output root before follow-ups")
+                temp_root = Path(env["RUNNER_TEMP"])
+                ancestor = seed.parent
+                while True:
+                    require(not ancestor.is_symlink()
+                            and not getattr(ancestor, "is_junction",
+                                            lambda: False)(),
+                            "redirected original Records seed parent")
+                    if ancestor == temp_root:
+                        break
+                    require(ancestor != ancestor.parent,
+                            "Records seed is outside runner temp")
+                    ancestor = ancestor.parent
             seed_sha = bridge.sha256_file(seed)
             # The digest alone misses an identical-byte replace. Sampling
             # file identity and modification metadata adds a separate

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
+from contextlib import contextmanager, nullcontext
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
@@ -164,6 +166,43 @@ SEED_MODE_KEYS = frozenset((
     "invocation_windows", "invocation_overlap_ns",
     "native_process_overlap_verified",
 ))
+
+
+
+@contextmanager
+def protect_windows_seed_readonly(seed):
+    """Keep the original 8KiB input share-readable but deny write/delete.
+
+    This is a real Win32 file-sharing handle, not chmod, advisory flock,
+    a digest, or proof that the two native game processes overlapped.
+    Opening fails closed on non-Windows hosts or incompatible share modes.
+    https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew
+    """
+    require(os.name == "nt",
+            "parallel Records requires actual Windows seed write-denial")
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    create = kernel.CreateFileW
+    create.argtypes = (
+        ctypes.c_wchar_p, ctypes.c_uint32, ctypes.c_uint32,
+        ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_void_p,
+    )
+    create.restype = ctypes.c_void_p
+    close = kernel.CloseHandle
+    close.argtypes = (ctypes.c_void_p,)
+    close.restype = ctypes.c_int
+    # GENERIC_READ, FILE_SHARE_READ only, OPEN_EXISTING,
+    # FILE_ATTRIBUTE_NORMAL. This denies writes AND rename/delete while open.
+    handle = create(str(seed), 0x80000000, 0x00000001,
+                    None, 3, 0x00000080, None)
+    if handle in (None, 0, ctypes.c_void_p(-1).value):
+        raise OSError(ctypes.get_last_error(),
+                      "could not hold read-only Windows SRAM share handle")
+    try:
+        yield
+    finally:
+        if not close(handle):
+            raise OSError(ctypes.get_last_error(),
+                          "failed to close Windows SRAM share handle")
 
 
 def invocation_overlap_ns(windows):
@@ -394,33 +433,38 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
                     "index": index, "started_ns": started_ns,
                     "ended_ns": max(started_ns + 1, ended_ns),
                 }
-            if seed_followup_workers == 1:
-                followups = [observed_case(i) for i in (1, 2)]
-            else:
-                # Two bridge invocations may overlap. This does NOT attest
-                # simultaneous Windows child processes or SDL focus safety.
-                with ThreadPoolExecutor(max_workers=2) as pool:
-                    followups = list(pool.map(observed_case, (1, 2)))
-            rows.extend(item[0] for item in followups)
-            windows = [item[1] for item in followups]
-            mode_receipt.update({
-                "effective_workers": seed_followup_workers,
-                "source_seed_sha256": seed_sha,
-                "invocation_windows": windows,
-                "invocation_overlap_ns": invocation_overlap_ns(windows),
-            })
-            require(seed.is_file() and not seed.is_symlink()
-                    and seed.stat().st_size == 8192
-                    and bridge.sha256_file(seed) == seed_sha,
-                    "original baseline SRAM changed during Records")
-            seed_after = seed.stat()
-            require((seed_after.st_dev, seed_after.st_ino,
-                     seed_after.st_size, seed_after.st_mtime_ns,
-                     seed_after.st_ctime_ns) == seed_identity,
-                    "original baseline SRAM identity changed during Records")
-            if seed_followup_workers == 2:
-                require(mode_receipt["invocation_overlap_ns"] > 0,
-                        "parallel Records bridge invocations did not overlap")
+            # Hold the Win32 source handle from before either original
+            # dependent Bash/script call until after both have completed and
+            # their shared seed's bytes and identity have been rechecked.
+            with (protect_windows_seed_readonly(seed)
+                  if seed_followup_workers == 2 else nullcontext()):
+                if seed_followup_workers == 1:
+                    followups = [observed_case(i) for i in (1, 2)]
+                else:
+                    # Two bridge invocations may overlap. This does NOT attest
+                    # simultaneous Windows child processes or SDL focus safety.
+                    with ThreadPoolExecutor(max_workers=2) as pool:
+                        followups = list(pool.map(observed_case, (1, 2)))
+                rows.extend(item[0] for item in followups)
+                windows = [item[1] for item in followups]
+                mode_receipt.update({
+                    "effective_workers": seed_followup_workers,
+                    "source_seed_sha256": seed_sha,
+                    "invocation_windows": windows,
+                    "invocation_overlap_ns": invocation_overlap_ns(windows),
+                })
+                require(seed.is_file() and not seed.is_symlink()
+                        and seed.stat().st_size == 8192
+                        and bridge.sha256_file(seed) == seed_sha,
+                        "original baseline SRAM changed during Records")
+                seed_after = seed.stat()
+                require((seed_after.st_dev, seed_after.st_ino,
+                         seed_after.st_size, seed_after.st_mtime_ns,
+                         seed_after.st_ctime_ns) == seed_identity,
+                        "original baseline SRAM identity changed during Records")
+                if seed_followup_workers == 2:
+                    require(mode_receipt["invocation_overlap_ns"] > 0,
+                            "parallel Records bridge invocations did not overlap")
     else:
         for idx in GROUPS[group]:
             require("baseline/" not in commands[idx],

@@ -1,5 +1,6 @@
 """ROM-free, fail-closed contract tests for exact Windows fan-out."""
 import hashlib
+from contextlib import nullcontext
 import threading
 import json
 import sys
@@ -318,6 +319,56 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             path.write_bytes(path.name.encode())
         return env, paths
 
+    def test_win32_seed_sharing_guard_fails_closed_without_windows(self):
+        # This is why synthetic Linux overlap tests explicitly mock the guard.
+        if os.name == "nt":
+            self.skipTest("negative non-Windows host required")
+        with self.assertRaisesRegex(ValueError, "actual Windows"):
+            with fanout.protect_windows_seed_readonly(self.path / "seed.srm"):
+                self.fail("unsupported host bypassed seed guard")
+
+    def test_win32_seed_sharing_guard_uses_read_only_share_and_closes(self):
+        class Kernel:
+            def __init__(self):
+                self.request = None
+                self.closed = []
+                self.handle = 0x1234
+                self.CreateFileW = self.open
+                self.CloseHandle = self.close
+            def open(self, *args):
+                self.request = args
+                return self.handle
+            def close(self, handle):
+                self.closed.append(handle)
+                return 1
+        kernel = Kernel()
+        path = self.path / "seed.srm"
+        with mock.patch.object(fanout.os, "name", "nt"), \
+             mock.patch.object(fanout.ctypes, "WinDLL",
+                               return_value=kernel, create=True):
+            with fanout.protect_windows_seed_readonly(path):
+                self.assertEqual(kernel.request[0], str(path))
+                self.assertEqual(kernel.request[1], 0x80000000)
+                self.assertEqual(kernel.request[2], 0x00000001)
+                self.assertEqual(kernel.request[4], 3)
+                self.assertEqual(kernel.request[5], 0x00000080)
+                self.assertEqual(kernel.closed, [])
+        self.assertEqual(kernel.closed, [0x1234])
+
+    def test_win32_seed_sharing_guard_refuses_invalid_open_handle(self):
+        class Kernel:
+            def __init__(self):
+                self.CreateFileW = lambda *args: 0
+                self.CloseHandle = lambda *args: 1
+        with mock.patch.object(fanout.os, "name", "nt"), \
+             mock.patch.object(fanout.ctypes, "WinDLL",
+                               return_value=Kernel(), create=True), \
+             mock.patch.object(fanout.ctypes, "get_last_error",
+                               return_value=32, create=True):
+            with self.assertRaisesRegex(OSError, "write-only|read-only|read-only Windows"):
+                with fanout.protect_windows_seed_readonly(self.path / "seed.srm"):
+                    self.fail("invalid handle accepted")
+
     def test_opt_in_records_invocations_overlap_after_original_seed(self):
         env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
         barrier = threading.Barrier(2, timeout=5)
@@ -337,7 +388,9 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                     "summary": "step-%02d.md" % i}
         with mock.patch.object(bridge, "EXE", exe), \
              mock.patch.object(bridge, "FIXTURE", fixture), \
-             mock.patch.object(bridge, "run_one", side_effect=runner):
+             mock.patch.object(bridge, "run_one", side_effect=runner), \
+             mock.patch.object(fanout, "protect_windows_seed_readonly",
+                               side_effect=lambda path: nullcontext()):
             output = fanout.run_group(
                 "seed-dependent", SHA, archive, self.path / "parallel-records",
                 env, seed_followup_workers=2)
@@ -372,7 +425,9 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                     "summary": "step-%02d.md" % i}
         with mock.patch.object(bridge, "EXE", exe), \
              mock.patch.object(bridge, "FIXTURE", fixture), \
-             mock.patch.object(bridge, "run_one", side_effect=runner):
+             mock.patch.object(bridge, "run_one", side_effect=runner), \
+             mock.patch.object(fanout, "protect_windows_seed_readonly",
+                               side_effect=lambda path: nullcontext()):
             with self.assertRaisesRegex(ValueError, "baseline SRAM changed"):
                 fanout.run_group(
                     "seed-dependent", SHA, archive, self.path / "mutated-records",
@@ -423,7 +478,9 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                     "summary": "step-%02d.md" % i}
         with mock.patch.object(bridge, "EXE", exe), \
              mock.patch.object(bridge, "FIXTURE", fixture), \
-             mock.patch.object(bridge, "run_one", side_effect=runner):
+             mock.patch.object(bridge, "run_one", side_effect=runner), \
+             mock.patch.object(fanout, "protect_windows_seed_readonly",
+                               side_effect=lambda path: nullcontext()):
             receipt = fanout.run_group(
                 "seed-dependent", SHA, archive,
                 self.path / "failed-records-case", env,
@@ -474,7 +531,9 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                     "summary": "step-%02d.md" % i}
         with mock.patch.object(bridge, "EXE", exe), \
              mock.patch.object(bridge, "FIXTURE", fixture), \
-             mock.patch.object(bridge, "run_one", side_effect=runner):
+             mock.patch.object(bridge, "run_one", side_effect=runner), \
+             mock.patch.object(fanout, "protect_windows_seed_readonly",
+                               side_effect=lambda path: nullcontext()):
             with self.assertRaisesRegex(ValueError, "SRAM identity changed"):
                 fanout.run_group(
                     "seed-dependent", SHA, archive, self.path / "replace-records",

@@ -118,7 +118,7 @@ jobs:
           @(
             '### Manual P2 Win32 seed-sharing OS control'
             ''
-            "- Tested exact PR head: `$env:EXPECTED_SHA` (PR #$env:TARGET_PR)"
+            "- Tested exact PR head: $($env:EXPECTED_SHA) (PR #$($env:TARGET_PR))"
             '- Two actual Win32 tests, zero skips: read permitted; write/delete blocked while guarded; write restored after release/exception'
             '- No ROM, native game, input/controller, SDL, original-journey, speed or release QA acceptance claimed'
             '- Keep P2 parallelism DRAFT/HOLD pending separate independent review and native-PID/SDL controls'

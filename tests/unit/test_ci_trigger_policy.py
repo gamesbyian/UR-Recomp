@@ -155,7 +155,6 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("  pull-requests: read", source)
         self.assertNotIn("  actions: write", source)
         self.assertIn("runs-on: windows-2022", source)
-        self.assertIn("github.ref", source) if False else None
         self.assertIn("refs/heads/main", source)
         self.assertIn("$pr.draft -ne $true", source)
         self.assertIn("$pr.head.repo.full_name -cne $env:GITHUB_REPOSITORY",

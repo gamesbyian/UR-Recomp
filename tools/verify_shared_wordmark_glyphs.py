@@ -60,9 +60,11 @@ def check() -> None:
 
     for root, mapping in zip(roots[1:], (INSTANCES, RALLY_INSTANCES)):
         contours = root.find(".//s:g[@id='wordmark-contours']", NS)
-        assert contours is not None
+        spiral_contours = root.find(".//s:g[@id='spiral-contours']", NS)
+        assert contours is not None and spiral_contours is not None
         for glyph, element_id in mapping:
-            use = contours.find(f"s:use[@id='{element_id}']", NS)
+            group = spiral_contours if glyph == "spiral" else contours
+            use = group.find(f"s:use[@id='{element_id}']", NS)
             assert use is not None, f"Missing {element_id}"
             assert use.get("href") == f"#shared-{glyph}", (
                 f"{element_id} points at a noncanonical glyph"
@@ -74,7 +76,7 @@ def check() -> None:
             assert all(math.isfinite(x) for x in values) and values[2] > 0
             assert not any(
                 p.get("id") == element_id
-                for p in contours.findall("s:path", NS)
+                for p in group.findall("s:path", NS)
             ), f"Old standalone path remains for {element_id}"
         for role in (
             "offset-black-border",
@@ -94,11 +96,33 @@ def check() -> None:
         rim = root.find(".//s:use[@id='uniform-black-keyline']", NS)
         assert rim.get("stroke-width") == "2.4"
         assert rim.get("stroke") == DECORATION[1]
+        # The spiral is a fine detail: preserve the same shape but give its
+        # own, lighter presentation outline. Catch any return to body weight.
+        spiral_style = {
+            "spiral-offset-black-border": (
+                "#spiral-contours", DECORATION[1], "5",
+                "translate(1.25 1.25)"
+            ),
+            "spiral-uniform-black-keyline": (
+                "#spiral-contours", "none", "1.5", None
+            ),
+            "spiral-yellow-letter-face": (
+                "#spiral-contours", DECORATION[0], None, None
+            ),
+        }
+        for role, (href, fill, stroke_width, transform) in spiral_style.items():
+            use = root.find(f".//s:use[@id='{role}']", NS)
+            assert use is not None, f"Missing {role}"
+            assert use.get("href") == href
+            assert use.get("fill") == fill
+            assert use.get("stroke-width") == stroke_width
+            assert use.get("transform") == transform
+        assert contours.find("s:use[@href='#shared-spiral']", NS) is None
     assert "M 383.202 65.294" in masters[0]["spiral"], (
         "Spiral no longer comes from the owner-supplied source"
     )
     print("PASS: shared u, n, i, r, a, spiral identical in library and both wordmarks")
-    print("PASS: all shared instances use uniform scale/translation; stroke styles match")
+    print("PASS: instances use uniform scale; body and lighter spiral border styles match")
 
 if __name__ == "__main__":
     try:

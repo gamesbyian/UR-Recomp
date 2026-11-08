@@ -55,3 +55,28 @@ Shape validations run locally: all **30 closed glyph contours** in the two indep
 ## Review priorities and limits
 
 Inspect the *spiral first*, because it is materially less consistent across source references than the nine letters. Then compare the `s` bottom and upper-hook transitions, followed by the `a` return, the `u` inner bend, and the first `r` notch. These are deliberate high-curvature features that a global smoothing filter can erase. The earlier default path remains available through Git history if any detail must be reinstated. Do not infer owner approval, release readiness or 1994-authored vector control points from smoothness, topology checks, IoU, or a successful Git merge.
+
+## Follow-up: localized spiral and final `s` curvature review (2026-11-08 UTC)
+
+This is a **small, reversible artistic refinement**, based on the original packaging crop and the two independent high-contrast references above. The previously accepted A/B consensus for the other **eight** paths remains byte-for-byte unchanged.
+
+- **Spiral:** retained the existing consensus outer sweep and adjusted only control points around the inner yellow tongue, replacing its nearly vertical-looking inward drop with a gentler rounded turn. The neighboring cubic handles were constrained to preserve the entering and departing tangent directions. The spiral remains a simple closed shape with 14 cubic spans.
+- **Final `s`:** used the independently fitted Reference B path in place of the averaged path, as its upper terminal and lower inside bend look smoother in the original artwork comparisons. This uses 15 rather than 14 cubic spans.
+- The border still comes from one shared path group rendered twice, using the **10 px rounded stroke** behind the face translated **(+2,+2)**. The TM and six-spoke asterisk are untouched.
+
+### Independent checks and tradeoffs
+
+All ten paths were sampled at 80 points per cubic span and verified to form valid, non-self-intersecting, exactly closed shapes. The largest join-direction discrepancy in the resulting SVG was **0.0356 degrees**, with the spiral itself below **0.019 degrees**. These are tangent-direction tests, not absolute claims about the original artist's control points.
+
+Yellow-face IoU for the two changed glyphs, measured against registered reference masks and the older printed packaging crop:
+
+| Glyph | SVG | Reference A | Reference B | Printed original |
+|---|---|---:|---:|---:|
+| Spiral | Previous | 78.67% | 84.42% | 76.08% |
+| Spiral | **Revised** | **79.32%** | 84.06% | 75.55% |
+| `s` | Previous | 93.64% | 92.67% | 93.33% |
+| `s` | **Revised** | 92.77% | **93.91%** | **94.05%** |
+
+The numbers show tradeoffs, **not a universal improvement**. The spiral's printed-original raster overlap decreases slightly while the inner tongue becomes visually rounder; the `s` is closer to Reference B and the printed original but slightly farther from Reference A. Do not optimize a noisy raster-IoU score at the cost of smooth intended geometry.
+
+Original references A and B remain available unchanged in `assets/branding/reference-traces/`, and earlier consensus is recoverable from Git history. This refinement is still a **candidate for human likeness review**, with no new original-master provenance, owner sign-off, Windows release acceptance or QA-gate claim.

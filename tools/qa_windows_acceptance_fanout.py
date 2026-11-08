@@ -34,6 +34,17 @@ CASE_KEYS = frozenset((
     "log", "summary", "log_sha256", "log_bytes",
     "summary_sha256", "summary_bytes",
 ))
+# bridge.run_one stores type(exc).__name__, not always the OSError base:
+# Git Bash creation may raise FileNotFoundError or PermissionError, and
+# subprocess.TimeoutExpired is a separate accepted exception.
+BRIDGE_ERROR_NAMES = frozenset((
+    "OSError", "BlockingIOError", "ChildProcessError", "ConnectionError",
+    "BrokenPipeError", "ConnectionAbortedError", "ConnectionRefusedError",
+    "ConnectionResetError", "FileExistsError", "FileNotFoundError",
+    "InterruptedError", "IsADirectoryError", "NotADirectoryError",
+    "PermissionError", "ProcessLookupError", "TimeoutError",
+    "TimeoutExpired",
+))
 
 
 def require(condition, reason):
@@ -367,7 +378,7 @@ def validate_receipt(receipt, group, source_sha):
             error = row["error"]
             require(error is None
                     or (type(error) is str
-                        and error in ("OSError", "TimeoutExpired")
+                        and error in BRIDGE_ERROR_NAMES
                         and row.get("exit_code") == 124),
                     "contradictory original subprocess error metadata")
         require(row.get("script_sha256") == original_hashes[idx],

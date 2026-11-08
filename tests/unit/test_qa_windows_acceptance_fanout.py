@@ -244,8 +244,12 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             (None, 0, True),
             ("TimeoutExpired", 124, True),
             ("OSError", 124, True),
+            ("FileNotFoundError", 124, True),
+            ("PermissionError", 124, True),
+            ("ConnectionRefusedError", 124, True),
             ("TimeoutExpired", 0, False),
             ("ValueError", 124, False),
+            ("InventedTrustError", 124, False),
             ("private full subprocess log", 124, False),
         ):
             with self.subTest(error=error, code=code):
@@ -265,6 +269,33 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                 if not accepted:
                     self.assertIn("contradictory original subprocess error",
                                   " ".join(result["issues"]))
+
+    def test_original_bridge_emits_oserror_subclass_failure_receipt(self):
+        # Exercise the actual source bridge, not a guessed exception-name
+        # fixture. An attempted missing executable can raise a subclass.
+        work = self.path / "original-bridge-oserror"
+        work.mkdir()
+        with mock.patch.object(
+                bridge.subprocess, "run",
+                side_effect=FileNotFoundError(2, "simulated missing Git Bash")):
+            row = bridge.run_one(
+                1, "set -euo pipefail\\n", work,
+                {"GITHUB_STEP_SUMMARY": str(self.path / "summary.md")})
+        self.assertEqual(row["exit_code"], 124)
+        self.assertEqual(row["error"], "FileNotFoundError")
+        self.assertTrue((work / row["log"]).is_file())
+        receipt = packet("seed-dependent")
+        receipt["cases"][1]["exit_code"] = row["exit_code"]
+        receipt["cases"][1]["error"] = row["error"]
+        receipt["all_passed"] = False
+        receipt["receipt_sha256"] = fanout.digest({
+            k: v for k, v in receipt.items() if k != "receipt_sha256"})
+        self.update("seed-dependent", receipt)
+        result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertEqual(result["failed_cases"][0]["exit_code"], 124)
+        self.assertNotIn("contradictory original subprocess error",
+                         " ".join(result["issues"]))
 
     def test_redirected_group_receipt_parent_is_not_read(self):
         path = self.path / "windows-fanout-seed-dependent"

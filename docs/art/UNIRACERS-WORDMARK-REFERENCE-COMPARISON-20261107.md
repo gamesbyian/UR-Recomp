@@ -80,3 +80,30 @@ Yellow-face IoU for the two changed glyphs, measured against registered referenc
 The numbers show tradeoffs, **not a universal improvement**. The spiral's printed-original raster overlap decreases slightly while the inner tongue becomes visually rounder; the `s` is closer to Reference B and the printed original but slightly farther from Reference A. Do not optimize a noisy raster-IoU score at the cost of smooth intended geometry.
 
 Original references A and B remain available unchanged in `assets/branding/reference-traces/`, and earlier consensus is recoverable from Git history. This refinement is still a **candidate for human likeness review**, with no new original-master provenance, owner sign-off, Windows release acceptance or QA-gate claim.
+
+
+## Follow-up: curvature-adaptive cover-art refit (2026-11-08)
+
+**Owner feedback:** although the prior SVG passed C2-join tests, several contours looked visually wonky compared with the cleaner box-art illustration. Tangent continuity alone is insufficient: the actual radii, terminal proportions, inflection locations and relative widths must be correct.
+
+### What changed
+
+The foreground contours were re-estimated directly from supplied high-contrast `1000022738.png`, verified against independent `1000022735.png` and earlier `1000022665.png` art. The revised master takes **nine letter paths** from a curvature-adaptively filtered, periodic cubic reconstruction. The **previous manually reviewed spiral is deliberately preserved** because reference-to-reference spiral disagreement remains substantially higher than letter disagreement.
+
+The contour refit applies roughly 2 source pixels of Gaussian filtering around intentional tight turns and up to 6 pixels along gentle, low-curvature stretches; a smoothly varying curvature weight controls the transition. A regularized periodic cubic fit then removes pixel-level wiggles without forcing tight notches and broad body curves through the same smoothing filter. In trial runs, applying indiscriminate stronger regularization to entire letters visibly blunted the first `r`, `a` and `e` features and reduced raster agreement. **The final SVG has more Bézier spans (173 across ten components), not fewer**, because a low control-point count alone is neither a smoothness guarantee nor a fidelity objective. Those spans have matched tangents, and visible high-frequency contour noise is reduced.
+
+The black border still uses the **exact same vector source** as the yellow faces, translated (+2,+2) with a 10 px rounded stroke. The small `TM*` now has its **own black outline** as in the supplied clean packaging illustration; the T/M and six-spoke star remain editable vector shapes. No raster is embedded.
+
+### Bounded checks
+
+Masks were rasterized at 1536 × 1152 in a shared registered coordinate system. Yellow-face overlap (IoU) was:
+
+| Reference | Before | After |
+|---|---:|---:|
+| Alternate cover A | 92.93% | **93.02%** |
+| Clean cover B | 92.97% | **94.21%** |
+| Earlier printed packaging | 92.38% | **92.92%** |
+
+The after values use the full proposed SVG, with the preserved spiral and outlined TM. The measured improvements are modest and **do not constitute owner artistic acceptance** or a recovery of 1994 master vectors. Raster IoU cannot distinguish intended vector geometry from coincidentally matching printing/antialiasing artifacts. All ten sampled closed letter/spiral contours were topologically valid with no self-intersections; cubic join tangents deviated by at most **0.037°** in local validation. XML parsing and CairoSVG rendered both transparent and composited previews.
+
+**Next artistic review:** scrutinize the `a` lower return, the first `r` upper pinch and the `e` inner terminal at high magnification, alongside the earlier spiral uncertainty. Further edits should be localized and backed by cross-reference visual comparisons, avoiding another global blur/fit cycle. Release, 3D character likeness and historical-original-geometry acceptance remain unchanged.

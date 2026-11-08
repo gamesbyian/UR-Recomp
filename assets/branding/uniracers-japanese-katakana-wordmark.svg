@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="490" viewBox="35 45 1525 375" role="img" aria-labelledby="title desc">
+<title id="title">ユニレーサーズ | Japanese Uniracers wordmark</title>
+<desc id="desc">Original, custom-drawn katakana display lettering for the proposed Japanese rendering of Uniracers, Yuni Rēsāzu. Rounded hand-shaped strokes in matching Uniracers yellow and diagonal black shadow, all strokes editable as cubic Beziers.</desc>
+<metadata>Artistically designed katakana adaptation, not a historical Japanese box-art title or a traced Japanese official logo. Text: ユニレーサーズ. Glyphs: ユ ニ レ ー サ ー ズ. The English logos remain unchanged.</metadata>
+<defs>
+  <g id="katakana-centrelines" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <g id="glyph-yu" aria-label="ユ">
+    <path id="yu-stroke-1" d="M90 156 C132 142 201 148 260 141" data-weight="43" />
+    <path id="yu-stroke-2" d="M263 147 C266 200 269 255 265 316" data-weight="50" />
+    <path id="yu-stroke-3" d="M94 328 C147 322 200 324 268 317" data-weight="49" />
+  </g>
+  <g id="glyph-ni" aria-label="ニ">
+    <path id="ni-stroke-1" d="M330 162 C368 153 422 161 474 153" data-weight="48" />
+    <path id="ni-stroke-2" d="M314 328 C357 320 418 323 482 311" data-weight="51" />
+  </g>
+  <g id="glyph-re" aria-label="レ">
+    <path id="re-stroke-1" d="M557 113 C557 170 547 263 554 327" data-weight="55" />
+    <path id="re-stroke-2" d="M554 327 C598 321 626 286 670 257" data-weight="54" />
+  </g>
+  <g id="glyph-long-vowel-1" aria-label="ー">
+    <path id="long-vowel-1-stroke-1" d="M703 225 C754 219 805 224 850 210" data-weight="47" />
+  </g>
+  <g id="glyph-sa" aria-label="サ">
+    <path id="sa-stroke-1" d="M878 169 C941 152 1003 162 1067 153" data-weight="48" />
+    <path id="sa-stroke-2" d="M921 114 C924 164 924 209 914 249" data-weight="45" />
+    <path id="sa-stroke-3" d="M1024 104 C1032 165 1034 247 997 307" data-weight="54" />
+    <path id="sa-stroke-4" d="M997 307 C970 340 949 343 925 349" data-weight="55" />
+  </g>
+  <g id="glyph-long-vowel-2" aria-label="ー">
+    <path id="long-vowel-2-stroke-1" d="M1101 224 C1153 214 1202 220 1245 207" data-weight="47" />
+  </g>
+  <g id="glyph-zu" aria-label="ズ">
+    <path id="zu-stroke-1" d="M1284 161 C1337 155 1392 155 1458 148" data-weight="51" />
+    <path id="zu-stroke-2" d="M1445 159 C1430 218 1381 295 1303 349" data-weight="53" />
+    <path id="zu-stroke-3" d="M1390 256 C1439 293 1467 325 1505 344" data-weight="53" />
+    <path id="zu-stroke-4" d="M1423 84 C1438 94 1447 106 1450 114" data-weight="24" />
+    <path id="zu-stroke-5" d="M1472 74 C1485 85 1496 102 1497 109" data-weight="24" />
+  </g>
+  </g>
+</defs>
+<!-- The same color and offset/keyline recipe as the English logos, expanded from each letter's chosen rounded source-stroke weight. -->
+<g id="offset-black-border" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<use href="#yu-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="51"/>
+<use href="#yu-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="58"/>
+<use href="#yu-stroke-3" transform="translate(2 2)" stroke="#090409" stroke-width="57"/>
+<use href="#ni-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="56"/>
+<use href="#ni-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="59"/>
+<use href="#re-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="63"/>
+<use href="#re-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="62"/>
+<use href="#long-vowel-1-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="55"/>
+<use href="#sa-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="56"/>
+<use href="#sa-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="53"/>
+<use href="#sa-stroke-3" transform="translate(2 2)" stroke="#090409" stroke-width="62"/>
+<use href="#sa-stroke-4" transform="translate(2 2)" stroke="#090409" stroke-width="63"/>
+<use href="#long-vowel-2-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="55"/>
+<use href="#zu-stroke-1" transform="translate(2 2)" stroke="#090409" stroke-width="59"/>
+<use href="#zu-stroke-2" transform="translate(2 2)" stroke="#090409" stroke-width="61"/>
+<use href="#zu-stroke-3" transform="translate(2 2)" stroke="#090409" stroke-width="61"/>
+<use href="#zu-stroke-4" transform="translate(2 2)" stroke="#090409" stroke-width="32"/>
+<use href="#zu-stroke-5" transform="translate(2 2)" stroke="#090409" stroke-width="32"/>
+</g>
+<g id="uniform-black-keyline" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<use href="#yu-stroke-1" stroke="#090409" stroke-width="45.4"/>
+<use href="#yu-stroke-2" stroke="#090409" stroke-width="52.4"/>
+<use href="#yu-stroke-3" stroke="#090409" stroke-width="51.4"/>
+<use href="#ni-stroke-1" stroke="#090409" stroke-width="50.4"/>
+<use href="#ni-stroke-2" stroke="#090409" stroke-width="53.4"/>
+<use href="#re-stroke-1" stroke="#090409" stroke-width="57.4"/>
+<use href="#re-stroke-2" stroke="#090409" stroke-width="56.4"/>
+<use href="#long-vowel-1-stroke-1" stroke="#090409" stroke-width="49.4"/>
+<use href="#sa-stroke-1" stroke="#090409" stroke-width="50.4"/>
+<use href="#sa-stroke-2" stroke="#090409" stroke-width="47.4"/>
+<use href="#sa-stroke-3" stroke="#090409" stroke-width="56.4"/>
+<use href="#sa-stroke-4" stroke="#090409" stroke-width="57.4"/>
+<use href="#long-vowel-2-stroke-1" stroke="#090409" stroke-width="49.4"/>
+<use href="#zu-stroke-1" stroke="#090409" stroke-width="53.4"/>
+<use href="#zu-stroke-2" stroke="#090409" stroke-width="55.4"/>
+<use href="#zu-stroke-3" stroke="#090409" stroke-width="55.4"/>
+<use href="#zu-stroke-4" stroke="#090409" stroke-width="26.4"/>
+<use href="#zu-stroke-5" stroke="#090409" stroke-width="26.4"/>
+</g>
+<g id="yellow-letter-faces" fill="none" stroke-linecap="round" stroke-linejoin="round">
+<use href="#yu-stroke-1" stroke="#ffea00" stroke-width="43"/>
+<use href="#yu-stroke-2" stroke="#ffea00" stroke-width="50"/>
+<use href="#yu-stroke-3" stroke="#ffea00" stroke-width="49"/>
+<use href="#ni-stroke-1" stroke="#ffea00" stroke-width="48"/>
+<use href="#ni-stroke-2" stroke="#ffea00" stroke-width="51"/>
+<use href="#re-stroke-1" stroke="#ffea00" stroke-width="55"/>
+<use href="#re-stroke-2" stroke="#ffea00" stroke-width="54"/>
+<use href="#long-vowel-1-stroke-1" stroke="#ffea00" stroke-width="47"/>
+<use href="#sa-stroke-1" stroke="#ffea00" stroke-width="48"/>
+<use href="#sa-stroke-2" stroke="#ffea00" stroke-width="45"/>
+<use href="#sa-stroke-3" stroke="#ffea00" stroke-width="54"/>
+<use href="#sa-stroke-4" stroke="#ffea00" stroke-width="55"/>
+<use href="#long-vowel-2-stroke-1" stroke="#ffea00" stroke-width="47"/>
+<use href="#zu-stroke-1" stroke="#ffea00" stroke-width="51"/>
+<use href="#zu-stroke-2" stroke="#ffea00" stroke-width="53"/>
+<use href="#zu-stroke-3" stroke="#ffea00" stroke-width="53"/>
+<use href="#zu-stroke-4" stroke="#ffea00" stroke-width="24"/>
+<use href="#zu-stroke-5" stroke="#ffea00" stroke-width="24"/>
+</g>
+</svg>

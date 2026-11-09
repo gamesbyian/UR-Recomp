@@ -61,7 +61,7 @@ def gh_json(*args):
                 return json.loads(
                     result.stdout, object_pairs_hook=unique_json_members,
                     parse_constant=reject_nonfinite_json)
-            except (json.JSONDecodeError, ValueError) as exc:
+            except (json.JSONDecodeError, ValueError, RecursionError) as exc:
                 # A zero-exit CLI response can still be truncated or contain
                 # an ambiguous count/size. Retry only twice, then refuse the
                 # entire repository snapshot without logging raw API data.
@@ -96,9 +96,16 @@ def repositories(owner, api=gh_json):
     if not isinstance(rows, list) or len(rows) >= 200:
         raise ValueError("repository listing is invalid or potentially truncated")
     names = [row.get("nameWithOwner") for row in rows if isinstance(row, dict)]
-    if len(names) != len(rows) or any(not isinstance(n, str) or not REPO.fullmatch(n) for n in names):
+    if len(names) != len(rows) or any(
+            not isinstance(n, str) or not REPO.fullmatch(n)
+            or n.split("/", 1)[0].casefold() != owner.casefold()
+            for n in names):
         raise ValueError("invalid repository record")
-    return sorted(set(names))
+    # Repo identities are case-insensitive. Silently deduplicating a
+    # conflicting account source would shrink its claimed population.
+    if len({n.casefold() for n in names}) != len(names):
+        raise ValueError("duplicate repository identity in account listing")
+    return sorted(names)
 
 
 def artifact_inventory(repo, api=gh_json, max_pages=200, *,

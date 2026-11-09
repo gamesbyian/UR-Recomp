@@ -17,6 +17,31 @@ def a(ident, name, size, expired=False):
 
 
 class InventoryTests(unittest.TestCase):
+    def test_account_repository_source_requires_unique_owned_identity(self):
+        cases = (
+            (["gamesbyian/Chunks", "gamesbyian/Chunks"], "duplicate repository"),
+            (["gamesbyian/Chunks", "GAMESBYIAN/chunks"], "duplicate repository"),
+            (["gamesbyian/Chunks", "other-user/Chunks"], "invalid repository"),
+            (["gamesbyian/Chunks", "not-a-repository"], "invalid repository"),
+        )
+        for names, reason in cases:
+            with self.subTest(names=names):
+                rows = [{"nameWithOwner": name} for name in names]
+                with self.assertRaisesRegex(ValueError, reason):
+                    inv.repositories("gamesbyian", api=lambda *_: rows)
+
+    def test_account_repository_source_preserves_exact_distinct_population(self):
+        rows = [{"nameWithOwner": "gamesbyian/UR-Recomp"},
+                {"nameWithOwner": "gamesbyian/Chunks"}]
+        self.assertEqual(
+            inv.repositories("gamesbyian", api=lambda *_: rows),
+            ["gamesbyian/Chunks", "gamesbyian/UR-Recomp"])
+        # A different case for the requested owner is still the same owner,
+        # but a second case alias may never be treated as another repo.
+        self.assertEqual(
+            inv.repositories("GAMESBYIAN", api=lambda *_: rows),
+            ["gamesbyian/Chunks", "gamesbyian/UR-Recomp"])
+
     def test_multiple_pages_complete_and_grouped(self):
         items = [a(i + 1, "atlas" if i < 100 else "receipt", 100) for i in range(101)]
         def api(*argv):
@@ -225,6 +250,21 @@ class InventoryTests(unittest.TestCase):
                 with self.assertRaisesRegex(
                         RuntimeError, "invalid JSON or ambiguous"):
                     inv.gh_json("api", "repos/gamesbyian/UR-Recomp/actions/artifacts")
+        self.assertEqual(run.call_count, 3)
+        self.assertEqual([x.args for x in sleep.call_args_list], [(1,), (2,)])
+
+    def test_deeply_nested_bounded_api_json_fails_as_ambiguous_source(self):
+        # Small but excessively nested JSON can exhaust the parser stack.
+        # It must not escape as an uncaught error without normal red status.
+        payload = SimpleNamespace(
+            returncode=0, stderr="private-token-never-echo",
+            stdout="[" * 10000 + "0" + "]" * 10000)
+        with patch.object(inv.subprocess, "run", return_value=payload) as run:
+            with patch.object(inv.time, "sleep") as sleep:
+                with self.assertRaisesRegex(RuntimeError,
+                                            "invalid JSON or ambiguous") as error:
+                    inv.gh_json("api", "repos/gamesbyian/Chunks/actions/artifacts")
+        self.assertNotIn("private-token", str(error.exception))
         self.assertEqual(run.call_count, 3)
         self.assertEqual([x.args for x in sleep.call_args_list], [(1,), (2,)])
 

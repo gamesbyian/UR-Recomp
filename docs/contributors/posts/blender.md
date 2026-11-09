@@ -8,6 +8,8 @@ Proposed title: [Volunteer / unpaid] Reconstruct an articulated racing unicycle 
 
 I'm coordinating an unofficial recreation of the 1994 SNES game Uniracers / Unirally and looking for a Blender artist interested in reconstructing its expressive, racing unicycle as a detailed 3D model.
 
+**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+
 There is already an experimental five-part 2026 model and a substantial library of sprite/reconstruction evidence, so this is a real, bounded art challenge rather than a concept without references. The current model isn't a recovered 1994 original or a finished character. It needs a trained eye for side/front/three-quarter likeness, coherent wheel and fork geometry, saddle and axle refinement, and credible articulated motion for pedalling, leaning, jumping and tricks.
 
 References: [current artist brief](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md), [art direction](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-ART-DIRECTION.md), [experimental model viewer source](https://github.com/gamesbyian/UR-Recomp/blob/main/tools/art/model-review/visual-review.html), [approved promotional background (not a gameplay screenshot)](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/promo/canonical/blueprint-16x9-logo-left.png).

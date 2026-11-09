@@ -93,6 +93,18 @@ The large JSON payloads for coverage/race branch maps were not completely read t
 
 **Index progress:** 10 contextually closed, 55 advisory triaged, 112 still pending, 177 total. Remaining high-value semantic work is in changed `src/core/`, `src/app/`, tests and research tooling, with stable PR and changed-path pointers.
 
+## Older PAL research-record successor reconciliation, 2026-11-09
+
+The 12 changed older `docs/research/*` files omitted from the first technical pass now each have an explicit **qualified PAL, superseded baseline, or limited observation** triage in the machine index. This does not convert reported raw captures to independently acquired USA evidence.
+
+- **R-0089 and R-0093** were 236-capture coverage/data baselines. They have a documented successor in the 919-run R-0109/R-0112 census. Do not rerun 236 routes or treat the superseded baseline as present-day unknown coverage.
+- **R-0095/R-0097/R-0098** are PAL two-human stunts, menu input and multi-tour league reports. The later R-0099/R-0100/R-0101/R-0102/R-0106/R-0111 and associated accepted PRs narrow or correct their open areas. No duplicate USA work without a *current* result/menu/record discrepancy.
+- **R-0100/R-0101/R-0102** qualify PAL records screens, original stock name checker and CPU/menu frame costs. They are specific to Authentic/source behavior, not a requirement to make the Modern host reproduce cartridge administrative friction.
+- **R-0052/R-0103** document HUNTER effects and split-screen pictures, including line-113 mosaic limitations; R-0104 is the later two-rider power-bounce refinement.
+- **R-0107/R-0108** distinguish original captures, listing/track scans, native-only searches and still-open rare branches. An original PAL experiment is not provided for all apparent paths. `OPEN-BRANCHES` remains the live upstream follow-up.
+
+**Current changed-path dispositions:** 10 contextually closed, 67 triaged, 100 pending of 177; implementation sources and corresponding actual test changes still remain for independent semantic classification.
+
 ## Two practical first investigations
 
 1. **SRAM applicability:** check existing UR Windows isolated profile/crash/record tests for missing exact cartridge write-frame and corrupt-cursor cases; document a minimal USA original/native discriminator where a real current blocker remains. Avoid modifying the host save format just to make PAL bytes match.

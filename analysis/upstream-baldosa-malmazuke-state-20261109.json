@@ -932,8 +932,13 @@
         "additions": 1,
         "deletions": 1,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "historical_pal_hunter_mechanics",
+        "review_note": "PAL R-0052 documents HUNTER 8-effect dispatch, timed update skipping and opponent 20. Later R-0094/0103/0104 and PR #89/#90 qualify more of 2-view behavior; this older report is context, not a new complete USA specification.",
+        "next_trigger": "Reopen if current USA HUNTER mechanic differs and recent PAL original capture provides cheaper source discriminator.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0052-hunter-effects.md"
       },
       {
         "path": "docs/research/R-0089-coverage-gaps.md",
@@ -941,8 +946,13 @@
         "additions": 11,
         "deletions": 2,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "superseded_pal_coverage_baseline",
+        "review_note": "R-0089 PAL 236 complete-capture / 1,666,993-frame census and planned queue is an earlier coverage epoch; R-0109/R-0112 add 919-run corpus and more exact disposition.",
+        "next_trigger": "Reopen only for locating a historical original PAL route omitted by later coverage, not to restart an 8-task queue.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0089-coverage-gaps.md"
       },
       {
         "path": "docs/research/R-0093-data-coverage.md",
@@ -950,8 +960,13 @@
         "additions": 9,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "superseded_pal_data_baseline",
+        "review_note": "R-0093 measured which PAL ROM data the original reads across 236 captured routes; latest R-0112 covers 919 access records and explicitly states remaining unobserved pose bank $A2.",
+        "next_trigger": "Reopen only to inspect a specific source-read path or original-USA asset hypothesis; no wholesale second extraction.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0093-data-coverage.md"
       },
       {
         "path": "docs/research/R-0095-two-human-stunts.md",
@@ -959,8 +974,13 @@
         "additions": 128,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_two_human",
+        "review_note": "PAL original R-0095 captures two-human 2P/VS BOWL, JUMPS, HILL CLIMB, DOWNER menus/results and a tie, with later R-0098 league and R-0100 records corrections.",
+        "next_trigger": "Reopen when an exact current USA 2P stunt result, score persistence, input owner or VS tie disagrees; use UR's existing source and test.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0095-two-human-stunts.md"
       },
       {
         "path": "docs/research/R-0096-demo-audio.md",
@@ -977,8 +997,13 @@
         "additions": 288,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_original_menu",
+        "review_note": "PAL original R-0097 captured stock menu pad-order, auto-repeat, names and two-player navigation; later R-0100/0101 close recorded name/records gaps and R-0102 handles frame cost.",
+        "next_trigger": "Reopen on demonstrated current USA Authentic-menu behavior; Modern intentionally differs and cannot inherit PAL timing.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0097-menu-input.md"
       },
       {
         "path": "docs/research/R-0098-league-tours.md",
@@ -986,8 +1011,13 @@
         "additions": 283,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_league",
+        "review_note": "PAL R-0098 original multi-tour league source and per-frame records/2-human mechanics; later R-0099 audio, R-0102 timing, R-0106 app match and R-0111 SRAM refine it.",
+        "next_trigger": "Reopen on USA 2P league progression/score/cold-save mismatch or direct fresh original input; do not convert PAL 50Hz to USA 60Hz.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0098-league-tours.md"
       },
       {
         "path": "docs/research/R-0099-podium-audio.md",
@@ -1004,8 +1034,13 @@
         "additions": 259,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_records",
+        "review_note": "PAL R-0100 original TRACK RECORDS/HIGH SCORES UI scroll, input and sprite/text map phases; reports original game cycles including overlong prints; followed by R-0102.",
+        "next_trigger": "Reopen when exact USA records view or two-pad exit disproves current UR original/Modern split; not a second GUI implementation.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0100-record-screens.md"
       },
       {
         "path": "docs/research/R-0101-name-check.md",
@@ -1013,8 +1048,13 @@
         "additions": 160,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_name_mechanics",
+        "review_note": "PAL R-0101 stock name profanity rejection and CPU-length-dependent keyboard OK delays, accepted under #87; only Authentic stock keyboard can reuse the question.",
+        "next_trigger": "Reopen for USA original input/timing truth, preserving UR Modern's permitted player-entered names.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0101-name-check.md"
       },
       {
         "path": "docs/research/R-0102-menu-frame-overruns.md",
@@ -1022,8 +1062,13 @@
         "additions": 300,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_cpu_menu",
+        "review_note": "PAL R-0102 frame-overrun model for league standings and RECORDS print with sound-queue wait/NMI phase; podium return still limited by audio driver handshake.",
+        "next_trigger": "Reopen if current USA downstream menu timing or QA01 CPU/SPC work shows a causally related defect with shared source phase.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0102-menu-frame-overruns.md"
       },
       {
         "path": "docs/research/R-0103-split-hunter-pictures.md",
@@ -1031,8 +1076,13 @@
         "additions": 162,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_visual",
+        "review_note": "PAL R-0103 original two-view HUNTER split visibility/mosaic and captions, with explicitly unresolved line 113 mosaic; two-rider power bounce was separately fixed in R-0104.",
+        "next_trigger": "Reopen on current USA QA08 original final-visible 2P pixels; source and scanline coordinates are region-dependent.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0103-split-hunter-pictures.md"
       },
       {
         "path": "docs/research/R-0104-two-view-power-bounce.md",
@@ -1082,8 +1132,13 @@
         "additions": 185,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_rare_branch",
+        "review_note": "PAL R-0107 records captured original vs static-only HUD/tile branches with [L] listing, [S] track-data scan, [C] original capture and [N] native-inferred evidence carefully distinguished; R-0108 closes some remaining.",
+        "next_trigger": "Reopen only for a concrete USA rare course/track branch or an upstream original observed missing arm; never treat native-only search as original capture.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0107-race-listing-branches.md"
       },
       {
         "path": "docs/research/R-0108-race-branch-remainder.md",
@@ -1091,8 +1146,13 @@
         "additions": 230,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_rare_branch",
+        "review_note": "PAL R-0108 targeted original captures for some remaining sprite arrows/tile arms, but explicitly excludes 1000-point stunt, track-13 out-of-flag-table and leaves facing-away loop open.",
+        "next_trigger": "Reopen when specific USA rare branch can be reached with authentic inputs or Mal OPEN-BRANCHES later accepts capture.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0108-race-branch-remainder.md"
       },
       {
         "path": "docs/research/R-0109-coverage-census.md",
@@ -2629,8 +2689,8 @@
     ],
     "progress": {
       "closed_advisory": 10,
-      "triaged": 55,
-      "pending": 112,
+      "triaged": 67,
+      "pending": 100,
       "total": 177,
       "policy": "closed_advisory is closed for present UR reuse decision only, not original-USA verification or source-line audit. triaged records a concrete lead without granting semantic closure. pending remains unexamined.",
       "closure_requirement": "All paths must receive a disposition and review note; only a present-tense engineering decision with evidence can close each. Reopen if upstream delta or current USA product defect changes premise."

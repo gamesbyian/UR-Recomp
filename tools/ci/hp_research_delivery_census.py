@@ -188,22 +188,22 @@ def read_one_job(get, run):
     if not created <= begun <= ended:
         raise ValueError(f"run {rid} has invalid or reversed job/queue timing")
     # GitHub has emitted an HP completed_at an hour after its actual final
-    # Actions step around a DST transition. Do not count that phantom hour
-    # as observed runner occupancy. If step evidence exists, require the
-    # reported job end to agree with its last completed step. The 10-minute
-    # envelope allows ordinary GitHub post-step bookkeeping; a contradictory
-    # record aborts the entire census rather than silently dropping a run.
+    # Actions step around a DST transition. An absent/empty job step inventory
+    # cannot corroborate reported occupancy, even if the job itself says
+    # completed. Refuse it rather than treating missing evidence as consent
+    # to trust a timestamp. Allow up to ten minutes of post-step bookkeeping
+    # and at most one minute of negative reported lag; anything else is red.
     steps = job.get("steps")
-    if steps is not None:
-        if type(steps) is not list or any(type(s) is not dict for s in steps):
-            raise ValueError(f"run {rid} has malformed step timing evidence")
-        finishes = [utc(step["completed_at"]) for step in steps
-                    if step.get("completed_at") is not None]
-        if finishes:
-            lag = (ended - max(finishes)).total_seconds()
-            if lag < -60 or lag > 600:
-                raise ValueError(
-                    f"run {rid} has untrusted job end relative to final step")
+    if type(steps) is not list or any(type(s) is not dict for s in steps):
+        raise ValueError(f"run {rid} has malformed step timing evidence")
+    finishes = [utc(step["completed_at"]) for step in steps
+                if step.get("completed_at") is not None]
+    if not finishes:
+        raise ValueError(f"run {rid} missing completed step timing evidence")
+    lag = (ended - max(finishes)).total_seconds()
+    if lag < -60 or lag > 600:
+        raise ValueError(
+            f"run {rid} has untrusted job end relative to final step")
     return {
         "run_id": rid, "job_id": job["id"], "head_sha": run["head_sha"],
         "event": run["event"], "conclusion": run["conclusion"],

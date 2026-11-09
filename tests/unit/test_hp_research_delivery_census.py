@@ -31,6 +31,10 @@ def job(jid, rid, started="2026-11-02T00:05:05Z",
         "runner_name": hp.RUNNER_NAME, "status": "completed",
         "conclusion": conclusion, "started_at": started,
         "completed_at": completed,
+        # A completed GitHub Actions job has actual step metadata. The
+        # synthetic final step establishes the ordinary non-anomalous case.
+        "steps": [{"name": "Finished evidence step",
+                   "started_at": started, "completed_at": completed}],
     }
 
 
@@ -129,6 +133,30 @@ class HPCensusTests(TestCase):
                 f = FakeGitHub(runs=[run(17)], jobs={17: [row]})
                 with self.assertRaises(ValueError):
                     hp.measure(f, START, END, workers=1)
+
+    def test_completed_hp_job_without_finished_steps_is_unknown(self):
+        # A completed job without final-step evidence cannot distinguish a
+        # real runner interval from the historic one-hour DST endpoint error.
+        examples = ("missing", None, [], [{"name": "Never finished",
+                                            "completed_at": None}])
+        for steps in examples:
+            with self.subTest(steps=steps):
+                record = job(301, 17, completed="2026-11-02T01:10:05Z")
+                if steps == "missing":
+                    del record["steps"]
+                else:
+                    record["steps"] = steps
+                f = FakeGitHub(runs=[run(17)], jobs={17: [record]})
+                with self.assertRaisesRegex(
+                        ValueError, "step timing evidence"):
+                    hp.measure(f, START, END, workers=1)
+
+    def test_completed_job_with_only_unfinished_steps_rejected_even_if_time_short(self):
+        record = job(301, 17)
+        record["steps"] = [{"name": "Pending", "completed_at": None}]
+        f = FakeGitHub(runs=[run(17)], jobs={17: [record]})
+        with self.assertRaisesRegex(ValueError, "missing completed step"):
+            hp.measure(f, START, END, workers=1)
 
     def test_hp_job_end_conflicting_with_observed_steps_is_unknown(self):
         # A historical HP DST transition yielded a spurious extra hour in

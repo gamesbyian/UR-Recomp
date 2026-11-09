@@ -14,3 +14,7 @@ Unofficial Uniracers / Unirally SNES-to-Windows recreation. Contributions are vo
 After this branch is merged, use the [public contributor interest form](https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml) or reply in the relevant forum thread. **GitHub issues are public:** never include private email addresses, credentials, personal identifiers or unapproved assets. A dedicated project mailbox/private file route will be announced only after it actually exists.
 
 Project links: [recruitment plan](PLAN.md), [site-specific outreach drafts](posts/), [asset reference pack](REFERENCE-PACK.md), [intake and correspondence contract](OPERATIONS.md), [current handoff](HANDOFF.md). These are recruitment instructions, **not** a competing engineering work queue or a release acceptance authority.
+
+## Visual recruitment gallery
+
+The [GitHub Pages artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) was published through [the successful site deployment run](https://github.com/gamesbyian/UR-Recomp/actions/runs/42718635056). It displays the three supplied concept PNGs, original English wordmarks and experimental regional vectors. Confirm public gallery and image availability in an internet-connected browser before external posting.

@@ -2,59 +2,93 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#171424">
-<meta name="description" content="Uniracers / Unirally volunteer recruitment: regional wordmark concepts and source references.">
-<title>Uniracers · Contributor Art References</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#192c36">
+<meta name="description" content="Help recreate Uniracers / Unirally for Windows. Volunteer as a 3D artist, lettering artist, developer, playtester, or fellow project maintainer.">
+<title>Help build Uniracers · Volunteer with UR-Recomp</title>
 <style>
-:root{color-scheme:dark;--bg:#171424;--panel:#242134;--ink:#f7f1e7;--muted:#bdb7cf;--edge:#514964;--yellow:#ffe046;--link:#a9d8ff}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
-a{color:var(--link);text-underline-offset:3px}a:focus-visible{outline:3px solid var(--yellow);outline-offset:4px}
-header,main,footer{max-width:1150px;margin:auto;padding:24px clamp(18px,4vw,48px)}
-header{padding-top:42px}.eyebrow{letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);font-size:.75rem;font-weight:800}h1{font-size:clamp(2rem,6vw,4.2rem);line-height:1.05;margin:.45em 0}.lead{max-width:72ch;font-size:1.1rem;color:var(--muted)}
-nav{display:flex;flex-wrap:wrap;gap:12px;padding:12px 0}nav a{border:1px solid var(--edge);border-radius:999px;padding:9px 14px;min-height:44px;display:inline-flex;align-items:center}
-h2{font-size:clamp(1.45rem,4vw,2.3rem);margin-top:1.7em}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:20px}
-figure{margin:0;background:var(--panel);border:1px solid var(--edge);border-radius:16px;overflow:hidden}
-figure img{width:100%;height:auto;display:block;background:#fff}figcaption{padding:15px 18px}figcaption strong{display:block;font-size:1.1rem}figcaption small{color:var(--muted);display:block;margin:5px 0}
-.links{display:flex;gap:12px;flex-wrap:wrap;padding-top:8px}.links a{font-size:.94rem}
-.panel{background:var(--panel);border:1px solid var(--edge);border-radius:16px;padding:20px;margin-top:22px}
-.giant{max-width:920px;margin:20px auto}.giant img{width:100%;display:block;height:auto}
-.note{color:var(--muted)}.note strong{color:var(--ink)}.warning{border-left:4px solid var(--yellow);padding-left:16px}
-footer{color:var(--muted);border-top:1px solid var(--edge);margin-top:60px}
+:root{color-scheme:light;--paper:#f5f2e7;--ink:#203844;--muted:#52636b;--line:#adbec1;--accent:#c84b38;--nav:#192c36;--header:58px;--footer:52px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}body{margin:0;font:16px/1.42 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink)}
+a{color:inherit}a:focus-visible{outline:3px solid #bf5738;outline-offset:3px}
+.top,.bottom{position:fixed;left:0;right:0;z-index:10;background:var(--nav);color:#f4f1e8}
+.top{top:0;height:calc(var(--header) + env(safe-area-inset-top));padding-top:env(safe-area-inset-top)}
+.bottom{bottom:0;height:calc(var(--footer) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)}
+.bar{height:100%;max-width:1060px;margin:auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{font-size:.94rem;font-weight:900;letter-spacing:.05em;text-decoration:none;white-space:nowrap}
+.brand span{opacity:.72;font-weight:500;font-size:.7rem;letter-spacing:.11em;display:block;line-height:1.1}
+.topnav{display:flex;gap:12px;align-items:center}
+.topnav a,.bottom a{color:#f4f1e8;font-weight:650;text-decoration:none}
+.topnav a{font-size:.81rem;padding:12px 2px}
+.bottom .bar{font-size:.72rem;gap:8px}
+.bottom .status{color:#c8d6d8;min-width:0}
+.bottom a{white-space:nowrap;text-decoration:underline;text-underline-offset:3px}
+main{position:relative;max-width:1000px;margin:auto;padding:calc(var(--header) + env(safe-area-inset-top) + 20px) 18px calc(var(--footer) + env(safe-area-inset-bottom) + 26px);min-height:100dvh}
+main:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.28;background-image:linear-gradient(#6c939722 1px,transparent 1px),linear-gradient(90deg,#6c939722 1px,transparent 1px);background-size:24px 24px}
+h1,h2,h3,p,figure{margin:0}section{scroll-margin-top:calc(var(--header) + 16px)}
+.hero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);align-items:center;gap:22px}
+.eyebrow{display:block;color:#944533;font-size:.69rem;font-weight:850;letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px}
+h1{font-size:clamp(2rem,5vw,3.75rem);line-height:1.04;letter-spacing:-.05em;max-width:13ch}
+.lead{font-size:clamp(.98rem,1.6vw,1.1rem);color:#364c57;max-width:47ch;margin-top:14px}
+.progress{font-size:.86rem;margin-top:13px;color:var(--muted)}
+.hero-image{background:#e1dfd4;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:5px 6px 0 #20384420}
+.hero-image img{display:block;width:100%;height:auto}
+.hero-image figcaption{font-size:.65rem;letter-spacing:.07em;padding:5px 9px;background:#f6f4ec;color:var(--muted);text-transform:uppercase}
+.heading-row{margin:29px 0 13px;display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:2px solid var(--ink);padding-bottom:8px}
+h2{font-size:1.5rem;letter-spacing:-.035em}
+.hint{font-size:.77rem;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.card{background:#fcfaf2e8;border:1.5px solid var(--line);border-radius:9px;padding:16px;display:grid;grid-template-columns:1fr auto;gap:4px 8px;box-shadow:3px 3px 0 #bac7c350}
+.tag{font-size:.67rem;font-weight:850;letter-spacing:.12em;color:#9b4a37;grid-column:1/-1}
+h3{font-size:1.13rem;letter-spacing:-.025em;line-height:1.2}
+.card p{font-size:.84rem;color:#465a61;grid-column:1/-1;max-width:45ch;min-height:2.3em}
+.card .actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;grid-column:1/-1;margin-top:9px}
+.cta{border:1.5px solid var(--ink);background:var(--nav);color:white;border-radius:5px;padding:9px 13px;min-height:44px;font-size:.82rem;font-weight:800;text-decoration:none;display:inline-flex;align-items:center}
+.small-link{font-size:.79rem;font-weight:650;text-underline-offset:3px}
+.cooperate{margin-top:11px;border:1.5px solid var(--line);background:#e9eee9db;border-radius:9px;padding:15px 17px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.cooperate h3{margin-bottom:3px}.cooperate p{font-size:.84rem;color:var(--muted);max-width:55ch}
+.cooperate .cta{white-space:nowrap}
+.final{font-size:.81rem;color:var(--muted);padding:14px 3px 2px}
+.final a{font-weight:700}
+@media(max-width:670px){.hero{grid-template-columns:1fr;gap:14px}.hero-image{max-width:580px}.cards{grid-template-columns:1fr}.card{padding:12px 14px;grid-template-columns:1fr}.card p{min-height:0}.heading-row{margin-top:22px}h1{max-width:18ch}.cooperate{align-items:stretch;flex-direction:column;gap:11px}.cooperate .cta{align-self:flex-start}.topnav a{font-size:.73rem}.hint{display:none}}
+@media(min-width:671px) and (max-width:820px){.hero{gap:16px}.card{padding:13px}.card p{min-height:3em}}
+@media(max-width:350px){.topnav{gap:8px}.brand{font-size:.82rem}.topnav a{font-size:.68rem}.bottom .bar{font-size:.65rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<header>
-<div class="eyebrow">UR-Recomp · Art &amp; volunteer collaboration</div>
-<h1>A racing wheel with a world of letters.</h1>
-<p class="lead">An unofficial recreation of <em>Uniracers</em> / <em>Unirally</em> is looking for occasional volunteer help with international title lettering, an expressive 3D racer, engineering reviews and eventual Windows testing. Contributions are unpaid, optional and individually credited where permitted.</p>
-<nav aria-label="Navigate references"><a href="#concepts">Three styling concepts</a><a href="#source">English reference lettering</a><a href="#vectors">Regional SVG work</a><a href="#model">3D character</a><a href="#contribute">Contribute</a><a href="../">Windows visual atlas</a></nav>
-</header>
+<header class="top"><div class="bar"><a class="brand" href="./" aria-label="Uniracers contributor home">UNIRACERS <span>PROJECT / UR-RECOMP</span></a><nav class="topnav" aria-label="Main navigation"><a href="#help">Ways to help</a><a href="#contact">Get involved</a></nav></div></header>
 <main>
-<section id="concepts" aria-labelledby="concept-title">
-<h2 id="concept-title">Three new regional styling concepts</h2>
-<p class="note warning">The original repository uploads have anonymous filenames. The three visual subjects were identified by the owner as French, Japanese and Russian, but the exact Git blob-to-language mapping is awaiting image-byte verification. The individual images below therefore deliberately use neutral labels. All three are <strong>exploratory, raster styling references</strong>, not approved production wordmarks or validated typesetting.</p>
-<div class="grid">
-<figure><a href="images/regional-wordmark-concept-01.png"><img loading="lazy" alt="User-supplied yellow regional wordmark styling concept, image 1; subject not yet independently mapped to a language" src="images/regional-wordmark-concept-01.png"></a><figcaption><strong>Regional concept 01</strong><small>Original PNG, unaltered. Subject pending file-to-language verification.</small><div class="links"><a href="images/regional-wordmark-concept-01.png">Full image</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-01.png">Repository original</a></div></figcaption></figure>
-<figure><a href="images/regional-wordmark-concept-02.png"><img loading="lazy" alt="User-supplied yellow regional wordmark styling concept, image 2; subject not yet independently mapped to a language" src="images/regional-wordmark-concept-02.png"></a><figcaption><strong>Regional concept 02</strong><small>Original PNG, unaltered. Subject pending file-to-language verification.</small><div class="links"><a href="images/regional-wordmark-concept-02.png">Full image</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-02.png">Repository original</a></div></figcaption></figure>
-<figure><a href="images/regional-wordmark-concept-03.png"><img loading="lazy" alt="User-supplied yellow regional wordmark styling concept, image 3; subject not yet independently mapped to a language" src="images/regional-wordmark-concept-03.png"></a><figcaption><strong>Regional concept 03</strong><small>Original PNG, unaltered. Subject pending file-to-language verification.</small><div class="links"><a href="images/regional-wordmark-concept-03.png">Full image</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-03.png">Repository original</a></div></figcaption></figure>
-</div></section>
-<section id="source"><h2>The original English lettering as design reference</h2>
-<p>Preserve the distinctive lively outlines and rhythm of the source wordmarks. Existing traces are references for shape, not evidence of ownership of the original game's trademarks. The separated glyph master has deliberately unequal U/S display sizing: use geometry, not those displayed proportions.</p>
-<div class="grid">
-<figure><img loading="lazy" src="images/uniracers-box-wordmark-traced.svg" alt="Traced English Uniracers title wordmark"><figcaption><strong>Uniracers</strong><div class="links"><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-box-wordmark-traced.svg">Source SVG</a></div></figcaption></figure>
-<figure><img loading="lazy" src="images/unirally-box-wordmark-traced.svg" alt="Traced English Unirally title wordmark"><figcaption><strong>Unirally</strong><div class="links"><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-box-wordmark-traced.svg">Source SVG</a></div></figcaption></figure>
+<section class="hero" aria-labelledby="intro-title">
+<div>
+<span class="eyebrow">Unirally · Uniracers · 1994 → today</span>
+<h1>One wheel. A bigger future.</h1>
+<p class="lead">We're recreating the SNES cult classic for Windows, keeping its character while bringing its presentation and features forward.</p>
+<p class="progress"><strong>Already well underway:</strong> substantial reverse-engineering, native development, art experiments and automated testing. Still plenty left to build.</p>
 </div>
-<p class="links"><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/design/uniracers-wordmark-separated-rectified.svg">Separated English glyph geometry</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/shared/unira-shared-glyph-master.svg">Shared glyph master</a></p>
+<figure class="hero-image">
+<picture>
+<source media="(max-width:670px)" srcset="images/blueprint-4x3-logo-left.png">
+<img src="images/blueprint-16x9-logo-left.png" width="1280" height="720" alt="Uniracers architectural-style blueprint promotional artwork, not a gameplay screenshot" fetchpriority="high">
+</picture>
+<figcaption>Project artwork · illustrative blueprint, not gameplay</figcaption>
+</figure>
 </section>
-<section id="vectors"><h2>Existing experimental regional vectors</h2><p>These are editable SVG work-in-progress assets. They are separate from the raster concept art above and require both artistic and appropriate linguistic/script review.</p>
-<div class="grid">
-<figure><img loading="lazy" src="images/uniracers-japanese-katakana-wordmark.svg" alt="Experimental Japanese katakana Uniracers wordmark"><figcaption><strong>Japanese · ユニレーサーズ</strong><small>Experimental vector</small><div class="links"><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-japanese-katakana-wordmark.svg">Source SVG</a></div></figcaption></figure>
-<figure><img loading="lazy" src="images/unirally-russian-cyrillic-wordmark.svg" alt="Experimental Russian Cyrillic Unirally wordmark"><figcaption><strong>Russian · Юниралли</strong><small>Experimental vector</small><div class="links"><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-russian-cyrillic-wordmark.svg">Source SVG</a></div></figcaption></figure>
-<figure><img loading="lazy" src="images/unirally-french-wordmark.svg" alt="Experimental long-form French Unirally wordmark"><figcaption><strong>French · La roue unique</strong><small>Intentionally elaborate experimental title; see vector for full text</small><div class="links"><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-french-wordmark.svg">Source SVG</a></div></figcaption></figure>
-</div></section>
-<section id="model"><h2>An animated 3D character, still under construction</h2><div class="panel"><p>The existing experimental five-part model is a foundation for expert work, <strong>not an approved reconstruction of a recovered 1994 mesh</strong>. Artists can help with silhouette, fork, saddle, cranks, hub and coherent motion, especially from side, front and oblique views.</p><div class="links"><a href="../model-review/">Experimental model review (may lack GLB unless explicitly exported)</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md">Character reconstruction brief</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-ART-DIRECTION.md">Art direction</a></div></div></section>
-<section id="contribute"><h2>Interested in collaborating?</h2><div class="panel"><p>One correction, critique, code review or a future playtest is enough. No payment, employment or recurring availability is offered. The project is interested in sharing research with other <em>Uniracers</em> / <em>Unirally</em> teams, including the independent Baldosa and malmazuke efforts.</p><p><a href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Offer a voluntary contribution on GitHub</a> · <a href="https://github.com/gamesbyian/UR-Recomp">Project repository</a> · <a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/contributors/README.md">Full contributor guide</a></p><p class="note">The contributor issue form is now part of main. GitHub issue submissions are public: do not disclose private contact details or submitted assets.</p></div></section>
-</main><footer>Experimental design gallery · Not a playable release or rights clearance · No ROM or private correspondence is served here.</footer>
-</body></html>
+<section id="help" aria-labelledby="help-title">
+<div class="heading-row"><h2 id="help-title">Find your part.</h2><span class="hint">Small contributions welcome · No commitment</span></div>
+<div class="cards">
+<article class="card"><span class="tag">01 / CHARACTER ART</span><h3>3D artists</h3><p>Refine and animate an expressive racing unicycle, building on an experimental rig.</p><div class="actions"><a class="cta" href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Offer 3D help ↗</a><a class="small-link" href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md">See the brief ↗</a></div></article>
+<article class="card"><span class="tag">02 / REGIONAL TITLES</span><h3>Lettering &amp; language</h3><p>Make Japanese, Russian, French and other wordmarks feel authentically Uniracers.</p><div class="actions"><a class="cta" href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Offer art help ↗</a><a class="small-link" href="./references/">View concepts ↗</a></div></article>
+<article class="card"><span class="tag">03 / ENGINEERING</span><h3>Developers &amp; AI operators</h3><p>Take on a focused task or code review with your own tools and supervised agent time.</p><div class="actions"><a class="cta" href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Offer technical help ↗</a><a class="small-link" href="https://github.com/gamesbyian/UR-Recomp/blob/main/AGENTS.md">Agent guide ↗</a></div></article>
+<article class="card"><span class="tag">04 / WINDOWS QA</span><h3>Future playtesters</h3><p>Register interest in testing a verified Windows build when one is ready to share.</p><div class="actions"><a class="cta" href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Register interest ↗</a><a class="small-link" href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/EXPERT-PLAYTEST-PROTOCOL.md">Test approach ↗</a></div></article>
+</div>
+</section>
+<section class="cooperate" id="contact" aria-labelledby="fellow-title">
+<div><h3 id="fellow-title">Building another Uniracers project?</h3><p>Let's exchange research and coordinate where useful. We know the independent Baldosa and malmazuke efforts, and would love to meet others.</p></div>
+<a class="cta" href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Connect with us ↗</a>
+</section>
+<p class="final">Independent, unofficial, <strong>unpaid volunteer project</strong>. No finished public Windows release yet. <a href="https://github.com/gamesbyian/UR-Recomp">Explore the repository ↗</a> · <a href="./references/">Artwork references ↗</a></p>
+</main>
+<footer class="bottom"><div class="bar"><span class="status">UNOFFICIAL · UNPAID · IN DEVELOPMENT</span><a href="https://github.com/gamesbyian/UR-Recomp">GITHUB ↗</a><a href="#help">HELP OUT ↑</a></div></footer>
+</body>
+</html>

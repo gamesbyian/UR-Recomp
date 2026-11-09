@@ -23,8 +23,11 @@ class ContributorGalleryTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             report = MOD.stage(folder)
-            self.assertEqual(len(report), 8)
+            self.assertEqual(len(report), 10)
             self.assertTrue((folder/"contributors/index.html").is_file())
+            self.assertTrue((folder/"contributors/references/index.html").is_file())
+            self.assertTrue((folder/"contributors/images/blueprint-16x9-logo-left.png").is_file())
+            self.assertTrue((folder/"contributors/images/blueprint-4x3-logo-left.png").is_file())
             self.assertFalse((folder/"contributors/images/unirally-box-art-3x.png").exists())
             self.assertFalse((folder/"contributors/images/uniracers-box-art-3x.png").exists())
             self.assertTrue(all(item["bytes"] > 0 for item in report.values()))
@@ -34,6 +37,8 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertTrue(all(isinstance(src, str) and src.startswith("images/") for src in parser.images))
             for src in parser.images:
                 self.assertTrue((folder / "contributors" / src).is_file(), src)
+            self.assertIn("One wheel. A bigger future.", (folder/"contributors/index.html").read_text())
+            self.assertIn("UNIRACERS", (folder/"contributors/references/index.html").read_text())
             with self.assertRaises(ValueError):
                 MOD.stage(folder)
 if __name__ == "__main__":

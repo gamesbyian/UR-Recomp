@@ -143,6 +143,16 @@ Both original Malmazuke revision trees were retrieved **without truncation** and
 
 **Progress:** 10 contextually closed, 132 specifically triaged, 35 pending of 177. Remaining pending domains are root workflow/docs, test fixtures, source-extraction tools and selective gate machinery. The original USA and physical Windows release ledgers are untouched.
 
+## Final changed-file intake reconciliation, 2026-11-09
+
+**Every one of the 177 Git-blob-changed Malmazuke paths now has a source-scoped disposition.** Counts are **10 contextually closed advisories + 167 individually triaged = 177 classified, 0 unclassified**. The base and target revisions, before/after Git blob SHA-1 identities, sizes, and domain-specific next trigger are recorded machine-readably. **This closes the bounded *intake classification*, not all underlying original-PAL/USA semantic tests or every byte of its 1.84 MB test fixture.**
+
+The final 35 paths comprised five root guides/APFS compaction material, twelve fixture and test files, nine content/native research tools and nine selective-CI modules. New high-reuse method references are original CLI-input corpus fingerprinting (pack and recipe hash), fail-closed Ninja dependency selection, bounded streamed native/main output comparison, explicit uncertainty when a main/candidate result agrees but original source has not rerun, and adversarial tests that catch stale corpus and resource exhaustion. UR already has stronger release-ledger and exact source/PE/physical Windows controls, so **do not port their runner, tools or Mac filesystem compactor**. PAL 1P/2P/VS/league screen and score tests supply conditional *original-USA* discriminators only when current failing source evidence demands them.
+
+**Raw payload boundary:** the changed `tests/manifests/content/classic-crawler-tracks-pack.json` is 1,840,086 bytes at new source blob `9c07245352e2d0614b5011b6bfdde9bf11629f7c` (old `005a7137fc5c37028e33c4da30bdde3b623e379f`). The authenticated tree establishes exactly which bytes-object changed; the bounded GitHub file reader supplied empty content for this large fixture. Its individual JSON resources were therefore **not examined or claimed equivalent**. The accompanying PAL v38–v41 extractor and frozen-inventory tests were inspected. Only re-open the full fixture when a concrete USA resource question would materially change implementation or approval.
+
+**No new workstream or release gate:** the existing five shared agents, ranked board item `UR-UPSTREAM-INTAKE-20261109`, source-rights rules and issue #3306 remain the only continuation owner. No additional Actions, independent emulator, automatic schedule or unqualified third-party code is introduced. Original-USA first complete event remains 0/45, Windows release QA 0/12. Separate authorized review of PR #3305 remains required before integration; exact-head green checks alone cannot self-approve.
+
 ## Two practical first investigations
 
 1. **SRAM applicability:** check existing UR Windows isolated profile/crash/record tests for missing exact cartridge write-frame and corrupt-cursor cases; document a minimal USA original/native discriminator where a real current blocker remains. Avoid modifying the host save format just to make PAL bytes match.

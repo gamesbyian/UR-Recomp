@@ -750,8 +750,13 @@
         "additions": 376,
         "deletions": 0,
         "domain": "root-docs-and-other",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "context_history_only",
+        "review_note": "Latest PAL state is primarily dated task-result log; live upstream tasks/README and individual source reports are more suitable for decisions. Do not import narrative status as UR instructions.",
+        "next_trigger": "Trigger: compare new accepted task or revision before declaring any formerly queued work settled.",
+        "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/STATE.md"
       },
       {
         "path": "docs/decisions/D-0012-selective-gates-against-main.md",
@@ -759,8 +764,13 @@
         "additions": 322,
         "deletions": 0,
         "domain": "methods-and-policy",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "existing_ur_machinery",
+        "review_note": "Dependency-graph gate selection and byte-digest replay only on output changes are useful methods, but UR already has exact-head release controls and a separate P2 collective-qualification experiment. Main/candidate agreement cannot independently certify original USA.",
+        "next_trigger": "Trigger: measured recurring CI waste with adversarial dependency changed and original witness identity checks.",
+        "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/decisions/D-0012-selective-gates-against-main.md"
       },
       {
         "path": "docs/decisions/D-0013-task-time-and-disk-budget.md",
@@ -768,8 +778,13 @@
         "additions": 91,
         "deletions": 0,
         "domain": "methods-and-policy",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "methods_context_only",
+        "review_note": "Mal adopted bounded task time/disk and large capture compression; UR's own evidence-retention policy protects required unrepeatable bytes. No copying fixed macOS APFS behavior or deleting UR artifacts.",
+        "next_trigger": "Trigger: actual UR evidence storage bottleneck with all active gates and replay recipes accounted for.",
+        "ur_reference": "docs/EXTERNAL-EVIDENCE-INTAKE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/decisions/D-0013-task-time-and-disk-budget.md"
       },
       {
         "path": "docs/map/coverage-census.map.json",
@@ -975,8 +990,13 @@
         "additions": 103,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "PAL listing $81:94A8 and $77:0750 bit 3 make HUNTER bounce apply to either rider only in two-view mode. Its original captures do not cover two-view league HUNTER, split idle demo or mosaic line 113.",
+        "next_trigger": "Trigger: reproduce source-current USA two-player HUNTER physical-landing mismatch before a targeted original replay.",
+        "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0104-two-view-power-bounce.md"
       },
       {
         "path": "docs/research/R-0105-cartridge-option-words.md",
@@ -984,8 +1004,13 @@
         "additions": 199,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "Original PAL reads/writes option words $77:0742/$77:0750 with mode and podium bit transitions. A saved bit can affect a later boot; PAL 171 access records and field widths are not USA proof.",
+        "next_trigger": "Trigger: USA saved progression/2P mode discrepancy; compare original writers, byte width, cold restore.",
+        "ur_reference": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/ram.txt",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0105-cartridge-option-words.md"
       },
       {
         "path": "docs/research/R-0106-app-league-race.md",
@@ -993,8 +1018,13 @@
         "additions": 150,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "conditional_product_method",
+        "review_note": "Source-bound PAL native app race script clock diverged from its original-matched front_end_runner when loading interval was skipped/shifted; corrected via same initialized frame plus loading. Independent USA Modern event remains separate.",
+        "next_trigger": "Trigger: a current USA 2P league/notice/scripting discrepancy on an exact packaged PE; existing controller/guest authority first.",
+        "ur_reference": "docs/QA-PLAYER-JOURNEYS.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0106-app-league-race.md"
       },
       {
         "path": "docs/research/R-0107-race-listing-branches.md",
@@ -1020,8 +1050,13 @@
         "additions": 389,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "conditional_pal_coverage",
+        "review_note": "Updated 919-run PAL provenance includes warm/preloaded cartridge identities; full semantic review of every coverage claim not complete. Counts are PAL corpus coverage, not the 45-USA-event denominator.",
+        "next_trigger": "Trigger: only a demonstrated UR static-code mapping or event coverage gap warrants crosswalk.",
+        "ur_reference": "analysis/data/three-project-apparatus-capability-matrix-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0109-coverage-census.md"
       },
       {
         "path": "docs/research/R-0110-app-parity.md",
@@ -1029,8 +1064,13 @@
         "additions": 216,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "conditional_product_method",
+        "review_note": "PAL app fixes scripted pad source, notice clock and race timeline digests; default audio/save optionality. Upstream explicitly identifies Windows non-ACP APPDATA decoding bug and lacks Windows CI, whereas UR's DATA-05 is independently admitted on Windows.",
+        "next_trigger": "Trigger: a demonstrated current Windows app-vs-replay phase mismatch; do not import PAL app or narrow path code.",
+        "ur_reference": "docs/WORK-QUEUE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0110-app-parity.md"
       },
       {
         "path": "docs/research/R-0111-save-image-exact.md",
@@ -1038,8 +1078,13 @@
         "additions": 286,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "Reports PAL 919 routes and per-frame SRAM write differences; $10A7 is a track-menu marker step at $80:E872/$80:EB32 and ending writes at $83:B649. Same numeric USA offset already differs in a confirmed Zoom Zoo original/native pair, but behavior/phase identity is unproven. Includes 207 still unequal routes and explicit limitations.",
+        "next_trigger": "Trigger: perform original-USA static writer/reader crosswalk around 0x10A7 before any emulator replay; retain both full-image strict comparisons.",
+        "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0111-save-image-exact.md"
       },
       {
         "path": "docs/research/R-0112-census-remainder.md",
@@ -1047,8 +1092,13 @@
         "additions": 290,
         "deletions": 0,
         "domain": "research-results",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "qualified_pal_coverage",
+        "review_note": "Reports 4,276 open code bytes only after classifying 3,415 as unreferenced; 7,691 remain without that assumption. 565 new access records cover all 919 runs. Unreferenced is explicitly an argument not proof; 2,361 named open and 1,875 small arms remain.",
+        "next_trigger": "Trigger: a new original-USA symbol/reachability question; verify structural homologs and computed-flow targets.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0112-census-remainder.md"
       },
       {
         "path": "src/app/CMakeLists.txt",
@@ -1056,8 +1106,13 @@
         "additions": 17,
         "deletions": 1,
         "domain": "native-app",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "conditional_ci_reuse",
+        "review_note": "Mal #98 adds two pinned SDL archive URLs with hash check, against transient GitHub 504s. UR has independent pinned toolchain/HP cache and should only adopt if real fetch instability persists.",
+        "next_trigger": "Trigger: reproducible UR SDL dependency download outage with unaltered verified archive digest.",
+        "ur_reference": "docs/CI-WORKFLOW-BEST-PRACTICES.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/CMakeLists.txt"
       },
       {
         "path": "src/app/README.md",
@@ -1074,8 +1129,13 @@
         "additions": 23,
         "deletions": 4,
         "domain": "native-app",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "do_not_import",
+        "review_note": "PAL front-end owns ScriptClock and default 0xFF cartridge pre-boot. It is separate competing simulator/product state from UR Modern guest. Relevant use limited to choosing source/runner parity test.",
+        "next_trigger": "Trigger: failing exact-current Windows notice/demo/input clock with existing proof missing.",
+        "ur_reference": "docs/QA-PLAYER-JOURNEYS.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/frontend.cpp"
       },
       {
         "path": "src/app/frontend.hpp",
@@ -1092,8 +1152,13 @@
         "additions": 51,
         "deletions": 1,
         "domain": "native-app",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "do_not_import",
+        "review_note": "Simple PAL app save-file 8192-byte image with default path and damaged-file check; Windows APPDATA narrow path limitation in R-0110. UR has stronger typed profile roots, Unicode/persistence acceptance and physical-Windows obligations.",
+        "next_trigger": "Trigger: only specific new current product save defect; use native UR profile/save authority.",
+        "ur_reference": "native/product/baldosa_native_profile_sram_checkpoint.hpp",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/save_file.cpp"
       },
       {
         "path": "src/app/save_file.hpp",
@@ -1110,8 +1175,13 @@
         "additions": 290,
         "deletions": 81,
         "domain": "native-app",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "do_not_import",
+        "review_note": "App parity and SRAM PR diffs modify script clock, scripted pad routing, fallback saves and loading-frame callbacks; substantial SDL host code and PAL ownership differ from existing Windows Modern host.",
+        "next_trigger": "Trigger: specific reproduced Windows app/runner divergence only.",
+        "ur_reference": "native/product/baldosa_execution_backend.hpp",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/sdl_main.cpp"
       },
       {
         "path": "src/app/title_menu_audio_stream.cpp",
@@ -1209,8 +1279,13 @@
         "additions": 133,
         "deletions": 12,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "do_not_import",
+        "review_note": "PAL native encoding/writer of cartridge image and option words includes 0x10A7 and boot saved-state logic. This is implementation source for PAL hypotheses, not compatible UR USA guest code.",
+        "next_trigger": "Trigger: missing original-USA SRAM writer/reader causality after existing crossed witness; no transplant.",
+        "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/cartridge_ram.cpp"
       },
       {
         "path": "src/core/cartridge_ram.hpp",
@@ -1263,8 +1338,13 @@
         "additions": 199,
         "deletions": 32,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "do_not_import",
+        "review_note": "PAL front-end carries typed records, race/sound clocks and cartridge fields, including player/menu abstractions. Current UR Modern state and Baldosa guest are separate ownership boundaries.",
+        "next_trigger": "Trigger: exact USA state-schema mismatch observed; use source addresses for hypothesis only.",
+        "ur_reference": "native/product/baldosa_execution_backend.hpp",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end.hpp"
       },
       {
         "path": "src/core/front_end_runner.cpp",
@@ -1272,8 +1352,13 @@
         "additions": 203,
         "deletions": 61,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "methods_context_only",
+        "review_note": "PAL headless runner supports --cartridge-trace per-frame changed bytes and --frame-digests, with explicit output/report boundary; UR already has source-bound original/native memory tools.",
+        "next_trigger": "Trigger: after identifying a missing original USA checksum or write-consumer trace, reuse existing witness format.",
+        "ur_reference": "tools/qa01_postresult_sram_diff.py",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end_runner.cpp"
       },
       {
         "path": "src/core/front_end_screens.hpp",
@@ -1317,8 +1402,13 @@
         "additions": 45,
         "deletions": 0,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "closed_advisory",
+        "ur_disposition": "existing_ur_machinery",
+        "review_note": "Shared PAL runner/app serializes race state rows and a 64-bit FNV-1a digest of output bytes. Method corroborates UR's existing receipt/actual bytes checks, not an external oracle; digest equality cannot replace source identity.",
+        "next_trigger": "Trigger: genuine UR output-serializer drift not covered by exact-source receipts.",
+        "ur_reference": "tools/evidence_contract.py",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/lab_outputs.cpp"
       },
       {
         "path": "src/core/lab_outputs.hpp",
@@ -1425,8 +1515,13 @@
         "additions": 37,
         "deletions": 14,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "conditional_pal_visual",
+        "review_note": "PAL #89/HUNTER split effects and #99 opponent out-of-bounds color lookup are source hypotheses; no scope to adopt independent PAL renderer.",
+        "next_trigger": "Trigger: source-current QA08 P2 visibility/occlusion or actual out-of-bounds crash with existing original pixels.",
+        "ur_reference": "docs/BALDOSA-WIDE-OAM-SOURCE-TEMPORAL-CONTRACT.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/presentation.cpp"
       },
       {
         "path": "src/core/presentation.hpp",
@@ -1506,8 +1601,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "PAL #90 changed HUNTER two-view power bounce to apply after testing split-screen flag. Strong targeted race-state lead, but original USA guest cannot inherit PAL function.",
+        "next_trigger": "Trigger: source-confirm USA $77:0750 bit3 homolog and reproduced two-rider landing mismatch.",
+        "ur_reference": "reference/notes/oam-active-display.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/race_update.cpp"
       },
       {
         "path": "src/core/records_scores.cpp",
@@ -1974,8 +2074,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "tests-and-fixtures",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "conditional_product_method",
+        "review_note": "PAL PR #97 adds default persistence, ScriptClock and notice synthetic mutants, but no Windows Unicode path CI. UR's own Windows original/native and data-root regression remain authoritative.",
+        "next_trigger": "Trigger: a new current Windows input-clock or lifecycle regression absent from existing test suite.",
+        "ur_reference": "tests/unit/test_baldosa_native_unicode_save_lease.py",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tests/app/frontend_contract_tests.cpp"
       },
       {
         "path": "tests/manifests/content/classic-crawler-tracks-pack.json",
@@ -2082,8 +2187,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "tests-and-fixtures",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "conditional_ci_reuse",
+        "review_note": "Mal #84's adversarial gate checks are a test-design lead; full suite mutation evidence must be reviewed before choosing a specific UR guard.",
+        "next_trigger": "Trigger: pinpoint a missing CI dependency-invalidation adversarial test in current UR plan.",
+        "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tests/tooling/test_gates.py"
       },
       {
         "path": "tests/tooling/test_native_reports.py",
@@ -2118,8 +2228,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "root-docs-and-other",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "conditional_ci_reuse",
+        "review_note": "Mal #98's frontend lock carries source + mirror URLs and fixed SDL3 archive SHA-256; not UR source pin or a reason to bump dependency.",
+        "next_trigger": "Trigger: real UR mirrored fetch need with independent identical-byte evidence.",
+        "ur_reference": "docs/CI-WORKFLOW-BEST-PRACTICES.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tools/locks/frontend.json"
       },
       {
         "path": "tools/unirally_lab/capture_files.py",
@@ -2262,8 +2377,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "ci-and-operations",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "conditional_ci_reuse",
+        "review_note": "Mal #84 introduced selective dependency-coupled gating and concurrency; not yet code-line audited. UR exact-head qualification cannot be elided solely because candidate output digests equal a historical main.",
+        "next_trigger": "Trigger: bounded P2 review with negative changed-input and skipped-test receipt controls.",
+        "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tools/unirally_lab/gates/schedule.py"
       },
       {
         "path": "tools/unirally_lab/native/dragster_playable.py",
@@ -2301,6 +2421,14 @@
         "semantic_review": "pending",
         "ur_disposition": "unclassified"
       }
-    ]
+    ],
+    "progress": {
+      "closed_advisory": 10,
+      "triaged": 14,
+      "pending": 153,
+      "total": 177,
+      "policy": "closed_advisory is closed for present UR reuse decision only, not original-USA verification or source-line audit. triaged records a concrete lead without granting semantic closure. pending remains unexamined.",
+      "closure_requirement": "All paths must receive a disposition and review note; only a present-tense engineering decision with evidence can close each. Reopen if upstream delta or current USA product defect changes premise."
+    }
   }
 }

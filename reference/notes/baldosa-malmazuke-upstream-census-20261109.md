@@ -56,6 +56,19 @@ Malmazuke's `local/evidence/` raw captures are typically gitignored; the committ
 
 The finer review still needs every changed source path disposition in the new machine-readable 177-path list. These targeted excerpts do not certify entire commits or substitute a real USA replay.
 
+## Exact-USA SRAM cross-reference: offset 0x10A7
+
+**The overlap is real; semantic identity has not been established.**
+
+- **USA UR original/native observation:** [UR original post-result byte witness](../../docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md) independently replays the 2014 Zoom Zoo result. At +8/+16/+24/+32, original/native 8,192-byte SRAM agrees; at +64/+72 **only byte 0x10A7 differs** (original `0x0C`, native Baldosa `0x0D`). Two independently compiled original cores reproduce the observation, but no first writer/consumer or causal harmlessness is proven.
+- **USA imported symbol:** `reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/ram.txt` labels `77:10A7` as `sCutsceneTimer2`, a 2-byte league cutscene secondary counter. That is a descriptive Baldosa label, not independent USA dynamic source attribution.
+- **PAL Malmazuke source research:** [R-0111](https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0111-save-image-exact.md) identifies `$10A7` as a **track-menu markers' step**, written by `$80:E872` and `$80:EB32`, and finds separate ending writes from `$83:B649`. PAL perturbation identifies `$10A7` as later readable in particular warm league/records routes; R-0111 still leaves seven ending-route value differences. Its initial version compared 916 of 919 native-run routes (3 rejected), not proof that all original-USA cases match.
+- **Important conflict:** PAL source-label and Baldosa's USA name describe related but not obviously identical behaviors. Neither the matching 16-bit SRAM offset nor the one-step value difference proves they share code or timing. A wrong correspondence could misdirect QA01 or mask a real progression defect.
+
+**Cheapest next investigation, with no new GHA run:** in already imported Baldosa USA disassembly and UR's comparative source atlas, identify the **actual USA writers and readers** of `77:10A7-10A8` along Zoom Zoo result→TRACK SELECT, and compare their opcode/branch identities with PAL `$80:E872`, `$80:EB32`, `$83:B649` via the existing cross-build homolog mapping. Record whether the USA writer occurs in the +32→+64 bounded interval, its control dependencies and whether its value can affect a future visible transition or save. If the source already explains the mismatch, provide the owning QA01 reviewer a bounded causal decision; if unsupported, request **at most one** targeted original-USA writer/consumer witness using the existing RF/QA01 source producer. Do not re-run the six-sample SRAM census, modify the game, relax strict checks, or credit an event.
+
+**Related no-duplicate OAM result:** Baldosa's last SHA and framework submodule `075fbe4c` are **already exactly preserved in** `analysis/patches/baldosa-oam-address-pin.patch` (marked reference-only); `reference/notes/oam-active-display.md` has scanlines 0/112, `0x10c` word-to-`0x218` byte and sprite slots. The remaining QA08 question is whether the **actual packaged Windows guest** both activates this pin and matches original final-visible P1/P2 pixels. No new OAM implementation or rerun justified by an upstream headline alone.
+
 ## Two practical first investigations
 
 1. **SRAM applicability:** check existing UR Windows isolated profile/crash/record tests for missing exact cartridge write-frame and corrupt-cursor cases; document a minimal USA original/native discriminator where a real current blocker remains. Avoid modifying the host save format just to make PAL bytes match.

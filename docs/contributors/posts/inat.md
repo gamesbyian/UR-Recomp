@@ -8,7 +8,9 @@ Proposed title: [Hobby / Unpaid] Established SNES Uniracers recreation seeks 3D,
 
 I'm coordinating an unofficial, volunteer-built Windows recreation of Uniracers / Unirally, the unusual 1994 SNES unicycle racer. [The public research/engineering repo](https://github.com/gamesbyian/UR-Recomp) already contains a recompilation/native-host codebase, source-derived evidence and rigorous QA, but the game is still incomplete and its release gates remain open.
 
-For pictures and source references, see the [Uniracers regional lettering gallery](https://gamesbyian.github.io/UR-Recomp/contributors/), which displays the original English lettering, three supplied styling concepts, and experimental Japanese, Russian and French SVGs. The concepts are exploratory, not finished or approved production art.
+**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+
+For pictures and source references, see the [regional artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/), which displays the original English lettering, three supplied styling concepts, and experimental Japanese, Russian and French SVGs. The concepts are exploratory, not finished or approved production art.
 
 The opportunities are intentionally small and optional:
 * **3D artist:** improve an existing experimental articulated unicycle against [original-reference-based artistic direction](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md).

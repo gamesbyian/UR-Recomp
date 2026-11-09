@@ -186,7 +186,7 @@ def practice_report_witness(commands, env, who, selected):
         report = json.loads(raw,
                             parse_constant=reject_nonfinite_json_number,
                             object_pairs_hook=unique_json_object)
-    except (ValueError, UnicodeDecodeError) as error:
+    except (ValueError, UnicodeDecodeError, RecursionError) as error:
         raise ValueError("invalid original Practice source report") from error
     require(type(report) is dict and set(report) == PRACTICE_REPORT_KEYS,
             "unexpected original Practice report claims")
@@ -710,7 +710,7 @@ def aggregate(root, source_sha):
             if not row["all_passed"]:
                 problems.append(group + ": " + str(len(summarize_case_failures(group, row["cases"]))) +
                                 " failed/missing original Windows journeys")
-        except (OSError, ValueError, TypeError, KeyError) as error:
+        except (OSError, ValueError, TypeError, KeyError, RecursionError) as error:
             problems.append(group + ": " + str(error))
     if len(identities) == 2 and identities[0] != identities[1]:
         problems.append("different source/EXE/fixture/ZIP identities across groups")

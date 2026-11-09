@@ -324,6 +324,17 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         self.assertFalse(result["transport_complete"])
         self.assertIn("unbounded group receipt", " ".join(result["issues"]))
 
+    def test_deeply_nested_group_json_yields_a_red_receipt(self):
+        # A tiny (<1 MiB) but extremely deep JSON value can exhaust the
+        # parser stack. That must produce a red aggregate receipt, not an
+        # uncaught RecursionError and a missing machine-readable outcome.
+        path = self.path / "windows-fanout-seed-dependent" / "result.json"
+        path.write_text("[" * 10000 + "0" + "]" * 10000)
+        result = fanout.aggregate(self.path, SHA)
+        self.assertFalse(result["transport_complete"])
+        self.assertTrue(any("recursion" in issue.lower()
+                            for issue in result["issues"]))
+
     def test_receipt_numeric_aliases_cannot_relabel_original_cases(self):
         # JSON true/false compare equal to Python 1/0. Likewise 10.0
         # compares equal to 10 despite being a different JSON type.
@@ -1188,6 +1199,21 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             path.write_text(json.dumps(fixture))
             self.assertEqual(fanout.practice_report_witness(
                 commands, env, WHO, 1)["report_cases"], 10)
+
+    def test_deeply_nested_original_practice_report_is_rejected_cleanly(self):
+        # The private report has a 64 KiB byte bound, but a much smaller
+        # JSON document can still exceed the decoder's nesting limit.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            commands = bridge.extract_commands(bridge.WORKFLOW.read_text())
+            output = root / bridge.OUT_RE.findall(commands[12])[0]
+            output.mkdir(parents=True)
+            (output / "report.json").write_text(
+                "[" * 10000 + "0" + "]" * 10000)
+            with self.assertRaisesRegex(
+                    ValueError, "invalid original Practice source report"):
+                fanout.practice_report_witness(
+                    commands, {"RUNNER_TEMP": str(root)}, WHO, 1)
 
     def test_original_practice_report_read_bound_survives_growth_after_stat(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -687,5 +687,1620 @@
     "acceptance_authority": "docs/RELEASE-QUALITY-LEDGER.json",
     "live_queue": "docs/HOURLY-AGENT-LINES.md",
     "ingestion_contract": "docs/EXTERNAL-EVIDENCE-INTAKE.md"
+  },
+  "malmazuke_changed_paths_since_research_pin": {
+    "base": "42d444594641d23f5d3c15da7b7c454bb5180e43",
+    "head": "19ecb59fb56bc9b3024a72ab9cba912586229769",
+    "total_commits": 260,
+    "status": "ahead",
+    "counts_by_domain": {
+      "audio-timing": 17,
+      "ci-and-operations": 10,
+      "coverage-maps": 10,
+      "methods-and-policy": 2,
+      "native-app": 7,
+      "native-gameplay": 51,
+      "research-results": 19,
+      "research-tooling": 9,
+      "root-docs-and-other": 7,
+      "task-records": 31,
+      "tests-and-fixtures": 14
+    },
+    "semantics_status": "Inventory-only. Each listed changed file is unclassified until inspected against live UR source and evidence. Do not infer test or code acceptance.",
+    "files": [
+      {
+        "path": "AGENTS.md",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 0,
+        "domain": "root-docs-and-other",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "README.md",
+        "status": "modified",
+        "additions": 5,
+        "deletions": 4,
+        "domain": "root-docs-and-other",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/AGENT_WORKFLOW.md",
+        "status": "modified",
+        "additions": 3,
+        "deletions": 0,
+        "domain": "root-docs-and-other",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/BUILD_AND_VALIDATION.md",
+        "status": "modified",
+        "additions": 63,
+        "deletions": 3,
+        "domain": "root-docs-and-other",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/STATE.md",
+        "status": "modified",
+        "additions": 376,
+        "deletions": 0,
+        "domain": "root-docs-and-other",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/decisions/D-0012-selective-gates-against-main.md",
+        "status": "added",
+        "additions": 322,
+        "deletions": 0,
+        "domain": "methods-and-policy",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/decisions/D-0013-task-time-and-disk-budget.md",
+        "status": "added",
+        "additions": 91,
+        "deletions": 0,
+        "domain": "methods-and-policy",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/coverage-census.map.json",
+        "status": "added",
+        "additions": 9809,
+        "deletions": 0,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/coverage-census.md",
+        "status": "added",
+        "additions": 1121,
+        "deletions": 0,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/race-branch-remainder.map.json",
+        "status": "added",
+        "additions": 5620,
+        "deletions": 0,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/race-branch-remainder.md",
+        "status": "added",
+        "additions": 884,
+        "deletions": 0,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/race-listing-branches.map.json",
+        "status": "added",
+        "additions": 6324,
+        "deletions": 0,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/race-listing-branches.md",
+        "status": "added",
+        "additions": 986,
+        "deletions": 0,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/static/code-banks.map.json",
+        "status": "modified",
+        "additions": 1044,
+        "deletions": 207,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/static/code-banks.md",
+        "status": "modified",
+        "additions": 145,
+        "deletions": 58,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/static/labels.json",
+        "status": "modified",
+        "additions": 12977,
+        "deletions": 2670,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/map/static/native-symbols.json",
+        "status": "modified",
+        "additions": 14985,
+        "deletions": 8016,
+        "domain": "coverage-maps",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0052-hunter-effects.md",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 1,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0089-coverage-gaps.md",
+        "status": "modified",
+        "additions": 11,
+        "deletions": 2,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0093-data-coverage.md",
+        "status": "modified",
+        "additions": 9,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0095-two-human-stunts.md",
+        "status": "added",
+        "additions": 128,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0096-demo-audio.md",
+        "status": "added",
+        "additions": 160,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0097-menu-input.md",
+        "status": "added",
+        "additions": 288,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0098-league-tours.md",
+        "status": "added",
+        "additions": 283,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0099-podium-audio.md",
+        "status": "added",
+        "additions": 255,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0100-record-screens.md",
+        "status": "added",
+        "additions": 259,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0101-name-check.md",
+        "status": "added",
+        "additions": 160,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0102-menu-frame-overruns.md",
+        "status": "added",
+        "additions": 300,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0103-split-hunter-pictures.md",
+        "status": "added",
+        "additions": 162,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0104-two-view-power-bounce.md",
+        "status": "added",
+        "additions": 103,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0105-cartridge-option-words.md",
+        "status": "added",
+        "additions": 199,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0106-app-league-race.md",
+        "status": "added",
+        "additions": 150,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0107-race-listing-branches.md",
+        "status": "added",
+        "additions": 185,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0108-race-branch-remainder.md",
+        "status": "added",
+        "additions": 230,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0109-coverage-census.md",
+        "status": "added",
+        "additions": 389,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0110-app-parity.md",
+        "status": "added",
+        "additions": 216,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0111-save-image-exact.md",
+        "status": "added",
+        "additions": 286,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "docs/research/R-0112-census-remainder.md",
+        "status": "added",
+        "additions": 290,
+        "deletions": 0,
+        "domain": "research-results",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/app/CMakeLists.txt",
+        "status": "modified",
+        "additions": 17,
+        "deletions": 1,
+        "domain": "native-app",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/app/README.md",
+        "status": "modified",
+        "additions": 37,
+        "deletions": 12,
+        "domain": "native-app",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/app/frontend.cpp",
+        "status": "modified",
+        "additions": 23,
+        "deletions": 4,
+        "domain": "native-app",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/app/frontend.hpp",
+        "status": "modified",
+        "additions": 105,
+        "deletions": 14,
+        "domain": "native-app",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/app/save_file.cpp",
+        "status": "modified",
+        "additions": 51,
+        "deletions": 1,
+        "domain": "native-app",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/app/save_file.hpp",
+        "status": "modified",
+        "additions": 32,
+        "deletions": 0,
+        "domain": "native-app",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/app/sdl_main.cpp",
+        "status": "modified",
+        "additions": 290,
+        "deletions": 81,
+        "domain": "native-app",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/app/title_menu_audio_stream.cpp",
+        "status": "modified",
+        "additions": 20,
+        "deletions": 7,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/CMakeLists.txt",
+        "status": "modified",
+        "additions": 3,
+        "deletions": 2,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/README.md",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/audio_cpu_upload.cpp",
+        "status": "modified",
+        "additions": 6,
+        "deletions": 1,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/audio_cpu_upload.hpp",
+        "status": "modified",
+        "additions": 8,
+        "deletions": 5,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/audio_cue.hpp",
+        "status": "modified",
+        "additions": 16,
+        "deletions": 4,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/audio_cued_scenes.cpp",
+        "status": "modified",
+        "additions": 36,
+        "deletions": 4,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/audio_engine.cpp",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 2,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/audio_score_controls.cpp",
+        "status": "modified",
+        "additions": 18,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/award.cpp",
+        "status": "modified",
+        "additions": 4,
+        "deletions": 1,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/cartridge_ram.cpp",
+        "status": "modified",
+        "additions": 133,
+        "deletions": 12,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/cartridge_ram.hpp",
+        "status": "modified",
+        "additions": 23,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/content_pack.cpp",
+        "status": "modified",
+        "additions": 78,
+        "deletions": 15,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/demo_sound.cpp",
+        "status": "added",
+        "additions": 63,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/flat_contact.hpp",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 2,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/front_end.cpp",
+        "status": "modified",
+        "additions": 147,
+        "deletions": 30,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/front_end.hpp",
+        "status": "modified",
+        "additions": 199,
+        "deletions": 32,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/front_end_runner.cpp",
+        "status": "modified",
+        "additions": 203,
+        "deletions": 61,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/front_end_screens.hpp",
+        "status": "modified",
+        "additions": 174,
+        "deletions": 15,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/high_scores.cpp",
+        "status": "added",
+        "additions": 232,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/hunter_effects.cpp",
+        "status": "modified",
+        "additions": 2,
+        "deletions": 2,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/hunter_ending.cpp",
+        "status": "modified",
+        "additions": 1,
+        "deletions": 26,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/lab_outputs.cpp",
+        "status": "added",
+        "additions": 45,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/lab_outputs.hpp",
+        "status": "added",
+        "additions": 29,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/lap_result.cpp",
+        "status": "modified",
+        "additions": 14,
+        "deletions": 3,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/league_completion.cpp",
+        "status": "modified",
+        "additions": 123,
+        "deletions": 24,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/league_menu.cpp",
+        "status": "modified",
+        "additions": 337,
+        "deletions": 65,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/local_modes.cpp",
+        "status": "modified",
+        "additions": 284,
+        "deletions": 96,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/menu_overruns.cpp",
+        "status": "added",
+        "additions": 193,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/menu_overruns.hpp",
+        "status": "added",
+        "additions": 64,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/name_check.cpp",
+        "status": "added",
+        "additions": 105,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/name_check.hpp",
+        "status": "added",
+        "additions": 22,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/now_playing.cpp",
+        "status": "modified",
+        "additions": 72,
+        "deletions": 16,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/options_menu.cpp",
+        "status": "modified",
+        "additions": 305,
+        "deletions": 704,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/presentation.cpp",
+        "status": "modified",
+        "additions": 37,
+        "deletions": 14,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/presentation.hpp",
+        "status": "modified",
+        "additions": 17,
+        "deletions": 2,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/race_demo_controls.cpp",
+        "status": "modified",
+        "additions": 17,
+        "deletions": 10,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/race_hud.cpp",
+        "status": "modified",
+        "additions": 111,
+        "deletions": 21,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/race_result.cpp",
+        "status": "modified",
+        "additions": 260,
+        "deletions": 119,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/race_setup.cpp",
+        "status": "modified",
+        "additions": 16,
+        "deletions": 4,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/race_sound.cpp",
+        "status": "modified",
+        "additions": 10,
+        "deletions": 2,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/race_sound.hpp",
+        "status": "modified",
+        "additions": 5,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/race_state_io.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/race_update.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/records_scores.cpp",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/reward_queue.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/rider_menu.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/stunt_event.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/stunt_event.hpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/stunt_result.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/text_printer.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/text_printer.hpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/title_menu_audio.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/title_menu_audio.hpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/title_menu_audio_content.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/tour_ending.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/tour_menu.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/track_menu.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/track_records.cpp",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/vertical_contact.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/vertical_contact.hpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/zoom_zoo_movement.hpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/zoom_zoo_pack.hpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "src/core/zoom_zoo_runner.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "native-gameplay",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/APP-LEAGUE-RACE.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/APP-PARITY.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/CARTRIDGE-OPTION-BITS.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/CENSUS-REMAINDER.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/COVERAGE-CENSUS.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/CPU-CYCLE-TIMING.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/DEMO-AUDIO.md",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/EVIDENCE-LARGE-FILES.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/EVIDENCE-RETENTION.md",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/GATES-AGAINST-MAIN.md",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/LEAGUE-TOURS.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/MENU-INPUT.md",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/NAME-CHECK.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/NEXT_SESSION.md",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/OPEN-BRANCHES.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/OPPONENT-POSE-BOUNDS.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/PICTURE-RESIDUALS.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/PODIUM-AUDIO.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/PODIUM-RETURN-TIMING.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/RACE-BRANCH-REMAINDER.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/RACE-LISTING-BRANCHES.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/README.md",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/RECORD-SCREENS.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/SAVE-IMAGE-EXACT.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/SAVE-IMAGE-REMAINDER.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/SDL-MIRROR.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/SOUND-PROCESSOR-TIMING.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/SPLIT-HUNTER-PICTURES.md",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/TASK-EFFICIENCY.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/TWO-HUMAN-STUNTS.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tasks/TWO-VIEW-POWER-BOUNCE.md",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "task-records",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/app/frontend_contract_tests.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/manifests/content/classic-crawler-tracks-pack.json",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/native/audio_score_tests.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/native/front_end_tests.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/native/league_tests.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/native/presentation_tests.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/native/stunt_event_tests.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/native/stunt_hud_tests.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/native/zoom_zoo_trial_tests.cpp",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/tooling/test_capture_files.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/tooling/test_compact_evidence.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/tooling/test_frontend.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/tooling/test_gates.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/tooling/test_native_reports.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tests/tooling/test_tracks.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "tests-and-fixtures",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/compact_evidence.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "root-docs-and-other",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/locks/frontend.json",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "root-docs-and-other",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/capture_files.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/content/audio.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "audio-timing",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/content/front_end.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/content/pack.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/content/tracks.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/frontend/commands.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/__init__.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/__main__.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/base.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/catalogue.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/corpus.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/disk.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/identity.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/race_sweep.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/replay.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/gates/schedule.py",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "ci-and-operations",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/native/dragster_playable.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/native/gate_identity.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/native/track_reference.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      },
+      {
+        "path": "tools/unirally_lab/native/zoom_zoo_playable.py",
+        "status": "modified",
+        "additions": 0,
+        "deletions": 0,
+        "domain": "research-tooling",
+        "semantic_review": "pending",
+        "ur_disposition": "unclassified"
+      }
+    ]
   }
 }

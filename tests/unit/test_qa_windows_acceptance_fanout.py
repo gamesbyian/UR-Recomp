@@ -642,6 +642,20 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
                     self.assertFalse(destination.exists())
             runner.assert_not_called()
 
+    def test_original_work_root_must_belong_to_runner_temp(self):
+        # Symlink-free absolute paths outside the original Actions temp root
+        # must not become alternate private-log/output destinations.
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        outside = self.path.parent / ("unrelated-p2-" + self.path.name)
+        with mock.patch.multiple(bridge, EXE=exe, FIXTURE=fixture), \
+             mock.patch.object(bridge, "run_one") as runner:
+            with self.assertRaisesRegex(
+                    ValueError, "original Windows work root outside runner temp"):
+                fanout.run_group(
+                    "seed-dependent", SHA, archive, outside, env)
+            runner.assert_not_called()
+        self.assertFalse(outside.exists())
+
     def test_win32_seed_sharing_guard_fails_closed_without_windows(self):
         # This is why synthetic Linux overlap tests explicitly mock the guard.
         if os.name == "nt":

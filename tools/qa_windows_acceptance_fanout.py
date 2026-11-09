@@ -496,6 +496,11 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
     require_unredirected_parents(temp_root / ".p2-preflight",
                                  "original Windows runner temp")
     require_unredirected_parents(work, "original Windows work root")
+    # The reviewed manual workflow writes private bridge logs to a direct
+    # child of RUNNER_TEMP. An arbitrary safe-looking absolute path is not
+    # an authorized alternative output destination.
+    require(work.parent == temp_root,
+            "original Windows work root outside runner temp")
     require(not work.exists() and not work.is_symlink(), "work root already used")
     who = candidate_identity(source_sha, bridge.EXE, bridge.FIXTURE, archive)
     commands = bridge.extract_commands(bridge.WORKFLOW.read_text(encoding="utf-8"))

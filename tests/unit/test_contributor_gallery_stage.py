@@ -45,7 +45,7 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn("images/blueprint-4x3-logo-left.png", home)
             for role in ("3D artists", "Lettering &amp; language", "Developers &amp; AI operators", "Future playtesters"):
                 self.assertIn(role, home)
-            self.assertIn("UNIRACERS", (folder/"contributors/references/index.html").read_text())
+            self.assertIn("Three new regional styling concepts", (folder/"contributors/references/index.html").read_text())
             with self.assertRaises(ValueError):
                 MOD.stage(folder)
 if __name__ == "__main__":

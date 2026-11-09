@@ -32,7 +32,7 @@ jobs:
   inventory:
     # One explicitly requested read-only account scan. PR source changes
     # alone must not launch expensive and drift-prone pagination.
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'gamesbyian/UR-Recomp' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -44,6 +44,14 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+      - name: Fail closed unless main checkout matches the dispatch source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]
+          [[ "$GITHUB_REPOSITORY" == "gamesbyian/UR-Recomp" ]]
+          [[ "$GITHUB_REF" == "refs/heads/main" ]]
+          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
       - name: Offline inventory contract tests
         run: python3 -m unittest discover -s tests/unit -p test_actions_storage_inventory.py -v
       - name: Collect complete snapshots independently for each accessible repo

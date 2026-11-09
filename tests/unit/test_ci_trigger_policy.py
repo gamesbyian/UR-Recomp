@@ -149,6 +149,13 @@ class CiTriggerPolicyTest(unittest.TestCase):
         inventory = _block(source, "inventory")
         self.assertIn("github.event_name == 'pull_request'", contract)
         self.assertIn("github.event_name == 'workflow_dispatch'", inventory)
+        self.assertIn("github.repository == 'gamesbyian/UR-Recomp'", inventory)
+        self.assertIn("github.ref == 'refs/heads/main'", inventory)
+        self.assertIn('[[ "$GITHUB_REF" == "refs/heads/main" ]]', inventory)
+        self.assertIn('[[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]', inventory)
+        self.assertLess(
+            inventory.index("Fail closed unless main checkout matches"),
+            inventory.index("Collect complete snapshots independently"))
         self.assertNotIn("actions: read", contract)
         self.assertIn("contents: read", contract)
         self.assertIn("actions: read", inventory)

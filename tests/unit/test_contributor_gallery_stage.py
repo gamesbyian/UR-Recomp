@@ -32,12 +32,19 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertFalse((folder/"contributors/images/uniracers-box-art-3x.png").exists())
             self.assertTrue(all(item["bytes"] > 0 for item in report.values()))
             parser = ImageSources()
-            parser.feed((folder / "contributors/index.html").read_text(encoding="utf-8"))
+            parser.feed((folder / "contributors/references/index.html").read_text(encoding="utf-8"))
             self.assertEqual(len(parser.images), 8)
-            self.assertTrue(all(isinstance(src, str) and src.startswith("images/") for src in parser.images))
+            self.assertTrue(all(isinstance(src, str) and src.startswith("../images/") for src in parser.images))
             for src in parser.images:
-                self.assertTrue((folder / "contributors" / src).is_file(), src)
-            self.assertIn("One wheel. A bigger future.", (folder/"contributors/index.html").read_text())
+                self.assertTrue((folder / "contributors/references" / src).is_file(), src)
+            home = (folder/"contributors/index.html").read_text(encoding="utf-8")
+            self.assertIn("One wheel. A bigger future.", home)
+            self.assertIn("position:fixed", home)
+            self.assertIn("./references/", home)
+            self.assertIn("images/blueprint-16x9-logo-left.png", home)
+            self.assertIn("images/blueprint-4x3-logo-left.png", home)
+            for role in ("3D artists", "Lettering &amp; language", "Developers &amp; AI operators", "Future playtesters"):
+                self.assertIn(role, home)
             self.assertIn("UNIRACERS", (folder/"contributors/references/index.html").read_text())
             with self.assertRaises(ValueError):
                 MOD.stage(folder)

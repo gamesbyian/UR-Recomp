@@ -715,7 +715,11 @@
         "deletions": 0,
         "domain": "root-docs-and-other",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "590b8f1472cb7d66cb555789b3b85075c946133d",
+        "baseline_blob_sha": "4187cfb6bca85002723fe72f9c15029332ab119e",
+        "source_size_bytes": 9810,
+        "change_kind": "modified"
       },
       {
         "path": "README.md",
@@ -724,7 +728,11 @@
         "deletions": 4,
         "domain": "root-docs-and-other",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "2f1a330ed98797550cd36138511d22f5bc79146f",
+        "baseline_blob_sha": "8521844ba1f93c854aa227a0969947187a98f1b1",
+        "source_size_bytes": 6766,
+        "change_kind": "modified"
       },
       {
         "path": "docs/AGENT_WORKFLOW.md",
@@ -733,7 +741,11 @@
         "deletions": 0,
         "domain": "root-docs-and-other",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "f3d19b4dbdd119d90781a961fd8b5a054cd4022f",
+        "baseline_blob_sha": "ac698fe1c1c54a102262262f0e6d8a4477cc4b9b",
+        "source_size_bytes": 24068,
+        "change_kind": "modified"
       },
       {
         "path": "docs/BUILD_AND_VALIDATION.md",
@@ -742,7 +754,11 @@
         "deletions": 3,
         "domain": "root-docs-and-other",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "bc4c6dceae9102de22d1a6e4874d4b6ded08f030",
+        "baseline_blob_sha": "2fb7249bf3af4527e3daca67a2adcf0f5f5e7633",
+        "source_size_bytes": 88582,
+        "change_kind": "modified"
       },
       {
         "path": "docs/STATE.md",
@@ -756,7 +772,11 @@
         "next_trigger": "Trigger: compare new accepted task or revision before declaring any formerly queued work settled.",
         "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/STATE.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/STATE.md",
+        "source_blob_sha": "feb0339a31fde42ca88def62d1ea8f581b53362c",
+        "baseline_blob_sha": "f1d803b5744a336af199e1fb47bd0a97a09607ca",
+        "source_size_bytes": 136041,
+        "change_kind": "modified"
       },
       {
         "path": "docs/decisions/D-0012-selective-gates-against-main.md",
@@ -770,7 +790,11 @@
         "next_trigger": "Trigger: measured recurring CI waste with adversarial dependency changed and original witness identity checks.",
         "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/decisions/D-0012-selective-gates-against-main.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/decisions/D-0012-selective-gates-against-main.md",
+        "source_blob_sha": "9b34b3c626e9fdb30ef25bf8c05d58fc3b565c04",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 22681,
+        "change_kind": "added"
       },
       {
         "path": "docs/decisions/D-0013-task-time-and-disk-budget.md",
@@ -784,7 +808,11 @@
         "next_trigger": "Trigger: actual UR evidence storage bottleneck with all active gates and replay recipes accounted for.",
         "ur_reference": "docs/EXTERNAL-EVIDENCE-INTAKE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/decisions/D-0013-task-time-and-disk-budget.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/decisions/D-0013-task-time-and-disk-budget.md",
+        "source_blob_sha": "0d5a3267d06e107d5bc34596ded9aa1f79af2f61",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 5882,
+        "change_kind": "added"
       },
       {
         "path": "docs/map/coverage-census.map.json",
@@ -798,7 +826,11 @@
         "next_trigger": "Revisit only to map a demonstrated current USA code coverage gap or if an upstream census revision changes fields.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/coverage-census.map.json"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/coverage-census.map.json",
+        "source_blob_sha": "5c9e37d4cf6c7c8546e4cf1098a00569d8488588",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1177951,
+        "change_kind": "added"
       },
       {
         "path": "docs/map/coverage-census.md",
@@ -812,7 +844,11 @@
         "next_trigger": "Reopen for a source-current USA code coverage difference; compare identical ROM/address/code domain before reuse.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/coverage-census.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/coverage-census.md",
+        "source_blob_sha": "8c5b9ddea309634b4898854985bd22e4b959d8b9",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 94575,
+        "change_kind": "added"
       },
       {
         "path": "docs/map/race-branch-remainder.map.json",
@@ -826,7 +862,11 @@
         "next_trigger": "Reopen when original-USA first-difference or reachable branch requires exact address homolog.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-branch-remainder.map.json"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-branch-remainder.map.json",
+        "source_blob_sha": "163220ffdad50e5aa9c2f6015c8b631fcd4258d3",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 675464,
+        "change_kind": "added"
       },
       {
         "path": "docs/map/race-branch-remainder.md",
@@ -840,7 +880,11 @@
         "next_trigger": "Reopen when a specific USA rare race branch is unproven; use original USA route and classify observed vs merely mapped.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-branch-remainder.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-branch-remainder.md",
+        "source_blob_sha": "9e71a50b47ca4c039c81e7e49d5beb0bd380f2ed",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 51691,
+        "change_kind": "added"
       },
       {
         "path": "docs/map/race-listing-branches.map.json",
@@ -854,7 +898,11 @@
         "next_trigger": "Reopen only for source-grounded USA branch reachability target; avoid second capture corpus.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-listing-branches.map.json"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-listing-branches.map.json",
+        "source_blob_sha": "d8bbfc5ce5982e5d0473c4ac14cf035b68ead2d7",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 748507,
+        "change_kind": "added"
       },
       {
         "path": "docs/map/race-listing-branches.md",
@@ -868,7 +916,11 @@
         "next_trigger": "Reopen when QA01 genuine USA first-branch discrepancy remains, with identical input-state and source epoch.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-listing-branches.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-listing-branches.md",
+        "source_blob_sha": "ed7c6aa16f70b6a80a367a15bf80747710595af6",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 54962,
+        "change_kind": "added"
       },
       {
         "path": "docs/map/static/code-banks.map.json",
@@ -882,7 +934,11 @@
         "next_trigger": "Reopen for specific USA-versus-PAL homolog or source label conflict; reject percent arithmetic mixing R-0112 and this schema.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/code-banks.map.json"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/code-banks.map.json",
+        "source_blob_sha": "32804091c4e74e75c0addb20212bd34476cf8bcc",
+        "baseline_blob_sha": "55cd6fc3b0172b5ac6afc2b393075287cfb1c707",
+        "source_size_bytes": 400795,
+        "change_kind": "modified"
       },
       {
         "path": "docs/map/static/code-banks.md",
@@ -896,7 +952,11 @@
         "next_trigger": "Reopen for a currently missing USA source address whose PAL counterpart has original instruction evidence; existing cross-build atlas first.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/code-banks.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/code-banks.md",
+        "source_blob_sha": "5de42b691caf2a419d5bff910c46255c8acee07d",
+        "baseline_blob_sha": "f782e8eca6b181dfb6cb2481649c42c9c44633e3",
+        "source_size_bytes": 22059,
+        "change_kind": "modified"
       },
       {
         "path": "docs/map/static/labels.json",
@@ -910,7 +970,11 @@
         "next_trigger": "Reopen only when exact USA opcode/ROM-offset homolog has independent proof and source lines are cited.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/labels.json"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/labels.json",
+        "source_blob_sha": "f663fabcbffbdc8bb66ac4c42d037c0ec21c274c",
+        "baseline_blob_sha": "13b920b5422be33d1af804135c99c493d724de11",
+        "source_size_bytes": 894986,
+        "change_kind": "modified"
       },
       {
         "path": "docs/map/static/native-symbols.json",
@@ -924,7 +988,11 @@
         "next_trigger": "Reopen for a concrete port-compatible independent algorithm whose PAL-source and USA-input proof are both present.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/native-symbols.json"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/native-symbols.json",
+        "source_blob_sha": "174ffe1b29e6fda7a81c2783ec48c2bca867dd0b",
+        "baseline_blob_sha": "6dd446f924e8ca8aac096331346b0c67e14c63d3",
+        "source_size_bytes": 615623,
+        "change_kind": "modified"
       },
       {
         "path": "docs/research/R-0052-hunter-effects.md",
@@ -938,7 +1006,11 @@
         "next_trigger": "Reopen if current USA HUNTER mechanic differs and recent PAL original capture provides cheaper source discriminator.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0052-hunter-effects.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0052-hunter-effects.md",
+        "source_blob_sha": "12497f0c56c2779c6802a4e6afdbd97d9f9123b9",
+        "baseline_blob_sha": "8b4909deb5d3cd72f8babfb2615cb2787668b22e",
+        "source_size_bytes": 8471,
+        "change_kind": "modified"
       },
       {
         "path": "docs/research/R-0089-coverage-gaps.md",
@@ -952,7 +1024,11 @@
         "next_trigger": "Reopen only for locating a historical original PAL route omitted by later coverage, not to restart an 8-task queue.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0089-coverage-gaps.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0089-coverage-gaps.md",
+        "source_blob_sha": "928a5168a87a3d38c9410db2e3e3ea42fe3371e3",
+        "baseline_blob_sha": "b0c9fbad560a597c41cb9eab84ef6e356d0e9ae8",
+        "source_size_bytes": 8031,
+        "change_kind": "modified"
       },
       {
         "path": "docs/research/R-0093-data-coverage.md",
@@ -966,7 +1042,11 @@
         "next_trigger": "Reopen only to inspect a specific source-read path or original-USA asset hypothesis; no wholesale second extraction.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0093-data-coverage.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0093-data-coverage.md",
+        "source_blob_sha": "b9e17c2894ce33d28d63b840bf89272727f799f2",
+        "baseline_blob_sha": "bde932698d237d8e4585f989df47737983a332f0",
+        "source_size_bytes": 15042,
+        "change_kind": "modified"
       },
       {
         "path": "docs/research/R-0095-two-human-stunts.md",
@@ -980,7 +1060,11 @@
         "next_trigger": "Reopen when an exact current USA 2P stunt result, score persistence, input owner or VS tie disagrees; use UR's existing source and test.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0095-two-human-stunts.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0095-two-human-stunts.md",
+        "source_blob_sha": "314aa4f8747187bdba49c90d688becbbee6529c8",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 10580,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0096-demo-audio.md",
@@ -989,7 +1073,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "e9ce69bd33682b40933acfa82f9b0557f13c3634",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 11763,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0097-menu-input.md",
@@ -1003,7 +1091,11 @@
         "next_trigger": "Reopen on demonstrated current USA Authentic-menu behavior; Modern intentionally differs and cannot inherit PAL timing.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0097-menu-input.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0097-menu-input.md",
+        "source_blob_sha": "2a7ddac71143f33d4598f482a31b2d231380a772",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 22477,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0098-league-tours.md",
@@ -1017,7 +1109,11 @@
         "next_trigger": "Reopen on USA 2P league progression/score/cold-save mismatch or direct fresh original input; do not convert PAL 50Hz to USA 60Hz.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0098-league-tours.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0098-league-tours.md",
+        "source_blob_sha": "77487bd8defe528d17a1b564229cd4f4ced28cdb",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 22841,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0099-podium-audio.md",
@@ -1026,7 +1122,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "5178a98828fdaf41e8c827344bcb4a1f0293c17d",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 17620,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0100-record-screens.md",
@@ -1040,7 +1140,11 @@
         "next_trigger": "Reopen when exact USA records view or two-pad exit disproves current UR original/Modern split; not a second GUI implementation.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0100-record-screens.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0100-record-screens.md",
+        "source_blob_sha": "8c68f29992d29b9a0afeebc9fd1033c4dab16ce6",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 21101,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0101-name-check.md",
@@ -1054,7 +1158,11 @@
         "next_trigger": "Reopen for USA original input/timing truth, preserving UR Modern's permitted player-entered names.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0101-name-check.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0101-name-check.md",
+        "source_blob_sha": "b9a003ac0285164068bff720d9a30e03392b579a",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 11808,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0102-menu-frame-overruns.md",
@@ -1068,7 +1176,11 @@
         "next_trigger": "Reopen if current USA downstream menu timing or QA01 CPU/SPC work shows a causally related defect with shared source phase.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0102-menu-frame-overruns.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0102-menu-frame-overruns.md",
+        "source_blob_sha": "cd1c39f0baf8625871820402ec388eca015bcfb1",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 23540,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0103-split-hunter-pictures.md",
@@ -1082,7 +1194,11 @@
         "next_trigger": "Reopen on current USA QA08 original final-visible 2P pixels; source and scanline coordinates are region-dependent.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0103-split-hunter-pictures.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0103-split-hunter-pictures.md",
+        "source_blob_sha": "ac0e8bed58b9a7d0e9cb8344ab64f81a9ce4f2d8",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 11192,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0104-two-view-power-bounce.md",
@@ -1096,7 +1212,11 @@
         "next_trigger": "Trigger: reproduce source-current USA two-player HUNTER physical-landing mismatch before a targeted original replay.",
         "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0104-two-view-power-bounce.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0104-two-view-power-bounce.md",
+        "source_blob_sha": "b677503cae61e1e8f5f52cd6f9885ec6d3bc8f8b",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 6267,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0105-cartridge-option-words.md",
@@ -1110,7 +1230,11 @@
         "next_trigger": "Trigger: USA saved progression/2P mode discrepancy; compare original writers, byte width, cold restore.",
         "ur_reference": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/ram.txt",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0105-cartridge-option-words.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0105-cartridge-option-words.md",
+        "source_blob_sha": "0752b52d495376eeb48e710e1faa2182a4134eb2",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 13901,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0106-app-league-race.md",
@@ -1124,7 +1248,11 @@
         "next_trigger": "Trigger: a current USA 2P league/notice/scripting discrepancy on an exact packaged PE; existing controller/guest authority first.",
         "ur_reference": "docs/QA-PLAYER-JOURNEYS.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0106-app-league-race.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0106-app-league-race.md",
+        "source_blob_sha": "3e45f581406c22a30ead3c0e8c94ea1658cd613c",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 9905,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0107-race-listing-branches.md",
@@ -1138,7 +1266,11 @@
         "next_trigger": "Reopen only for a concrete USA rare course/track branch or an upstream original observed missing arm; never treat native-only search as original capture.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0107-race-listing-branches.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0107-race-listing-branches.md",
+        "source_blob_sha": "2fb6dfefd4b9d9ad38b1658eadc187d2bc27782b",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 18081,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0108-race-branch-remainder.md",
@@ -1152,7 +1284,11 @@
         "next_trigger": "Reopen when specific USA rare branch can be reached with authentic inputs or Mal OPEN-BRANCHES later accepts capture.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0108-race-branch-remainder.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0108-race-branch-remainder.md",
+        "source_blob_sha": "53b2b8c141b129c625ebdfda8e91512d22656ffd",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 19222,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0109-coverage-census.md",
@@ -1166,7 +1302,11 @@
         "next_trigger": "Trigger: only a demonstrated UR static-code mapping or event coverage gap warrants crosswalk.",
         "ur_reference": "analysis/data/three-project-apparatus-capability-matrix-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0109-coverage-census.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0109-coverage-census.md",
+        "source_blob_sha": "a5ca529205846565429366c4e006ec24d8ebfacb",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 28131,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0110-app-parity.md",
@@ -1180,7 +1320,11 @@
         "next_trigger": "Trigger: a demonstrated current Windows app-vs-replay phase mismatch; do not import PAL app or narrow path code.",
         "ur_reference": "docs/WORK-QUEUE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0110-app-parity.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0110-app-parity.md",
+        "source_blob_sha": "0111f6bc0c41cfea1ef9f7f3f1caffbdc4235f07",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 17062,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0111-save-image-exact.md",
@@ -1194,7 +1338,11 @@
         "next_trigger": "Trigger: perform original-USA static writer/reader crosswalk around 0x10A7 before any emulator replay; retain both full-image strict comparisons.",
         "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0111-save-image-exact.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0111-save-image-exact.md",
+        "source_blob_sha": "22d83f655f47cdd0fcb861639814cd9f0b8d27a8",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 21365,
+        "change_kind": "added"
       },
       {
         "path": "docs/research/R-0112-census-remainder.md",
@@ -1208,7 +1356,11 @@
         "next_trigger": "Trigger: a new original-USA symbol/reachability question; verify structural homologs and computed-flow targets.",
         "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0112-census-remainder.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/research/R-0112-census-remainder.md",
+        "source_blob_sha": "1eb309075e312f841dd5fa4166b241dee0c05f6c",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 20592,
+        "change_kind": "added"
       },
       {
         "path": "src/app/CMakeLists.txt",
@@ -1222,7 +1374,11 @@
         "next_trigger": "Trigger: reproducible UR SDL dependency download outage with unaltered verified archive digest.",
         "ur_reference": "docs/CI-WORKFLOW-BEST-PRACTICES.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/CMakeLists.txt"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/CMakeLists.txt",
+        "source_blob_sha": "f58f67aadb42b35a4150c0e1974daf02a8c2db31",
+        "baseline_blob_sha": "52dd37628a2325419a7af4171cca23283e58c565",
+        "source_size_bytes": 2771,
+        "change_kind": "modified"
       },
       {
         "path": "src/app/README.md",
@@ -1231,7 +1387,11 @@
         "deletions": 12,
         "domain": "native-app",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "a5f68bad1306320b2a3a02f2b5fe173543695ce8",
+        "baseline_blob_sha": "6b79350f22dad7ebf56995b6d4109d554d7fd03e",
+        "source_size_bytes": 8428,
+        "change_kind": "modified"
       },
       {
         "path": "src/app/frontend.cpp",
@@ -1245,7 +1405,11 @@
         "next_trigger": "Trigger: failing exact-current Windows notice/demo/input clock with existing proof missing.",
         "ur_reference": "docs/QA-PLAYER-JOURNEYS.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/frontend.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/frontend.cpp",
+        "source_blob_sha": "b15b5eeb69b285fe9e518e87723a5230be96bee5",
+        "baseline_blob_sha": "5abe552d9a6881522d2b7205961784433c33fb58",
+        "source_size_bytes": 11985,
+        "change_kind": "modified"
       },
       {
         "path": "src/app/frontend.hpp",
@@ -1254,7 +1418,11 @@
         "deletions": 14,
         "domain": "native-app",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "c39361142cc445dbd4a05d89006a63ec240ce478",
+        "baseline_blob_sha": "167ef93de7b27510546fc48e5d655342b423e2aa",
+        "source_size_bytes": 14491,
+        "change_kind": "modified"
       },
       {
         "path": "src/app/save_file.cpp",
@@ -1268,7 +1436,11 @@
         "next_trigger": "Trigger: only specific new current product save defect; use native UR profile/save authority.",
         "ur_reference": "native/product/baldosa_native_profile_sram_checkpoint.hpp",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/save_file.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/save_file.cpp",
+        "source_blob_sha": "ec1e3b50f73f2d262eaab45cd13466d2a7cd9d91",
+        "baseline_blob_sha": "0037b36de91f4a5143531359c56165d1b6b53138",
+        "source_size_bytes": 3134,
+        "change_kind": "modified"
       },
       {
         "path": "src/app/save_file.hpp",
@@ -1277,7 +1449,11 @@
         "deletions": 0,
         "domain": "native-app",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "8864d73d182572d6f93ed0946f456e5502cae2cc",
+        "baseline_blob_sha": "6ab62c6580f0d97d82c97ab24f437a7061ddb88e",
+        "source_size_bytes": 2127,
+        "change_kind": "modified"
       },
       {
         "path": "src/app/sdl_main.cpp",
@@ -1291,7 +1467,11 @@
         "next_trigger": "Trigger: specific reproduced Windows app/runner divergence only.",
         "ur_reference": "native/product/baldosa_execution_backend.hpp",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/sdl_main.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/app/sdl_main.cpp",
+        "source_blob_sha": "fd0e3030375179a87e0aaefd308a3850d7e4425d",
+        "baseline_blob_sha": "c8e2035c44f9b01ed2ee05a1cbf855dcf629409a",
+        "source_size_bytes": 50827,
+        "change_kind": "modified"
       },
       {
         "path": "src/app/title_menu_audio_stream.cpp",
@@ -1300,7 +1480,11 @@
         "deletions": 7,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "c5994191b59babc8eec566ccccfb81514d1bd49e",
+        "baseline_blob_sha": "a6dab82c1b32c9c9429d700ea9b28a4eecdc6444",
+        "source_size_bytes": 6597,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/CMakeLists.txt",
@@ -1309,7 +1493,11 @@
         "deletions": 2,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "f23e367eb7e8b33ee5ed45096e941f96f677efd4",
+        "baseline_blob_sha": "4ba5d9d1fcfc0af2b2bef19aee3d3c0228ac78f6",
+        "source_size_bytes": 4745,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/README.md",
@@ -1318,7 +1506,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "d3fe37ef718821e94ad145876b28768d7d4a09dc",
+        "baseline_blob_sha": "06f45d93453e7da73443d7afc775f5ab6865556d",
+        "source_size_bytes": 27722,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/audio_cpu_upload.cpp",
@@ -1327,7 +1519,11 @@
         "deletions": 1,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "27a0572e6dfe9c988da78e596c787e2a962d6288",
+        "baseline_blob_sha": "b346555c2eb77a36b1e484eb68ad9cbd43024fb1",
+        "source_size_bytes": 12697,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/audio_cpu_upload.hpp",
@@ -1336,7 +1532,11 @@
         "deletions": 5,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "5d5ecf4893407bee8b06edddba186aa2760e7857",
+        "baseline_blob_sha": "0bdd1956f58af7167a72baadc409e316d97add5f",
+        "source_size_bytes": 3509,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/audio_cue.hpp",
@@ -1345,7 +1545,11 @@
         "deletions": 4,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "fcf5db33065178d656c001785c07cccf5905e02a",
+        "baseline_blob_sha": "c47b0c309cd076971ee5c200136fbd789c4dcf32",
+        "source_size_bytes": 6110,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/audio_cued_scenes.cpp",
@@ -1354,7 +1558,11 @@
         "deletions": 4,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "812be4653b51b0eb59ffbfde8191bb4169f50d0a",
+        "baseline_blob_sha": "1c7afa775d0f453d7e1e08fea6eb4d7bf9d8bd2c",
+        "source_size_bytes": 13896,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/audio_engine.cpp",
@@ -1363,7 +1571,11 @@
         "deletions": 2,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "0c8e4834078dd2e6b5c210d0c9bde56b12b289ed",
+        "baseline_blob_sha": "491927bf222f5a2753cd1b598da466c799fc44d4",
+        "source_size_bytes": 9042,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/audio_score_controls.cpp",
@@ -1372,7 +1584,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "b48c48fdf9c057552134733bf80111c3876d8d46",
+        "baseline_blob_sha": "26e522f8398d549cb47a0746cdcbcdfb997edc05",
+        "source_size_bytes": 12648,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/award.cpp",
@@ -1381,7 +1597,11 @@
         "deletions": 1,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "159d142d023d1d312d01b173afbe2707429aa22a",
+        "baseline_blob_sha": "9d42a47e63abcd6aaba922c7e5011c004a15258c",
+        "source_size_bytes": 17741,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/cartridge_ram.cpp",
@@ -1395,7 +1615,11 @@
         "next_trigger": "Trigger: missing original-USA SRAM writer/reader causality after existing crossed witness; no transplant.",
         "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/cartridge_ram.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/cartridge_ram.cpp",
+        "source_blob_sha": "bd17b02dee58f73be0af07a8bcce47dfa64b916f",
+        "baseline_blob_sha": "4974a743895e11f1a842317b2d6664f431950e5f",
+        "source_size_bytes": 14780,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/cartridge_ram.hpp",
@@ -1404,7 +1628,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "f5a2ac50323798ff38ae45873f4eee266ff4c24a",
+        "baseline_blob_sha": "f294cf62de03e80ffc263fb0ac507b7b602ee15e",
+        "source_size_bytes": 2976,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/content_pack.cpp",
@@ -1413,7 +1641,11 @@
         "deletions": 15,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "a56b7cb90aa54e81843f5f5c6e556fe3acddc546",
+        "baseline_blob_sha": "1f1070f5156d84062ae24005a5cc7c4e366fdd57",
+        "source_size_bytes": 91049,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/demo_sound.cpp",
@@ -1422,7 +1654,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "3cf32d6f12fec20d0ea05af00f43c81e33fefedc",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 3159,
+        "change_kind": "added"
       },
       {
         "path": "src/core/flat_contact.hpp",
@@ -1431,7 +1667,11 @@
         "deletions": 2,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "a6f8d470acb1607663d387b2f89810fd90e205cd",
+        "baseline_blob_sha": "b8c8359299087f1c77343985f17fccdceea6ae51",
+        "source_size_bytes": 3208,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/front_end.cpp",
@@ -1445,7 +1685,11 @@
         "next_trigger": "Reopen for a current USA cold-boot/profile or guest-vs-Modern state disagreement on exact source candidate.",
         "ur_reference": "docs/PROJECT-PLAN.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end.cpp",
+        "source_blob_sha": "9225d0b3536c3738c6973b84d17e235cd5ed0d33",
+        "baseline_blob_sha": "ca6f7049097536fee6587ef53192d21dbe850ceb",
+        "source_size_bytes": 70567,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/front_end.hpp",
@@ -1459,7 +1703,11 @@
         "next_trigger": "Trigger: exact USA state-schema mismatch observed; use source addresses for hypothesis only.",
         "ur_reference": "native/product/baldosa_execution_backend.hpp",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end.hpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end.hpp",
+        "source_blob_sha": "4b4b33b5b0781e1cddd254e47ed824d4ef751537",
+        "baseline_blob_sha": "ba495a538a5eac3b1c307bcc7d699f1f5902f029",
+        "source_size_bytes": 49624,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/front_end_runner.cpp",
@@ -1473,7 +1721,11 @@
         "next_trigger": "Trigger: after identifying a missing original USA checksum or write-consumer trace, reuse existing witness format.",
         "ur_reference": "tools/qa01_postresult_sram_diff.py",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end_runner.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end_runner.cpp",
+        "source_blob_sha": "5ea3c0c1abbf4c0d66014c314483773181499eb8",
+        "baseline_blob_sha": "fa507160b9086c40100366ee3a4e4dd382e46d7d",
+        "source_size_bytes": 46873,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/front_end_screens.hpp",
@@ -1487,7 +1739,11 @@
         "next_trigger": "Reopen for original-USA exact 0x10A7 writer/consumer chronology or boot-mode word mismatch; no native frontend transplant.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end_screens.hpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end_screens.hpp",
+        "source_blob_sha": "d6e22ec641d4053fd411cf4209f8850e517c6bcb",
+        "baseline_blob_sha": "d837f36eb807ec8a286236870b0f1adcedf9cde4",
+        "source_size_bytes": 36881,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/high_scores.cpp",
@@ -1496,7 +1752,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "1004d8f41ac2528225115f167a8d3902fa0574e9",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 10663,
+        "change_kind": "added"
       },
       {
         "path": "src/core/hunter_effects.cpp",
@@ -1505,7 +1765,11 @@
         "deletions": 2,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "2f728f3eadca9f44aec74ae9a02f487309823f49",
+        "baseline_blob_sha": "8106efcea9d1697906460a11e090a09eeb0c26f8",
+        "source_size_bytes": 11348,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/hunter_ending.cpp",
@@ -1514,7 +1778,11 @@
         "deletions": 26,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "11df08772048d244609e3cc1e6f65a90fbd1b3f2",
+        "baseline_blob_sha": "2f3e699b6a22627f6659426eb5813b6abbfda681",
+        "source_size_bytes": 17615,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/lab_outputs.cpp",
@@ -1528,7 +1796,11 @@
         "next_trigger": "Trigger: genuine UR output-serializer drift not covered by exact-source receipts.",
         "ur_reference": "tools/evidence_contract.py",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/lab_outputs.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/lab_outputs.cpp",
+        "source_blob_sha": "1cc5116b5a190a1b0eb876d1a096faafbaa4a4db",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1397,
+        "change_kind": "added"
       },
       {
         "path": "src/core/lab_outputs.hpp",
@@ -1537,7 +1809,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "91dee443fb33e140228f04111035b362d0cd9932",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1135,
+        "change_kind": "added"
       },
       {
         "path": "src/core/lap_result.cpp",
@@ -1546,7 +1822,11 @@
         "deletions": 3,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "51d0e2ec8a722cc53cb6eb1d01750ccb960f2aad",
+        "baseline_blob_sha": "d33644179716e39edb27edba0f43036021fa05dc",
+        "source_size_bytes": 14183,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/league_completion.cpp",
@@ -1555,7 +1835,11 @@
         "deletions": 24,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "feb9075f1db8ece98ec6127b8f90d2345ee0e4c2",
+        "baseline_blob_sha": "91a0fd4ebf61f5b721c46a0c158e93391ba3d5b7",
+        "source_size_bytes": 15066,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/league_menu.cpp",
@@ -1569,7 +1853,11 @@
         "next_trigger": "Reopen for source-current USA corrupt-SRAM race/record behavior; use existing first-party crash/host validity controls and original-USA writer evidence.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/league_menu.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/league_menu.cpp",
+        "source_blob_sha": "cbd3349f50223c8e694cc69a4e493f1ab8742f05",
+        "baseline_blob_sha": "16a1396739f080167453917e40b5aa82a108428d",
+        "source_size_bytes": 31139,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/local_modes.cpp",
@@ -1578,7 +1866,11 @@
         "deletions": 96,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "a7490dadf01b35a3137bfd3fe9a2cff7ede01d4a",
+        "baseline_blob_sha": "dc60b707a5e59e7b5c6c90a49e24e77427c8afc3",
+        "source_size_bytes": 15599,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/menu_overruns.cpp",
@@ -1587,7 +1879,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "d38854e983c9b2598d4d40454be3a660fcc06a0e",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 10963,
+        "change_kind": "added"
       },
       {
         "path": "src/core/menu_overruns.hpp",
@@ -1596,7 +1892,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "315e4aee1dd8cfcbf7abbc8ef9d7e17817ea6fef",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 3529,
+        "change_kind": "added"
       },
       {
         "path": "src/core/name_check.cpp",
@@ -1605,7 +1905,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "14ece195d5b66cbbabbed7286f1afbf7449efb06",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 5112,
+        "change_kind": "added"
       },
       {
         "path": "src/core/name_check.hpp",
@@ -1614,7 +1918,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "fea90ff9a732451edc5ccab28b426b3091ef76ed",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 944,
+        "change_kind": "added"
       },
       {
         "path": "src/core/now_playing.cpp",
@@ -1623,7 +1931,11 @@
         "deletions": 16,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "207c4ae2bd1855081c4ef5a680e02f33654d4061",
+        "baseline_blob_sha": "10f688d03ce868144ba14d0b166f980d37285510",
+        "source_size_bytes": 19482,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/options_menu.cpp",
@@ -1637,7 +1949,11 @@
         "next_trigger": "Reopen only for original USA Authentic records/keyboard input or native sprite visibility discrepancy.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/options_menu.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/options_menu.cpp",
+        "source_blob_sha": "fea559ca50b2a5e39dfc29f1f71908510026d71c",
+        "baseline_blob_sha": "0301819bb5e265b72a929902380371fb5b31be4a",
+        "source_size_bytes": 33616,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/presentation.cpp",
@@ -1651,7 +1967,11 @@
         "next_trigger": "Trigger: source-current QA08 P2 visibility/occlusion or actual out-of-bounds crash with existing original pixels.",
         "ur_reference": "docs/BALDOSA-WIDE-OAM-SOURCE-TEMPORAL-CONTRACT.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/presentation.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/presentation.cpp",
+        "source_blob_sha": "b4a121fe8d7c01b1bdfbabcc156f26c5a141a191",
+        "baseline_blob_sha": "1f4a28dd4eb90160fe82229fe91e18a1678e03af",
+        "source_size_bytes": 55277,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/presentation.hpp",
@@ -1660,7 +1980,11 @@
         "deletions": 2,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "fc934b1cc406984d9cc9dc7643e198f22b87dd30",
+        "baseline_blob_sha": "d635a4cc73ec191c688ac0cdeb86ef7d0f0a3731",
+        "source_size_bytes": 40245,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/race_demo_controls.cpp",
@@ -1669,7 +1993,11 @@
         "deletions": 10,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "79b70f11db312dad509e5f094b0489f0cede2934",
+        "baseline_blob_sha": "c38a0b37f6a354ddfc818c59592e72ae2263e039",
+        "source_size_bytes": 5648,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/race_hud.cpp",
@@ -1678,7 +2006,11 @@
         "deletions": 21,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "dc56722faa3f94103b26fa1ef2855edf5178c500",
+        "baseline_blob_sha": "dcd82d03d75a1ee035af92021dd2c047815074fe",
+        "source_size_bytes": 62069,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/race_result.cpp",
@@ -1692,7 +2024,11 @@
         "next_trigger": "Reopen for verified current USA race→result→records/cold-save mismatch after existing original/native event evidence is read.",
         "ur_reference": "docs/PROJECT-PLAN.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/race_result.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/race_result.cpp",
+        "source_blob_sha": "c236949bec0289d10f253002021f9b1409f4d047",
+        "baseline_blob_sha": "b1735ccecbe7471e0a60f2edfa9022478b93f57e",
+        "source_size_bytes": 50574,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/race_setup.cpp",
@@ -1701,7 +2037,11 @@
         "deletions": 4,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "f418d18ab1ae3165796d337f9160a873c517ecc7",
+        "baseline_blob_sha": "9472a88c589ac593239912da9d838e14d6070674",
+        "source_size_bytes": 21896,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/race_sound.cpp",
@@ -1710,7 +2050,11 @@
         "deletions": 2,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "3e4382c2f04ec92be624ddf252ad790401ae3eca",
+        "baseline_blob_sha": "f4110a265ad0ed36ec36503d041af7fa4e08af22",
+        "source_size_bytes": 6509,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/race_sound.hpp",
@@ -1719,7 +2063,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "a71d6bc53aad01a4f6cb92c54b21bcb73c8b65a8",
+        "baseline_blob_sha": "9fb21065baf8450056401c2658f2da3ad6c64bd9",
+        "source_size_bytes": 3782,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/race_state_io.cpp",
@@ -1728,7 +2076,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "0ca47ca853705526c27817b2071c9ad0768661df",
+        "baseline_blob_sha": "2c146b86c2116043ee1c1fe138b6be5371ab1691",
+        "source_size_bytes": 93890,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/race_update.cpp",
@@ -1742,7 +2094,11 @@
         "next_trigger": "Trigger: source-confirm USA $77:0750 bit3 homolog and reproduced two-rider landing mismatch.",
         "ur_reference": "reference/notes/oam-active-display.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/race_update.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/race_update.cpp",
+        "source_blob_sha": "4b5d05ff2b84b9089d2c24fe51097ead6dc99dc3",
+        "baseline_blob_sha": "3f30b2b081da05987896660bc8ff151d63ee868a",
+        "source_size_bytes": 62293,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/records_scores.cpp",
@@ -1751,7 +2107,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "5692c1aa74c1685387299dcbb879e8cb5a648e1f",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 27068,
+        "change_kind": "added"
       },
       {
         "path": "src/core/reward_queue.cpp",
@@ -1760,7 +2120,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "e05647952a959985cf76813548bcc706da3bf479",
+        "baseline_blob_sha": "24d74bd4aae3da8ccfda50c794ebb6e300d5c569",
+        "source_size_bytes": 22609,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/rider_menu.cpp",
@@ -1774,7 +2138,11 @@
         "next_trigger": "Reopen for real USA pad ownership, mode flag or original menu discrepancy; don't import PAL selector/UI.",
         "ur_reference": "docs/PROJECT-PLAN.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/rider_menu.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/rider_menu.cpp",
+        "source_blob_sha": "14913387abc9b2bfe16976b6a22a7d8169a0f40f",
+        "baseline_blob_sha": "16240c12adcde73771b9fe6be14e07472fcae1d7",
+        "source_size_bytes": 31400,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/stunt_event.cpp",
@@ -1783,7 +2151,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "b23a82ab490271cbc511fac4a6e68be91d94819f",
+        "baseline_blob_sha": "74ad42ae13dfa63e427079b9b67cf8c9374434b0",
+        "source_size_bytes": 6509,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/stunt_event.hpp",
@@ -1792,7 +2164,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "a20740352ec1e48fdf03a7247998655fd48a02b1",
+        "baseline_blob_sha": "43c72ba9867ce5c08e4c3449c3b7ef756c5f0ca2",
+        "source_size_bytes": 2682,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/stunt_result.cpp",
@@ -1801,7 +2177,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "6a768fdd869551b625a5438f54b9d6597ca28f21",
+        "baseline_blob_sha": "e85eb239d6dd1fae28a5514414ed43e9ce8d97b3",
+        "source_size_bytes": 19142,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/text_printer.cpp",
@@ -1810,7 +2190,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "71535bad19d7de98c4b1b30d25cf0b4b646e69d4",
+        "baseline_blob_sha": "9b2916122d6dd87572cca533ddbecb1d37140999",
+        "source_size_bytes": 12947,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/text_printer.hpp",
@@ -1819,7 +2203,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "1d592a42c2bf4e079742197b3406c38b3df31c15",
+        "baseline_blob_sha": "8bb8acc8fd5303cb832495a5614d8d5809df36d1",
+        "source_size_bytes": 3155,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/title_menu_audio.cpp",
@@ -1828,7 +2216,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "b4af5043afef255b79052a2298a4a80574d19662",
+        "baseline_blob_sha": "bb1a28b29091dab2bf354f944f5ea35e7db3c0ee",
+        "source_size_bytes": 14706,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/title_menu_audio.hpp",
@@ -1837,7 +2229,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "8673428e7146262642261f68c43ae91f9b6295bf",
+        "baseline_blob_sha": "f7f8c3240638041711adc60a2130d10a8a2bfc1c",
+        "source_size_bytes": 6419,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/title_menu_audio_content.cpp",
@@ -1846,7 +2242,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "3c14424e211b6faf3f57c603f9b1508f2c3e1ab9",
+        "baseline_blob_sha": "a98587fcfb954584187cd35b7a67a65e08bdfd7e",
+        "source_size_bytes": 10998,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/tour_ending.cpp",
@@ -1855,7 +2255,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "0ba98b646a7c67a6fc6e650ebe5021aa34a744cb",
+        "baseline_blob_sha": "bea5e7602993b06fc9f84db46fd2d22b671eb5dc",
+        "source_size_bytes": 14537,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/tour_menu.cpp",
@@ -1864,7 +2268,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "9bd7891a90b6a1c4a9bdc24172a37d483f86a7fa",
+        "baseline_blob_sha": "60d705d748854c5d48ad84e04f47e7b986a08f06",
+        "source_size_bytes": 17388,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/track_menu.cpp",
@@ -1878,7 +2286,11 @@
         "next_trigger": "Reopen to align actual Zoo result+32→+64 original/native call chronology at 80:EB0D and verify downstream marker presentation before causal claim.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/track_menu.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/track_menu.cpp",
+        "source_blob_sha": "24d7e198b81f5f0971c9bfd5f64d983b200ea44a",
+        "baseline_blob_sha": "03d9bf9f34c153e5f18ccbd1ae1128c223237383",
+        "source_size_bytes": 13035,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/track_records.cpp",
@@ -1887,7 +2299,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "aa9f1cdadcc4e89ccfc32a2ee2a74183182d6f48",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 28262,
+        "change_kind": "added"
       },
       {
         "path": "src/core/vertical_contact.cpp",
@@ -1901,7 +2317,11 @@
         "next_trigger": "Reopen for true current USA HUNTER second rider landing mismatch or an independent USA original source branch witness.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/vertical_contact.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/vertical_contact.cpp",
+        "source_blob_sha": "ee27c16da1318cfd0a4c985fb2a4447b34712253",
+        "baseline_blob_sha": "3fad6a3074417513f6ec872e36497c6fc2e3dd86",
+        "source_size_bytes": 27573,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/vertical_contact.hpp",
@@ -1910,7 +2330,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "77363ec106aa1a58a7a0e035d036817e1dd6f53e",
+        "baseline_blob_sha": "b4b6871ea056d52ed7c3d11ab213e08aac5c2bce",
+        "source_size_bytes": 2174,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/zoom_zoo_movement.hpp",
@@ -1919,7 +2343,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "4294c23edcc05d37998463443b8297dfdb6465dc",
+        "baseline_blob_sha": "982400b866e46aa0d82c2ce8b867bcd24186dda9",
+        "source_size_bytes": 35975,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/zoom_zoo_pack.hpp",
@@ -1928,7 +2356,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "d625f6b85b5a4819b54bc6ca05cf324e5b295e73",
+        "baseline_blob_sha": "b657c8a105f8ab976b4c6b4532ce3d7ad04c193e",
+        "source_size_bytes": 3893,
+        "change_kind": "modified"
       },
       {
         "path": "src/core/zoom_zoo_runner.cpp",
@@ -1937,7 +2369,11 @@
         "deletions": 0,
         "domain": "native-gameplay",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "1bc2d250203d3e7272e350e4a1325526697aede1",
+        "baseline_blob_sha": "2a4126c78f6a83a7e84ac562b9b04a2ac8ebe0c3",
+        "source_size_bytes": 17361,
+        "change_kind": "modified"
       },
       {
         "path": "tasks/APP-LEAGUE-RACE.md",
@@ -1951,7 +2387,11 @@
         "next_trigger": "Reopen for a measured current USA league race script-clock or load-phase mismatch; consult R-0106 and existing QA journeys.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/APP-LEAGUE-RACE.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/APP-LEAGUE-RACE.md",
+        "source_blob_sha": "3cdd7f185a4bb839928f319e24ad4212fac62a2a",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 15342,
+        "change_kind": "added"
       },
       {
         "path": "tasks/APP-PARITY.md",
@@ -1965,7 +2405,11 @@
         "next_trigger": "Reopen for an actual current UR Windows app-vs-runner mismatch not already covered by DATA-05; use R-0110, not PAL frontend transplant.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/APP-PARITY.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/APP-PARITY.md",
+        "source_blob_sha": "f884df2b56ef94db23c1e174347dd963d8a010f8",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 17970,
+        "change_kind": "added"
       },
       {
         "path": "tasks/CARTRIDGE-OPTION-BITS.md",
@@ -1979,7 +2423,11 @@
         "next_trigger": "Reopen for original-USA cold progress/2P mode difference. First compare US opcode/address source and current SRAM contract.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CARTRIDGE-OPTION-BITS.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CARTRIDGE-OPTION-BITS.md",
+        "source_blob_sha": "5c66074537cb3e24e3dbec76dba9c121d1e13dcc",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 18204,
+        "change_kind": "added"
       },
       {
         "path": "tasks/CENSUS-REMAINDER.md",
@@ -1993,7 +2441,11 @@
         "next_trigger": "Reopen for a concrete unmapped USA address/reachability question or updated original upstream census; never treat PAL percentage as USA event proof.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CENSUS-REMAINDER.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CENSUS-REMAINDER.md",
+        "source_blob_sha": "db7c27ba65ad4a25fec09e44c87514839f73fcfc",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 9203,
+        "change_kind": "added"
       },
       {
         "path": "tasks/COVERAGE-CENSUS.md",
@@ -2007,7 +2459,11 @@
         "next_trigger": "Reopen only where a live USA coverage or original/source discrepancy requires PAL structural correspondence; use existing UR atlas.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/COVERAGE-CENSUS.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/COVERAGE-CENSUS.md",
+        "source_blob_sha": "94498aac8c545c4a8d4453a157fe190fa8023f2f",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 11027,
+        "change_kind": "added"
       },
       {
         "path": "tasks/CPU-CYCLE-TIMING.md",
@@ -2021,7 +2477,11 @@
         "next_trigger": "Review when this PAL task merges or when a current USA original/native CPU-clock/HDMA causal mismatch needs one scoped discriminating observation.",
         "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CPU-CYCLE-TIMING.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CPU-CYCLE-TIMING.md",
+        "source_blob_sha": "492ef4f4ce99186b5133ea264f3bd0376afc74fd",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 782,
+        "change_kind": "added"
       },
       {
         "path": "tasks/DEMO-AUDIO.md",
@@ -2035,7 +2495,11 @@
         "next_trigger": "Reopen on genuine current USA demo/attract audio or first causal CPU→SPC discrepancy, with local original traces first.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/DEMO-AUDIO.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/DEMO-AUDIO.md",
+        "source_blob_sha": "03031cfedcebc8b25c7b54d50f6b9d3a29d935d1",
+        "baseline_blob_sha": "5a1c5dc7e7d843d5715e12eed4b5b5ea808cddb3",
+        "source_size_bytes": 16453,
+        "change_kind": "modified"
       },
       {
         "path": "tasks/EVIDENCE-LARGE-FILES.md",
@@ -2049,7 +2513,11 @@
         "next_trigger": "Reopen for measured UR retained-evidence disk bottleneck only; do not delete authoritative artifacts or copy macOS assumptions.",
         "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/EVIDENCE-LARGE-FILES.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/EVIDENCE-LARGE-FILES.md",
+        "source_blob_sha": "e65467cd6ec3ac15c0aea0d1eb2a042d621adab2",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 8895,
+        "change_kind": "added"
       },
       {
         "path": "tasks/EVIDENCE-RETENTION.md",
@@ -2063,7 +2531,11 @@
         "next_trigger": "Reopen for new upstream archival or rights policy changes affecting an actual UR retained artifact; don't schedule historic cleanup.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/EVIDENCE-RETENTION.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/EVIDENCE-RETENTION.md",
+        "source_blob_sha": "626b63cdeba3ec543e69fdd4e9923fa6f5f48905",
+        "baseline_blob_sha": "363bf4c8e58366c14e6f3ccbc35aa28273ad62fe",
+        "source_size_bytes": 8421,
+        "change_kind": "modified"
       },
       {
         "path": "tasks/GATES-AGAINST-MAIN.md",
@@ -2077,7 +2549,11 @@
         "next_trigger": "Reopen only on measured UR CI fanout bottleneck; validate stale-dependency negatives and independent original witness, don't count equal main digests as USA QA.",
         "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/GATES-AGAINST-MAIN.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/GATES-AGAINST-MAIN.md",
+        "source_blob_sha": "05063cfefa72a629d3bd31b7c8a5ef717a8caa01",
+        "baseline_blob_sha": "d1218a48c095d685cfe69a1aef5c4666d210e735",
+        "source_size_bytes": 14010,
+        "change_kind": "modified"
       },
       {
         "path": "tasks/LEAGUE-TOURS.md",
@@ -2091,7 +2567,11 @@
         "next_trigger": "Reopen on a present USA league/2P result or cold-progression discrepancy using exact original inputs and source provenance.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/LEAGUE-TOURS.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/LEAGUE-TOURS.md",
+        "source_blob_sha": "b744650378bb47dd2e03a54ec2b3cb975194f80e",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 16579,
+        "change_kind": "added"
       },
       {
         "path": "tasks/MENU-INPUT.md",
@@ -2105,7 +2585,11 @@
         "next_trigger": "Reopen on a current USA Authentic-menu input defect, not to impose original keyboard rejection on Modern host.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/MENU-INPUT.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/MENU-INPUT.md",
+        "source_blob_sha": "1c93ef3721a4c1a415a9cccb960e60efd6c70db2",
+        "baseline_blob_sha": "7f2e6cf000354716ceff9f673ece3a207c4d4756",
+        "source_size_bytes": 15353,
+        "change_kind": "modified"
       },
       {
         "path": "tasks/NAME-CHECK.md",
@@ -2119,7 +2603,11 @@
         "next_trigger": "Reopen only for authentic stock-UI original-USA parity or a separately observed timing issue.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/NAME-CHECK.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/NAME-CHECK.md",
+        "source_blob_sha": "6162f4d13cc4f560ba888a3fd4e4961cfa97ebc9",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 9538,
+        "change_kind": "added"
       },
       {
         "path": "tasks/NEXT_SESSION.md",
@@ -2133,7 +2621,11 @@
         "next_trigger": "Read newest section after a source delta; do not mirror narrative into UR live agent onboarding.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/NEXT_SESSION.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/NEXT_SESSION.md",
+        "source_blob_sha": "69ec1e5268d2aba69a85642d31359f3443c6d148",
+        "baseline_blob_sha": "9f10970a0f45cd9de801e8f1f30f75b6e5d59be7",
+        "source_size_bytes": 107197,
+        "change_kind": "modified"
       },
       {
         "path": "tasks/OPEN-BRANCHES.md",
@@ -2147,7 +2639,11 @@
         "next_trigger": "Reopen on upstream accepted route/capture or specific missing USA course/2P behavior, using exact homolog; no speculative new test matrix.",
         "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/OPEN-BRANCHES.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/OPEN-BRANCHES.md",
+        "source_blob_sha": "edf073714de5001be05247ccdff2eeffd396e06b",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1943,
+        "change_kind": "added"
       },
       {
         "path": "tasks/OPPONENT-POSE-BOUNDS.md",
@@ -2161,7 +2657,11 @@
         "next_trigger": "Reopen when upstream corrects semantics or source-current UR own renderer demonstrates corresponding bounds failure; do not transpose PAL table offsets.",
         "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/OPPONENT-POSE-BOUNDS.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/OPPONENT-POSE-BOUNDS.md",
+        "source_blob_sha": "e3852f8cf17e1d6f83f560da9523275c8e946b26",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1026,
+        "change_kind": "added"
       },
       {
         "path": "tasks/PICTURE-RESIDUALS.md",
@@ -2175,7 +2675,11 @@
         "next_trigger": "Reopen on merged PAL verified final-pixel evidence or one current USA QA08 first-visible-pixel counterexample.",
         "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PICTURE-RESIDUALS.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PICTURE-RESIDUALS.md",
+        "source_blob_sha": "2675a6664db27de42e6d09709c646295c5ccbcd3",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 869,
+        "change_kind": "added"
       },
       {
         "path": "tasks/PODIUM-AUDIO.md",
@@ -2189,7 +2693,11 @@
         "next_trigger": "Reopen for current USA podium audio/exit discrepancy with existing RF094 CPU↔SPC route and independent sound output.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PODIUM-AUDIO.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PODIUM-AUDIO.md",
+        "source_blob_sha": "af4b82587624793f8a0dbacfdb4a68c0988b7632",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 18050,
+        "change_kind": "added"
       },
       {
         "path": "tasks/PODIUM-RETURN-TIMING.md",
@@ -2203,7 +2711,11 @@
         "next_trigger": "Reopen only if USA source owner sees a real menu timing/record issue; inspect audio handshake before speculative cycle estimates.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PODIUM-RETURN-TIMING.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PODIUM-RETURN-TIMING.md",
+        "source_blob_sha": "aa633a10577c91f5917bfa8d45c894da1da01b2a",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 30993,
+        "change_kind": "added"
       },
       {
         "path": "tasks/RACE-BRANCH-REMAINDER.md",
@@ -2217,7 +2729,11 @@
         "next_trigger": "Reopen on upstream original capture of surviving arm or corresponding USA course mechanics failure.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RACE-BRANCH-REMAINDER.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RACE-BRANCH-REMAINDER.md",
+        "source_blob_sha": "8978aae9cb8f8085d48caced2b332ca187ceea02",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 15716,
+        "change_kind": "added"
       },
       {
         "path": "tasks/RACE-LISTING-BRANCHES.md",
@@ -2231,7 +2747,11 @@
         "next_trigger": "Reopen only on new original inputs for rare USA conditions; avoid duplicate source census.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RACE-LISTING-BRANCHES.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RACE-LISTING-BRANCHES.md",
+        "source_blob_sha": "51a6f8c6c4961611506623e085c1d6960e20b694",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 15811,
+        "change_kind": "added"
       },
       {
         "path": "tasks/README.md",
@@ -2245,7 +2765,11 @@
         "next_trigger": "Refresh on each changed Mal HEAD or upstream PR/issue delta; do not copy task registry as independent UR dispatch.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/README.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/README.md",
+        "source_blob_sha": "104be6c06913565b9af0558b1a2177f1914b9026",
+        "baseline_blob_sha": "a672d430f27b66ae8a55c3ac42c3a7c8cdf53c5b",
+        "source_size_bytes": 35491,
+        "change_kind": "modified"
       },
       {
         "path": "tasks/RECORD-SCREENS.md",
@@ -2259,7 +2783,11 @@
         "next_trigger": "Reopen on an actual USA Authentic/Modern records navigation or visible input mismatch; no second frontend.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RECORD-SCREENS.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RECORD-SCREENS.md",
+        "source_blob_sha": "70546ffbd8ea9155ad74bec8f084ae4cda0c3b35",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 14096,
+        "change_kind": "added"
       },
       {
         "path": "tasks/SAVE-IMAGE-EXACT.md",
@@ -2273,7 +2801,11 @@
         "next_trigger": "Reopen for new cross-project 0x10A7 dynamic writer/consumer evidence, a source-current USA SRAM defect, or upstream SAVE-IMAGE-REMAINDER completion.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SAVE-IMAGE-EXACT.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SAVE-IMAGE-EXACT.md",
+        "source_blob_sha": "4b41be305b31ae2da32f7b8c8a0974af083ef4a1",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 22209,
+        "change_kind": "added"
       },
       {
         "path": "tasks/SAVE-IMAGE-REMAINDER.md",
@@ -2287,7 +2819,11 @@
         "next_trigger": "Reopen when original PAL captures close remaining values or when corresponding actual USA saved-record discrepancy is demonstrated; don't weaken strict checks.",
         "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SAVE-IMAGE-REMAINDER.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SAVE-IMAGE-REMAINDER.md",
+        "source_blob_sha": "9e8f3248a3a573606ecfe054dbc02ce9c2e16977",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1787,
+        "change_kind": "added"
       },
       {
         "path": "tasks/SDL-MIRROR.md",
@@ -2301,7 +2837,11 @@
         "next_trigger": "Reopen for genuine UR SDL dependency outage; require equal bytes and source/toolchain pin.",
         "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SDL-MIRROR.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SDL-MIRROR.md",
+        "source_blob_sha": "540e892d170d0eec6c31fb8b204c482559802366",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 4738,
+        "change_kind": "added"
       },
       {
         "path": "tasks/SOUND-PROCESSOR-TIMING.md",
@@ -2315,7 +2855,11 @@
         "next_trigger": "Reopen when upstream accepts a source-qualified driver-phase fix or current USA CPU→SPC causal discrepancy needs bounded new hypothesis.",
         "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SOUND-PROCESSOR-TIMING.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SOUND-PROCESSOR-TIMING.md",
+        "source_blob_sha": "e160f29c215d36f0074b29e916140f37b3327744",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1065,
+        "change_kind": "added"
       },
       {
         "path": "tasks/SPLIT-HUNTER-PICTURES.md",
@@ -2329,7 +2873,11 @@
         "next_trigger": "Reopen only for live USA 2P final raster discrepancy and correctly aligned source visible pixels.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SPLIT-HUNTER-PICTURES.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SPLIT-HUNTER-PICTURES.md",
+        "source_blob_sha": "2644aa9c16d30467cbb46f6ebac9451f20333247",
+        "baseline_blob_sha": "57bc4bb9372b02fcd40ff3bc2f4ea4fc38565ee9",
+        "source_size_bytes": 9522,
+        "change_kind": "modified"
       },
       {
         "path": "tasks/TASK-EFFICIENCY.md",
@@ -2343,7 +2891,11 @@
         "next_trigger": "Reopen for measured UR productivity bottleneck after prioritizing one independently accepted event; no unverified savings claims.",
         "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TASK-EFFICIENCY.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TASK-EFFICIENCY.md",
+        "source_blob_sha": "491ff1faaf8783e2b7885b8ae046aeec42be14c2",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 9264,
+        "change_kind": "added"
       },
       {
         "path": "tasks/TWO-HUMAN-STUNTS.md",
@@ -2357,7 +2909,11 @@
         "next_trigger": "Reopen on current original-USA two-human stunt result/score/progression defect with existing source/guest producer.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TWO-HUMAN-STUNTS.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TWO-HUMAN-STUNTS.md",
+        "source_blob_sha": "c53d408f5840dead01f46168c419373a0316c55a",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 7933,
+        "change_kind": "added"
       },
       {
         "path": "tasks/TWO-VIEW-POWER-BOUNCE.md",
@@ -2371,7 +2927,11 @@
         "next_trigger": "Reopen if USA 2P HUNTER landing is observed to differ or upstream adds original captures of excluded modes.",
         "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TWO-VIEW-POWER-BOUNCE.md"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TWO-VIEW-POWER-BOUNCE.md",
+        "source_blob_sha": "ab05c0110963d9e7af9930a7d143edbf44dbfeee",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 9894,
+        "change_kind": "added"
       },
       {
         "path": "tests/app/frontend_contract_tests.cpp",
@@ -2385,7 +2945,11 @@
         "next_trigger": "Trigger: a new current Windows input-clock or lifecycle regression absent from existing test suite.",
         "ur_reference": "tests/unit/test_baldosa_native_unicode_save_lease.py",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tests/app/frontend_contract_tests.cpp"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tests/app/frontend_contract_tests.cpp",
+        "source_blob_sha": "1da7a99b8d29fdeae21b487d5ca943b3e14fa819",
+        "baseline_blob_sha": "98be5cc9bc8f7817bf3642dab71711bbd00d0c19",
+        "source_size_bytes": 22706,
+        "change_kind": "modified"
       },
       {
         "path": "tests/manifests/content/classic-crawler-tracks-pack.json",
@@ -2394,7 +2958,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "9c07245352e2d0614b5011b6bfdde9bf11629f7c",
+        "baseline_blob_sha": "005a7137fc5c37028e33c4da30bdde3b623e379f",
+        "source_size_bytes": 1840086,
+        "change_kind": "modified"
       },
       {
         "path": "tests/native/audio_score_tests.cpp",
@@ -2403,7 +2971,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "8927c63a0c4a47cbc86897712119d47307c08357",
+        "baseline_blob_sha": "5acad78fc4fe697ab499fe901402d3c65667af1f",
+        "source_size_bytes": 7203,
+        "change_kind": "modified"
       },
       {
         "path": "tests/native/front_end_tests.cpp",
@@ -2412,7 +2984,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "349e4959bb28fee4c1984a4d4295c7c94f468958",
+        "baseline_blob_sha": "27a08da1ddac43f9a044c2fffb0643040aa4472f",
+        "source_size_bytes": 128751,
+        "change_kind": "modified"
       },
       {
         "path": "tests/native/league_tests.cpp",
@@ -2421,7 +2997,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "65fbbcc335fa9f80d0b15962a213b4b90964ec28",
+        "baseline_blob_sha": "087170cdfa55afda6f443b22c23a0c554ffeab1d",
+        "source_size_bytes": 14552,
+        "change_kind": "modified"
       },
       {
         "path": "tests/native/presentation_tests.cpp",
@@ -2430,7 +3010,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "01628d1fe3ff9ed9df0d0d57471be2fce478b351",
+        "baseline_blob_sha": "a7843a5ade98e4650c17aaa58f70b4646d0083ce",
+        "source_size_bytes": 107276,
+        "change_kind": "modified"
       },
       {
         "path": "tests/native/stunt_event_tests.cpp",
@@ -2439,7 +3023,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "87313ed297820ce6cf6c47183af3dd6c9c96cf0d",
+        "baseline_blob_sha": "a4116ee08376f8516a28013ed940bdbee529ff31",
+        "source_size_bytes": 24211,
+        "change_kind": "modified"
       },
       {
         "path": "tests/native/stunt_hud_tests.cpp",
@@ -2448,7 +3036,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "88115cbd732d183632a66479864742410cb4fe7d",
+        "baseline_blob_sha": "c71d788aa7ccd34e5f1d8e8ac4ed3971499b5809",
+        "source_size_bytes": 13880,
+        "change_kind": "modified"
       },
       {
         "path": "tests/native/zoom_zoo_trial_tests.cpp",
@@ -2457,7 +3049,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "4e2e9a30741c2821bc3398b4ad0d04e3986226e5",
+        "baseline_blob_sha": "23698ec107562ec4ab07c2708260908a95a00132",
+        "source_size_bytes": 27221,
+        "change_kind": "modified"
       },
       {
         "path": "tests/tooling/test_capture_files.py",
@@ -2466,7 +3062,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "44a4b3500c6dccff3f400bd4c801111540363bd0",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 3806,
+        "change_kind": "added"
       },
       {
         "path": "tests/tooling/test_compact_evidence.py",
@@ -2475,7 +3075,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "232de3fca2f6c2bc49b14cd8bded263cf6f59236",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 6561,
+        "change_kind": "added"
       },
       {
         "path": "tests/tooling/test_frontend.py",
@@ -2484,7 +3088,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "36938d29187788f96fce26ac4f2e621bf7b1c60b",
+        "baseline_blob_sha": "a18095d70949df8a99e3b93d4c561cbf395cd012",
+        "source_size_bytes": 24441,
+        "change_kind": "modified"
       },
       {
         "path": "tests/tooling/test_gates.py",
@@ -2498,7 +3106,11 @@
         "next_trigger": "Trigger: pinpoint a missing CI dependency-invalidation adversarial test in current UR plan.",
         "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tests/tooling/test_gates.py"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tests/tooling/test_gates.py",
+        "source_blob_sha": "7ff8f7bc0d97d36eac091e3ce9c53407c564e261",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 24060,
+        "change_kind": "added"
       },
       {
         "path": "tests/tooling/test_native_reports.py",
@@ -2507,7 +3119,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "84314d6f5a8b8900e4ad0939117256f79444f047",
+        "baseline_blob_sha": "71c3c6dbfe68e7944f07762d09ea5353e5d964ed",
+        "source_size_bytes": 9885,
+        "change_kind": "modified"
       },
       {
         "path": "tests/tooling/test_tracks.py",
@@ -2516,7 +3132,11 @@
         "deletions": 0,
         "domain": "tests-and-fixtures",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "7ae57aa7159bd3996d6fb31e2b67e2dbabb5146c",
+        "baseline_blob_sha": "9ca5b76d3ad6c3f7c69c43201ce385f0dbfc6b43",
+        "source_size_bytes": 50296,
+        "change_kind": "modified"
       },
       {
         "path": "tools/compact_evidence.py",
@@ -2525,7 +3145,11 @@
         "deletions": 0,
         "domain": "root-docs-and-other",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "432db3ba781d3ea5a1421a54348f3075a4b92627",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 11604,
+        "change_kind": "added"
       },
       {
         "path": "tools/locks/frontend.json",
@@ -2539,7 +3163,11 @@
         "next_trigger": "Trigger: real UR mirrored fetch need with independent identical-byte evidence.",
         "ur_reference": "docs/CI-WORKFLOW-BEST-PRACTICES.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tools/locks/frontend.json"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tools/locks/frontend.json",
+        "source_blob_sha": "58afe2e3f44eb049761088842a4bd98eb5ab7af1",
+        "baseline_blob_sha": "efacf07bbf809d092da4a46cf87d87746d9f5a7d",
+        "source_size_bytes": 489,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/capture_files.py",
@@ -2548,7 +3176,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "bfe1e15f20cbe52a1de0a46f33324930b1832bed",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1519,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/content/audio.py",
@@ -2557,7 +3189,11 @@
         "deletions": 0,
         "domain": "audio-timing",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "44c32205a72e054b5d309678545c09f91a5b9e49",
+        "baseline_blob_sha": "e76ebfe656ef96e396da8f144b77ea1f6301c2b3",
+        "source_size_bytes": 9641,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/content/front_end.py",
@@ -2566,7 +3202,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "935c55c9b5fcbbf8a24dc20df629ed638375af45",
+        "baseline_blob_sha": "e23b3aad6892dc0106fe8bca1b5c9711fb381135",
+        "source_size_bytes": 21759,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/content/pack.py",
@@ -2575,7 +3215,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "98ac32cf0b55a0ba29b5ffa79b9d7aaa92898ece",
+        "baseline_blob_sha": "49994cfad7145073714168df8d899fcdd3277c25",
+        "source_size_bytes": 12142,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/content/tracks.py",
@@ -2584,7 +3228,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "ebe4b5195899827fe2cd726f11b9b79f2553fa70",
+        "baseline_blob_sha": "8d7994257069afa50f1d38df2b853b5b65245249",
+        "source_size_bytes": 18077,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/frontend/commands.py",
@@ -2593,7 +3241,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "9e16706971953349b83bf0c0cc17d02afb29f847",
+        "baseline_blob_sha": "542cfd8bea5922b2c8c5e8009da2cc09b4ce7d5b",
+        "source_size_bytes": 18726,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/gates/__init__.py",
@@ -2602,7 +3254,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "068cac84df0d639ca4fd1210282f08572f14425d",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 242,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/__main__.py",
@@ -2611,7 +3267,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "dfc8266f1f7d0bbed8dd61eb098daade7a1d5448",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 13993,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/base.py",
@@ -2620,7 +3280,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "2353b7c231ff63377073bc35cb36742e31a00962",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 3350,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/catalogue.py",
@@ -2629,7 +3293,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "76fce1342717bd96cd353f59c7685b8a24a06960",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 52347,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/corpus.py",
@@ -2638,7 +3306,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "11574e98fdd89cdfb7fb6283fe1a10c52bd350a2",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 13023,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/disk.py",
@@ -2647,7 +3319,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "9f0064f1ecc6f7e7c2747a822b175442129ca602",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 1542,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/identity.py",
@@ -2656,7 +3332,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "9ddfb24e7f8a15017f4e74e9a26ce00a93c5ffcd",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 6065,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/race_sweep.py",
@@ -2665,7 +3345,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "ea3b93e70fbbd8d4b690cf66df6c18be02eebca2",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 14060,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/replay.py",
@@ -2674,7 +3358,11 @@
         "deletions": 0,
         "domain": "ci-and-operations",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "ba7e1bf3c2e9f6eda345064a4f990f842d4e321f",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 11866,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/gates/schedule.py",
@@ -2688,7 +3376,11 @@
         "next_trigger": "Trigger: bounded P2 review with negative changed-input and skipped-test receipt controls.",
         "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
         "review_date": "2026-11-09",
-        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tools/unirally_lab/gates/schedule.py"
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tools/unirally_lab/gates/schedule.py",
+        "source_blob_sha": "bb179bdddb6cc9f36d2bc81c65ff61c46100a8fc",
+        "baseline_blob_sha": null,
+        "source_size_bytes": 20686,
+        "change_kind": "added"
       },
       {
         "path": "tools/unirally_lab/native/dragster_playable.py",
@@ -2697,7 +3389,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "7217f16ba225213cebb1f29f6e9c113f31e0d070",
+        "baseline_blob_sha": "a536d45ed1391694c02fdf15ffab8f33de7274da",
+        "source_size_bytes": 27779,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/native/gate_identity.py",
@@ -2706,7 +3402,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "2ea4057bfdfb675fb1335313a039b09d2761620c",
+        "baseline_blob_sha": "6846bf836901f7fed128109ed1fef049eac2cee1",
+        "source_size_bytes": 8210,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/native/track_reference.py",
@@ -2715,7 +3415,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "a2aa1c576ce9728b9ca34eae1bd4e57ac0fd3776",
+        "baseline_blob_sha": "f5fecc030d6d57023c02b86f1928b79c2ba74110",
+        "source_size_bytes": 34759,
+        "change_kind": "modified"
       },
       {
         "path": "tools/unirally_lab/native/zoom_zoo_playable.py",
@@ -2724,7 +3428,11 @@
         "deletions": 0,
         "domain": "research-tooling",
         "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "ur_disposition": "unclassified",
+        "source_blob_sha": "55587454f70e25de0b9a04a857dfbeb217a601d7",
+        "baseline_blob_sha": "e64b8e60a76057a16bf6ab46d21b9765bb37044b",
+        "source_size_bytes": 16035,
+        "change_kind": "modified"
       }
     ],
     "progress": {
@@ -2758,6 +3466,21 @@
         ],
         "next": "Trace or statically verify real USA result-to-menu ownership and already retained result-relative phase; only run a bounded original/native writer discriminator if this changes QA01 decision."
       }
+    },
+    "blob_audit": {
+      "base_commit": "42d444594641d23f5d3c15da7b7c454bb5180e43",
+      "head_commit": "19ecb59fb56bc9b3024a72ab9cba912586229769",
+      "base_total_tree_entries": 1062,
+      "head_total_tree_entries": 1138,
+      "base_file_blobs": 1006,
+      "head_file_blobs": 1081,
+      "added": 75,
+      "modified": 102,
+      "deleted": 0,
+      "unchanged": 904,
+      "verified_no_truncation": true,
+      "verified_path_set_matches_177": true,
+      "warning": "GitHub compare_commits additions/deletions/change counts were zero for many genuinely modified and added paths, so do not use those line counts as evidence. Blob SHA pairs are the authoritative changed-byte identity; generated maps may still be too large for semantic review through bounded file tools."
     }
   }
 }

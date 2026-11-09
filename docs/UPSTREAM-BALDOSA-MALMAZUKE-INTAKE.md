@@ -12,6 +12,8 @@ Snapshot HEADs as of 2026-11-09:
 
 **Do not advance the existing imported/pinned symbol corpus merely because the original upstream moved.** Preserve historical pins until relevant source files and provenance are actually qualified, reviewed and imported through existing controls.
 
+**Mandatory changed-byte identity check:** compare each old/new upstream full recursive Git tree by file path and blob SHA, rejecting truncated trees. The API's compare endpoint has returned `additions=0/deletions=0` for changed files and `patch=null`; never treat that as byte equality. Use `analysis/upstream-baldosa-malmazuke-state-20261109.json` old/new blob pairs for each path. Semantic review always reads actual source, not metadata alone.
+
 ## Procedure for each reconnaissance pass
 
 1. **Refresh source identities** via public GitHub API or a clean clone: default branch SHA, full tree SHA, commits since last examined head, all branches and tags, releases/assets, open/closed PRs, issues/discussions if enabled, fork network if useful, submodule pointers, licenses, changelog, CI jobs, build docs and upstream open task registry. Check pagination, errors, truncation and rate limits. Do not conflate `updated_at` with a source push; compare both HEAD and PR/issue changes.

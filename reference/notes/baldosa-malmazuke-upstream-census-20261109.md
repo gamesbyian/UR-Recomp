@@ -117,6 +117,12 @@ Eight further changed `src/core` files were inspected as source, beyond their PR
 
 **Other changed code (`front_end.cpp`, `rider_menu.cpp`, `race_result.cpp`, `options_menu.cpp`)** confirms Malmazuke's own native frontend/save/input boundaries; these must remain distinct from UR's Baldosa guest, typed profiles and Modern UI. File-by-file reference/stop triggers are stored in the machine index. No new source import, source pin update, or release credit.
 
+## Exact Git blob reconciliation: correcting the compare metadata
+
+Both original Malmazuke revision trees were retrieved **without truncation** and compared by each file's Git blob SHA: **1006 old file blobs → 1081 new file blobs, 904 unchanged, 102 modified, 75 added, zero deleted**. The 177 individually indexed changed paths match this byte-level set exactly. Every entry now records its full **old blob SHA (or null if added), new blob SHA, size and change kind**.
+
+**Tool caveat discovered:** GitHub's normalized commit-comparison output reported zero additions/deletions for many truly changed files, including `src/core/track_menu.cpp` and the newly added `tasks/APP-PARITY.md`. Comparing the actual blob hashes proves that the source changed; therefore **do not use API-reported zero line changes or omitted patches as evidence that a file is unchanged or unimportant**. Source semantics still require reading its current and, when relevant, old bytes. This is an integrity correction to the intake inventory, not an assertion of reviewed behavior.
+
 ## Two practical first investigations
 
 1. **SRAM applicability:** check existing UR Windows isolated profile/crash/record tests for missing exact cartridge write-frame and corrupt-cursor cases; document a minimal USA original/native discriminator where a real current blocker remains. Avoid modifying the host save format just to make PAL bytes match.

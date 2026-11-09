@@ -1795,8 +1795,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "PAL app-vs-runner league race/input-clock investigation, accepted PR #93; original PAL runner source evidence, but no independent USA Modern Windows event qualification.",
+        "next_trigger": "Reopen for a measured current USA league race script-clock or load-phase mismatch; consult R-0106 and existing QA journeys.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/APP-LEAGUE-RACE.md"
       },
       {
         "path": "tasks/APP-PARITY.md",
@@ -1804,8 +1809,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "PAL app-vs-runner correspondence, accepted PR #97, with scripted demo pads, notice clock and default saves/audio; report explicitly lacks Windows CI and notes narrow APPDATA decoding.",
+        "next_trigger": "Reopen for an actual current UR Windows app-vs-runner mismatch not already covered by DATA-05; use R-0110, not PAL frontend transplant.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/APP-PARITY.md"
       },
       {
         "path": "tasks/CARTRIDGE-OPTION-BITS.md",
@@ -1813,8 +1823,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #92 documents option words $77:0742/$77:0750, mode, pending podium and title cheat transitions; likely homologous USA bytes but not USA dynamic proof.",
+        "next_trigger": "Reopen for original-USA cold progress/2P mode difference. First compare US opcode/address source and current SRAM contract.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CARTRIDGE-OPTION-BITS.md"
       },
       {
         "path": "tasks/CENSUS-REMAINDER.md",
@@ -1822,8 +1837,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_research",
+        "review_note": "Accepted PAL records-only PR #100 closes its selected census interpretation; 4,276 unexplained bytes assumes 3,415 unreferenced, and 7,691 without that assumption.",
+        "next_trigger": "Reopen for a concrete unmapped USA address/reachability question or updated original upstream census; never treat PAL percentage as USA event proof.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CENSUS-REMAINDER.md"
       },
       {
         "path": "tasks/COVERAGE-CENSUS.md",
@@ -1831,8 +1851,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_research",
+        "review_note": "Accepted PAL PR #96 remeasured original-code/data coverage with 651 captures, warm/preloaded SRAM and 919-route corpus; source of distinct queued branch/timing tasks.",
+        "next_trigger": "Reopen only where a live USA coverage or original/source discrepancy requires PAL structural correspondence; use existing UR atlas.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/COVERAGE-CENSUS.md"
       },
       {
         "path": "tasks/CPU-CYCLE-TIMING.md",
@@ -1840,8 +1865,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "upstream_queued_watch",
+        "review_note": "As-of-head queued tier-1 task: race/mode-7 multiply and HDMA latch collision, overlong menu printing; not accepted native correction.",
+        "next_trigger": "Review when this PAL task merges or when a current USA original/native CPU-clock/HDMA causal mismatch needs one scoped discriminating observation.",
+        "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/CPU-CYCLE-TIMING.md"
       },
       {
         "path": "tasks/DEMO-AUDIO.md",
@@ -1849,8 +1879,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #77 adds native idle demo sound and marks some late title and upload handshake timing unsettled; advisory for UR original-audio cases.",
+        "next_trigger": "Reopen on genuine current USA demo/attract audio or first causal CPU→SPC discrepancy, with local original traces first.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/DEMO-AUDIO.md"
       },
       {
         "path": "tasks/EVIDENCE-LARGE-FILES.md",
@@ -1858,8 +1893,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_methods_context",
+        "review_note": "Accepted PAL PR #86 stores huge local captures as zstd with digest-checked readers, rather than assuming source proof can be discarded.",
+        "next_trigger": "Reopen for measured UR retained-evidence disk bottleneck only; do not delete authoritative artifacts or copy macOS assumptions.",
+        "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/EVIDENCE-LARGE-FILES.md"
       },
       {
         "path": "tasks/EVIDENCE-RETENTION.md",
@@ -1867,8 +1907,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "historical_task_record",
+        "review_note": "Dated PAL evidence retention record originally says done/in review; subsequent accepted PR #76, D-0011 and upstream registry supersede that transitional status.",
+        "next_trigger": "Reopen for new upstream archival or rights policy changes affecting an actual UR retained artifact; don't schedule historic cleanup.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/EVIDENCE-RETENTION.md"
       },
       {
         "path": "tasks/GATES-AGAINST-MAIN.md",
@@ -1876,8 +1921,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_methods_context",
+        "review_note": "Accepted PAL PR #84 documented selective gate DAG/replay versus main and adversarial negatives; UR has its own exact-candidate CI/collective-qualification trust constraints.",
+        "next_trigger": "Reopen only on measured UR CI fanout bottleneck; validate stale-dependency negatives and independent original witness, don't count equal main digests as USA QA.",
+        "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/GATES-AGAINST-MAIN.md"
       },
       {
         "path": "tasks/LEAGUE-TOURS.md",
@@ -1885,8 +1935,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #81 extends original 2P leagues/tours with podium/pad and result logic; timed podium exit and split graphics were documented limits.",
+        "next_trigger": "Reopen on a present USA league/2P result or cold-progression discrepancy using exact original inputs and source provenance.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/LEAGUE-TOURS.md"
       },
       {
         "path": "tasks/MENU-INPUT.md",
@@ -1894,8 +1949,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #79 records original stock menu pad order/repeat/latch behavior, including both players; subsequent NAME-CHECK and RECORD-SCREENS resolved some of its old gaps.",
+        "next_trigger": "Reopen on a current USA Authentic-menu input defect, not to impose original keyboard rejection on Modern host.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/MENU-INPUT.md"
       },
       {
         "path": "tasks/NAME-CHECK.md",
@@ -1903,8 +1963,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #87 models original keyboard word check and long-name frame timing; UR Modern intentionally permits arbitrary user-chosen names.",
+        "next_trigger": "Reopen only for authentic stock-UI original-USA parity or a separately observed timing issue.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/NAME-CHECK.md"
       },
       {
         "path": "tasks/NEXT_SESSION.md",
@@ -1912,8 +1977,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "upstream_current_history_pointer",
+        "review_note": "Large appended upstream chronological handoff (1,455 lines), explicitly dated; use newest task registry and individual R reports, not historical headings as current instructions.",
+        "next_trigger": "Read newest section after a source delta; do not mirror narrative into UR live agent onboarding.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/NEXT_SESSION.md"
       },
       {
         "path": "tasks/OPEN-BRANCHES.md",
@@ -1921,8 +1991,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "upstream_queued_watch",
+        "review_note": "Queued PAL original branch coverage task: high HUD digits, rare sprite queue sizes, score 1000, track 13 edge, tied results, locked 2P tracks, next-track wrap and missing sounds.",
+        "next_trigger": "Reopen on upstream accepted route/capture or specific missing USA course/2P behavior, using exact homolog; no speculative new test matrix.",
+        "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/OPEN-BRANCHES.md"
       },
       {
         "path": "tasks/OPPONENT-POSE-BOUNDS.md",
@@ -1930,8 +2005,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "upstream_queued_watch",
+        "review_note": "Queued PAL native C++ safety bug: hardened libc++ subspan fails at presentation.cpp:243 for opponent 0x14 in c175 HUNTER effect route; not an observed UR native fault.",
+        "next_trigger": "Reopen when upstream corrects semantics or source-current UR own renderer demonstrates corresponding bounds failure; do not transpose PAL table offsets.",
+        "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/OPPONENT-POSE-BOUNDS.md"
       },
       {
         "path": "tasks/PICTURE-RESIDUALS.md",
@@ -1939,8 +2019,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "upstream_queued_watch",
+        "review_note": "Queued PAL picture gaps including split rider-under-HUD, NEON 2-view, mosaic scanline 113, small demo sprites, GO letters and menu icons.",
+        "next_trigger": "Reopen on merged PAL verified final-pixel evidence or one current USA QA08 first-visible-pixel counterexample.",
+        "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PICTURE-RESIDUALS.md"
       },
       {
         "path": "tasks/PODIUM-AUDIO.md",
@@ -1948,8 +2033,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #82 models podium DSP music/sound session, with acknowledged late return and third-pass phase limits; PAL reference timing remains region-specific.",
+        "next_trigger": "Reopen for current USA podium audio/exit discrepancy with existing RF094 CPU↔SPC route and independent sound output.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PODIUM-AUDIO.md"
       },
       {
         "path": "tasks/PODIUM-RETURN-TIMING.md",
@@ -1957,8 +2047,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #88 covers print/NMI frame overruns and records percentages; sound-dependent podium return remains late in some captures.",
+        "next_trigger": "Reopen only if USA source owner sees a real menu timing/record issue; inspect audio handshake before speculative cycle estimates.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/PODIUM-RETURN-TIMING.md"
       },
       {
         "path": "tasks/RACE-BRANCH-REMAINDER.md",
@@ -1966,8 +2061,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_research",
+        "review_note": "Accepted PAL PR #95 captured or disposed many 2P arrow/tile arms; facing-away loop descriptor remains unobserved and explicitly recorded as a limit.",
+        "next_trigger": "Reopen on upstream original capture of surviving arm or corresponding USA course mechanics failure.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RACE-BRANCH-REMAINDER.md"
       },
       {
         "path": "tasks/RACE-LISTING-BRANCHES.md",
@@ -1975,8 +2075,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_research",
+        "review_note": "Accepted PAL PR #94 cataloged listing-only HUD/race branches, with further rare arms handed to PR #95 and OPEN-BRANCHES.",
+        "next_trigger": "Reopen only on new original inputs for rare USA conditions; avoid duplicate source census.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RACE-LISTING-BRANCHES.md"
       },
       {
         "path": "tasks/README.md",
@@ -1984,8 +2089,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "upstream_task_registry",
+        "review_note": "Authoritative upstream PAL task registry; distinguish rows marked queued from accepted and note that older task record prose may be stale.",
+        "next_trigger": "Refresh on each changed Mal HEAD or upstream PR/issue delta; do not copy task registry as independent UR dispatch.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/README.md"
       },
       {
         "path": "tasks/RECORD-SCREENS.md",
@@ -1993,8 +2103,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #83 reconstructs original TRACK RECORDS/HIGH SCORES frame-by-frame; scroll, input, two-pad exit behavior and later frame overruns documented.",
+        "next_trigger": "Reopen on an actual USA Authentic/Modern records navigation or visible input mismatch; no second frontend.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/RECORD-SCREENS.md"
       },
       {
         "path": "tasks/SAVE-IMAGE-EXACT.md",
@@ -2002,8 +2117,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_research",
+        "review_note": "Accepted in part PAL PR #99 compares per-frame cartridge write images; 207 of 916 runnable routes still show value/timing differences outside no-later-read bytes.",
+        "next_trigger": "Reopen for new cross-project 0x10A7 dynamic writer/consumer evidence, a source-current USA SRAM defect, or upstream SAVE-IMAGE-REMAINDER completion.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SAVE-IMAGE-EXACT.md"
       },
       {
         "path": "tasks/SAVE-IMAGE-REMAINDER.md",
@@ -2011,8 +2131,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "upstream_queued_watch",
+        "review_note": "Queued PAL follow-up to #99: 14,380 differing write frames on 207/916 routes include personal bests, ending 0x10A7 writes and other value mismatches.",
+        "next_trigger": "Reopen when original PAL captures close remaining values or when corresponding actual USA saved-record discrepancy is demonstrated; don't weaken strict checks.",
+        "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SAVE-IMAGE-REMAINDER.md"
       },
       {
         "path": "tasks/SDL-MIRROR.md",
@@ -2020,8 +2145,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_methods_context",
+        "review_note": "Accepted PAL PR #98 provides two pinned SDL source URLs with identical URL_HASH on transient GitHub 504; no need for new UR fetch logic without measured failure.",
+        "next_trigger": "Reopen for genuine UR SDL dependency outage; require equal bytes and source/toolchain pin.",
+        "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SDL-MIRROR.md"
       },
       {
         "path": "tasks/SOUND-PROCESSOR-TIMING.md",
@@ -2029,8 +2159,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "upstream_queued_watch",
+        "review_note": "Queued tier-1 PAL CPU/SPC handshake-front-end frame timings; current native uses measured waits and podium/title/audio still sometimes phase-shift.",
+        "next_trigger": "Reopen when upstream accepts a source-qualified driver-phase fix or current USA CPU→SPC causal discrepancy needs bounded new hypothesis.",
+        "ur_reference": "docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SOUND-PROCESSOR-TIMING.md"
       },
       {
         "path": "tasks/SPLIT-HUNTER-PICTURES.md",
@@ -2038,8 +2173,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #89 reconstructs two-view HUNTER masking, mosaic, captions and slow-motion; still notes mosaic scanline-113 gap and later power bounce PR #90.",
+        "next_trigger": "Reopen only for live USA 2P final raster discrepancy and correctly aligned source visible pixels.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/SPLIT-HUNTER-PICTURES.md"
       },
       {
         "path": "tasks/TASK-EFFICIENCY.md",
@@ -2047,8 +2187,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_methods_context",
+        "review_note": "Accepted PAL PR #85 establishes task/capture budget, selective gates and compression but explicitly declines competing heavy runs; UR retains its own runner budget and evidence policy.",
+        "next_trigger": "Reopen for measured UR productivity bottleneck after prioritizing one independently accepted event; no unverified savings claims.",
+        "ur_reference": "docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TASK-EFFICIENCY.md"
       },
       {
         "path": "tasks/TWO-HUMAN-STUNTS.md",
@@ -2056,8 +2201,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #72 supports two-human 2P/VS stunt records and restart; underlying PAL finite route coverage, not USA result proof.",
+        "next_trigger": "Reopen on current original-USA two-human stunt result/score/progression defect with existing source/guest producer.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TWO-HUMAN-STUNTS.md"
       },
       {
         "path": "tasks/TWO-VIEW-POWER-BOUNCE.md",
@@ -2065,8 +2215,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "task-records",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "accepted_pal_task",
+        "review_note": "Accepted PAL PR #90 documents HUNTER power bounce applied to both riders when $77:0750 bit3 two-view; league 2-view and split demo were not captured.",
+        "next_trigger": "Reopen if USA 2P HUNTER landing is observed to differ or upstream adds original captures of excluded modes.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/tasks/TWO-VIEW-POWER-BOUNCE.md"
       },
       {
         "path": "tests/app/frontend_contract_tests.cpp",
@@ -2424,8 +2579,8 @@
     ],
     "progress": {
       "closed_advisory": 10,
-      "triaged": 14,
-      "pending": 153,
+      "triaged": 45,
+      "pending": 122,
       "total": 177,
       "policy": "closed_advisory is closed for present UR reuse decision only, not original-USA verification or source-line audit. triaged records a concrete lead without granting semantic closure. pending remains unexamined.",
       "closure_requirement": "All paths must receive a disposition and review note; only a present-tense engineering decision with evidence can close each. Reopen if upstream delta or current USA product defect changes premise."

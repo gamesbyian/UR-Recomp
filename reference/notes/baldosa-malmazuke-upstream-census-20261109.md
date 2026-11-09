@@ -75,6 +75,16 @@ The finer review still needs every changed source path disposition in the new ma
 
 **Related no-duplicate OAM result:** Baldosa's last SHA and framework submodule `075fbe4c` are **already exactly preserved in** `analysis/patches/baldosa-oam-address-pin.patch` (marked reference-only); `reference/notes/oam-active-display.md` has scanlines 0/112, `0x10c` word-to-`0x218` byte and sprite slots. The remaining QA08 question is whether the **actual packaged Windows guest** both activates this pin and matches original final-visible P1/P2 pixels. No new OAM implementation or rerun justified by an upstream headline alone.
 
+## Upstream task-registry reconciliation, 2026-11-09
+
+All **31 changed `tasks/*.md` paths** have now been read for their current assignments, outcomes and recorded limits and given an *explicit advisory triage* in the 177-path machine index. This is **not** a semantic review of every implementation changed by their upstream PRs; the underlying native source/tests/maps remain independently pending.
+
+**Accepted PAL task records, no automatic UR adoption:** APP-LEAGUE-RACE (#93), APP-PARITY (#97), CARTRIDGE-OPTION-BITS (#92), CENSUS-REMAINDER (#100), COVERAGE-CENSUS (#96), DEMO-AUDIO (#77), EVIDENCE-LARGE-FILES (#86), GATES-AGAINST-MAIN (#84), LEAGUE-TOURS (#81), MENU-INPUT (#79), NAME-CHECK (#87), PODIUM-AUDIO (#82), PODIUM-RETURN-TIMING (#88), RACE-BRANCH-REMAINDER (#95), RACE-LISTING-BRANCHES (#94), RECORD-SCREENS (#83), SAVE-IMAGE-EXACT (#99, **accepted in part**), SDL-MIRROR (#98), SPLIT-HUNTER-PICTURES (#89), TASK-EFFICIENCY (#85), TWO-HUMAN-STUNTS (#72), TWO-VIEW-POWER-BOUNCE (#90). EVIDENCE-RETENTION is an older transitional task record whose "in review" wording was superseded by accepted PR #76.
+
+**Still queued in the original upstream:** CPU-CYCLE-TIMING (mode-7 multiply/HDMA and long menu prints), OPEN-BRANCHES (unreached original code and sounds), OPPONENT-POSE-BOUNDS (PAL native out-of-bounds for HUNTER opponent `0x14`), PICTURE-RESIDUALS (split/HUD/NEON/mosaic visual differences), SAVE-IMAGE-REMAINDER (remaining meaningful SRAM values, including `0x10A7`), SOUND-PROCESSOR-TIMING (driver handshake and frame phase). Each is a **watch trigger**, not a new UR Windows blocker. The upstream `tasks/README.md` is the current status registry, while `tasks/NEXT_SESSION.md` is a long chronological handoff; neither replaces UR's actual work queue.
+
+**Checkpoint:** 10 contextually closed + 45 explicitly triaged + 122 pending changed paths, total 177. Next tranche should target actual changed `src/core`, tests, tool and generated-map semantics, using source-matched original-USA acceptance questions. Avoid closing a source merely because its task's PR merged in PAL.
+
 ## Two practical first investigations
 
 1. **SRAM applicability:** check existing UR Windows isolated profile/crash/record tests for missing exact cartridge write-frame and corrupt-cursor cases; document a minimal USA original/native discriminator where a real current blocker remains. Avoid modifying the host save format just to make PAL bytes match.

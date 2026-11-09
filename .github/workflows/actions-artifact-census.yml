@@ -14,9 +14,25 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  offline-contract:
+    # Every relevant PR gets deterministic source tests without a broad,
+    # volatile 18-repository scan or an Actions-read credential.
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Offline artifact inventory contract tests
+        run: python3 -m unittest discover -s tests/unit -p test_actions_storage_inventory.py -v
+
   inventory:
-    # Do not run PR source with a credential for a fork.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    # One explicitly requested read-only account scan. PR source changes
+    # alone must not launch expensive and drift-prone pagination.
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

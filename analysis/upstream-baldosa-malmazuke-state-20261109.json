@@ -792,8 +792,13 @@
         "additions": 9809,
         "deletions": 0,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_coverage_manifest",
+        "review_note": "Generated 2,097,152-byte PAL coverage map for R-0109, paired with the readable report. Full machine content was not obtained via the bounded API range because it is large; this triage covers provenance, not all instruction entries.",
+        "next_trigger": "Revisit only to map a demonstrated current USA code coverage gap or if an upstream census revision changes fields.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/coverage-census.map.json"
       },
       {
         "path": "docs/map/coverage-census.md",
@@ -801,8 +806,13 @@
         "additions": 1121,
         "deletions": 0,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_coverage_summary",
+        "review_note": "Readable PAL bsnes 919-corpus coverage: 36,025 opcode bytes, 50,697 operand bytes, 4.135% whole 2MiB ROM executed; explicitly no static inferred code or access/read map. That denominator is not gameplay/event acceptance.",
+        "next_trigger": "Reopen for a source-current USA code coverage difference; compare identical ROM/address/code domain before reuse.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/coverage-census.md"
       },
       {
         "path": "docs/map/race-branch-remainder.map.json",
@@ -810,8 +820,13 @@
         "additions": 5620,
         "deletions": 0,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_coverage_manifest",
+        "review_note": "Generated PAL bsnes map for five original branch-target runs (~20,770 sampled frames); records original emulator/ROM/patch and opcode+mode sites, not a result oracle. Full map not line-by-line reviewed.",
+        "next_trigger": "Reopen when original-USA first-difference or reachable branch requires exact address homolog.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-branch-remainder.map.json"
       },
       {
         "path": "docs/map/race-branch-remainder.md",
@@ -819,8 +834,13 @@
         "additions": 884,
         "deletions": 0,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_coverage_summary",
+        "review_note": "Readable PR #95 PAL original observation map: 19,757 opcode bytes/27,582 operands over a five-run captured subset; no data-read map; remainder explicitly exists.",
+        "next_trigger": "Reopen when a specific USA rare race branch is unproven; use original USA route and classify observed vs merely mapped.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-branch-remainder.md"
       },
       {
         "path": "docs/map/race-listing-branches.map.json",
@@ -828,8 +848,13 @@
         "additions": 6324,
         "deletions": 0,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_coverage_manifest",
+        "review_note": "Generated PAL bsnes map for six race listing targeted runs (~21,511 captured frames); exact PAL ROM/core declared, large instruction map not exhaustively reviewed.",
+        "next_trigger": "Reopen only for source-grounded USA branch reachability target; avoid second capture corpus.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-listing-branches.map.json"
       },
       {
         "path": "docs/map/race-listing-branches.md",
@@ -837,8 +862,13 @@
         "additions": 986,
         "deletions": 0,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_coverage_summary",
+        "review_note": "Readable PAL PR #94 original observation map: 22,650 opcode bytes and 31,857 operands, coverage of selected branch routes not entire game; no data access captured.",
+        "next_trigger": "Reopen when QA01 genuine USA first-branch discrepancy remains, with identical input-state and source epoch.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/race-listing-branches.md"
       },
       {
         "path": "docs/map/static/code-banks.map.json",
@@ -846,8 +876,13 @@
         "additions": 1044,
         "deletions": 207,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_static_summary",
+        "review_note": "Generated code-bank classification for PAL $80-$83 counts 94,637 observed, 5,311 inferred, 70 identified data, 31,054 unknown under static-map 4-class scheme. Distinct from R-0112's exhaustive different classification model.",
+        "next_trigger": "Reopen for specific USA-versus-PAL homolog or source label conflict; reject percent arithmetic mixing R-0112 and this schema.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/code-banks.map.json"
       },
       {
         "path": "docs/map/static/code-banks.md",
@@ -855,8 +890,13 @@
         "additions": 145,
         "deletions": 58,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_static_summary",
+        "review_note": "Readable PAL code-bank map says inferred is static hypothesis, not executed; cites native-symbols registry and 762 detected routines, not complete native-game fidelity.",
+        "next_trigger": "Reopen for a currently missing USA source address whose PAL counterpart has original instruction evidence; existing cross-build atlas first.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/code-banks.md"
       },
       {
         "path": "docs/map/static/labels.json",
@@ -864,8 +904,13 @@
         "additions": 12977,
         "deletions": 2670,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_labels_index",
+        "review_note": "Generated PAL source-name label index cites individual research and task records. Example $80:8000 marked unknown and R-0112 citation. Upstream label is advisory, cannot be canonically promoted into USA symbols.",
+        "next_trigger": "Reopen only when exact USA opcode/ROM-offset homolog has independent proof and source lines are cited.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/labels.json"
       },
       {
         "path": "docs/map/static/native-symbols.json",
@@ -873,8 +918,13 @@
         "additions": 14985,
         "deletions": 8016,
         "domain": "coverage-maps",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "generated_pal_native_crosslinks",
+        "review_note": "Generated PAL ROM→native C++ citation index; includes native code-path references for content/presentation. It does not itself validate semantics or support importing PAL engine into USA recomp.",
+        "next_trigger": "Reopen for a concrete port-compatible independent algorithm whose PAL-source and USA-input proof are both present.",
+        "ur_reference": "analysis/data/malmazuke-pal-structural-links-20261010.json",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/docs/map/static/native-symbols.json"
       },
       {
         "path": "docs/research/R-0052-hunter-effects.md",
@@ -2579,8 +2629,8 @@
     ],
     "progress": {
       "closed_advisory": 10,
-      "triaged": 45,
-      "pending": 122,
+      "triaged": 55,
+      "pending": 112,
       "total": 177,
       "policy": "closed_advisory is closed for present UR reuse decision only, not original-USA verification or source-line audit. triaged records a concrete lead without granting semantic closure. pending remains unexamined.",
       "closure_requirement": "All paths must receive a disposition and review note; only a present-tense engineering decision with evidence can close each. Reopen if upstream delta or current USA product defect changes premise."

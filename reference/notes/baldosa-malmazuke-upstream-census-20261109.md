@@ -85,6 +85,14 @@ All **31 changed `tasks/*.md` paths** have now been read for their current assig
 
 **Checkpoint:** 10 contextually closed + 45 explicitly triaged + 122 pending changed paths, total 177. Next tranche should target actual changed `src/core`, tests, tool and generated-map semantics, using source-matched original-USA acceptance questions. Avoid closing a source merely because its task's PR merged in PAL.
 
+## PAL source-map coverage disposition, 2026-11-09
+
+All 10 changed `docs/map/*` files have now received provenance-scoped advisory dispositions, not accepted semantic claims. The original bsnes source/ROM and per-scenario capture identities are retained in the paired readable reports. The three scenario maps measure **observed instruction execution** over bounded PAL routes, and explicitly do **not** measure data reads or justify inferred code. The static map has a separate four-category bank partition (94,637 observed, 5,311 inferred, 70 data, 31,054 unknown of 131,072 PAL code-bank bytes); R-0112's 4,276/7,691 unexplained-byte counts use a *different* proof/attribution denominator. Never combine these figures into a USA coverage or 45-event percentage.
+
+The large JSON payloads for coverage/race branch maps were not completely read through the bounded source API. Their corresponding Markdown reports and JSON headers were inspected; remaining per-instruction semantics are explicitly not accepted. `static/labels.json` and `static/native-symbols.json` supply external PAL names/source pointers that must pass existing ROM homolog and exact-USA experiment controls before symbol promotion. This closes **inventory triage** of the map family but leaves any specific address/edge semantics subject to targeted reopening.
+
+**Index progress:** 10 contextually closed, 55 advisory triaged, 112 still pending, 177 total. Remaining high-value semantic work is in changed `src/core/`, `src/app/`, tests and research tooling, with stable PR and changed-path pointers.
+
 ## Two practical first investigations
 
 1. **SRAM applicability:** check existing UR Windows isolated profile/crash/record tests for missing exact cartridge write-frame and corrupt-cursor cases; document a minimal USA original/native discriminator where a real current blocker remains. Avoid modifying the host save format just to make PAL bytes match.

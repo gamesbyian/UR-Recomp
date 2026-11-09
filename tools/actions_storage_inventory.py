@@ -22,6 +22,21 @@ PAGE_SIZE = 100
 ALLOWED_PAGE_SIZES = (25, 50, 100)
 
 
+def unique_json_members(pairs):
+    """Refuse API JSON whose duplicate keys could change counts or byte totals."""
+    values = {}
+    for key, value in pairs:
+        if key in values:
+            raise ValueError("duplicate GitHub JSON member")
+        values[key] = value
+    return values
+
+
+def reject_nonfinite_json(value):
+    """GitHub's artifact inventory schema contains no NaN/Infinity."""
+    raise ValueError("non-finite GitHub JSON number")
+
+
 def gh_json(*args):
     """Read GitHub JSON with small transient retries and status-only errors.
 
@@ -43,9 +58,19 @@ def gh_json(*args):
             raise RuntimeError("GitHub CLI unavailable") from exc
         if result.returncode == 0:
             try:
-                return json.loads(result.stdout)
-            except json.JSONDecodeError as exc:
-                raise RuntimeError("GitHub CLI returned invalid JSON") from exc
+                return json.loads(
+                    result.stdout, object_pairs_hook=unique_json_members,
+                    parse_constant=reject_nonfinite_json)
+            except (json.JSONDecodeError, ValueError) as exc:
+                # A zero-exit CLI response can still be truncated or contain
+                # an ambiguous count/size. Retry only twice, then refuse the
+                # entire repository snapshot without logging raw API data.
+                if attempt < 2:
+                    time.sleep(2 ** attempt)
+                    continue
+                raise RuntimeError(
+                    "GitHub CLI returned invalid JSON or ambiguous members "
+                    "after 3 attempts") from exc
         # gh's stderr may contain sensitive request information: only expose
         # an HTTP status code parsed from it, never the underlying text.
         match = re.search(r"\bHTTP\s*([1-5][0-9]{2})\b", result.stderr or "")

@@ -7,6 +7,7 @@ These links are grounded in files present in the repository when prepared on 202
 | Project | [UR-Recomp](https://github.com/gamesbyian/UR-Recomp) | Active public research repo; unfinished game, no blanket distribution license |
 | Engineering governance | [AGENTS](https://github.com/gamesbyian/UR-Recomp/blob/main/AGENTS.md), [WORK-QUEUE](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/WORK-QUEUE.md) | Current technical rules, not public release evidence |
 | North American wordmark | [Uniracers English SVG](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-box-wordmark-traced.svg) | Traced source-style reference |
+| Separated canonical glyph geometry | [Rectified English letter shapes](https://github.com/gamesbyian/UR-Recomp/blob/main/design/uniracers-wordmark-separated-rectified.svg) | Reuse glyph **shape**, not apparent original U/S relative size; verify actual outline proportions |
 | European wordmark | [Unirally English SVG](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-box-wordmark-traced.svg) | Traced source-style reference |
 | Shared master | [Shared glyph SVG](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/shared/unira-shared-glyph-master.svg) | Existing canonical-shape working reference |
 | Japanese | [Katakana SVG](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-japanese-katakana-wordmark.svg) | Experimental regionalization, linguistic/design review needed |

@@ -487,6 +487,15 @@ def run_group(group, source_sha, archive, work, env=None, workers=2,
     require(env.get("GITHUB_SHA") == source_sha, "not the checked-out source")
     require(bool(env.get("RUNNER_TEMP") and env.get("GITHUB_STEP_SUMMARY")),
             "not a pinned Actions run")
+    temp_root = Path(env["RUNNER_TEMP"])
+    require(temp_root.is_absolute() and temp_root.is_dir()
+            and work.is_absolute(), "invalid original Windows output roots")
+    # Guard *before* the first original Bash journey, rather than discovering
+    # after a guest run that private logs or the baseline were redirected.
+    # A synthetic child makes the RUNNER_TEMP itself an inspected ancestor.
+    require_unredirected_parents(temp_root / ".p2-preflight",
+                                 "original Windows runner temp")
+    require_unredirected_parents(work, "original Windows work root")
     require(not work.exists() and not work.is_symlink(), "work root already used")
     who = candidate_identity(source_sha, bridge.EXE, bridge.FIXTURE, archive)
     commands = bridge.extract_commands(bridge.WORKFLOW.read_text(encoding="utf-8"))

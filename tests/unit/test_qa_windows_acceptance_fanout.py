@@ -602,6 +602,46 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
             path.write_bytes(path.name.encode())
         return env, paths
 
+    def test_original_work_root_redirect_is_rejected_before_any_script(self):
+        # It is too late to discover a redirected private-log directory
+        # after the bridge has already written its original run output.
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        physical = self.path / "physical-work-root"
+        physical.mkdir()
+        alias = self.path / "redirected-work-root"
+        try:
+            alias.symlink_to(physical, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("directory symlinks unavailable")
+        destination = alias / "fresh"
+        with mock.patch.multiple(bridge, EXE=exe, FIXTURE=fixture), \
+             mock.patch.object(bridge, "run_one") as runner:
+            with self.assertRaisesRegex(ValueError,
+                                        "redirected original Windows work root ancestor"):
+                fanout.run_group(
+                    "seed-dependent", SHA, archive, destination, env)
+            runner.assert_not_called()
+        self.assertFalse((physical / "fresh").exists())
+
+    def test_redirected_runner_temp_refuses_all_groups_before_original_scripts(self):
+        env, (exe, fixture, archive) = self._seed_followup_fake_inputs()
+        alias = self.path / "runner-temp-alias"
+        try:
+            alias.symlink_to(self.path, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("directory symlinks unavailable")
+        env["RUNNER_TEMP"] = str(alias)
+        with mock.patch.multiple(bridge, EXE=exe, FIXTURE=fixture), \
+             mock.patch.object(bridge, "run_one") as runner:
+            for group in fanout.GROUPS:
+                with self.subTest(group=group):
+                    destination = self.path / ("unstarted-" + group)
+                    with self.assertRaisesRegex(
+                            ValueError, "redirected original Windows runner temp ancestor"):
+                        fanout.run_group(group, SHA, archive, destination, env)
+                    self.assertFalse(destination.exists())
+            runner.assert_not_called()
+
     def test_win32_seed_sharing_guard_fails_closed_without_windows(self):
         # This is why synthetic Linux overlap tests explicitly mock the guard.
         if os.name == "nt":

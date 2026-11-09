@@ -33,7 +33,7 @@ For live, read-only GitHub PR/head/CI collision, evidence-reuse and measured-run
 | Research method or orientation to a subsystem | `docs/knowledge/README.md`, `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`, then source/evidence |
 | Periodic repo hygiene, historical diary | `docs/PERIODIC-REPOSITORY-HYGIENE.md`; for diary specifically `prod_diary/README.md` and editorial guide |
 
-For **three-project reuse**, `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` identifies existing Baldosa/Malmazuke/UR approaches. Use it before substantial new implementation, not as a reason to create a new R&D programme. The selected option must solve a *current* work-queue problem.
+For **external reuse before substantial implementation**, run `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` for **Baldosa/Malmazuke/UR**, and also inspect the independently pinned [redcomp-dream findings](docs/REDCOMP-DREAM-INTAKE-PLAN.md) where they address a live source, widescreen, PPU, save or test question. The helper currently covers three projects only: do not treat it as an automated redcomp comparison. Route WIDE-07 directly through existing `UR-RELEASE-PROGRESS-20261026`; broader nonduplicative intake is ranked `UR-REDCOMP-INTAKE-20261109` ([issue #3310](https://github.com/gamesbyian/UR-Recomp/issues/3310)). Adapt original-observed mechanics, independent probes and negative results, **not** noncommercial-licensed implementation/asset bytes without a rights review. No extra recurring agent, secondary simulator, CI fanout or donor-authored release acceptance.
 
 ## Owner-aligned execution contract
 

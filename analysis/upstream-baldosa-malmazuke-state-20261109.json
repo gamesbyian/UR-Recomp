@@ -74,597 +74,952 @@
           "number": 1,
           "title": "Add reviewed native track components and document movement prerequisite",
           "merged_at": "2026-09-11T22:55:56Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/1"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/1",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 2,
           "title": "Recover and validate native movement dependencies",
           "merged_at": "2026-09-12T01:42:42Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/2"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/2",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 3,
           "title": "Add strict native comparison command and failure checks",
           "merged_at": "2026-09-12T01:45:39Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/3"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/3",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 4,
           "title": "Complete M2-01 native movement experiment",
           "merged_at": "2026-09-12T05:02:03Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/4"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/4",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 5,
           "title": "M2-02 native save and restore continuation",
           "merged_at": "2026-09-12T05:25:30Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/5"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/5",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 6,
           "title": "Integrate through pull requests",
           "merged_at": "2026-09-23T00:42:24Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/6"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/6",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 7,
           "title": "Read the pull request before merging",
           "merged_at": "2026-09-23T01:05:01Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/7"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/7",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 8,
           "title": "Record where the pre-pull-request branches went",
           "merged_at": "2026-09-23T01:33:49Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/8"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/8",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 9,
           "title": "TRACK-BREADTH part 1: inventory and run every track",
           "merged_at": "2026-09-23T02:15:14Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/9"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/9",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 10,
           "title": "TRACK-BREADTH part 2: capture the 20 reachable tracks and compare them with native",
           "merged_at": "2026-09-23T02:48:47Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/10"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/10",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 11,
           "title": "TRACK-BREADTH part 3: select any cold-start race track by id",
           "merged_at": "2026-09-23T05:29:03Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/11"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/11",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 12,
           "title": "Record the live play of EAST and LOOPER",
           "merged_at": "2026-09-23T06:59:08Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/12"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/12",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 13,
           "title": "Wrap LOOPER's track picture past the playfield edge",
           "merged_at": "2026-09-23T08:42:38Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/13"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/13",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 14,
           "title": "Name a one-run track's result screen after the track",
           "merged_at": "2026-09-23T09:29:52Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/14"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/14",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 15,
           "title": "Accept TRACK-BREADTH and prepare the next task",
           "merged_at": "2026-09-23T09:42:31Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/15"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/15",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 16,
           "title": "Recover the special tiles: lift, mud, corkscrew and jump-driven tile",
           "merged_at": "2026-09-24T13:40:39Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/16"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/16",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 17,
           "title": "Recover the last two race guards: 80 checkpoint flags and the inverted AI marker",
           "merged_at": "2026-09-24T14:55:34Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/17"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/17",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 18,
           "title": "Take the finish phase from race start; compare new tracks through their results",
           "merged_at": "2026-09-24T16:08:32Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/18"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/18",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 19,
           "title": "Open the locked tours in the laboratory; their race tracks, the HUNTER tier and the turnaround",
           "merged_at": "2026-09-24T18:47:20Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/19"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/19",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 20,
           "title": "Recover the loop and tile flag pairs 8, 12 and 28: 35 of 36 race tracks match",
           "merged_at": "2026-09-25T00:15:05Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/20"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/20",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 21,
           "title": "Recover the HUNTER tour's tag effects: all 36 race tracks match on the sweeps",
           "merged_at": "2026-09-25T05:23:55Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/21"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/21",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 22,
           "title": "Queue a readability pass on the recovered native code",
           "merged_at": "2026-09-25T05:25:57Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/22"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/22",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 23,
           "title": "Readable native code, part 1: style rules, one format, and an address-to-native index",
           "merged_at": "2026-09-25T07:31:03Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/23"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/23",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 24,
           "title": "Readable native code, part 2: the race engine split by system and written as game code",
           "merged_at": "2026-09-25T10:18:38Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/24"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/24",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 25,
           "title": "Readable native code, part 3: the presentation and runners as steps, split by concern",
           "merged_at": "2026-09-25T12:22:10Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/25"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/25",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 26,
           "title": "Draw every result title the original's way; DOWN+UP and BOO! start",
           "merged_at": "2026-09-25T13:39:24Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/26"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/26",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 27,
           "title": "Map the game's modes and queue the work toward the whole game",
           "merged_at": "2026-09-25T13:45:55Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/27"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/27",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 28,
           "title": "The app starts at power-on: the Nintendo screen, the title and the main menu",
           "merged_at": "2026-09-25T16:18:26Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/28"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/28",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 29,
           "title": "1P runs the setup screens to the race: PICK YOUR UNI, PICK TOUR, PICK TRACK, NOW PLAYING",
           "merged_at": "2026-09-25T19:50:51Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/29"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/29",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 30,
           "title": "After a one-run race: the result screen, the records and PICK TRACK again",
           "merged_at": "2026-09-26T01:01:41Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/30"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/30",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 31,
           "title": "After a lap race: the lap result and its graph",
           "merged_at": "2026-09-26T02:57:02Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/31"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/31",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 32,
           "title": "A tour's completion: the medal award and the way back to PICK TOUR",
           "merged_at": "2026-09-26T04:47:18Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/32"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/32",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 33,
           "title": "The race's pause menu in one-player play: quit and restart go through the menus",
           "merged_at": "2026-09-26T06:39:56Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/33"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/33",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 34,
           "title": "Every rider against every opponent the one-player menus choose",
           "merged_at": "2026-09-26T09:59:19Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/34"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/34",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 35,
           "title": "The tours' gold endings and the reveal of new tours",
           "merged_at": "2026-09-26T14:26:46Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/35"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/35",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 36,
           "title": "The race's direction arrow, its text layer's upload order, and the look's head point",
           "merged_at": "2026-09-26T20:35:16Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/36"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/36",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 37,
           "title": "HUNTER's gold ending, the soft reset, and the codes",
           "merged_at": "2026-09-26T23:47:12Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/37"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/37",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 38,
           "title": "A tour completed by its fifth win",
           "merged_at": "2026-09-27T02:14:57Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/38"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/38",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 39,
           "title": "The stunt events in the race engine",
           "merged_at": "2026-09-27T06:28:43Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/39"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/39",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 40,
           "title": "A stunt event's result, records and way back to the menus",
           "merged_at": "2026-09-27T08:45:56Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/40"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/40",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 41,
           "title": "PORTABLE-CORE-IDENTITY: queue the task (the reference core is pinned by one binary hash)",
           "merged_at": "2026-09-27T09:29:43Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/41"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/41",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 42,
           "title": "A stunt event's race picture, and NEON",
           "merged_at": "2026-09-27T12:05:06Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/42"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/42",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 43,
           "title": "Reconstruct first split-screen demo race",
           "merged_at": "2026-09-29T08:36:14Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/43"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/43",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 44,
           "title": "Implement the second idle demo cycle",
           "merged_at": "2026-09-29T11:17:28Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/44"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/44",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 45,
           "title": "Native two-player and versus race flow",
           "merged_at": "2026-09-29T16:43:11Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/45"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/45",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 46,
           "title": "Implement native OPTIONS records and saved league scores",
           "merged_at": "2026-09-30T03:40:40Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/46"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/46",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 47,
           "title": "Record deferred ghost racing and leaderboard ideas",
           "merged_at": "2026-09-30T10:23:23Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/47"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/47",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 48,
           "title": "Implement native league tournaments and CRAWLER scoring",
           "merged_at": "2026-09-30T14:38:43Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/48"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/48",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 49,
           "title": "Define native audio recovery and close the delivered stunt queue",
           "merged_at": "2026-09-30T20:28:54Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/49"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/49",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 50,
           "title": "Recover native title and menu audio",
           "merged_at": "2026-10-01T20:53:57Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/50"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/50",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 51,
           "title": "Native audio through the first 1P race",
           "merged_at": "2026-10-02T04:12:09Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/51"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/51",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 52,
           "title": "Native audio through the whole one-player game",
           "merged_at": "2026-10-04T21:27:34Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/52"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/52",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 53,
           "title": "The original's pause menu in one-player races",
           "merged_at": "2026-10-05T00:24:31Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/53"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/53",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 54,
           "title": "Pause two-pad races from either pad",
           "merged_at": "2026-10-05T03:55:30Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/54"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/54",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 55,
           "title": "The split race's HUD: caption places, both arrows, colour math, finished views",
           "merged_at": "2026-10-05T06:25:23Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/55"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/55",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 56,
           "title": "A two-human race runs until both riders finish; VS forces the second",
           "merged_at": "2026-10-05T11:08:11Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/56"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/56",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 57,
           "title": "Rider 1's tutorial hints and the split HUD's field chain",
           "merged_at": "2026-10-05T16:29:41Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/57"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/57",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 58,
           "title": "The riders' look as race state; riders under a split race's HUD text",
           "merged_at": "2026-10-06T03:47:43Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/58"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/58",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 59,
           "title": "A player voice from 150 never ends the tutorial hints first (R-0085)",
           "merged_at": "2026-10-07T00:17:57Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/59"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/59",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 60,
           "title": "A two-human race's restart; the race counter's finish poses",
           "merged_at": "2026-10-06T07:30:55Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/60"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/60",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 61,
           "title": "Sound-set uploads well above real time",
           "merged_at": "2026-10-06T10:33:06Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/61"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/61",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 62,
           "title": "The slope after an inverted face stops the rider (R-0086)",
           "merged_at": "2026-10-08T22:57:07Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/62"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/62",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 63,
           "title": "Accept the reference core by its source and outputs, not one binary hash",
           "merged_at": "2026-10-09T01:23:34Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/63"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/63",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 64,
           "title": "Every idle demo after the second (R-0087)",
           "merged_at": "2026-10-09T04:24:40Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/64"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/64",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 65,
           "title": "The idle demos' pictures: GO, the menu's palette, the title wave (R-0088)",
           "merged_at": "2026-10-09T06:48:22Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/65"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/65",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 66,
           "title": "What the original still does that native does not (COVERAGE-GAPS)",
           "merged_at": "2026-10-09T07:38:39Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/66"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/66",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 67,
           "title": "The cartridge RAM saved between app runs (SAVE-FILES)",
           "merged_at": "2026-10-09T14:03:49Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/67"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/67",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 68,
           "title": "Native audio in 2P, VS, league, OPTIONS and the demos (MODE-AUDIO)",
           "merged_at": "2026-10-09T17:07:54Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/68"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/68",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 69,
           "title": "The hidden WIPE RAM menu and factory reset (WIPE-RAM)",
           "merged_at": "2026-10-09T23:48:19Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/69"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/69",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 70,
           "title": "The rider-name cheats \"credits\" and \"faedine\" (CREDITS-NAME)",
           "merged_at": "2026-10-10T04:24:23Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/70"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/70",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 71,
           "title": "Which data the original reads (DATA-COVERAGE)",
           "merged_at": "2026-10-10T08:20:38Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/71"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/71",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 72,
           "title": "Stunt events with two humans (TWO-HUMAN-STUNTS)",
           "merged_at": "2026-10-11T12:19:04Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/72"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/72",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "two_human_gameplay",
+          "primary_source_record": "tasks/TWO-HUMAN-STUNTS.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 73,
           "title": "Close DATA-COVERAGE: accepted (tier 2, #71)",
           "merged_at": "2026-10-10T20:05:40Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/73"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/73",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 74,
           "title": "Record only the kept resolution round (ACCESS-ROUND-READS)",
           "merged_at": "2026-10-10T22:34:55Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/74"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/74",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 75,
           "title": "Register stores in instruction order (ACCESS-REGISTER-ORDER)",
           "merged_at": "2026-10-10T22:45:12Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/75"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/75",
+          "pin_relation": "baseline_merge_commit",
+          "review_class": "present_at_original_oct10_research_pin",
+          "source_note": "The UR pin is the actual merge commit 42d444594641d23f5d3c15da7b7c454bb5180e43 whose subject is PR #75; GitHub merged_at is one second later than git commit date. No post-pin source delta for this PR."
         },
         {
           "number": 76,
           "title": "Keep recipes, not historical captures (EVIDENCE-RETENTION, D-0011)",
           "merged_at": "2026-10-10T21:52:30Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/76"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/76",
+          "pin_relation": "merged_before_research_pin",
+          "review_class": "historical_baseline_context",
+          "source_note": "Chronologically merged before the exact original 2026-10-10 research pin; no distinct post-pin change implied. No full historical PR diff rereview; source retained in pinned base history."
         },
         {
           "number": 77,
           "title": "The idle demos' sound (DEMO-AUDIO)",
           "merged_at": "2026-10-11T22:30:34Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/77"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/77",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "original_audio",
+          "primary_source_record": "docs/research/R-0096-demo-audio.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 79,
           "title": "Menu input as the original reads it (MENU-INPUT)",
           "merged_at": "2026-10-14T08:28:18Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/79"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/79",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "original_menu_ui",
+          "primary_source_record": "tasks/MENU-INPUT.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 80,
           "title": "Evidence retention, second pass (records)",
           "merged_at": "2026-10-14T12:48:49Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/80"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/80",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "evidence_retention_records",
+          "primary_source_record": "tasks/EVIDENCE-RETENTION.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 81,
           "title": "League beyond its first tour (LEAGUE-TOURS)",
           "merged_at": "2026-10-16T02:39:34Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/81"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/81",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "original_league",
+          "primary_source_record": "tasks/LEAGUE-TOURS.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 82,
           "title": "The league podium's music (PODIUM-AUDIO)",
           "merged_at": "2026-10-17T09:41:48Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/82"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/82",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "original_audio",
+          "primary_source_record": "docs/research/R-0099-podium-audio.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 83,
           "title": "The records screens and the rider word after a result (RECORD-SCREENS)",
           "merged_at": "2026-10-23T23:00:00Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/83"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/83",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "original_records_ui",
+          "primary_source_record": "docs/research/R-0100-record-screens.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 84,
           "title": "One gate runner that picks its checks and compares with main (GATES-AGAINST-MAIN, D-0012)",
           "merged_at": "2026-10-25T03:38:03Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/84"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/84",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "selective_ci",
+          "primary_source_record": "docs/decisions/D-0012-selective-gates-against-main.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 85,
           "title": "Shorter tasks and less disk (TASK-EFFICIENCY, D-0013)",
           "merged_at": "2026-10-25T02:27:09Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/85"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/85",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "ci_task_budget",
+          "primary_source_record": "docs/decisions/D-0013-task-time-and-disk-budget.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 86,
           "title": "Large captures stored as zstd (EVIDENCE-LARGE-FILES)",
           "merged_at": "2026-10-26T01:14:43Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/86"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/86",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "evidence_compression",
+          "primary_source_record": "tasks/EVIDENCE-LARGE-FILES.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 87,
           "title": "Name check on the keyboard (NAME-CHECK)",
           "merged_at": "2026-10-27T08:45:18Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/87"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/87",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "original_keyboard",
+          "primary_source_record": "docs/research/R-0101-name-check.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 88,
           "title": "League menu frame overruns (PODIUM-RETURN-TIMING)",
           "merged_at": "2026-10-27T21:47:09Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/88"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/88",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "pal_timing",
+          "primary_source_record": "docs/research/R-0102-menu-frame-overruns.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 89,
           "title": "HUNTER's effects in a split picture (SPLIT-HUNTER-PICTURES)",
           "merged_at": "2026-10-28T06:59:26Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/89"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/89",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "split_picture",
+          "primary_source_record": "docs/research/R-0103-split-hunter-pictures.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 90,
           "title": "Power bounce lands both riders in a two-view race (TWO-VIEW-POWER-BOUNCE)",
           "merged_at": "2026-10-28T13:28:41Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/90"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/90",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "two_view_physics",
+          "primary_source_record": "docs/research/R-0104-two-view-power-bounce.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 91,
           "title": "R-0102: NAME-CHECK's frame wait timing checked",
           "merged_at": "2026-10-28T21:50:37Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/91"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/91",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "name_check_timing",
+          "primary_source_record": "docs/research/R-0102-menu-frame-overruns.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 92,
           "title": "The cartridge's option words (CARTRIDGE-OPTION-BITS)",
           "merged_at": "2026-10-29T03:10:46Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/92"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/92",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "original_sram_flags",
+          "primary_source_record": "docs/research/R-0105-cartridge-option-words.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 93,
           "title": "The app's league races and its podium audio check (APP-LEAGUE-RACE)",
           "merged_at": "2026-11-07T03:10:17Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/93"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/93",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "app_runner_parity",
+          "primary_source_record": "docs/research/R-0106-app-league-race.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 94,
           "title": "The race's listing-only branches (RACE-LISTING-BRANCHES)",
           "merged_at": "2026-11-07T05:24:40Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/94"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/94",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "rare_branches",
+          "primary_source_record": "docs/research/R-0107-race-listing-branches.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 95,
           "title": "The race branches R-0107 could not capture (RACE-BRANCH-REMAINDER)",
           "merged_at": "2026-11-07T12:55:48Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/95"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/95",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "rare_branches",
+          "primary_source_record": "docs/research/R-0108-race-branch-remainder.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 96,
           "title": "How far the native game is from the whole original (COVERAGE-CENSUS)",
           "merged_at": "2026-11-07T23:50:43Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/96"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/96",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "source_coverage",
+          "primary_source_record": "docs/research/R-0109-coverage-census.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 97,
           "title": "The shipped app plays what the runner plays (APP-PARITY)",
           "merged_at": "2026-11-08T10:00:23Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/97"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/97",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "app_runner_parity",
+          "primary_source_record": "docs/research/R-0110-app-parity.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 98,
           "title": "The app builds when GitHub's release downloads fail (SDL-MIRROR)",
           "merged_at": "2026-11-08T09:50:48Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/98"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/98",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "ci_dependency_fetch",
+          "primary_source_record": "tasks/SDL-MIRROR.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 99,
           "title": "The saved image as the original writes it (SAVE-IMAGE-EXACT)",
           "merged_at": "2026-11-08T18:31:20Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/99"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/99",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "sram_frame_trace",
+          "primary_source_record": "docs/research/R-0111-save-image-exact.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         },
         {
           "number": 100,
           "title": "The bytes R-0109 left unexplained (CENSUS-REMAINDER)",
           "merged_at": "2026-11-09T00:45:03Z",
-          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/100"
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/100",
+          "pin_relation": "merged_after_research_pin",
+          "review_class": "post_pin_source_family_triaged",
+          "family": "code_data_reachability",
+          "primary_source_record": "docs/research/R-0112-census-remainder.md",
+          "source_note": "Source family and associated changed paths have evidence-scoped triage in this index, not full per-PR line audit or USA execution acceptance. Use per-path Git blob pairs and trigger before reopening."
         }
-      ]
+      ],
+      "pr_index_reviewed": {
+        "indexed": 99,
+        "already_before_oct10": 74,
+        "oct10_pin_merge": 1,
+        "post_pin": 24,
+        "post_pin_families": 24,
+        "review_scope": "Source family and path-level changed-byte applicability, not full line-by-line independent PR review or emulator parity",
+        "pin_timestamp": "2026-10-10T22:45:11Z",
+        "pin_boundary_note": "PR #75 is exact baseline commit; API merged_at is 1s after its commit committer date."
+      }
     }
   ],
   "review_status": {
@@ -674,10 +1029,13 @@
       "Both complete Git tree listings enumerated without truncation",
       "Live open issues, release collection, branches and source license reviewed",
       "260-commit/177-file Malmazuke delta identified against existing pinned UR import",
-      "Selected source/PR bodies, current queued tasks and corresponding UR apparatus policies inspected"
+      "Selected source/PR bodies, current queued tasks and corresponding UR apparatus policies inspected",
+      "All 177 changed Malmazuke paths assigned explicit code/test/doc relevance, before/after blob SHA and reopen trigger",
+      "All 99 merged Malmazuke PRs classified relative to actual Oct 10 pinned merge commit (74 earlier, 1 boundary, 24 later), with 24 source-family pointers",
+      "Original-USA historical 0x10A7 SRAM difference cross-checked against corrected old-run inputs and later independent RF076 raw evidence; no live defect presumed"
     ],
     "incomplete": [
-      "Semantic inspection of every one of 177 changed files, every PR diff and every test fixture",
+      "Exhaustive line-by-line proof of every changed source/PR body and large 1.84MB PAL pack fixture payload; targeted source-family triage completed, not actual original-PAL/USA acceptance",
       "Independent full source-to-USA address correspondence on changed PAL tables",
       "Locally regenerating upstream private local/evidence captures (not committed upstream)",
       "Real original USA replay, native app test and Windows acceptance of any proposed finding",
@@ -706,7 +1064,7 @@
       "task-records": 31,
       "tests-and-fixtures": 14
     },
-    "semantics_status": "Inventory-only. Each listed changed file is unclassified until inspected against live UR source and evidence. Do not infer test or code acceptance.",
+    "semantics_status": "All 177 changed paths have exact before/after Git blob and bounded file-level triage, with a documented reopen trigger. This is NOT exhaustive line-by-line semantic review, independently reopened 1.84MB fixture, original-PAL capture reproduction or USA gameplay/Windows acceptance.",
     "files": [
       {
         "path": "AGENTS.md",
@@ -1364,7 +1722,7 @@
         "domain": "research-results",
         "semantic_review": "closed_advisory",
         "ur_disposition": "qualified_pal_behavior",
-        "review_note": "Reports PAL 919 routes and per-frame SRAM write differences; $10A7 is a track-menu marker step at $80:E872/$80:EB32 and ending writes at $83:B649. Same numeric USA offset already differs in a confirmed Zoom Zoo original/native pair, but behavior/phase identity is unproven. Includes 207 still unequal routes and explicit limitations. Additional static USA crosswalk: pinned generated Menu_CycleSpriteTiles reads/decrements/reset-13/writes 0x10A7; Menu_PickTrack clears word. The observed Zoo one-byte difference is consistent but unproven as this schedule. Corrected USA replay 38784747445 confirms matching root and replicates 0x10A7 byte outcome. The earlier 38702124777 and 38702441615 epochs did not prove equal initial SRAM because wrapper read wrong saves root; never use them as independently identical-input witnesses.",
+        "review_note": "Reports PAL 919 routes and per-frame SRAM write differences; $10A7 is a track-menu marker step at $80:E872/$80:EB32 and ending writes at $83:B649. Same numeric USA offset already differs in a confirmed Zoom Zoo original/native pair, but behavior/phase identity is unproven. Includes 207 still unequal routes and explicit limitations. Additional static USA crosswalk: pinned generated Menu_CycleSpriteTiles reads/decrements/reset-13/writes 0x10A7; Menu_PickTrack clears word. The observed Zoo one-byte difference is consistent but unproven as this schedule. Corrected USA replay 38784747445 confirms matching root and replicates 0x10A7 byte outcome. The earlier 38702124777 and 38702441615 epochs did not prove equal initial SRAM because wrapper read wrong saves root; never use them as independently identical-input witnesses. Later exact-source RF076 39337657773 independently rehashes 97/97 equal original/native 8KiB SRAM frames (different execution epoch). Old 0x10A7 delta is not a demonstrated current-blocker; reprioritize unresolved WRAM/NMI first-consumption.",
         "next_trigger": "Trigger: perform original-USA static writer/reader crosswalk around 0x10A7 before any emulator replay; retain both full-image strict comparisons.",
         "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
         "review_date": "2026-11-09",
@@ -3916,7 +4274,7 @@
           "src/gen/bank80_part0d_v2.c: Menu_PickTrack stores 0; Menu_CycleSpriteTiles reads, decrements/reset-to-13, writes and rereads 0x10A7",
           "Malmazuke docs/research/R-0111-save-image-exact.md: 80:E872,80:EB32,83:B649"
         ],
-        "observed_usa_pair": "Correctly seeded 2026-10-15 run 38784747445 reproduced original 0x0C/native 0x0D at +64/+72 (equal at +8,+16,+24,+32) and guest cold-ranked reload; earlier old-root 38702124777 and 38702441615 remain valid measured outputs but are not source-input equivalence evidence.",
+        "observed_usa_pair": "Correctly seeded 2026-10-15 run 38784747445 reproduced original 0x0C/native 0x0D at +64/+72 (equal at +8,+16,+24,+32) and guest cold-ranked reload; earlier old-root 38702124777 and 38702441615 remain valid measured outputs but are not source-input equivalence evidence. Later source-specific October 19 RF076 archive independently records 97/97 full original/native SRAM pairs equal; never join the two different executable epochs or call 0x10A7 a current defect.",
         "hypothesis": "one fewer/more 13-to-12 menu sprite update at sampled event-relative frame",
         "unproven": [
           "first instruction writer in specific actual Zoo sample",
@@ -3924,7 +4282,7 @@
           "later player-visible/cold-save causal equivalence",
           "USA release event acceptance"
         ],
-        "next": "Use corrected run 38784747445 and existing later RF054/RF076 raw epochs separately; analyze menu marker writer at $80:EB0D against same-run phase, not earliest flawed preload comparator. Do not join different binaries/epoch witnesses or overwrite historical case evidence.",
+        "next": "Only reopen historical 0x10A7 first-writer chronology if current exact original/native same-binary/source epoch reproduces an SRAM divergence with downstream effect; otherwise rank the later RF076 27/78 unmasked stack/sound WRAM sample mismatch and source-local NMI/read phase as first-event blocker.",
         "preload_conflict_and_repair": {
           "historical_source_caveat": "The 2026-10-15 initial six-sample 38702124777 and independent-core repeat 38702441615 used a native wrapper that staged save.srm beside the executable but launched with --config and cwd=work; identical source initial native guest SRAM was not proven in those runs.",
           "corrected_run_id": 38784747445,
@@ -3936,6 +4294,16 @@
           "corrected_outcome": "True cwd-relative native SRAM staged and asserted; original/native +5163/+5163 onset; SRAM identical +8/+16/+24/+32, difference only at 0x10A7 original 0x0C/native 0x0D at +64/+72; earned MIKE 2510 and ranked records equal; fresh cold guest reload of earned +72 record succeeds at boot frame 300/420.",
           "source": "docs/QA01-PINNED-BALDOSA-SRAM-PRELOAD-IDENTITY-20261015.md, lines 26-34",
           "disposition": "The corrected run removes the old wrong-root source-state confound for this specific Zoo observation; still no original/native actual writer-PC, CPU/NMI phase alignment, entire-event semantics or packaged Windows disk acceptance."
+        },
+        "later_raw_guest_epochs": {
+          "source_case": "docs/QA01-FIRST-USA-EVENT-MISSING-WITNESS-MATRIX-20261019.md; docs/QA01-RF076-NATIVE-NINE-NMI-INDEPENDENT-20261019.md",
+          "rf076_case_run": 39337657773,
+          "rf076_independent_review_run": 39344364860,
+          "rf076_original_native_sram_equal_pairs": "97/97 all retained named checkpoints",
+          "rf076_original_native_wram": "78 sampled mesh pairs: 51 equal, 27 unequal, 92 differing byte occurrences across 7E:01ED-01F1 and 0063",
+          "rf066_rf062_crosswalk": "All 97 original SRAM and all 97 native SRAM cross-epoch images identical; 15 native WRAM sample frames change, including original-follow +64/+72 stack slots, not SRAM",
+          "decision": "Historical 0x10A7 mismatch exists on corrected October 15 research ELF, but later independently reopened October 19 epochs have byte-exact same-label original/native full SRAM. Do not treat old 0x10A7 phase discrepancy as current source product defect absent fresh same-current-executable reproduction. Focus on unmasked current raw WRAM stack/NMI/first-consumed-byte and physical Windows persistence, each under independent epoch.",
+          "scope_caveat": "No retroactive proof that older 0x10A7 discrepancy was fixed by a specific source patch; different executable epochs and sampled snapshots only, not continuous CPU equivalence."
         }
       }
     },

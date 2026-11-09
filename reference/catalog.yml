@@ -3,6 +3,15 @@ retrieved: 2026-09-28
 project: UR-Recomp
 
 sources:
+  - id: redcomp-dream-usa-20261109
+    title: "redcomp-dream: independent USA Uniracers static recompilation, widescreen and course-format research"
+    type: upstream_noncommercial_recomp_reference
+    url: "https://github.com/fselich/redcomp-dream/tree/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed"
+    revision: "dc3d1edfd7a8e86921fd5ac35b1525e8069302ed"
+    retrieved: "2026-11-09"
+    rights: "PolyForm Noncommercial 1.0.0 root and vendored framework; independent rights review for submodules, binary assets and dependencies. Metadata/read-only research; no upstream code or art imported."
+    local: "docs/REDCOMP-DREAM-INTAKE-PLAN.md"
+    relevance: "Independent course X-boundary, source anchor, BG1 ring and OAM widescreen hypotheses; cross-check against existing USA source/PPU and WIDE-07, no new gameplay core."
   - id: dkc2-recomp-reconstruct-shader-20261010
     title: "DKC2Recomp experimental Reconstruct upscaler and display treatments"
     type: upstream_recomp_visual_reference

@@ -4,7 +4,7 @@
 
 ## Contributor recruitment and response coordination
 
-The [public contributor guide](contributors/README.md), [recruitment plan](contributors/PLAN.md), [13 venue-specific draft posts](contributors/posts/), [reference pack](contributors/REFERENCE-PACK.md), and [response/attachment/email operations](contributors/OPERATIONS.md) own outreach instructions and privacy boundaries. These create no automatic forum posts, email sender, or new engineering queue; [launch gates](contributors/HANDOFF.md) control deployment. All contributor contact records must remain private. Engineering work and release acceptance retain their existing authorities.
+The [public contributor guide](contributors/README.md), [recruitment plan](contributors/PLAN.md), [13 venue-specific draft posts](contributors/posts/lettering.md), [reference pack](contributors/REFERENCE-PACK.md), and [response/attachment/email operations](contributors/OPERATIONS.md) own outreach instructions and privacy boundaries. These create no automatic forum posts, email sender, or new engineering queue; [launch gates](contributors/HANDOFF.md) control deployment. All contributor contact records must remain private. Engineering work and release acceptance retain their existing authorities.
 
 ## Shared CI, compute, HP and five-agent implementation roadmap
 

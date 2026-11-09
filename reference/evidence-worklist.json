@@ -4,6 +4,22 @@
   "purpose": "Actionable external evidence queue. Source provenance lives in reference/catalog.yml; this file owns uncertainty, next discriminator, acquisition state, and expected project deliverables.",
   "leads": [
     {
+      "id": "redcomp-course-x-boundary-20261109",
+      "value": "high",
+      "cost": "low_first_pass",
+      "status": "ready_read_only_discriminator",
+      "source_ids": ["redcomp-dream-usa-20261109"],
+      "question": "Does the canonical USA original BG1 presentation wrap course-grid X at a true observed horizontal boundary or intentionally blank outside that source-domain edge, and is UR-Recomp WIDE-07 already rendering it correctly?",
+      "next_discriminator": "Check current WIDE-07 ownership and source-corresponding fixture. Run tools/redcomp_course_boundary_probe.py on a source-matched 128KiB WRAM capture; the output only contrasts clipped versus modulo-wrapped *candidate* course words. Pair with the original-USA PPU/VRAM world-cell, viewport, HDMA, scroll and origin evidence from an actual crossing of a later-tour X edge. Do not change native/title/uniracers_ws_margins.c or claim event parity from synthetic examples.",
+      "deliverables": [
+        "Pinned external tree census and executable cross-project intake plan",
+        "Read-only candidate-word report and bounded synthetic regression",
+        "Conditional original/native first-discrepancy result with exact ROM, source, frame, input and PPU provenance; corrected existing WIDE-07 test only if positive"
+      ],
+      "tags": ["uniracers", "USA", "widescreen", "external", "source", "boundary", "WIDE-07"],
+      "reopen_only_if": "An existing genuine original/native widened race exhibits a boundary discrepancy or source-corresponding original fixture is available."
+    },
+    {
       "id": "active-display-oam-behavior",
       "value": "critical",
       "cost": "medium",

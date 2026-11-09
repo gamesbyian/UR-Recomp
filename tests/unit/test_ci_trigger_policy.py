@@ -157,8 +157,19 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("runs-on: windows-2022", source)
         self.assertIn("refs/heads/main", source)
         self.assertIn("$pr.draft -ne $true", source)
+        self.assertIn("$env:TARGET_PR -cne '3274'", source)
         self.assertIn("$pr.head.repo.full_name -cne $env:GITHUB_REPOSITORY",
                       source)
+        self.assertIn(
+            "$pr.head.ref -cne 'ci/p2-receipt-path-numeric-integrity-20261108'",
+            source)
+        self.assertIn(
+            "$pr.base.ref -cne 'ci/p2-stacked-records-mode-provenance-20261107'",
+            source)
+        self.assertIn(
+            "$pr.base.sha -cne '5ee8808393e72a3d44cc6ad62a8a896c9c6e3839'",
+            source)
+        self.assertIn("$pr.number -ne 3274", source)
         self.assertIn("$pr.head.sha -cne $env:EXPECTED_SHA", source)
         self.assertIn("ref: ${{ inputs.expected_sha }}", source)
         self.assertIn("persist-credentials: false", source)

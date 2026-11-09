@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "Open same-repository P2 draft PR number"
+        description: "Exact held P2 child PR (only #3274 is admitted)"
         required: true
         type: string
         default: "3274"
@@ -40,8 +40,10 @@ jobs:
           if ($env:GITHUB_REF -cne 'refs/heads/main') {
             throw 'Dispatch must use reviewed default-branch workflow source'
           }
-          if ($env:TARGET_PR -cnotmatch '^[1-9][0-9]{0,8}$') {
-            throw 'Invalid P2 PR number'
+          # Scope the host probe to the source-audited child only.
+          # An arbitrary ci/p2- branch must never acquire this route.
+          if ($env:TARGET_PR -cne '3274') {
+            throw 'Only held P2 child PR #3274 is admitted'
           }
           if ($env:EXPECTED_SHA -cnotmatch '^[0-9a-f]{40}$') {
             throw 'Expected source SHA must be exactly 40 lowercase hex characters'
@@ -54,9 +56,11 @@ jobs:
           }
           if ($pr.head.repo.full_name -cne $env:GITHUB_REPOSITORY -or
               $pr.base.repo.full_name -cne $env:GITHUB_REPOSITORY -or
-              $pr.head.ref -cnotmatch '^ci/p2-' -or
+              $pr.head.ref -cne 'ci/p2-receipt-path-numeric-integrity-20261108' -or
+              $pr.base.ref -cne 'ci/p2-stacked-records-mode-provenance-20261107' -or
+              $pr.base.sha -cne '5ee8808393e72a3d44cc6ad62a8a896c9c6e3839' -or
               $pr.head.sha -cne $env:EXPECTED_SHA) {
-            throw 'Fork, non-P2 ref, or stale source: no Windows run'
+            throw 'Wrong source stack, fork, or stale P2 head: no Windows run'
           }
           Write-Output "P2_WIN32_SOURCE_PREFLIGHT PR=$env:TARGET_PR SHA=$env:EXPECTED_SHA"
 
@@ -112,8 +116,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Cannot recheck P2 PR source after run' }
           $pr = $raw | ConvertFrom-Json
           if ($pr.state -cne 'open' -or $pr.draft -ne $true -or
+              $pr.number -ne 3274 -or
+              $pr.head.repo.full_name -cne $env:GITHUB_REPOSITORY -or
+              $pr.base.repo.full_name -cne $env:GITHUB_REPOSITORY -or
+              $pr.head.ref -cne 'ci/p2-receipt-path-numeric-integrity-20261108' -or
+              $pr.base.ref -cne 'ci/p2-stacked-records-mode-provenance-20261107' -or
+              $pr.base.sha -cne '5ee8808393e72a3d44cc6ad62a8a896c9c6e3839' -or
               $pr.head.sha -cne $env:EXPECTED_SHA) {
-            throw 'P2 source changed or PR promoted during OS test'
+            throw 'P2 source stack changed or PR promoted during OS test'
           }
           @(
             '### Manual P2 Win32 seed-sharing OS control'

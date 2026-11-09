@@ -184,6 +184,50 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(run.call_count, 2)
         sleep.assert_called_once_with(1)
 
+    def test_successful_cli_truncated_json_retries_with_bounded_backoff(self):
+        bad = SimpleNamespace(returncode=0, stderr="", stdout='{"total_count":')
+        good = SimpleNamespace(
+            returncode=0, stderr="", stdout='{"total_count":0,"artifacts":[]}')
+        with patch.object(inv.subprocess, "run", side_effect=[bad, good]) as run:
+            with patch.object(inv.time, "sleep") as sleep:
+                result = inv.gh_json("api", "repos/gamesbyian/Chunks/actions/artifacts")
+        self.assertEqual(result["total_count"], 0)
+        self.assertEqual(run.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    def test_successful_cli_duplicate_members_fail_closed_at_any_depth(self):
+        # A last-key-wins parser would allow ambiguous totals/bytes to
+        # masquerade as a complete source-locked account census.
+        examples = (
+            '{"total_count":1,"total_count":2,"artifacts":[]}',
+            '{"total_count":1,"artifacts":[{"id":1,"size_in_bytes":3,'
+            '"size_in_bytes":999}]}',
+        )
+        for raw in examples:
+            with self.subTest(raw=raw):
+                payload = SimpleNamespace(returncode=0, stderr="token=private",
+                                          stdout=raw)
+                with patch.object(inv.subprocess, "run",
+                                  return_value=payload) as run:
+                    with patch.object(inv.time, "sleep") as sleep:
+                        with self.assertRaisesRegex(
+                                RuntimeError, "invalid JSON or ambiguous"):
+                            inv.gh_json("api", "repos/gamesbyian/Chunks/actions/artifacts")
+                self.assertEqual(run.call_count, 3)
+                self.assertEqual([x.args for x in sleep.call_args_list],
+                                 [(1,), (2,)])
+
+    def test_successful_cli_nonfinite_numbers_fail_closed(self):
+        payload = SimpleNamespace(
+            returncode=0, stderr="", stdout='{"size_in_bytes":NaN}')
+        with patch.object(inv.subprocess, "run", return_value=payload) as run:
+            with patch.object(inv.time, "sleep") as sleep:
+                with self.assertRaisesRegex(
+                        RuntimeError, "invalid JSON or ambiguous"):
+                    inv.gh_json("api", "repos/gamesbyian/UR-Recomp/actions/artifacts")
+        self.assertEqual(run.call_count, 3)
+        self.assertEqual([x.args for x in sleep.call_args_list], [(1,), (2,)])
+
     def test_gh_json_auth_denial_has_status_only_and_no_retry(self):
         failed = SimpleNamespace(returncode=1, stderr="gh: token=secret (HTTP 403)", stdout="")
         with patch.object(inv.subprocess, "run", return_value=failed) as run:

@@ -1,0 +1,42 @@
+name: Volunteer contribution interest
+description: Offer an optional unpaid contribution to the Uniracers / Unirally project. This issue is public.
+title: "[CONTRIBUTOR] "
+body:
+  - type: markdown
+    attributes:
+      value: "This is an unofficial, unpaid fan project. One small contribution is fine; there is no ongoing obligation. PUBLIC ISSUE: do not include emails, phone numbers, private identity data, unapproved copyrighted files, credentials or personal messages. An issue does not grant repository privileges."
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: What would you like to help with?
+      options:
+        - 3D model or rig art
+        - Regional wordmarks and script/language review
+        - Agent-assisted development or independent code review
+        - Windows playtest interest
+        - Collaboration with another Uniracers or Unirally project
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: A small, optional first contribution or question
+      description: One bounded piece is sufficient.
+      placeholder: "Example: a better silhouette for the experimental wheel/fork model."
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Optional public reference or portfolio URL
+      description: Share only something you have permission to display.
+    validations:
+      required: false
+  - type: checkboxes
+    id: policy
+    attributes:
+      label: Expectations
+      options:
+        - label: I understand that the issue is public and the collaboration is voluntary, unpaid and unofficial.
+          required: true

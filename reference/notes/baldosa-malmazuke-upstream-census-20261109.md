@@ -105,6 +105,18 @@ The 12 changed older `docs/research/*` files omitted from the first technical pa
 
 **Current changed-path dispositions:** 10 contextually closed, 67 triaged, 100 pending of 177; implementation sources and corresponding actual test changes still remain for independent semantic classification.
 
+## Actual PAL code semantic cross-check, 2026-11-09
+
+Eight further changed `src/core` files were inspected as source, beyond their PR/task titles. This raises the 177-path intake to **10 contextually closed, 75 triaged and 92 pending**. All eight are advisory code-level triages; full executable PAL route regression or USA compiled Windows verification was not performed.
+
+**0x10A7 marker writer now checked on both sides.** In PAL `src/core/track_menu.cpp`, `enter_track_menu` clears `marker_step` and stores it at ROM `$80:E872`; `turn_markers` changes zero to 13 or decrements, stores at `$80:EB32`, and uses it as the OAM marker tile index. The shared inline `store_marker_step` writes the low byte to SRAM `0x10A7` and zeroes `0x10A8`. The pinned USA guest C has matching reset, decrement/wrap and OAM usage. This establishes the static mechanism, *not* the time/consumer of the sampled original 0x0C vs native 0x0D at Zoom Zoo result+64.
+
+**16-bit league cursor wrap risk.** PAL `src/core/league_menu.cpp` implements original `$80:F88D` as an unsigned 16-bit calculation of `16*slot+2*(cursor+256*next_cursor)`, adds base `0x0618`, then uses the cartridge-8KiB-mirroring-aware writer. A corrupt adjacent cursor byte can place a recorded score inside unrelated cartridge fields. The PAL `SAVE-IMAGE-EXACT` original captures demonstrate scoped corrupt-cursor behavior; **UR still needs an actual source-current USA bad-input/cold-save discriminator** before any host change. Existing UR profile validation, source actor and crash/recovery policy remain first.
+
+**Two-view HUNTER landing source.** PAL `src/core/vertical_contact.cpp` checks `$77:0750` bit3 before applying HUNTER power-bounce landing matrix0, permitting either rider in split mode. It is original PAL gameplay semantics, not an acceptable direct patch to the compiled USA guest. The original USA-source branch and real 2P candidate are the only useful discriminators if a live defect exists.
+
+**Other changed code (`front_end.cpp`, `rider_menu.cpp`, `race_result.cpp`, `options_menu.cpp`)** confirms Malmazuke's own native frontend/save/input boundaries; these must remain distinct from UR's Baldosa guest, typed profiles and Modern UI. File-by-file reference/stop triggers are stored in the machine index. No new source import, source pin update, or release credit.
+
 ## Two practical first investigations
 
 1. **SRAM applicability:** check existing UR Windows isolated profile/crash/record tests for missing exact cartridge write-frame and corrupt-cursor cases; document a minimal USA original/native discriminator where a real current blocker remains. Avoid modifying the host save format just to make PAL bytes match.

@@ -1439,8 +1439,13 @@
         "additions": 147,
         "deletions": 30,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "do_not_import",
+        "review_note": "PAL native front end implements boot signature check, cold 8KiB SRAM wipe, saved mode, pending reveal and original animation/menu timers; source line 347 identifies 0x10A7 on wipe. Existing UR Baldosa original guest + Modern host own these separately; relevance is exact source-trigger validation only.",
+        "next_trigger": "Reopen for a current USA cold-boot/profile or guest-vs-Modern state disagreement on exact source candidate.",
+        "ur_reference": "docs/PROJECT-PLAN.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end.cpp"
       },
       {
         "path": "src/core/front_end.hpp",
@@ -1476,8 +1481,13 @@
         "additions": 174,
         "deletions": 15,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "PAL shared inline store_marker_step stores low byte of track_menu.marker_step to 0x10A7 and clears 0x10A8, cites $80:E872/$80:EB32; mode word/byte stores to 0x10AD/AE follow distinct widths. Baldosa generated USA confirms marker read/decrement/write.",
+        "next_trigger": "Reopen for original-USA exact 0x10A7 writer/consumer chronology or boot-mode word mismatch; no native frontend transplant.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/front_end_screens.hpp"
       },
       {
         "path": "src/core/high_scores.cpp",
@@ -1553,8 +1563,13 @@
         "additions": 337,
         "deletions": 65,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "PAL 16-bit league result offset at $80:F88D uses (16*slot+2*(cursor|next_cursor<<8))&0xffff, then stores in SRAM 8KiB-mirrored image. Corrupt/warm cursor can wrap totals into unrelated byte regions, per R-0111; source-level risk, not demonstrated UR data corruption.",
+        "next_trigger": "Reopen for source-current USA corrupt-SRAM race/record behavior; use existing first-party crash/host validity controls and original-USA writer evidence.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/league_menu.cpp"
       },
       {
         "path": "src/core/local_modes.cpp",
@@ -1616,8 +1631,13 @@
         "additions": 305,
         "deletions": 704,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "PAL OPTIONS records and keyboard rendering/positioning carry original sprite text/OAM and name check; modern UR menus deliberately differ from stock. Long-print timings remain region-bound.",
+        "next_trigger": "Reopen only for original USA Authentic records/keyboard input or native sprite visibility discrepancy.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/options_menu.cpp"
       },
       {
         "path": "src/core/presentation.cpp",
@@ -1666,8 +1686,13 @@
         "additions": 260,
         "deletions": 119,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "do_not_import",
+        "review_note": "PAL native race-result flow and soundtrack loading update cartridge words $0744/$0748-$0750, per-frame race loading and guest results. Its independent C++ state is not UR's original USA simulation nor typed host run authority.",
+        "next_trigger": "Reopen for verified current USA race→result→records/cold-save mismatch after existing original/native event evidence is read.",
+        "ur_reference": "docs/PROJECT-PLAN.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/race_result.cpp"
       },
       {
         "path": "src/core/race_setup.cpp",
@@ -1743,8 +1768,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "do_not_import",
+        "review_note": "PAL stock rider picker stores 1P/2P/VS SavedMode with word/byte semantics and owns original player selection. UR Modern uses independent P1/P2 join and typed profiles; source is an Authentic behavior reference only.",
+        "next_trigger": "Reopen for real USA pad ownership, mode flag or original menu discrepancy; don't import PAL selector/UI.",
+        "ur_reference": "docs/PROJECT-PLAN.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/rider_menu.cpp"
       },
       {
         "path": "src/core/stunt_event.cpp",
@@ -1842,8 +1872,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "Actual PAL PICK TRACK code enter_track_menu sets marker_step=0 then store_marker_step($80:E872); turn_markers decrements or wraps 0→13 then stores at $80:EB32 and uses step to set 5 OAM marker tiles. Pinned Baldosa USA generated guest has same control sequence.",
+        "next_trigger": "Reopen to align actual Zoo result+32→+64 original/native call chronology at 80:EB0D and verify downstream marker presentation before causal claim.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/track_menu.cpp"
       },
       {
         "path": "src/core/track_records.cpp",
@@ -1860,8 +1895,13 @@
         "additions": 0,
         "deletions": 0,
         "domain": "native-gameplay",
-        "semantic_review": "pending",
-        "ur_disposition": "unclassified"
+        "semantic_review": "triaged",
+        "ur_disposition": "qualified_pal_behavior",
+        "review_note": "PAL vertical contact's lands_with_power_bounce implements original $81:94A8-94C3: HUNTER effect power bounce selects landing matrix0 for rider0 normally, either rider when $77:0750 bit3 indicates two views. This is gameplay state and must not be transplanted without USA original proof.",
+        "next_trigger": "Reopen for true current USA HUNTER second rider landing mismatch or an independent USA original source branch witness.",
+        "ur_reference": "docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md",
+        "review_date": "2026-11-09",
+        "review_source_url": "https://github.com/malmazuke/unirally-reconstruction/blob/19ecb59fb56bc9b3024a72ab9cba912586229769/src/core/vertical_contact.cpp"
       },
       {
         "path": "src/core/vertical_contact.hpp",
@@ -2689,8 +2729,8 @@
     ],
     "progress": {
       "closed_advisory": 10,
-      "triaged": 67,
-      "pending": 100,
+      "triaged": 75,
+      "pending": 92,
       "total": 177,
       "policy": "closed_advisory is closed for present UR reuse decision only, not original-USA verification or source-line audit. triaged records a concrete lead without granting semantic closure. pending remains unexamined.",
       "closure_requirement": "All paths must receive a disposition and review note; only a present-tense engineering decision with evidence can close each. Reopen if upstream delta or current USA product defect changes premise."

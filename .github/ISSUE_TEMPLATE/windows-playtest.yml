@@ -1,0 +1,80 @@
+name: Windows playtest finding
+description: One bounded observation on a specified Windows test build. Public issue; no ROMs or private logs.
+title: "[PLAYTEST] "
+body:
+  - type: markdown
+    attributes:
+      value: "Report ONE finding here. This is a PUBLIC issue. Do not attach game ROMs, private saves, tokens, identifying file paths, raw identifying logs, machine serial numbers or private correspondence. A tester report is not an independent release/fidelity qualification."
+  - type: input
+    id: build
+    attributes:
+      label: Exact build / release URL or identifier
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source commit SHA if provided by the build
+      placeholder: "Full 40-character SHA; do not guess."
+    validations:
+      required: false
+  - type: input
+    id: distribution
+    attributes:
+      label: Distribution SHA-256 if provided by the build
+      placeholder: "Full 64-character SHA-256; do not guess."
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Controls and input
+        - Single-player gameplay
+        - Local two-player
+        - Graphics, widescreen, 4K
+        - Audio
+        - Menus, options, saves
+        - Installer or crash
+        - Original-game fidelity
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: recurrence
+    attributes:
+      label: How reproducible is it?
+      options:
+        - Always
+        - Often
+        - Sometimes
+        - Once
+        - Not reproduced
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Shortest reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour and comparison source
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Observed behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Optional non-identifying setup details
+      description: Windows version, generic input/controller type and display mode. Avoid personal paths and IDs.
+    validations:
+      required: false

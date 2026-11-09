@@ -1,5 +1,8 @@
 # Contributor operations: next executable actions
 
+**Primary outreach link:** [Short recruitment landing](https://gamesbyian.github.io/UR-Recomp/contributors/), with compact role cards and one-click contribution intake. **Deeper optional gallery:** [Artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/). Keep the compact page as every post's common entrypoint; original PNGs/SVGs remain at their prior `/contributors/images/` direct URLs. Publication follows the existing Visual Atlas Pages workflow.
+
+
 **Status: draft-only scaffold.** This PR does not establish a mailbox, monitoring service, volunteer contact list, public game release, forum thread, mailed tester invitation or permanent upload endpoint.
 
 1. Review and merge this PR; confirm two new GitHub issue forms render, then manually submit a nonprivate test issue and close it. Link the public contributor guide from any project showcase page once it exists.

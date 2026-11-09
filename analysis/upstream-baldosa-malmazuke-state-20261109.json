@@ -1,0 +1,691 @@
+{
+  "schema_version": 1,
+  "description": "Read-only provenance snapshot, not release evidence, a second queue, a source mirror or a claim of line-by-line review. Re-fetch and compare before selecting a task.",
+  "observed_utc_date": "2026-11-09",
+  "owner_repo": "gamesbyian/UR-Recomp",
+  "research_pins_preexisting": {
+    "baldosa": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "malmazuke": "42d444594641d23f5d3c15da7b7c454bb5180e43"
+  },
+  "upstreams": [
+    {
+      "repo": "baldosa/uniracers-recomp",
+      "default_branch": "main",
+      "head": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+      "tree_entry_count": 210,
+      "blob_count": 186,
+      "branch_count_observed": 1,
+      "open_pr_count": 0,
+      "all_pr_count": 0,
+      "open_issue_count": 0,
+      "release_tags": [
+        {
+          "tag": "v0.4.1",
+          "published_at": "2026-10-09T13:16:40Z",
+          "url": "https://github.com/baldosa/uniracers-recomp/releases/tag/v0.4.1"
+        },
+        {
+          "tag": "v0.4.0",
+          "published_at": "2026-10-08T19:53:50Z",
+          "url": "https://github.com/baldosa/uniracers-recomp/releases/tag/v0.4.0"
+        },
+        {
+          "tag": "v0.3.0",
+          "published_at": "2026-10-08T19:18:19Z",
+          "url": "https://github.com/baldosa/uniracers-recomp/releases/tag/v0.3.0"
+        },
+        {
+          "tag": "v0.2.0",
+          "published_at": "2026-10-08T18:11:25Z",
+          "url": "https://github.com/baldosa/uniracers-recomp/releases/tag/v0.2.0"
+        },
+        {
+          "tag": "v0.1.0",
+          "published_at": "2026-10-07T19:01:39Z",
+          "url": "https://github.com/baldosa/uniracers-recomp/releases/tag/v0.1.0"
+        }
+      ],
+      "license": "PolyForm-Noncommercial-1.0.0",
+      "status": "head matches pre-existing UR research pin",
+      "full_tree_url": "https://api.github.com/repos/baldosa/uniracers-recomp/git/trees/10b864b9d14a7b7416dd909eb7b054c88faef101?recursive=1"
+    },
+    {
+      "repo": "malmazuke/unirally-reconstruction",
+      "default_branch": "main",
+      "head": "19ecb59fb56bc9b3024a72ab9cba912586229769",
+      "tree_entry_count": 1138,
+      "blob_count": 1081,
+      "branch_count_observed": 1,
+      "open_pr_count": 0,
+      "all_pr_count": 99,
+      "open_issues": [
+        {
+          "number": 78,
+          "title": "Hi! Working on a similar project.",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/issues/78"
+        }
+      ],
+      "release_count": 0,
+      "license": "MIT",
+      "status": "260 commits newer than the 2026-10-10 UR research pin; not imported or admitted",
+      "full_tree_url": "https://api.github.com/repos/malmazuke/unirally-reconstruction/git/trees/19ecb59fb56bc9b3024a72ab9cba912586229769?recursive=1",
+      "pr_index": [
+        {
+          "number": 1,
+          "title": "Add reviewed native track components and document movement prerequisite",
+          "merged_at": "2026-09-11T22:55:56Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/1"
+        },
+        {
+          "number": 2,
+          "title": "Recover and validate native movement dependencies",
+          "merged_at": "2026-09-12T01:42:42Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/2"
+        },
+        {
+          "number": 3,
+          "title": "Add strict native comparison command and failure checks",
+          "merged_at": "2026-09-12T01:45:39Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/3"
+        },
+        {
+          "number": 4,
+          "title": "Complete M2-01 native movement experiment",
+          "merged_at": "2026-09-12T05:02:03Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/4"
+        },
+        {
+          "number": 5,
+          "title": "M2-02 native save and restore continuation",
+          "merged_at": "2026-09-12T05:25:30Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/5"
+        },
+        {
+          "number": 6,
+          "title": "Integrate through pull requests",
+          "merged_at": "2026-09-23T00:42:24Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/6"
+        },
+        {
+          "number": 7,
+          "title": "Read the pull request before merging",
+          "merged_at": "2026-09-23T01:05:01Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/7"
+        },
+        {
+          "number": 8,
+          "title": "Record where the pre-pull-request branches went",
+          "merged_at": "2026-09-23T01:33:49Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/8"
+        },
+        {
+          "number": 9,
+          "title": "TRACK-BREADTH part 1: inventory and run every track",
+          "merged_at": "2026-09-23T02:15:14Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/9"
+        },
+        {
+          "number": 10,
+          "title": "TRACK-BREADTH part 2: capture the 20 reachable tracks and compare them with native",
+          "merged_at": "2026-09-23T02:48:47Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/10"
+        },
+        {
+          "number": 11,
+          "title": "TRACK-BREADTH part 3: select any cold-start race track by id",
+          "merged_at": "2026-09-23T05:29:03Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/11"
+        },
+        {
+          "number": 12,
+          "title": "Record the live play of EAST and LOOPER",
+          "merged_at": "2026-09-23T06:59:08Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/12"
+        },
+        {
+          "number": 13,
+          "title": "Wrap LOOPER's track picture past the playfield edge",
+          "merged_at": "2026-09-23T08:42:38Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/13"
+        },
+        {
+          "number": 14,
+          "title": "Name a one-run track's result screen after the track",
+          "merged_at": "2026-09-23T09:29:52Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/14"
+        },
+        {
+          "number": 15,
+          "title": "Accept TRACK-BREADTH and prepare the next task",
+          "merged_at": "2026-09-23T09:42:31Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/15"
+        },
+        {
+          "number": 16,
+          "title": "Recover the special tiles: lift, mud, corkscrew and jump-driven tile",
+          "merged_at": "2026-09-24T13:40:39Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/16"
+        },
+        {
+          "number": 17,
+          "title": "Recover the last two race guards: 80 checkpoint flags and the inverted AI marker",
+          "merged_at": "2026-09-24T14:55:34Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/17"
+        },
+        {
+          "number": 18,
+          "title": "Take the finish phase from race start; compare new tracks through their results",
+          "merged_at": "2026-09-24T16:08:32Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/18"
+        },
+        {
+          "number": 19,
+          "title": "Open the locked tours in the laboratory; their race tracks, the HUNTER tier and the turnaround",
+          "merged_at": "2026-09-24T18:47:20Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/19"
+        },
+        {
+          "number": 20,
+          "title": "Recover the loop and tile flag pairs 8, 12 and 28: 35 of 36 race tracks match",
+          "merged_at": "2026-09-25T00:15:05Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/20"
+        },
+        {
+          "number": 21,
+          "title": "Recover the HUNTER tour's tag effects: all 36 race tracks match on the sweeps",
+          "merged_at": "2026-09-25T05:23:55Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/21"
+        },
+        {
+          "number": 22,
+          "title": "Queue a readability pass on the recovered native code",
+          "merged_at": "2026-09-25T05:25:57Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/22"
+        },
+        {
+          "number": 23,
+          "title": "Readable native code, part 1: style rules, one format, and an address-to-native index",
+          "merged_at": "2026-09-25T07:31:03Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/23"
+        },
+        {
+          "number": 24,
+          "title": "Readable native code, part 2: the race engine split by system and written as game code",
+          "merged_at": "2026-09-25T10:18:38Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/24"
+        },
+        {
+          "number": 25,
+          "title": "Readable native code, part 3: the presentation and runners as steps, split by concern",
+          "merged_at": "2026-09-25T12:22:10Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/25"
+        },
+        {
+          "number": 26,
+          "title": "Draw every result title the original's way; DOWN+UP and BOO! start",
+          "merged_at": "2026-09-25T13:39:24Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/26"
+        },
+        {
+          "number": 27,
+          "title": "Map the game's modes and queue the work toward the whole game",
+          "merged_at": "2026-09-25T13:45:55Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/27"
+        },
+        {
+          "number": 28,
+          "title": "The app starts at power-on: the Nintendo screen, the title and the main menu",
+          "merged_at": "2026-09-25T16:18:26Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/28"
+        },
+        {
+          "number": 29,
+          "title": "1P runs the setup screens to the race: PICK YOUR UNI, PICK TOUR, PICK TRACK, NOW PLAYING",
+          "merged_at": "2026-09-25T19:50:51Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/29"
+        },
+        {
+          "number": 30,
+          "title": "After a one-run race: the result screen, the records and PICK TRACK again",
+          "merged_at": "2026-09-26T01:01:41Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/30"
+        },
+        {
+          "number": 31,
+          "title": "After a lap race: the lap result and its graph",
+          "merged_at": "2026-09-26T02:57:02Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/31"
+        },
+        {
+          "number": 32,
+          "title": "A tour's completion: the medal award and the way back to PICK TOUR",
+          "merged_at": "2026-09-26T04:47:18Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/32"
+        },
+        {
+          "number": 33,
+          "title": "The race's pause menu in one-player play: quit and restart go through the menus",
+          "merged_at": "2026-09-26T06:39:56Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/33"
+        },
+        {
+          "number": 34,
+          "title": "Every rider against every opponent the one-player menus choose",
+          "merged_at": "2026-09-26T09:59:19Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/34"
+        },
+        {
+          "number": 35,
+          "title": "The tours' gold endings and the reveal of new tours",
+          "merged_at": "2026-09-26T14:26:46Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/35"
+        },
+        {
+          "number": 36,
+          "title": "The race's direction arrow, its text layer's upload order, and the look's head point",
+          "merged_at": "2026-09-26T20:35:16Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/36"
+        },
+        {
+          "number": 37,
+          "title": "HUNTER's gold ending, the soft reset, and the codes",
+          "merged_at": "2026-09-26T23:47:12Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/37"
+        },
+        {
+          "number": 38,
+          "title": "A tour completed by its fifth win",
+          "merged_at": "2026-09-27T02:14:57Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/38"
+        },
+        {
+          "number": 39,
+          "title": "The stunt events in the race engine",
+          "merged_at": "2026-09-27T06:28:43Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/39"
+        },
+        {
+          "number": 40,
+          "title": "A stunt event's result, records and way back to the menus",
+          "merged_at": "2026-09-27T08:45:56Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/40"
+        },
+        {
+          "number": 41,
+          "title": "PORTABLE-CORE-IDENTITY: queue the task (the reference core is pinned by one binary hash)",
+          "merged_at": "2026-09-27T09:29:43Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/41"
+        },
+        {
+          "number": 42,
+          "title": "A stunt event's race picture, and NEON",
+          "merged_at": "2026-09-27T12:05:06Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/42"
+        },
+        {
+          "number": 43,
+          "title": "Reconstruct first split-screen demo race",
+          "merged_at": "2026-09-29T08:36:14Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/43"
+        },
+        {
+          "number": 44,
+          "title": "Implement the second idle demo cycle",
+          "merged_at": "2026-09-29T11:17:28Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/44"
+        },
+        {
+          "number": 45,
+          "title": "Native two-player and versus race flow",
+          "merged_at": "2026-09-29T16:43:11Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/45"
+        },
+        {
+          "number": 46,
+          "title": "Implement native OPTIONS records and saved league scores",
+          "merged_at": "2026-09-30T03:40:40Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/46"
+        },
+        {
+          "number": 47,
+          "title": "Record deferred ghost racing and leaderboard ideas",
+          "merged_at": "2026-09-30T10:23:23Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/47"
+        },
+        {
+          "number": 48,
+          "title": "Implement native league tournaments and CRAWLER scoring",
+          "merged_at": "2026-09-30T14:38:43Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/48"
+        },
+        {
+          "number": 49,
+          "title": "Define native audio recovery and close the delivered stunt queue",
+          "merged_at": "2026-09-30T20:28:54Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/49"
+        },
+        {
+          "number": 50,
+          "title": "Recover native title and menu audio",
+          "merged_at": "2026-10-01T20:53:57Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/50"
+        },
+        {
+          "number": 51,
+          "title": "Native audio through the first 1P race",
+          "merged_at": "2026-10-02T04:12:09Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/51"
+        },
+        {
+          "number": 52,
+          "title": "Native audio through the whole one-player game",
+          "merged_at": "2026-10-04T21:27:34Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/52"
+        },
+        {
+          "number": 53,
+          "title": "The original's pause menu in one-player races",
+          "merged_at": "2026-10-05T00:24:31Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/53"
+        },
+        {
+          "number": 54,
+          "title": "Pause two-pad races from either pad",
+          "merged_at": "2026-10-05T03:55:30Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/54"
+        },
+        {
+          "number": 55,
+          "title": "The split race's HUD: caption places, both arrows, colour math, finished views",
+          "merged_at": "2026-10-05T06:25:23Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/55"
+        },
+        {
+          "number": 56,
+          "title": "A two-human race runs until both riders finish; VS forces the second",
+          "merged_at": "2026-10-05T11:08:11Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/56"
+        },
+        {
+          "number": 57,
+          "title": "Rider 1's tutorial hints and the split HUD's field chain",
+          "merged_at": "2026-10-05T16:29:41Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/57"
+        },
+        {
+          "number": 58,
+          "title": "The riders' look as race state; riders under a split race's HUD text",
+          "merged_at": "2026-10-06T03:47:43Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/58"
+        },
+        {
+          "number": 59,
+          "title": "A player voice from 150 never ends the tutorial hints first (R-0085)",
+          "merged_at": "2026-10-07T00:17:57Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/59"
+        },
+        {
+          "number": 60,
+          "title": "A two-human race's restart; the race counter's finish poses",
+          "merged_at": "2026-10-06T07:30:55Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/60"
+        },
+        {
+          "number": 61,
+          "title": "Sound-set uploads well above real time",
+          "merged_at": "2026-10-06T10:33:06Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/61"
+        },
+        {
+          "number": 62,
+          "title": "The slope after an inverted face stops the rider (R-0086)",
+          "merged_at": "2026-10-08T22:57:07Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/62"
+        },
+        {
+          "number": 63,
+          "title": "Accept the reference core by its source and outputs, not one binary hash",
+          "merged_at": "2026-10-09T01:23:34Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/63"
+        },
+        {
+          "number": 64,
+          "title": "Every idle demo after the second (R-0087)",
+          "merged_at": "2026-10-09T04:24:40Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/64"
+        },
+        {
+          "number": 65,
+          "title": "The idle demos' pictures: GO, the menu's palette, the title wave (R-0088)",
+          "merged_at": "2026-10-09T06:48:22Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/65"
+        },
+        {
+          "number": 66,
+          "title": "What the original still does that native does not (COVERAGE-GAPS)",
+          "merged_at": "2026-10-09T07:38:39Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/66"
+        },
+        {
+          "number": 67,
+          "title": "The cartridge RAM saved between app runs (SAVE-FILES)",
+          "merged_at": "2026-10-09T14:03:49Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/67"
+        },
+        {
+          "number": 68,
+          "title": "Native audio in 2P, VS, league, OPTIONS and the demos (MODE-AUDIO)",
+          "merged_at": "2026-10-09T17:07:54Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/68"
+        },
+        {
+          "number": 69,
+          "title": "The hidden WIPE RAM menu and factory reset (WIPE-RAM)",
+          "merged_at": "2026-10-09T23:48:19Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/69"
+        },
+        {
+          "number": 70,
+          "title": "The rider-name cheats \"credits\" and \"faedine\" (CREDITS-NAME)",
+          "merged_at": "2026-10-10T04:24:23Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/70"
+        },
+        {
+          "number": 71,
+          "title": "Which data the original reads (DATA-COVERAGE)",
+          "merged_at": "2026-10-10T08:20:38Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/71"
+        },
+        {
+          "number": 72,
+          "title": "Stunt events with two humans (TWO-HUMAN-STUNTS)",
+          "merged_at": "2026-10-11T12:19:04Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/72"
+        },
+        {
+          "number": 73,
+          "title": "Close DATA-COVERAGE: accepted (tier 2, #71)",
+          "merged_at": "2026-10-10T20:05:40Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/73"
+        },
+        {
+          "number": 74,
+          "title": "Record only the kept resolution round (ACCESS-ROUND-READS)",
+          "merged_at": "2026-10-10T22:34:55Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/74"
+        },
+        {
+          "number": 75,
+          "title": "Register stores in instruction order (ACCESS-REGISTER-ORDER)",
+          "merged_at": "2026-10-10T22:45:12Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/75"
+        },
+        {
+          "number": 76,
+          "title": "Keep recipes, not historical captures (EVIDENCE-RETENTION, D-0011)",
+          "merged_at": "2026-10-10T21:52:30Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/76"
+        },
+        {
+          "number": 77,
+          "title": "The idle demos' sound (DEMO-AUDIO)",
+          "merged_at": "2026-10-11T22:30:34Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/77"
+        },
+        {
+          "number": 79,
+          "title": "Menu input as the original reads it (MENU-INPUT)",
+          "merged_at": "2026-10-14T08:28:18Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/79"
+        },
+        {
+          "number": 80,
+          "title": "Evidence retention, second pass (records)",
+          "merged_at": "2026-10-14T12:48:49Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/80"
+        },
+        {
+          "number": 81,
+          "title": "League beyond its first tour (LEAGUE-TOURS)",
+          "merged_at": "2026-10-16T02:39:34Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/81"
+        },
+        {
+          "number": 82,
+          "title": "The league podium's music (PODIUM-AUDIO)",
+          "merged_at": "2026-10-17T09:41:48Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/82"
+        },
+        {
+          "number": 83,
+          "title": "The records screens and the rider word after a result (RECORD-SCREENS)",
+          "merged_at": "2026-10-23T23:00:00Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/83"
+        },
+        {
+          "number": 84,
+          "title": "One gate runner that picks its checks and compares with main (GATES-AGAINST-MAIN, D-0012)",
+          "merged_at": "2026-10-25T03:38:03Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/84"
+        },
+        {
+          "number": 85,
+          "title": "Shorter tasks and less disk (TASK-EFFICIENCY, D-0013)",
+          "merged_at": "2026-10-25T02:27:09Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/85"
+        },
+        {
+          "number": 86,
+          "title": "Large captures stored as zstd (EVIDENCE-LARGE-FILES)",
+          "merged_at": "2026-10-26T01:14:43Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/86"
+        },
+        {
+          "number": 87,
+          "title": "Name check on the keyboard (NAME-CHECK)",
+          "merged_at": "2026-10-27T08:45:18Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/87"
+        },
+        {
+          "number": 88,
+          "title": "League menu frame overruns (PODIUM-RETURN-TIMING)",
+          "merged_at": "2026-10-27T21:47:09Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/88"
+        },
+        {
+          "number": 89,
+          "title": "HUNTER's effects in a split picture (SPLIT-HUNTER-PICTURES)",
+          "merged_at": "2026-10-28T06:59:26Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/89"
+        },
+        {
+          "number": 90,
+          "title": "Power bounce lands both riders in a two-view race (TWO-VIEW-POWER-BOUNCE)",
+          "merged_at": "2026-10-28T13:28:41Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/90"
+        },
+        {
+          "number": 91,
+          "title": "R-0102: NAME-CHECK's frame wait timing checked",
+          "merged_at": "2026-10-28T21:50:37Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/91"
+        },
+        {
+          "number": 92,
+          "title": "The cartridge's option words (CARTRIDGE-OPTION-BITS)",
+          "merged_at": "2026-10-29T03:10:46Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/92"
+        },
+        {
+          "number": 93,
+          "title": "The app's league races and its podium audio check (APP-LEAGUE-RACE)",
+          "merged_at": "2026-11-07T03:10:17Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/93"
+        },
+        {
+          "number": 94,
+          "title": "The race's listing-only branches (RACE-LISTING-BRANCHES)",
+          "merged_at": "2026-11-07T05:24:40Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/94"
+        },
+        {
+          "number": 95,
+          "title": "The race branches R-0107 could not capture (RACE-BRANCH-REMAINDER)",
+          "merged_at": "2026-11-07T12:55:48Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/95"
+        },
+        {
+          "number": 96,
+          "title": "How far the native game is from the whole original (COVERAGE-CENSUS)",
+          "merged_at": "2026-11-07T23:50:43Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/96"
+        },
+        {
+          "number": 97,
+          "title": "The shipped app plays what the runner plays (APP-PARITY)",
+          "merged_at": "2026-11-08T10:00:23Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/97"
+        },
+        {
+          "number": 98,
+          "title": "The app builds when GitHub's release downloads fail (SDL-MIRROR)",
+          "merged_at": "2026-11-08T09:50:48Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/98"
+        },
+        {
+          "number": 99,
+          "title": "The saved image as the original writes it (SAVE-IMAGE-EXACT)",
+          "merged_at": "2026-11-08T18:31:20Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/99"
+        },
+        {
+          "number": 100,
+          "title": "The bytes R-0109 left unexplained (CENSUS-REMAINDER)",
+          "merged_at": "2026-11-09T00:45:03Z",
+          "url": "https://github.com/malmazuke/unirally-reconstruction/pull/100"
+        }
+      ]
+    }
+  ],
+  "review_status": {
+    "completed": [
+      "Both original upstream HEADs and default-branch histories checked",
+      "All existing Malmazuke pull request numbers/titles/merge states inventoried",
+      "Both complete Git tree listings enumerated without truncation",
+      "Live open issues, release collection, branches and source license reviewed",
+      "260-commit/177-file Malmazuke delta identified against existing pinned UR import",
+      "Selected source/PR bodies, current queued tasks and corresponding UR apparatus policies inspected"
+    ],
+    "incomplete": [
+      "Semantic inspection of every one of 177 changed files, every PR diff and every test fixture",
+      "Independent full source-to-USA address correspondence on changed PAL tables",
+      "Locally regenerating upstream private local/evidence captures (not committed upstream)",
+      "Real original USA replay, native app test and Windows acceptance of any proposed finding",
+      "Checks for future heads after this snapshot"
+    ],
+    "next_owner": "UR-UPSTREAM-INTAKE-20261109 in docs/HOURLY-AGENT-LINES.md",
+    "acceptance_authority": "docs/RELEASE-QUALITY-LEDGER.json",
+    "live_queue": "docs/HOURLY-AGENT-LINES.md",
+    "ingestion_contract": "docs/EXTERNAL-EVIDENCE-INTAKE.md"
+  }
+}

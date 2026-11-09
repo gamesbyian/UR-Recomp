@@ -33,6 +33,8 @@ For live, read-only GitHub PR/head/CI collision, evidence-reuse and measured-run
 | Research method or orientation to a subsystem | `docs/knowledge/README.md`, `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`, then source/evidence |
 | Periodic repo hygiene, historical diary | `docs/PERIODIC-REPOSITORY-HYGIENE.md`; for diary specifically `prod_diary/README.md` and editorial guide |
 
+For changes in either **original upstream Baldosa or Malmazuke repository**, consult [the bounded live-intake plan](docs/UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md) and [its pinned source census](reference/notes/baldosa-malmazuke-upstream-census-20261109.md). This is a conditional task under the shared board, not permission to refresh pinned imports wholesale, create an extra CI watch, or turn PAL research into USA release truth. On a weekly no-delta check, stop rather than producing a bookkeeping PR.
+
 For **three-project reuse**, `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` identifies existing Baldosa/Malmazuke/UR approaches. Use it before substantial new implementation, not as a reason to create a new R&D programme. The selected option must solve a *current* work-queue problem.
 
 ## Owner-aligned execution contract

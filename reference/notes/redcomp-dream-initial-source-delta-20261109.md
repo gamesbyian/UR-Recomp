@@ -6,6 +6,22 @@
 
 **Coverage method:** read public Git's complete non-truncated source tree (1,828 entries; detailed blobs in `redcomp-dream-tree-20261109.tsv`); examined first-party code in `game/src/`, primary format/architecture/roadmap/validation docs, active/representative archived OpenSpec and framework patch, corresponding UR files and tests. This is not line-by-line review of every vendored framework file or full execution of either project.
 
+## First completed mechanical cross-check: six course geometry families
+
+Read UR's current `analysis/data/course-corpus.json` (all **45** course records) and grouped each `derived_presentation_geometry.coarse_grid` pair. Compared its exact aggregate against upstream's documented [45-track grid shapes](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/docs/formats/TRACK_FORMAT.md).
+
+| Coarse-sector grid | UR records | redcomp documented | Agreement |
+|---|---:|---:|---|
+| 1024×16 | 4 | 4 | yes |
+| 256×64 | 22 | 22 | yes |
+| 128×128 | 11 | 11 | yes |
+| 64×256 | 4 | 4 | yes |
+| 512×32 | 3 | 3 | yes |
+| 16×1024 | 1 | 1 | yes |
+| **Total** | **45** | **45** | **45/45 aggregate** |
+
+This is **independent source-derivation corroboration of the six families and counts**, not proof that each named course or track index matches individually, nor that a wrapped pixel outside a particular viewport agrees with the original PPU. Both projects ultimately draw on the same USA ROM, so the source is common even when the decoders are distinct. This observation closes any need to re-infer the six coarse-grid families for RD-01; retain source-index mapping and X-edge behavior as the narrower unresolved questions.
+
 ## High-information original/source distinctions
 
 | Claim | External source / demonstrated code | Existing UR source | Assessment |

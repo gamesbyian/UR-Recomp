@@ -8,6 +8,8 @@ Proposed title: Critique requested: Uniracers SNES-to-Windows gameplay, controls
 
 [POST A REAL, VERIFIED GAMEPLAY VIDEO AS PRIMARY MEDIA, NOT A PROMO BACKGROUND]
 
+**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+
 I'm recreating Uniracers / Unirally for Windows, and would value **specific criticism** of what is visibly weak or feels worse than the original. Especially input response, racing readability, camera, transition timing, animations, HUD/menu friction and what the art gets wrong.
 
 [Project engineering repo](https://github.com/gamesbyian/UR-Recomp) and [Windows test procedures](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md) are available for context. **Optional free playable build:** [INSERT VERIFIED, STABLE, APPROVED ROM-FREE RELEASE ONLY WHEN AVAILABLE].

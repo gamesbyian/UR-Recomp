@@ -139,6 +139,24 @@ def _pushes_main(text: str) -> bool:
 
 
 class CiTriggerPolicyTest(unittest.TestCase):
+    def test_p7_account_census_runs_offline_on_pr_and_manual_live_only(self):
+        source = (WORKFLOWS / "actions-artifact-census.yml").read_text(
+            encoding="utf-8")
+        self.assertIn("  workflow_dispatch:", source)
+        self.assertIn("  pull_request:", source)
+        # No account-wide scan when a PR edits the collector or its tests.
+        contract = _block(source, "offline-contract")
+        inventory = _block(source, "inventory")
+        self.assertIn("github.event_name == 'pull_request'", contract)
+        self.assertIn("github.event_name == 'workflow_dispatch'", inventory)
+        self.assertNotIn("actions: read", contract)
+        self.assertIn("contents: read", contract)
+        self.assertIn("actions: read", inventory)
+        self.assertIn("test_actions_storage_inventory.py", contract)
+        self.assertIn("tools/actions_storage_inventory.py", source)
+        self.assertIn("Collect complete snapshots independently", inventory)
+        self.assertNotIn("Collect complete snapshots independently", contract)
+
     def test_pr_validation_is_not_repeated_after_merge(self):
         offenders = []
         for path in _workflow_paths():

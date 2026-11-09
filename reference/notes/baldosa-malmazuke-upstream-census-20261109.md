@@ -131,6 +131,18 @@ Both original Malmazuke revision trees were retrieved **without truncation** and
 
 **Tool caveat discovered:** GitHub's normalized commit-comparison output reported zero additions/deletions for many truly changed files, including `src/core/track_menu.cpp` and the newly added `tasks/APP-PARITY.md`. Comparing the actual blob hashes proves that the source changed; therefore **do not use API-reported zero line changes or omitted patches as evidence that a file is unchanged or unimportant**. Source semantics still require reading its current and, when relevant, old bytes. This is an integrity correction to the intake inventory, not an assertion of reviewed behavior.
 
+## Source-level review of remaining native game, app and audio, November 9
+
+**57 additional changed source/research paths** were compared at their before/after Git blob identities and inspected for the actual changed routines and conditional behavior (37 PAL native-gameplay source files, 3 PAL app sources and 17 PAL audio sources/reports/tests). Every one now has a path-specific application verdict, concrete scope and reopen trigger in the JSON index. This is a **source-delta advisory pass**, not a function-by-function complete proof of the PAL engine or an executed USA original reference.
+
+- The strongest USA gameplay recheck leads are **two-human ranked stunt tallies and per-rider bests** (PAL `race_state_io.cpp`, `stunt_result.cpp`, `lap_result.cpp`, `local_modes.cpp`), **split HUNTER/NEON** (track 42, `race_setup.cpp`, `hunter_effects.cpp`, `race_hud.cpp`) and **saved result-record side effects** (marker clearing, record flag bit8 at award/ending load, 16-bit SRAM cursor arithmetic). These are all conditional on a *live* original-USA mismatch, not free-standing tasks to port C++.
+- The PAL **312-scanline CPU timing** constants in `menu_overruns.cpp` and `name_check.cpp` are especially unsuitable for unverified transplantation to 60Hz USA timing. Use their per-instruction measurement procedure only after locating an actual current source-phase divergence.
+- PAL app `frontend.hpp` exposes notice-aware `ScriptClock` and a separate interactive-versus-laboratory save/audio launch policy. Its Windows `%APPDATA%` path still uses an ANSI narrow conversion; UR has already accepted its own exact Windows Unicode profile path and must not regress.
+- The PAL audio changes add **idle-demo driver/tables/score slots**, concrete CPU queue calls and score parser opcodes 93/94/95; original sound clocks are measured PAL constants, and some podium/return phases remain unresolved. UR's CPU/SPC producer and authentic USA sound compare own the next test, if any.
+- Small diffs are individually bounded: `zoom_zoo_runner.cpp` adds one empty field initializer, `award.cpp` and `tour_ending.cpp` store option-bit8 state after sound upload, and `text_printer.hpp` extracts named original control-code constants. They must not spawn unnecessary full-course reproduction.
+
+**Progress:** 10 contextually closed, 132 specifically triaged, 35 pending of 177. Remaining pending domains are root workflow/docs, test fixtures, source-extraction tools and selective gate machinery. The original USA and physical Windows release ledgers are untouched.
+
 ## Two practical first investigations
 
 1. **SRAM applicability:** check existing UR Windows isolated profile/crash/record tests for missing exact cartridge write-frame and corrupt-cursor cases; document a minimal USA original/native discriminator where a real current blocker remains. Avoid modifying the host save format just to make PAL bytes match.

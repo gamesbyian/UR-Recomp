@@ -1080,7 +1080,7 @@
         "domain": "research-results",
         "semantic_review": "closed_advisory",
         "ur_disposition": "qualified_pal_behavior",
-        "review_note": "Reports PAL 919 routes and per-frame SRAM write differences; $10A7 is a track-menu marker step at $80:E872/$80:EB32 and ending writes at $83:B649. Same numeric USA offset already differs in a confirmed Zoom Zoo original/native pair, but behavior/phase identity is unproven. Includes 207 still unequal routes and explicit limitations.",
+        "review_note": "Reports PAL 919 routes and per-frame SRAM write differences; $10A7 is a track-menu marker step at $80:E872/$80:EB32 and ending writes at $83:B649. Same numeric USA offset already differs in a confirmed Zoom Zoo original/native pair, but behavior/phase identity is unproven. Includes 207 still unequal routes and explicit limitations. Additional static USA crosswalk: pinned generated Menu_CycleSpriteTiles reads/decrements/reset-13/writes 0x10A7; Menu_PickTrack clears word. The observed Zoo one-byte difference is consistent but unproven as this schedule.",
         "next_trigger": "Trigger: perform original-USA static writer/reader crosswalk around 0x10A7 before any emulator replay; retain both full-image strict comparisons.",
         "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
         "review_date": "2026-11-09",
@@ -2429,6 +2429,30 @@
       "total": 177,
       "policy": "closed_advisory is closed for present UR reuse decision only, not original-USA verification or source-line audit. triaged records a concrete lead without granting semantic closure. pending remains unexamined.",
       "closure_requirement": "All paths must receive a disposition and review note; only a present-tense engineering decision with evidence can close each. Reopen if upstream delta or current USA product defect changes premise."
+    },
+    "cross_project_findings": {
+      "sram_0x10a7": {
+        "finding": "Baldosa pinned USA generated guest code reads/decrements/writes the 0x10A7 menu marker word in Menu_CycleSpriteTiles and clears it in Menu_PickTrack, matching Malmazuke PAL R-0111 menu step addresses; imported Baldosa sCutsceneTimer2 label is incomplete.",
+        "evidence_class": "static code-level corroboration; no executed USA instruction chronology for the measured difference",
+        "usa_source_ref": "baldosa/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101",
+        "usa_source_file": "src/gen/bank80_part0d_v2.c",
+        "usa_source_blob_sha": "998b87f713953f07c7712dfec04b3e70311cc2f7",
+        "sources": [
+          "decomp/symbols.txt: Menu_CycleSpriteTiles at 80EB0D",
+          "recomp/symbols.toml: Menu_PickTrack_E872",
+          "src/gen/bank80_part0d_v2.c: Menu_PickTrack stores 0; Menu_CycleSpriteTiles reads, decrements/reset-to-13, writes and rereads 0x10A7",
+          "Malmazuke docs/research/R-0111-save-image-exact.md: 80:E872,80:EB32,83:B649"
+        ],
+        "observed_usa_pair": "UR original 0x0C, Baldosa native 0x0D at Zoo result+64 and +72, both equal through +32, independently repeated in two original cores",
+        "hypothesis": "one fewer/more 13-to-12 menu sprite update at sampled event-relative frame",
+        "unproven": [
+          "first instruction writer in specific actual Zoo sample",
+          "exact USA ending 83:B649 relation and all downstream reads",
+          "later player-visible/cold-save causal equivalence",
+          "USA release event acceptance"
+        ],
+        "next": "Trace or statically verify real USA result-to-menu ownership and already retained result-relative phase; only run a bounded original/native writer discriminator if this changes QA01 decision."
+      }
     }
   }
 }

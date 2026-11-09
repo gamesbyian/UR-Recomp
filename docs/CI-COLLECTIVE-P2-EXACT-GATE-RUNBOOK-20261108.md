@@ -1,0 +1,50 @@
+# P2 admission runbook: exact-source review, Windows share guard and native isolation
+
+**Owner:** [collective qualification plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) and [admission decision register](CI-COLLECTIVE-ADMISSION-DECISION-GATES-20261107.md). **Snapshot:** November 8, 2026 UTC. **Status:** source-locked instructions and review contract, **not** permission to merge experimental code, launch hosted tests, enable parallel production, consume owner-HP resources or grant any release gate. Refresh all PR heads and run outcomes before executing a step. The source SHA, not the branch label, identifies evidence.
+
+## Current independent evidence inventories
+
+| Object | Frozen evidence at this snapshot | What it does **not** prove |
+| --- | --- | --- |
+| Held Practice base [#3229](https://github.com/gamesbyian/UR-Recomp/pull/3229) | Draft at `4701b6a5a254603e02d413d6b89274edca5b51fb`; real historical hosted Windows Practice evidence exists on earlier exact source | Production concurrency or native physical-input parity |
+| Held parent Records [#3258](https://github.com/gamesbyian/UR-Recomp/pull/3258) | Draft at `5ee8808393e72a3d44cc6ad62a8a896c9c6e3839`; [focused #42456389416](https://github.com/gamesbyian/UR-Recomp/actions/runs/42456389416): **66 run, 64 passed, 2 Windows-only skipped**, hygiene green | OS-level share enforcement on Windows, actual native-PID/SDL overlap, full suite |
+| Held source-hardening child [#3274](https://github.com/gamesbyian/UR-Recomp/pull/3274) | Draft at `00cd66bebe26d4c46eacb0d876eced9d7b5a0310`; [focused #42528531339](https://github.com/gamesbyian/UR-Recomp/actions/runs/42528531339): **75 run, 73 passed, 2 Windows-only skipped**; [hygiene #42528531329](https://github.com/gamesbyian/UR-Recomp/actions/runs/42528531329) green | Four-shard full-suite or target-Windows result; the 75 does not add to the 66 |
+| Separate manual Windows infrastructure [#3281](https://github.com/gamesbyian/UR-Recomp/pull/3281) | Draft, source `607a7672b5b7554408a7d0321365924ed2c3a3ac`; read-only, main-ref, exact PR-and-base-restricted probe proposed; verify latest CI before use | Any actually run Windows test: the workflow is **not** on main and **cannot yet be dispatched** |
+
+All five hourly agents remain interchangeable; this work establishes no new agent lane or CI automation. The production Windows route remains serial. **0/45 original/native USA events and 0/12 release gates accepted**; P1 tree/mode controls and P4 agent prompt adoption remain separately held. The owner HP is out of scope for this pilot.
+
+## 1. Independent source review before promotion
+
+A reviewer other than the implementation author examines the **actual current** `#3258 → #3274` diff and the original `tools/run_baldosa_parallel_windows_journeys.py` and `tools/baldosa_native_practice_courses_probe.py`. Verify that all 13 original Bash source bodies, their case identities, seed source, distinct source output directories and serial default remain untouched. Review negative controls for duplicate JSON keys at nested levels, typed original indices, source-produced Practice fields, legitimate red `FileNotFoundError`/`PermissionError`/`TimeoutExpired`, source SHA/EXE/ROM binding, bounded private log/receipt bytes and redirected path ancestors.
+
+The receipt's SHA-256 detects accidental change to the encoded object but is **not a signature, raw Windows execution witness, or protection against malicious stat/open races**. The Practice AST test establishes static source-schema compatibility only. Review remaining ambiguous paths and authentic failure behavior; either request a specific correction, approve the exact head for the next independent experiment, or leave DRAFT/HOLD.
+
+Review [#3281](https://github.com/gamesbyian/UR-Recomp/pull/3281) independently as **new CI infrastructure**: no PR/push/scheduled/HP trigger; an exact PR #3274 and branch/base SHA preflight; readonly GitHub token; no persisted checkout credentials; pinned actions; post-run stale-head refusal; exactly two genuine Windows tests, zero skips; no release claim. Approval of the workflow's source is a separate decision from acceptance of the P2 gameplay experiment.
+
+## 2. Full source-locked unit suite while #3274 remains draft
+
+**Important existing capability:** [Project tooling unit tests](https://github.com/gamesbyian/UR-Recomp/actions/workflows/tooling-unit-tests.yml) already has a `workflow_dispatch` trigger. Its `jobs.unit.if` condition skips only **draft pull_request events**; explicit **manual workflow_dispatch runs the full suite**, including the repository's complete discovery-and-partition operation. The owner-comment `/ur-ci run tooling-unit-tests.yml SHA` route does require a non-draft PR, but that is *not* the only route to a full test.
+
+After the distinct source review has established a concrete decision warranting this expense, an authorized operator may open **Actions → Project tooling unit tests → Run workflow**, select `ci/p2-receipt-path-numeric-integrity-20261108` as the branch, and confirm that its current head matches the reviewed 40-character source SHA. This preserves the draft state. The selected ref must be a real branch of the same repository; do not dispatch on `main` and misattribute its green suite to the child.
+
+For admission, inspect the **actual run**: workflow `GITHUB_SHA`, `git rev-parse HEAD`/unit receipt's `source.checked_out_sha`, the logged source head, all discovered module population, the emitted intended shard count and **every shard's exit code**, final `unit` conclusion and same-source hygiene. The workflow uses `min(4, max(2, nproc))` shards, so report the **actual** count rather than claiming four from policy alone. A missing/failed/cancelled shard, unexpected ops-only scope, stale head, or unsupported receipt makes qualification **red/unknown**, never a historical green. Do not assume the draft `draft-syntax` run is a full suite. Record any observed start-to-finish interval, not a fabricated billing saving.
+
+## 3. Minimal actual Windows OS file-sharing discriminator
+
+The existing two source-owned tests in `tests/unit/test_qa_windows_acceptance_fanout.py` use `@skipUnless(os.name == "nt", ...)`. Linux mock success and `OK (skipped=2)` do **not** qualify the guard.
+
+Only **after** the independent review and qualified integration of the *separate* manual-only workflow #3281 into default-branch `main`, an authorized operator may manually run **Actions → P2 real Win32 seed-sharing unit qualification (manual only)**, selecting workflow ref `main`, `pr_number=3274` and `expected_sha` equal to #3274's *then-current exact head*. The pinned target at this snapshot is `00cd66bebe26d4c46eacb0d876eced9d7b5a0310`; recheck it, never blindly reuse it. The proposed workflow refuses a changed/forked/ready/closed head or an altered #3258 parent.
+
+Require a **successful actual Windows 2022 job with two executed tests, zero skips/failures**. The direct OS negative must show that the original 8,192-byte source remains readable while the read-sharing handle is open, that write and delete fail, that writes work again after close, and that a child exception still releases the handle. Verify tested checkout SHA in both pre- and post-run evidence. A queued, skipped or failed job provides no share-protection credit. This probe has no native game, no ROM and no artifact containing private seed data.
+
+## 4. Native process overlap, SDL focus and causal benefit are separate gates
+
+Even if steps 1–3 pass, the two-worker Records mode reports only **Python `bridge.run_one` invocation overlap**; its `native_process_overlap_verified` field stays false. To claim actual native overlap requires a **separately reviewed, opt-in Windows test** with two distinct original 1P/2P native game PIDs; process creation/exit windows proving temporal overlap; actual binary SHA and source identity; isolated per-child user/save/output trees; original source-seed handle and before/after bytes; independent capture of SDL window focus and input delivery; and a serial-negative control that reliably fails an overlap claim. Absence of observed interference is not evidence if focus/input were never monitored. No action here authorizes modifying the original thirteen scripts or using the owner's HP to obtain these witnesses.
+
+Only then should the decision-maker consider the **same-source same-13-journey** conventional control against opt-in treatment, using the existing two matched pairs and at most a third pair if contradictory. State the actual consumer critical path, total producer-plus-consumer time, attempted job count and runner occupancy separately; never convert them into billing savings without an authenticated billing baseline. Failure on a source-seed write, changed checksum, wrong PID/SDL path, missing journey, failed source-lock, unclear witness or inconsistent control **stops adoption**. Preserve production serial.
+
+## 5. The smallest useful next review packet
+
+Include PR number and **exact head SHA**, owning source paths, precise claim (`source schema`, `unit suite`, `OS share guard`, `native overlap`, `timing hypothesis`), links to same-head runs and checks, test/shard counts and skips, authentic negative-case observations, independent reviewer disposition, residual uncertainty and the next action. Change status only for the named gate. Never add parent and child test counts, claim old run times for new source, promote failed/ambiguous evidence, activate recurring compute, or update the release-quality ledger merely because the receipt parser is cleaner.
+
+**Retirement:** once actual P2 review rejects the experiment or native/SDL interference makes parallelism unsuitable, close the held drafts and remove/retire the separate manual Windows research instrument. If genuine evidence earns optional adoption, change the serial default only through a separate product/CI proposal and release-ledger-independent review, not automatically through this runbook.

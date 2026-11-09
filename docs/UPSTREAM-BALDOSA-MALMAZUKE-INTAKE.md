@@ -12,6 +12,8 @@ Snapshot HEADs as of 2026-11-09:
 
 **Do not advance the existing imported/pinned symbol corpus merely because the original upstream moved.** Preserve historical pins until relevant source files and provenance are actually qualified, reviewed and imported through existing controls.
 
+**0x10A7 provenance rule:** old six-sample Zoo comparisons 38702124777/38702441615 were affected by wrong native `save.srm` path; same exact source-root equivalence was not proven there. The corrected executed source-root replay [38784747445](https://github.com/gamesbyian/UR-Recomp/actions/runs/38784747445) reproduced the one-byte +64/+72 difference and cold-ranked records. Always cite the corrected case when positing live marker timing; keep original instruction-level causality and different later guest epochs separate. Refer to [the pinned follow-up](QA01-PINNED-BALDOSA-SRAM-PRELOAD-IDENTITY-20261015.md#corrected-real-replay-outcome). No changes to 0/45 USA acceptance.
+
 **Mandatory changed-byte identity check:** compare each old/new upstream full recursive Git tree by file path and blob SHA, rejecting truncated trees. The API's compare endpoint has returned `additions=0/deletions=0` for changed files and `patch=null`; never treat that as byte equality. Use `analysis/upstream-baldosa-malmazuke-state-20261109.json` old/new blob pairs for each path. Semantic review always reads actual source, not metadata alone.
 
 ## Procedure for each reconnaissance pass

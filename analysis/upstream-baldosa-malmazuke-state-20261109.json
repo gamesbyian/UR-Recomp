@@ -1334,7 +1334,7 @@
         "domain": "research-results",
         "semantic_review": "closed_advisory",
         "ur_disposition": "qualified_pal_behavior",
-        "review_note": "Reports PAL 919 routes and per-frame SRAM write differences; $10A7 is a track-menu marker step at $80:E872/$80:EB32 and ending writes at $83:B649. Same numeric USA offset already differs in a confirmed Zoom Zoo original/native pair, but behavior/phase identity is unproven. Includes 207 still unequal routes and explicit limitations. Additional static USA crosswalk: pinned generated Menu_CycleSpriteTiles reads/decrements/reset-13/writes 0x10A7; Menu_PickTrack clears word. The observed Zoo one-byte difference is consistent but unproven as this schedule.",
+        "review_note": "Reports PAL 919 routes and per-frame SRAM write differences; $10A7 is a track-menu marker step at $80:E872/$80:EB32 and ending writes at $83:B649. Same numeric USA offset already differs in a confirmed Zoom Zoo original/native pair, but behavior/phase identity is unproven. Includes 207 still unequal routes and explicit limitations. Additional static USA crosswalk: pinned generated Menu_CycleSpriteTiles reads/decrements/reset-13/writes 0x10A7; Menu_PickTrack clears word. The observed Zoo one-byte difference is consistent but unproven as this schedule. Corrected USA replay 38784747445 confirms matching root and replicates 0x10A7 byte outcome. The earlier 38702124777 and 38702441615 epochs did not prove equal initial SRAM because wrapper read wrong saves root; never use them as independently identical-input witnesses.",
         "next_trigger": "Trigger: perform original-USA static writer/reader crosswalk around 0x10A7 before any emulator replay; retain both full-image strict comparisons.",
         "ur_reference": "docs/QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md",
         "review_date": "2026-11-09",
@@ -3456,7 +3456,7 @@
           "src/gen/bank80_part0d_v2.c: Menu_PickTrack stores 0; Menu_CycleSpriteTiles reads, decrements/reset-to-13, writes and rereads 0x10A7",
           "Malmazuke docs/research/R-0111-save-image-exact.md: 80:E872,80:EB32,83:B649"
         ],
-        "observed_usa_pair": "UR original 0x0C, Baldosa native 0x0D at Zoo result+64 and +72, both equal through +32, independently repeated in two original cores",
+        "observed_usa_pair": "Correctly seeded 2026-10-15 run 38784747445 reproduced original 0x0C/native 0x0D at +64/+72 (equal at +8,+16,+24,+32) and guest cold-ranked reload; earlier old-root 38702124777 and 38702441615 remain valid measured outputs but are not source-input equivalence evidence.",
         "hypothesis": "one fewer/more 13-to-12 menu sprite update at sampled event-relative frame",
         "unproven": [
           "first instruction writer in specific actual Zoo sample",
@@ -3464,7 +3464,19 @@
           "later player-visible/cold-save causal equivalence",
           "USA release event acceptance"
         ],
-        "next": "Trace or statically verify real USA result-to-menu ownership and already retained result-relative phase; only run a bounded original/native writer discriminator if this changes QA01 decision."
+        "next": "Use corrected run 38784747445 and existing later RF054/RF076 raw epochs separately; analyze menu marker writer at $80:EB0D against same-run phase, not earliest flawed preload comparator. Do not join different binaries/epoch witnesses or overwrite historical case evidence.",
+        "preload_conflict_and_repair": {
+          "historical_source_caveat": "The 2026-10-15 initial six-sample 38702124777 and independent-core repeat 38702441615 used a native wrapper that staged save.srm beside the executable but launched with --config and cwd=work; identical source initial native guest SRAM was not proven in those runs.",
+          "corrected_run_id": 38784747445,
+          "corrected_run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38784747445",
+          "corrected_source_sha_prefix": "ae4bff51",
+          "case_artifact_id": 11997177714,
+          "case_artifact_zip_sha256_prefix": "41a7f7c7",
+          "native_elf_sha256": "527015f2389626102be2b697ea5881ed9604948c73e9a74c1e778d60a00c411a",
+          "corrected_outcome": "True cwd-relative native SRAM staged and asserted; original/native +5163/+5163 onset; SRAM identical +8/+16/+24/+32, difference only at 0x10A7 original 0x0C/native 0x0D at +64/+72; earned MIKE 2510 and ranked records equal; fresh cold guest reload of earned +72 record succeeds at boot frame 300/420.",
+          "source": "docs/QA01-PINNED-BALDOSA-SRAM-PRELOAD-IDENTITY-20261015.md, lines 26-34",
+          "disposition": "The corrected run removes the old wrong-root source-state confound for this specific Zoo observation; still no original/native actual writer-PC, CPU/NMI phase alignment, entire-event semantics or packaged Windows disk acceptance."
+        }
       }
     },
     "blob_audit": {

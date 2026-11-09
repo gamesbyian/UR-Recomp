@@ -7,6 +7,9 @@ on:
       - "tools/windows_visual_atlas.py"
       - "tools/windows_visual_atlas_intake.py"
       - "tools/visual_atlas_web/**"
+      - "tools/contributor_gallery/**"
+      - "docs/contributors/**"
+      - "assets/branding/**"
       - "tools/art/model-review/**"
       - "tools/art/build_racer_source_pixel_corpus.py"
       - "tools/art/racer_source_pixels.py"
@@ -101,6 +104,11 @@ jobs:
             echo "10 distinct original 2D silhouettes, 5 unpaired GLB poses."
             echo "Provisional camera only; no original pose mapping or art approval."
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Add ROM-free, source-preserving contributor artwork gallery
+        run: |
+          set -euo pipefail
+          python3 tools/contributor_gallery/stage.py --site "$RUNNER_TEMP/atlas-site"
+          echo "Contributor gallery: experimental references only; source artwork unchanged." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain independent browser-ready site (without copyrighted ROM)
         uses: actions/upload-artifact@v4
         with:

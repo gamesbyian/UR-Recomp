@@ -12,3 +12,7 @@
 8. Connect release-driven opt-in mailings only after approved packages and verified sender/recipient consent exist. Record receipts and troubleshoot delivery failures before any retries.
 
 Authority: docs/contributors/PLAN.md for outreach; OPERATIONS.md for communications; AGENTS.md, WORK-QUEUE.md and the release QA ledger remain engineering/acceptance owners. This handoff is active instructions only; keep historical outreach outcomes in separate private records.
+
+## Pages reference gallery integration
+
+The mobile-facing [candidate Pages artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) is staged by `tools/contributor_gallery/stage.py` inside the existing Windows Visual Atlas site artifact. It contains the **three supplied original concept PNGs**, the two English traced SVGs and the three regional experimental SVGs, all copied byte-for-byte. It excludes box art and private inputs. Its URL is a **deployment target, not verified live** until an explicitly authorized existing atlas workflow dispatch with `deploy_pages=true` succeeds and HTTP checks show the page and all eight source image files render. Deployment requires Pages Actions source settings and the existing workflow's explicit gate. After verification, use this link in the final wording of lettering, itch.io and INAT recruitment posts and link direct `contributors/images/*` URLs for forum embeds where permitted. Keep Github source URLs for technical reference and avoid posting broken Pages links.

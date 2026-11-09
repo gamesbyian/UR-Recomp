@@ -16,6 +16,10 @@ I'd appreciate particularly critical attention to internal consistency of stroke
 
 I'm interested in coordinating with any other Uniracers / Unirally remake, reverse-engineering, preservation or art project. I already know the [Baldosa](https://github.com/baldosa/uniracers-recomp) and [malmazuke](https://github.com/malmazuke/unirally-reconstruction) efforts. I would welcome shared research and additional contacts, without implying any current affiliation.
 
+## Pages gallery (deployment gate)
+
+Use the [public regional artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) as the primary multi-image reference **only after that URL has been deployed and checked**, including direct image loads on phone. When a forum supports a directly uploaded image, attach a local copy of the appropriate original concept image and link the gallery for more detail. Do not pretend the URL is live or embed it in a published post until verified.
+
 ## Reference / attachment and publication notes
 
 Rule gate: use feedback-only version if unpaid collaboration solicitation is disallowed. Include actual English-vs-regional SVG preview comparison with source links.

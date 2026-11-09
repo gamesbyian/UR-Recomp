@@ -16,6 +16,10 @@ The challenge is achieving consistent rhythm, curves, contour weighting and pers
 
 I'm interested in coordinating with any other Uniracers / Unirally remake, reverse-engineering, preservation or art project. I already know the [Baldosa](https://github.com/baldosa/uniracers-recomp) and [malmazuke](https://github.com/malmazuke/unirally-reconstruction) efforts. I would welcome shared research and additional contacts, without implying any current affiliation.
 
+## Pages gallery (deployment gate)
+
+Use the [public regional artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) as the primary multi-image reference **only after that URL has been deployed and checked**, including direct image loads on phone. When a forum supports a directly uploaded image, attach a local copy of the appropriate original concept image and link the gallery for more detail. Do not pretend the URL is live or embed it in a published post until verified.
+
 ## Reference / attachment and publication notes
 
 Review subreddit recruitment rules. If forbidden, remove volunteer solicitation and post as genuine design critique only. Attach raster previews of existing SVGs, not a brand-new generative reinterpretation.

@@ -19,6 +19,10 @@ The opportunities are intentionally small and optional:
 
 I'm also actively interested in coordinating with other Uniracers / Unirally remakes, recompilations, preservation and art projects. I'm familiar with the [Baldosa](https://github.com/baldosa/uniracers-recomp) and [malmazuke](https://github.com/malmazuke/unirally-reconstruction) projects, and would welcome contact from other teams to share findings or avoid duplicating work. I'm not claiming any current partnership with them.
 
+## Pages gallery (deployment gate)
+
+Use the [public regional artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) as the primary multi-image reference **only after that URL has been deployed and checked**, including direct image loads on phone. When a forum supports a directly uploaded image, attach a local copy of the appropriate original concept image and link the gallery for more detail. Do not pretend the URL is live or embed it in a published post until verified.
+
 ## Reference / attachment and publication notes
 
 Attach: approved promo PNG and optionally experimental model/lettering contact sheet; link repository and direct briefs.

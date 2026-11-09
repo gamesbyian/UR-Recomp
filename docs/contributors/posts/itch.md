@@ -20,6 +20,10 @@ I'm also actively interested in coordinating with other Uniracers / Unirally rem
 
 [Project overview](https://github.com/gamesbyian/UR-Recomp). This invitation will be posted personally by a human, not by an AI agent.
 
+## Pages gallery (deployment gate)
+
+Use the [public regional artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) as the primary multi-image reference **only after that URL has been deployed and checked**, including direct image loads on phone. When a forum supports a directly uploaded image, attach a local copy of the appropriate original concept image and link the gallery for more detail. Do not pretend the URL is live or embed it in a published post until verified.
+
 ## Reference / attachment and publication notes
 
 MANDATORY: only a human may post in this board under current rules; tag appropriately, attach approved examples and meet quality-of-effort standards.

@@ -633,16 +633,31 @@ class WindowsAcceptanceFanoutTests(unittest.TestCase):
         # It runs only when an independently authorized Windows unit suite
         # actually executes this unchanged code; no new CI run is enabled.
         original = bytes(range(256)) * 32
+        replacement_bytes = b"replacement-should-not-win" * 320
         seed = self.path / "real-win32-source.srm"
+        replacement = self.path / "real-win32-replacement.srm"
+        relocated = self.path / "real-win32-relocated.srm"
         seed.write_bytes(original)
+        replacement.write_bytes(replacement_bytes)
         with fanout.protect_windows_seed_readonly(seed):
             self.assertEqual(seed.read_bytes(), original)
             with self.assertRaises(OSError):
                 seed.write_bytes(bytes(8192))
             with self.assertRaises(OSError):
                 seed.unlink()
+            # A different file must not replace the locked path, and the
+            # protected source cannot be renamed out of the way. Both
+            # operations require DELETE sharing on Windows.
+            with self.assertRaises(OSError):
+                replacement.replace(seed)
+            with self.assertRaises(OSError):
+                seed.rename(relocated)
             self.assertEqual(seed.read_bytes(), original)
-        # The file must become writable once the read-sharing handle closes.
+            self.assertEqual(replacement.read_bytes(), replacement_bytes)
+            self.assertFalse(relocated.exists())
+        # Denied mutations must become possible once the guard closes.
+        replacement.replace(seed)
+        self.assertEqual(seed.read_bytes(), replacement_bytes)
         seed.write_bytes(bytes(8192))
         self.assertEqual(seed.read_bytes(), bytes(8192))
         seed.unlink()

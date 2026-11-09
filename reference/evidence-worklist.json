@@ -17,6 +17,12 @@
         "Conditional original/native first-discrepancy result with exact ROM, source, frame, input and PPU provenance; corrected existing WIDE-07 test only if positive"
       ],
       "tags": ["uniracers", "USA", "widescreen", "external", "source", "boundary", "WIDE-07"],
+      "artifact_need": {
+        "kind": "original-USA edge PPU/VRAM capture",
+        "state": "unknown",
+        "user_action_required": false,
+        "request": ""
+      },
       "reopen_only_if": "An existing genuine original/native widened race exhibits a boundary discrepancy or source-corresponding original fixture is available."
     },
     {

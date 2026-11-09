@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-11-09",
+  "purpose": "Public outreach metadata only. NO contact data, email, contributor identity, forum reply bodies or private submissions.",
+  "venues": [
+    {
+      "id": "blender",
+      "site": "Blender Artists / Volunteer Work",
+      "forum_url": "https://blenderartists.org/c/jobs/volunteer-work/54",
+      "role": "3d",
+      "post_file": "docs/contributors/posts/blender.md",
+      "state": "draft",
+      "gate": "Confirm venue rules and stage real rig reference previews",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "inat",
+      "site": "r/INAT",
+      "forum_url": "https://www.reddit.com/r/INAT/",
+      "role": "mixed",
+      "post_file": "docs/contributors/posts/inat.md",
+      "state": "draft",
+      "gate": "Verify title/flair and contact form live",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "itch",
+      "site": "itch.io Help Wanted or Offered",
+      "forum_url": "https://itch.io/board/10020/help-wanted-or-offered",
+      "role": "art",
+      "post_file": "docs/contributors/posts/itch.md",
+      "state": "draft",
+      "gate": "Human-only posting; relevant tags and quality-of-effort images",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "chatgptcoding",
+      "site": "r/ChatGPTCoding",
+      "forum_url": "https://www.reddit.com/r/ChatGPTCoding/",
+      "role": "agents",
+      "post_file": "docs/contributors/posts/chatgptcoding.md",
+      "state": "draft",
+      "gate": "Check permitted project showcase/self-promotion thread",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "claudecode",
+      "site": "r/ClaudeCode",
+      "forum_url": "https://www.reddit.com/r/ClaudeCode/",
+      "role": "agents",
+      "post_file": "docs/contributors/posts/claudecode.md",
+      "state": "draft",
+      "gate": "Check community solicitation rules",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "aiagents",
+      "site": "r/aiagents",
+      "forum_url": "https://www.reddit.com/r/aiagents/",
+      "role": "agents",
+      "post_file": "docs/contributors/posts/aiagents.md",
+      "state": "draft",
+      "gate": "Check community solicitation rules",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "opensource",
+      "site": "r/opensource",
+      "forum_url": "https://www.reddit.com/r/opensource/",
+      "role": "agents",
+      "post_file": "docs/contributors/posts/opensource.md",
+      "state": "draft",
+      "gate": "Use designated contributor/project thread if applicable",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "playmygame",
+      "site": "r/playmygame",
+      "forum_url": "https://www.reddit.com/r/playmygame/",
+      "role": "tester",
+      "post_file": "docs/contributors/posts/playmygame.md",
+      "state": "blocked",
+      "gate": "Public verified stable ROM-free Windows release + hashes + form + actual gameplay video",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "destroymygame",
+      "site": "r/DestroyMyGame",
+      "forum_url": "https://www.reddit.com/r/DestroyMyGame/",
+      "role": "tester",
+      "post_file": "docs/contributors/posts/destroymygame.md",
+      "state": "blocked",
+      "gate": "Source-verified gameplay video as primary media; approved release if linking build",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "retrogaming",
+      "site": "r/retrogaming",
+      "forum_url": "https://www.reddit.com/r/retrogaming/",
+      "role": "fans",
+      "post_file": "docs/contributors/posts/retrogaming.md",
+      "state": "draft",
+      "gate": "Check self-promotion rules and source-verified gameplay footage",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "snes",
+      "site": "r/snes",
+      "forum_url": "https://www.reddit.com/r/snes/",
+      "role": "fans",
+      "post_file": "docs/contributors/posts/snes.md",
+      "state": "draft",
+      "gate": "Check self-promotion rules and genuine original/native comparison",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "lettering",
+      "site": "r/lettering",
+      "forum_url": "https://www.reddit.com/r/lettering/",
+      "role": "lettering",
+      "post_file": "docs/contributors/posts/lettering.md",
+      "state": "draft",
+      "gate": "Check solicitation rules, adapt to critique only if needed",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    },
+    {
+      "id": "logodesign",
+      "site": "r/logodesign",
+      "forum_url": "https://www.reddit.com/r/logodesign/",
+      "role": "lettering",
+      "post_file": "docs/contributors/posts/logodesign.md",
+      "state": "draft",
+      "gate": "Check solicitation rules, adapt to critique only if needed",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null
+    }
+  ]
+}

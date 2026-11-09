@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). The [ranked hourly shared board](HOURLY-AGENT-LINES.md) is the only active five-agent assignment authority. Every generalist considers five eligible jobs. A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## Contributor recruitment and response coordination
+
+The [public contributor guide](contributors/README.md), [recruitment plan](contributors/PLAN.md), [13 venue-specific draft posts](contributors/posts/lettering.md), [reference pack](contributors/REFERENCE-PACK.md), and [response/attachment/email operations](contributors/OPERATIONS.md) own outreach instructions and privacy boundaries. These create no automatic forum posts, email sender, or new engineering queue; [launch gates](contributors/HANDOFF.md) control deployment. All contributor contact records must remain private. Engineering work and release acceptance retain their existing authorities.
+
 For the independently developed USA Uniracers recompilation `fselich/redcomp-dream`, use the [complete source-pinned intake plan](REDCOMP-DREAM-INTAKE-PLAN.md) and [1,828-entry Git-tree census](../reference/notes/redcomp-dream-tree-20261109.tsv). Its first live discriminator is a read-only course X-boundary probe, *not* an accepted graphics fix or an alternate guest core. Feed confirmed claims back into the existing course/widescreen/technical-reference authorities. The separate Baldosa/Malmazuke intake retains its own active ownership.
 
 ## Shared CI, compute, HP and five-agent implementation roadmap

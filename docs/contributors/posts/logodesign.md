@@ -1,0 +1,27 @@
+# logodesign: draft, NOT published
+
+Destination: https://www.reddit.com/r/logodesign/
+
+Proposed title: Feedback request: Japanese, Cyrillic and French variants of the Uniracers / Unirally logos
+
+## Proposed post
+
+I'm recreating the characteristic lettering of the original Uniracers / Unirally title artwork and extending that visual identity to other scripts for an unofficial game-preservation project.
+
+Style references: [Separated rectified English glyph geometry](https://github.com/gamesbyian/UR-Recomp/blob/main/design/uniracers-wordmark-separated-rectified.svg) (use letter shape, not the oversized U/S scaling), [original Uniracers lettering](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-box-wordmark-traced.svg), [original Unirally lettering](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-box-wordmark-traced.svg). Proposed drafts: [katakana](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-japanese-katakana-wordmark.svg), [Cyrillic](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-russian-cyrillic-wordmark.svg) and [French](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-french-wordmark.svg).
+
+New, supplied **styling concept images**: [concept 01](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-01.png), [concept 02](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-02.png), [concept 03](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-03.png). The three visual subjects are French “L'inéluctable esseulement de la roue unique”, Japanese “ユニレーサーズ” and Russian “Юниралли”; the original repository PNGs have anonymous filenames, so exact file-to-language identification must be confirmed before captions are attached individually. These are illustration references, not accepted canonical SVG lettering.
+
+I'd appreciate particularly critical attention to internal consistency of strokes, repeated glyph shape, readability, native-script correctness, and whether the drafts still feel related to the authentic English wordmarks. This is **unpaid, voluntary fan-work**; occasional lettering contributions and language review are welcome only if permitted by this community's rules. No paid commission is implied.
+
+I'm interested in coordinating with any other Uniracers / Unirally remake, reverse-engineering, preservation or art project. I already know the [Baldosa](https://github.com/baldosa/uniracers-recomp) and [malmazuke](https://github.com/malmazuke/unirally-reconstruction) efforts. I would welcome shared research and additional contacts, without implying any current affiliation.
+
+## Pages gallery (deployment gate)
+
+Use the [public regional artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) as the primary multi-image reference **only after that URL has been deployed and checked**, including direct image loads on phone. When a forum supports a directly uploaded image, attach a local copy of the appropriate original concept image and link the gallery for more detail. Do not pretend the URL is live or embed it in a published post until verified.
+
+## Reference / attachment and publication notes
+
+Rule gate: use feedback-only version if unpaid collaboration solicitation is disallowed. Include actual English-vs-regional SVG preview comparison with source links.
+
+Verify rules and actual links before posting; record only true posted permalink in campaign.json.

@@ -16,6 +16,10 @@ Private technical reconstruction and modern-port project for **Uniracers / Unira
 - **Owner playtest (not a certified release):** [manual source-bound ROM-free Windows candidate and physical-hardware checklist](docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md). A technical-preview ZIP does not include the original game ROM and requires a user's verified own dump; no release gate is inferred.
 - **Document ownership:** [docs/README.md](docs/README.md). Dated prior phase narratives are retained under `docs/archive/` and are **not active work instructions**.
 
+## Voluntary contributions and other Uniracers projects
+
+Artists, regional lettering specialists, independent code/agent reviewers, prospective Windows playtesters and maintainers of other Uniracers / Unirally efforts can start with the [contributor guide](docs/contributors/README.md). This project welcomes research exchanges with other teams, including the independent Baldosa and malmazuke efforts, and invites small unpaid contributions. The engineering/release qualification limits below still apply; there is no public release-ready Windows download implied by this invitation.
+
 ## What is actually established
 
 Our original Windows host already has substantial separate Modern product, replay/ghost/profile/tournament code and a deterministic portable ZIP path. The **Baldosa-first candidate** now has a real pinned native guest, read-only racer observer, 2P input authority, native pause handling, 4× authored-racer rendering plus stable 4× Original fallback, calibrated extra world margins and a Windows native build/execution experiment. These are **separate verified components**, not yet a released Modern Baldosa Windows product.

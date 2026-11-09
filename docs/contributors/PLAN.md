@@ -1,5 +1,8 @@
 # Recruitment and coordination plan
 
+**Primary outreach link:** [Short recruitment landing](https://gamesbyian.github.io/UR-Recomp/contributors/), with compact role cards and one-click contribution intake. **Deeper optional gallery:** [Artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/). Keep the compact page as every post's common entrypoint; original PNGs/SVGs remain at their prior `/contributors/images/` direct URLs. Publication follows the existing Visual Atlas Pages workflow.
+
+
 **Purpose:** actively invite unpaid, optional, bounded contributions in four lanes: 3D racer reconstruction, regional lettering/language review, supervised agent-run engineering and Windows testing. A fifth invitation, prominent in **every initial post**, seeks coordination with all Uniracers/Unirally efforts beyond known Baldosa and malmazuke projects.
 
 ## Publication order and criteria

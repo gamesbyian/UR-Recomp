@@ -8,6 +8,8 @@ Proposed title: Volunteer Claude Code operators: bounded contributions to SNES r
 
 I'm working on an unofficial Uniracers / Unirally SNES-to-Windows recreation and am looking for developers who might enjoy running Claude Code on a **single bounded, reviewable engineering task**, using their own agent-hours and minimal responsible supervision.
 
+**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+
 The project has a living [source repository](https://github.com/gamesbyian/UR-Recomp), [agent operating contract](https://github.com/gamesbyian/UR-Recomp/blob/main/AGENTS.md) and [shared work queue](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/WORK-QUEUE.md). Work can be as small as improving one test, independently examining a PR or reproducing a specific source discrepancy; it must include actual evidence and remain subject to ordinary code review and qualification.
 
 The project is **voluntary and unpaid**, with no access to your account required and no long-term commitment. The core game is not yet release-qualified. I'm interested in people who enjoy figuring out which agent-generated conclusions are actually supported by source and hardware behaviour.

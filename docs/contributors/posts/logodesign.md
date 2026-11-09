@@ -8,7 +8,9 @@ Proposed title: Feedback request: Japanese, Cyrillic and French variants of the 
 
 I'm recreating the characteristic lettering of the original Uniracers / Unirally title artwork and extending that visual identity to other scripts for an unofficial game-preservation project.
 
-For pictures and source references, see the [Uniracers regional lettering gallery](https://gamesbyian.github.io/UR-Recomp/contributors/), which displays the original English lettering, three supplied styling concepts, and experimental Japanese, Russian and French SVGs. The concepts are exploratory, not finished or approved production art.
+**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+
+For pictures and source references, see the [regional artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/), which displays the original English lettering, three supplied styling concepts, and experimental Japanese, Russian and French SVGs. The concepts are exploratory, not finished or approved production art.
 
 Style references: [Separated rectified English glyph geometry](https://github.com/gamesbyian/UR-Recomp/blob/main/design/uniracers-wordmark-separated-rectified.svg) (use letter shape, not the oversized U/S scaling), [original Uniracers lettering](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-box-wordmark-traced.svg), [original Unirally lettering](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-box-wordmark-traced.svg). Proposed drafts: [katakana](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-japanese-katakana-wordmark.svg), [Cyrillic](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-russian-cyrillic-wordmark.svg) and [French](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-french-wordmark.svg).
 

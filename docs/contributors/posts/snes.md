@@ -8,6 +8,8 @@ Proposed title: Uniracers / Unirally fans: help identify what a faithful Windows
 
 I'm developing an unofficial Windows recreation of Uniracers / Unirally and looking for original SNES players who can remember details that never show up in a feature list.
 
+**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+
 The [public code and research project](https://github.com/gamesbyian/UR-Recomp) has substantial work on game execution, fidelity, controller flow and presentation, but it's still unfinished and no public qualified release is ready.
 
 [INSERT GENUINE SOURCE-VERIFIED SHORT GAMEPLAY COMPARISON]

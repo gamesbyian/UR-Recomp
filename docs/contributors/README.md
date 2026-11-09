@@ -1,5 +1,8 @@
 # Uniracers contributor coordination
 
+**Primary outreach link:** [Short recruitment landing](https://gamesbyian.github.io/UR-Recomp/contributors/), with compact role cards and one-click contribution intake. **Deeper optional gallery:** [Artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/). Keep the compact page as every post's common entrypoint; original PNGs/SVGs remain at their prior `/contributors/images/` direct URLs. Publication follows the existing Visual Atlas Pages workflow.
+
+
 Unofficial Uniracers / Unirally SNES-to-Windows recreation. Contributions are voluntary, unpaid and optional. A single glyph correction, 3D review, code-review packet or Windows test report is welcome. No expectation of permanent team membership, compensation, revenue share or employment.
 
 ## Opportunities

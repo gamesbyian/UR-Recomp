@@ -8,6 +8,8 @@ Proposed title: [Windows] Free Uniracers / Unirally playtest for fans of the ori
 
 I'm developing an unofficial Windows recreation of the 1994 Uniracers / Unirally SNES game and would appreciate volunteer Windows testers who can identify crashes, controller issues and differences from the original.
 
+**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+
 **Free playable build:** [REPLACE WITH VERIFIED, DURABLE, APPROVED ROM-FREE RELEASE LINK]
 **Full source SHA:** [INSERT VERIFIED 40-CHARACTER SHA]
 **Distribution SHA-256:** [INSERT VERIFIED HASH]

@@ -8,6 +8,8 @@ Proposed title: Volunteer reviewers and supervised agent operators for Uniracers
 
 I'm seeking optional, bounded technical help on an unofficial Uniracers / Unirally SNES-to-Windows recreation. This is already substantial [public code and research](https://github.com/gamesbyian/UR-Recomp), with a [shared work queue](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/WORK-QUEUE.md), a detailed [agent governance contract](https://github.com/gamesbyian/UR-Recomp/blob/main/AGENTS.md), and independently checked engineering evidence.
 
+**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+
 If you enjoy source archaeology, hard debugging or reviewing AI-agent-generated code, you can contribute one self-contained test, review or research result, using your own tools and with human oversight. It's **unpaid volunteer work**, not a request for an indefinite team commitment.
 
 Licensing transparency: the code repository contains research related to a proprietary historic game and has **no top-level blanket open-source license**. Do not assume redistributability of original game assets, or that a public repo implies an open-source license. We're careful about provenance and permissions.

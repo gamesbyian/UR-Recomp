@@ -8,6 +8,8 @@ Proposed title: [Hobby / Unpaid] Established SNES Uniracers recreation seeks 3D,
 
 I'm coordinating an unofficial, volunteer-built Windows recreation of Uniracers / Unirally, the unusual 1994 SNES unicycle racer. [The public research/engineering repo](https://github.com/gamesbyian/UR-Recomp) already contains a recompilation/native-host codebase, source-derived evidence and rigorous QA, but the game is still incomplete and its release gates remain open.
 
+For pictures and source references, see the [Uniracers regional lettering gallery](https://gamesbyian.github.io/UR-Recomp/contributors/), which displays the original English lettering, three supplied styling concepts, and experimental Japanese, Russian and French SVGs. The concepts are exploratory, not finished or approved production art.
+
 The opportunities are intentionally small and optional:
 * **3D artist:** improve an existing experimental articulated unicycle against [original-reference-based artistic direction](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md).
 * **Logo/lettering artist:** match the rounded personality of the [English Uniracers wordmark](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-box-wordmark-traced.svg) in Japanese, Cyrillic, French or other writing systems; native-language review is useful too.
@@ -19,9 +21,11 @@ The opportunities are intentionally small and optional:
 
 I'm also actively interested in coordinating with other Uniracers / Unirally remakes, recompilations, preservation and art projects. I'm familiar with the [Baldosa](https://github.com/baldosa/uniracers-recomp) and [malmazuke](https://github.com/malmazuke/unirally-reconstruction) projects, and would welcome contact from other teams to share findings or avoid duplicating work. I'm not claiming any current partnership with them.
 
-## Pages gallery (deployment gate)
+## Gallery and suggested image attachments
 
-Use the [public regional artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) as the primary multi-image reference **only after that URL has been deployed and checked**, including direct image loads on phone. When a forum supports a directly uploaded image, attach a local copy of the appropriate original concept image and link the gallery for more detail. Do not pretend the URL is live or embed it in a published post until verified.
+The [Pages publication run #42718635056](https://github.com/gamesbyian/UR-Recomp/actions/runs/42718635056) completed successfully on 2026-11-09. The gallery URL is included in the proposed post; verify its public HTTP accessibility and image rendering in a normal browser immediately before posting.
+
+Direct image routes (after browser verification): [concept 01](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-01.png), [concept 02](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-02.png), [concept 03](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-03.png). When a forum supports native attachments, upload the exact source concept PNG instead of relying on remote embeds. Individual concept filenames remain neutral because exact PNG-to-language identity has not been independently confirmed. Do not include box art.
 
 ## Reference / attachment and publication notes
 

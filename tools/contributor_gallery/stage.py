@@ -13,6 +13,8 @@ import struct
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tools" / "contributor_gallery" / "index.html"
 REFERENCES = ROOT / "tools" / "contributor_gallery" / "references.html"
+THREE_D = ROOT / "tools" / "contributor_gallery" / "three-d.html"
+RIG_SOURCE = ROOT / "tools" / "art" / "candidates" / "unicycle_shared_rig.scad"
 PROMO = ROOT / "assets" / "promo" / "canonical"
 PROMO_IMAGES = ("blueprint-16x9-logo-left.png", "blueprint-4x3-logo-left.png")
 DRAWINGS = ROOT / "tools" / "contributor_gallery" / "source"
@@ -50,7 +52,8 @@ def stage(out: Path) -> dict:
     gallery = out / "contributors"
     if gallery.exists() or gallery.is_symlink():
         raise ValueError("refusing to overwrite contributor route")
-    if not SOURCE.is_file() or not REFERENCES.is_file() or SOURCE.is_symlink() or REFERENCES.is_symlink():
+    if (not SOURCE.is_file() or not REFERENCES.is_file() or not THREE_D.is_file()
+            or SOURCE.is_symlink() or REFERENCES.is_symlink() or THREE_D.is_symlink()):
         raise ValueError("missing or redirected recruitment HTML source")
     all_sources = [(CONCEPT_DIR / n, n) for n in NAMES] + [(BRANDING / n, n) for n in SVG_NAMES]
     all_sources += [(PROMO / n, n) for n in PROMO_IMAGES]
@@ -79,6 +82,11 @@ def stage(out: Path) -> dict:
             data = source.read_bytes()
             if len(data) > 1_000_000 or b"<svg" not in data:
                 raise ValueError(f"invalid/oversized SVG reference: {name}")
+    if not RIG_SOURCE.is_file() or RIG_SOURCE.is_symlink() or RIG_SOURCE.stat().st_size > 100_000:
+        raise ValueError("missing, redirected or oversized source-authored OpenSCAD model")
+    rig_bytes = RIG_SOURCE.read_bytes()
+    if b"rig_pose" not in rig_bytes or b"module" not in rig_bytes:
+        raise ValueError("invalid source-authored OpenSCAD blockout")
     import tempfile
     with tempfile.TemporaryDirectory(prefix="contributor-gallery-", dir=out) as temp:
         intermediate = Path(temp) / "contributors"
@@ -88,6 +96,14 @@ def stage(out: Path) -> dict:
         refs = intermediate / "references"
         refs.mkdir()
         shutil.copyfile(REFERENCES, refs / "index.html")
+        three_d = intermediate / "3d"
+        models = three_d / "models"
+        models.mkdir(parents=True)
+        shutil.copyfile(THREE_D, three_d / "index.html")
+        shutil.copyfile(RIG_SOURCE, models / "unicycle_shared_rig.scad")
+        if hashlib.sha256((models / "unicycle_shared_rig.scad").read_bytes()).digest() != hashlib.sha256(rig_bytes).digest():
+            raise ValueError("staged OpenSCAD rig differs from original")
+
         report = {}
         for source, name in all_sources:
             destination = images / name

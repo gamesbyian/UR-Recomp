@@ -68,9 +68,11 @@ jobs:
         run: |
           set -euo pipefail
           git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- > "$RUNNER_TEMP/changed.txt"
-          echo 'atlas=false' >> "$GITHUB_OUTPUT"
-          echo 'model=false' >> "$GITHUB_OUTPUT"
-          echo 'publisher=false' >> "$GITHUB_OUTPUT"
+          {
+            echo 'atlas=false'
+            echo 'model=false'
+            echo 'publisher=false'
+          } >> "$GITHUB_OUTPUT"
           if grep -Eq '^((\.github/workflows/windows-visual-atlas(-intake|-pr-validate)?\.yml$)|(analysis/(windows-visual-atlas|ui-capture-manifest|modern-visual-acceptance-matrix)\.)|(tools/(windows_visual_atlas|qa_modern_visual_win32_capture_driver))|(tools/visual_atlas_web/)|(tools/art/model-review/)|(media/(windows-visual-atlas/|showcase/2026-10-20/graphpaper-final/cards/|showcase/art-reconstruction/2026-10-10/))|(tests/unit/test_(model_review_pages|windows_visual_atlas))|(docs/atlas/)|(design/visual-atlas/))' "$RUNNER_TEMP/changed.txt"; then
             echo 'atlas=true' >> "$GITHUB_OUTPUT"
           fi

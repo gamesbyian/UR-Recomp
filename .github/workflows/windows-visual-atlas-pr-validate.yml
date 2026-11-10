@@ -54,6 +54,7 @@ concurrency:
 jobs:
   classify-source:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       atlas: ${{ steps.detect.outputs.atlas }}
       model: ${{ steps.detect.outputs.model }}

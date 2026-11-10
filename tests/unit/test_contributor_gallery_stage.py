@@ -83,7 +83,10 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn('href="../3d/"', references_html)
             parser = ImageSources()
             parser.feed((folder / "contributors/references/index.html").read_text(encoding="utf-8"))
-            self.assertEqual(len(parser.images), 8)
+            # Eight original references plus the two shared page-chrome sketches.
+            self.assertEqual(len(parser.images), 10)
+            self.assertEqual(parser.images.count("../images/uniracers_graphpaper_logo.jpg"), 1)
+            self.assertEqual(parser.images.count("../images/uniracers_track_unicycle.jpg"), 1)
             self.assertTrue(all(isinstance(src, str) and src.startswith("../images/") for src in parser.images))
             for src in parser.images:
                 self.assertTrue((folder / "contributors/references" / src).is_file(), src)

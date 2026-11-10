@@ -8,16 +8,16 @@ Proposed title: [Hobby / Unpaid] Established SNES Uniracers recreation seeks 3D,
 
 I'm coordinating an unofficial, volunteer-built Windows recreation of Uniracers / Unirally, the unusual 1994 SNES unicycle racer. [The public research/engineering repo](https://github.com/gamesbyian/UR-Recomp) already contains a recompilation/native-host codebase, source-derived evidence and rigorous QA, but the game is still incomplete and its release gates remain open.
 
-**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+**Project at a glance:** [Uniracers MODERN recruitment and contact](https://gamesbyian.github.io/UR-Recomp/contributors/). The unofficial, unpaid project has existing engineering work and experimental Windows test builds; all roles offer email and optional GitHub contact without requiring an account.
 
 For pictures and source references, see the [regional artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/), which displays the original English lettering, three supplied styling concepts, and experimental Japanese, Russian and French SVGs. The concepts are exploratory, not finished or approved production art.
 
 The opportunities are intentionally small and optional:
-* **3D artist:** compare the experimental articulated rig with the [title-screen racer and contour reference gallery](https://gamesbyian.github.io/UR-Recomp/contributors/3d/), including a [close-up component trace](https://github.com/gamesbyian/UR-Recomp/blob/main/media/showcase/art-reconstruction/2026-11-09/title-screen-racer/racer-contour-overlay-close.png); then help refine its likeness using [source-derived research](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md).
+* **3D artist:** help source or create a human-made 3D racer using the [title-screen racer and contour reference gallery](https://gamesbyian.github.io/UR-Recomp/contributors/3d/), including a [close-up component trace](https://github.com/gamesbyian/UR-Recomp/blob/main/media/showcase/art-reconstruction/2026-11-09/title-screen-racer/racer-contour-overlay-close.png); use the provisional rig only as an optional reference alongside [source-derived research](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md).
 * **Logo/lettering artist:** match the rounded personality of the [English Uniracers wordmark](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-box-wordmark-traced.svg) in Japanese, Cyrillic, French or other writing systems; native-language review is useful too.
   New, supplied **styling concept images**: [concept 01](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-01.png), [concept 02](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-02.png), [concept 03](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/concepts/regional-wordmark-concept-03.png). The three visual subjects are French “L'inéluctable esseulement de la roue unique”, Japanese “ユニレーサーズ” and Russian “Юниралли”; the original repository PNGs have anonymous filenames, so exact file-to-language identification must be confirmed before captions are attached individually. These are illustration references, not accepted canonical SVG lettering.
 * **Agent operator / technical reviewer:** donate limited agent-hours plus minimal human oversight under [AGENTS.md](https://github.com/gamesbyian/UR-Recomp/blob/main/AGENTS.md) and independent PR/CI qualification.
-* **Windows playtester:** opt in to test an eventual stable verified Windows build; no public durable release is available yet. [Testing protocol](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/EXPERT-PLAYTEST-PROTOCOL.md).
+* **Windows playtester:** opt in to test **existing experimental Windows x64 candidates**, furnished individually only after exact-package verification; there is no stable public release. [Playtesting overview](https://gamesbyian.github.io/UR-Recomp/contributors/playtest/) and [testing protocol](https://github.com/gamesbyian/UR-Recomp/blob/main/docs/EXPERT-PLAYTEST-PROTOCOL.md).
 
 **Unpaid hobby collaboration**, no employment or revenue share, no mandatory ongoing role. Named acknowledgement/portfolio credit where permitted. A one-off model improvement, glyph correction, test report or review can help. Respond here with which piece appeals to you; don't post private contact details in the public thread.
 
@@ -25,11 +25,13 @@ I'm also actively interested in coordinating with other Uniracers / Unirally rem
 
 ## Gallery and suggested image attachments
 
-The [Pages publication run #42718635056](https://github.com/gamesbyian/UR-Recomp/actions/runs/42718635056) completed successfully on 2026-11-09. The gallery URL is included in the proposed post; verify its public HTTP accessibility and image rendering in a normal browser immediately before posting.
+Before posting, inspect the live recruitment/gallery pages, source assets and this venue's current rules; Pages success alone is not an external visual check.
 
 Direct image routes (after browser verification): [concept 01](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-01.png), [concept 02](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-02.png), [concept 03](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-03.png). When a forum supports native attachments, upload the exact source concept PNG instead of relying on remote embeds. Individual concept filenames remain neutral because exact PNG-to-language identity has not been independently confirmed. Do not include box art.
 
 For 3D artists, start with the [live 3D reviewer, likeness comparisons and downloadable OpenSCAD source](https://gamesbyian.github.io/UR-Recomp/contributors/3d/). Current public GLB availability is manifest-dependent; the editable source model is always provided.
+
+To help, use the [recruitment website](https://gamesbyian.github.io/UR-Recomp/contributors/) and choose email or optional GitHub contact, or reply here if permitted. No GitHub account is necessary.
 
 ## Reference / attachment and publication notes
 

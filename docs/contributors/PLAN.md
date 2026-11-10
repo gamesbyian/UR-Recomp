@@ -3,12 +3,12 @@
 **Primary outreach link:** [Short recruitment landing](https://gamesbyian.github.io/UR-Recomp/contributors/), with compact role cards and one-click contribution intake. **Deeper optional gallery:** [Artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/). Keep the compact page as every post's common entrypoint; original PNGs/SVGs remain at their prior `/contributors/images/` direct URLs. Publication follows the existing Visual Atlas Pages workflow.
 
 
-**Purpose:** actively invite unpaid, optional, bounded contributions in four lanes: 3D racer reconstruction, regional lettering/language review, supervised agent-run engineering and Windows testing. A fifth invitation, prominent in **every initial post**, seeks coordination with all Uniracers/Unirally efforts beyond known Baldosa and malmazuke projects.
+**Purpose:** actively invite unpaid, optional, bounded contributions in four lanes: sourcing or creating human-made 3D racer art, regional lettering/language review, supervised agent-run engineering and Windows testing. A fifth invitation, prominent in **every initial post**, seeks coordination with all Uniracers/Unirally efforts beyond known Baldosa and malmazuke projects.
 
 ## Publication order and criteria
 
 1. Merge the public contributor-interest and playtest GitHub issue forms. Check that they render, route to this guide, and warn about public privacy. Verify existing reference asset URLs before posting.
-2. Assemble a small, rights-respectful **artist reference pack**: English traced SVGs, proposed regional SVGs clearly marked experimental, actual experimental 3D viewer screenshots/model where authorized, and approved illustrative promo art. A background image is not gameplay evidence.
+2. Maintain the already published, rights-respectful **artist reference pack**: English traced SVGs, proposed regional SVGs clearly marked experimental, actual experimental 3D viewer screenshots/model where authorized, and approved illustrative promo art. The experimental 2026 rig is optional reference art, not approved likeness or a requirement to build upon. A background image is not gameplay evidence.
 3. Post **Blender Artists Volunteer Work** (3D), **r/INAT** (mixed), and **itch.io Help Wanted or Offered** (art) by authorized humans. Itch.io currently explicitly prohibits AI agents from posting. Community rules, relevant tags, and moderation guidance win over any automation.
 4. Post technical appeals in allowed locations in **r/ChatGPTCoding**, **r/ClaudeCode**, **r/aiagents**, and **r/opensource**. r/opensource may require its designated project/contributor thread. Each offer is one bounded supervised task with independently reviewable evidence, not an open-ended assignment.
 5. In **r/retrogaming** and **r/snes**, lead with genuine source-verified gameplay footage and a request for remembered mechanics, expertise and other projects; abide by self-promotion rules. Do not imply a ready public Windows build.
@@ -38,14 +38,14 @@ Existing five agents continue their single ranked shared engineering queue; no n
 
 ## Pages gallery publication
 
-The recruitment reference gallery is published through the existing Visual Atlas workflow at [https://gamesbyian.github.io/UR-Recomp/contributors/](https://gamesbyian.github.io/UR-Recomp/contributors/). Its first [main deployment](https://github.com/gamesbyian/UR-Recomp/actions/runs/42718635056) succeeded. Main-branch contributor-gallery changes trigger the same publishing workflow; unrelated atlas updates retain their existing manual publish gate. Before a forum post, test actual browser access, direct media links and mobile layout. Only the provided concept PNGs and the existing wordmark SVGs are included, not box art.
+The recruitment reference gallery is published through the existing Visual Atlas workflow at [https://gamesbyian.github.io/UR-Recomp/contributors/](https://gamesbyian.github.io/UR-Recomp/contributors/). Its first [main deployment](https://github.com/gamesbyian/UR-Recomp/actions/runs/42718635056) succeeded. Main-branch HTML-only contributor changes use the incremental Pages publisher, preserving existing artwork, atlas captures, model GLBs and measurements. Each heavier surface rebuilds only when its own inputs change or an authorized manual dispatch requests it. Before a forum post, test actual browser access, direct media links and mobile layout. Only the provided concept PNGs and the existing wordmark SVGs are included, not box art.
 
 
 ## Public experimental Windows playtester recruitment
 
 The project can already produce independently byte-audited ROM-free Windows x64 **experimental physical-playtest candidates**, so invite volunteers **now** to help test when a current, verified candidate is furnished. Requesting interest by email or GitHub does not imply that a fixed public release download exists or that an expiring GitHub Actions artifact is accessible without login. Before sharing any package, verify source commit, ZIP and PE SHA-256, ROM-free boundary, availability and clear startup/reporting instructions via the existing `docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md` and `docs/playtest/REQUEST-WINDOWS-PLAYTEST.md` process. Tell testers about limitations and treat all reports as observations requiring further reproduction, not original-game oracle evidence. Keep the r/playmygame and r/DestroyMyGame public-download/video publication gates in place until a stable public test package exists.
 
-All recruitment Pages subpages (`/contributors/`, `/contributors/references/`, `/contributors/3d/`) use the same sketched logo, fixed graph-paper treatment and bottom track/racer visual language. All five primary opportunities present equally visible email and GitHub routes; specialists can contact the owner-approved project email without a GitHub account.
+All recruitment Pages subpages (`/contributors/`, `/contributors/references/`, `/contributors/3d/`, `/contributors/playtest/`) use the same sketched logo, fixed graph-paper treatment and bottom track/racer visual language. All five primary opportunities present equally visible email and GitHub routes; specialists can contact the owner-approved project email without a GitHub account.
 
 ## Visitor-facing playtesting and visual consistency
 

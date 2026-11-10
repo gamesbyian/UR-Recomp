@@ -40,7 +40,7 @@ Individual embeddable URLs are [concept 01](https://gamesbyian.github.io/UR-Reco
 
 ## Direct 3D viewing and source downloads
 
-Send artists first to [3D viewer, visual state and model downloads](https://gamesbyian.github.io/UR-Recomp/contributors/3d/), then optionally the [interactive WebGL reviewer](https://gamesbyian.github.io/UR-Recomp/model-review/) and [original-versus-experiment comparisons](https://gamesbyian.github.io/UR-Recomp/model-review/visual-review.html). The directly downloadable rig is staged from the existing [OpenSCAD authoring source](https://github.com/gamesbyian/UR-Recomp/blob/main/tools/art/candidates/unicycle_shared_rig.scad) without modification. A standard Pages build has no published GLB unless an explicit source-verified model export was included. Never describe the 2026 blockout as original 1994 geometry or approved character art.
+Send artists first to [3D viewer, visual state and model downloads](https://gamesbyian.github.io/UR-Recomp/contributors/3d/), then optionally the [interactive WebGL reviewer](https://gamesbyian.github.io/UR-Recomp/model-review/) and [original-versus-experiment comparisons](https://gamesbyian.github.io/UR-Recomp/model-review/visual-review.html). The directly downloadable rig is staged from the existing [OpenSCAD authoring source](https://github.com/gamesbyian/UR-Recomp/blob/main/tools/art/candidates/unicycle_shared_rig.scad) without modification. HTML-only Pages updates now preserve previously published source-verified GLBs; new model exports occur only for changed model inputs or explicit manual authoring requests. Never describe the 2026 blockout as original 1994 geometry or approved character art.
 
 ## Title-screen racer art references (four original PNGs)
 

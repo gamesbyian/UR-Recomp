@@ -27,6 +27,16 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertTrue((folder/"contributors/index.html").is_file())
             self.assertTrue((folder/"contributors/references/index.html").is_file())
             self.assertTrue((folder/"contributors/3d/index.html").is_file())
+            playtest = (folder/"contributors/playtest/index.html")
+            self.assertTrue(playtest.is_file())
+            playtest_html = playtest.read_text(encoding="utf-8")
+            self.assertIn("Experimental, playable Windows builds already exist", playtest_html)
+            self.assertIn('mailto:ianmakesjokes@gmail.com', playtest_html)
+            self.assertIn("Contribute on GitHub", playtest_html)
+            self.assertIn("uniracers_graphpaper_logo.jpg", playtest_html)
+            self.assertIn("uniracers_track_unicycle.jpg", playtest_html)
+            self.assertIn("background-attachment:fixed", playtest_html)
+
             self.assertTrue((folder/"contributors/3d/models/unicycle_shared_rig.scad").is_file())
             source_dir = ROOT / "media/showcase/art-reconstruction/2026-11-09/title-screen-racer"
             racer_names = (
@@ -64,6 +74,13 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertFalse((folder/"contributors/images/unirally-box-art-3x.png").exists())
             self.assertFalse((folder/"contributors/images/uniracers-box-art-3x.png").exists())
             self.assertTrue(all(item["bytes"] > 0 for item in report.values()))
+            references_html = (folder/"contributors/references/index.html").read_text(encoding="utf-8")
+            self.assertIn("background-attachment:fixed", references_html)
+            self.assertIn("uniracers_graphpaper_logo.jpg", references_html)
+            self.assertIn("uniracers_track_unicycle.jpg", references_html)
+            self.assertIn('mailto:ianmakesjokes@gmail.com', references_html)
+            self.assertIn("Contribute on GitHub", references_html)
+            self.assertIn('href="../3d/"', references_html)
             parser = ImageSources()
             parser.feed((folder / "contributors/references/index.html").read_text(encoding="utf-8"))
             self.assertEqual(len(parser.images), 8)
@@ -91,6 +108,10 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn("position:fixed", home)
             self.assertIn("./references/", home)
             self.assertIn('href="./3d/">View model &amp; downloads', home)
+            self.assertIn('href="./playtest/">How playtesting works', home)
+            self.assertIn('Windows playtesters', home)
+            self.assertNotIn('Future playtesters', home)
+
             # Every volunteer path has both public email and GitHub intake;
             # none requires a GitHub account to make contact.
             self.assertEqual(home.count("Contribute on GitHub"), 5)
@@ -102,7 +123,7 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn('./models/unicycle_shared_rig.scad', three_d)
             self.assertIn('manifest.json', three_d)
             self.assertIn("mailto:ianmakesjokes@gmail.com", three_d)
-            self.assertIn("Use GitHub instead", three_d)
+            self.assertIn("Contribute on GitHub", three_d)
             for name in racer_names:
                 self.assertIn('src="previews/' + name + '"', three_d)
                 self.assertIn(

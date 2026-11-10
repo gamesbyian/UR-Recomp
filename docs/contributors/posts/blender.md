@@ -25,3 +25,7 @@ For 3D artists, start with the [live 3D reviewer, likeness comparisons and downl
 Attach: genuine screenshot of the current experimental 3D model and source reference with legal display rights; optionally approved promo PNG. Do not pretend the HTML source link is a hosted interactive viewer.
 
 Before publishing, check community rules, verify exact URLs and media, establish a valid reply route, and record the actual permalink in campaign.json.
+
+## New source-art media options
+
+**Recommended leading attachment:** a permitted display of the original [3× title-screen composition](https://gamesbyian.github.io/UR-Recomp/contributors/3d/images/title-screen-racer-3x-upscale.png) together with one [wide contour outline](https://gamesbyian.github.io/UR-Recomp/contributors/3d/images/racer-contour-overlay-wide.png) or [mechanical detail crop](https://gamesbyian.github.io/UR-Recomp/contributors/3d/images/racer-contour-overlay-axle-detail.png). The complete four-image set is in the [3D art gallery with model access](https://gamesbyian.github.io/UR-Recomp/contributors/3d/). Caption these as **reference and interpretive contour studies**, not renders of a completed 3D model or original 1994 topology. Use the gallery URL as the primary link, subject to site and forum verification.

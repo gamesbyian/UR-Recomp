@@ -22,12 +22,13 @@
       "role": "mixed",
       "post_file": "docs/contributors/posts/inat.md",
       "state": "reported_posted",
-      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
+      "gate": "Owner supplied Reddit post share link; verify public visibility and exact Reddit creation timestamp before promoting to verified posted",
       "posted_url": null,
       "posted_at_utc": null,
       "last_rules_checked_utc": null,
       "reported_posted_on": "2026-11-09",
-      "report_source": "owner"
+      "report_source": "owner",
+      "reported_post_url": "https://www.reddit.com/r/INAT/s/J4WSvtWuAS"
     },
     {
       "id": "itch",
@@ -72,12 +73,13 @@
       "role": "agents",
       "post_file": "docs/contributors/posts/aiagents.md",
       "state": "reported_posted",
-      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
+      "gate": "Owner supplied Reddit post share link; verify public visibility and exact Reddit creation timestamp before promoting to verified posted",
       "posted_url": null,
       "posted_at_utc": null,
       "last_rules_checked_utc": null,
       "reported_posted_on": "2026-11-09",
-      "report_source": "owner"
+      "report_source": "owner",
+      "reported_post_url": "https://www.reddit.com/r/aiagents/s/2JC5QjpZj5"
     },
     {
       "id": "opensource",
@@ -134,12 +136,13 @@
       "role": "fans",
       "post_file": "docs/contributors/posts/snes.md",
       "state": "reported_posted",
-      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
+      "gate": "Owner supplied Reddit post share link; verify public visibility and exact Reddit creation timestamp before promoting to verified posted",
       "posted_url": null,
       "posted_at_utc": null,
       "last_rules_checked_utc": null,
       "reported_posted_on": "2026-11-09",
-      "report_source": "owner"
+      "report_source": "owner",
+      "reported_post_url": "https://www.reddit.com/r/snes/s/T4UtAuAJnn"
     },
     {
       "id": "lettering",
@@ -148,12 +151,13 @@
       "role": "lettering",
       "post_file": "docs/contributors/posts/lettering.md",
       "state": "reported_posted",
-      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
+      "gate": "Owner supplied Reddit post share link; verify public visibility and exact Reddit creation timestamp before promoting to verified posted",
       "posted_url": null,
       "posted_at_utc": null,
       "last_rules_checked_utc": null,
       "reported_posted_on": "2026-11-09",
-      "report_source": "owner"
+      "report_source": "owner",
+      "reported_post_url": "https://www.reddit.com/r/Lettering/s/PzECmZwo2C"
     },
     {
       "id": "logodesign",
@@ -162,12 +166,13 @@
       "role": "lettering",
       "post_file": "docs/contributors/posts/logodesign.md",
       "state": "reported_posted",
-      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
+      "gate": "Owner supplied Reddit post share link; verify public visibility and exact Reddit creation timestamp before promoting to verified posted",
       "posted_url": null,
       "posted_at_utc": null,
       "last_rules_checked_utc": null,
       "reported_posted_on": "2026-11-09",
-      "report_source": "owner"
+      "report_source": "owner",
+      "reported_post_url": "https://www.reddit.com/r/logodesign/s/pTvUfkhuer"
     }
   ]
 }

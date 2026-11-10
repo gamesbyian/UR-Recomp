@@ -62,7 +62,7 @@ def stage(out: Path) -> dict:
             if source.parent != DRAWINGS or source.stat().st_size > 1_000_000:
                 raise ValueError(f"{name}: unexpected drawing source or oversize")
             with source.open("rb") as handle:
-                if handle.read(3) != b"\\xff\\xd8\\xff":
+                if handle.read(3) != bytes((255, 216, 255)):
                     raise ValueError(f"{name}: expected original JPEG source")
         elif source.suffix == ".png":
             if source.parent == PROMO:

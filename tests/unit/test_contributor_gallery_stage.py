@@ -116,9 +116,20 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn("artist's interpretation", three_d)
             self.assertIn("non-generatively downscaled previews", three_d)
             self.assertIn('No hosted GLB is currently listed', three_d)
-            for role in ("3D artists", "Lettering &amp; language", "Developers &amp; AI operators", "Future playtesters"):
+            for role in ("3D artists", "Lettering &amp; language", "Developers &amp; AI operators", "Windows playtesters"):
                 self.assertIn(role, home)
             self.assertIn("Three new regional styling concepts", (folder/"contributors/references/index.html").read_text())
+            lettering = (folder/"contributors/references/index.html").read_text(encoding="utf-8")
+            for page in (lettering, three_d):
+                self.assertIn("background-attachment:fixed", page)
+                self.assertIn("uniracers_graphpaper_logo.jpg", page)
+                self.assertIn("uniracers_track_unicycle.jpg", page)
+                self.assertIn("mailto:ianmakesjokes@gmail.com", page)
+                self.assertIn("Contribute on GitHub", page)
+                self.assertIn("site-footer", page)
+            self.assertIn("Experimental Windows test builds exist", home)
+            self.assertIn("request a verified test package", home.lower())
+
             with self.assertRaises(ValueError):
                 MOD.stage(folder)
 if __name__ == "__main__":

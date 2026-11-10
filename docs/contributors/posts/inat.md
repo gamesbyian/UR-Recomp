@@ -36,3 +36,7 @@ For 3D artists, start with the [live 3D reviewer, likeness comparisons and downl
 Attach: approved promo PNG and optionally experimental model/lettering contact sheet; link repository and direct briefs.
 
 Before publishing, check community rules, verify exact URLs and media, establish a valid reply route, and record the actual permalink in campaign.json.
+
+## New 3D reference material
+
+For the 3D artist lane, use [the four-image title-screen/contour gallery and existing model-source download](https://gamesbyian.github.io/UR-Recomp/contributors/3d/) rather than sending applicants straight to the long reconstruction brief. Optionally attach [the wide 2D contour reference](https://gamesbyian.github.io/UR-Recomp/contributors/3d/images/racer-contour-overlay-wide.png) where forum rules permit. The provided title-screen outlines are visual interpretation, separate from the provisional 2026 reconstructed rig.

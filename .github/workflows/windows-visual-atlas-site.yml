@@ -113,6 +113,7 @@ jobs:
           # Carry forward unchanged independent surfaces, never regenerate them.
           for page in contributors model-review; do
             if [[ -d "$RUNNER_TEMP/atlas-site/$page" ]]; then
+              rm -rf "$RUNNER_TEMP/atlas-rebuilt/$page"
               cp -a "$RUNNER_TEMP/atlas-site/$page" "$RUNNER_TEMP/atlas-rebuilt/$page"
             fi
           done

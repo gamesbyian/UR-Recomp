@@ -28,6 +28,20 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertTrue((folder/"contributors/references/index.html").is_file())
             self.assertTrue((folder/"contributors/3d/index.html").is_file())
             self.assertTrue((folder/"contributors/3d/models/unicycle_shared_rig.scad").is_file())
+            source_dir = ROOT / "media/showcase/art-reconstruction/2026-11-09/title-screen-racer"
+            racer_names = (
+                "title-screen-racer-3x-upscale.png",
+                "racer-contour-overlay-wide.png",
+                "racer-contour-overlay-close.png",
+                "racer-contour-overlay-axle-detail.png",
+            )
+            for name in racer_names:
+                self.assertEqual(
+                    (source_dir / name).read_bytes(),
+                    (folder / "contributors/3d/images" / name).read_bytes(),
+                    name,
+                )
+
             self.assertEqual(
                 (ROOT / "tools/art/candidates/unicycle_shared_rig.scad").read_bytes(),
                 (folder/"contributors/3d/models/unicycle_shared_rig.scad").read_bytes()
@@ -71,6 +85,9 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn('../../model-review/visual-review.html', three_d)
             self.assertIn('./models/unicycle_shared_rig.scad', three_d)
             self.assertIn('manifest.json', three_d)
+            for name in racer_names:
+                self.assertIn('images/' + name, three_d)
+            self.assertIn("artist's interpretation", three_d)
             self.assertIn('No hosted GLB is currently listed', three_d)
             for role in ("3D artists", "Lettering &amp; language", "Developers &amp; AI operators", "Future playtesters"):
                 self.assertIn(role, home)

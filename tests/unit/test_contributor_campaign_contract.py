@@ -17,6 +17,37 @@ class ContributorCampaignTests(unittest.TestCase):
     def test_current_campaign_has_valid_drafts(self):
         self.assertEqual([], VALIDATOR.validate(ROOT))
 
+    def test_exact_official_recruitment_landing_substitutes_for_github_link(self):
+        # The owner-reported 3Drequests draft was written for volunteers who
+        # need not have GitHub. The record of proposed post text is retained.
+        raw = (ROOT / "docs/contributors/posts/3drequests.md").read_text(encoding="utf-8")
+        landing = "https://gamesbyian.github.io/UR-Recomp/contributors/"
+        self.assertIn("**Recruitment/contact site:** " + landing, raw)
+        self.assertIn(landing + "3d/", raw)
+        self.assertNotIn("https://github.com/gamesbyian/UR-Recomp", raw)
+        manifest = json.loads(
+            (ROOT / "docs/contributors/campaign.json").read_text(encoding="utf-8"))
+        row = copy.deepcopy(next(v for v in manifest["venues"] if v["id"] == "3drequests"))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            post = root / row["post_file"]
+            post.parent.mkdir(parents=True)
+            (root / "docs/contributors/campaign.json").write_text(
+                json.dumps({"schema_version": 1, "venues": [row]}),
+                encoding="utf-8")
+            post.write_text(raw, encoding="utf-8")
+            self.assertEqual([], VALIDATOR.validate(root))
+            # A role subpage is still present, but a spoofed contact landing
+            # must not satisfy the first-party source/evidence requirement.
+            altered = raw.replace(
+                "**Recruitment/contact site:** " + landing,
+                "**Recruitment/contact site:** https://different-site.invalid/contributors/")
+            self.assertIn(landing + "3d/", altered)
+            post.write_text(altered, encoding="utf-8")
+            self.assertTrue(
+                any("missing project evidence link" in finding
+                    for finding in VALIDATOR.validate(root)))
+
     def test_duplicate_id_and_false_post_claim_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

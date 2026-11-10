@@ -42,6 +42,17 @@ class ContributorGalleryTests(unittest.TestCase):
                 self.assertLess(preview_path.stat().st_size, full_original.stat().st_size, name)
                 self.assertFalse((folder / "contributors/3d/images" / name).exists(), name)
 
+            box_dir = ROOT / "media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours"
+            box_names = (
+                "uniracers-box-art-wheel-contour-study.jpg",
+                "unirally-box-art-wheel-contour-study.jpg",
+            )
+            for name in box_names:
+                staged = folder / "contributors/3d/box-art" / name
+                self.assertTrue(staged.is_file(), name)
+                self.assertEqual((box_dir / name).read_bytes(), staged.read_bytes(), name)
+            self.assertFalse((folder / "contributors/3d/box-art/Uniracers_box_art_3x~2.jpg").exists())
+
             self.assertEqual(
                 (ROOT / "tools/art/candidates/unicycle_shared_rig.scad").read_bytes(),
                 (folder/"contributors/3d/models/unicycle_shared_rig.scad").read_bytes()
@@ -91,6 +102,10 @@ class ContributorGalleryTests(unittest.TestCase):
                     'https://github.com/gamesbyian/UR-Recomp/blob/main/media/showcase/art-reconstruction/2026-11-09/title-screen-racer/' + name,
                     three_d,
                 )
+            for name in box_names:
+                self.assertIn('src="box-art/' + name + '"', three_d)
+                self.assertIn('https://github.com/gamesbyian/UR-Recomp/blob/main/media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours/' + name, three_d)
+            self.assertIn("Additional wheel and fork details", three_d)
             self.assertIn("artist's interpretation", three_d)
             self.assertIn("non-generatively downscaled previews", three_d)
             self.assertIn('No hosted GLB is currently listed', three_d)

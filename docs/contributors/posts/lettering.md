@@ -8,9 +8,9 @@ Proposed title: Feedback / volunteer lettering challenge: preserving a very pecu
 
 I'm experimenting with regional versions of the distinctive rounded, playful Uniracers / Unirally title lettering from the 1994 SNES game. I'd appreciate detailed feedback from anyone experienced in lettering or specific scripts, and, if community rules permit, a volunteer for one focused revision.
 
-**Project at a glance:** [Uniracers / Unirally volunteer opportunities](https://gamesbyian.github.io/UR-Recomp/contributors/). A short, mobile-friendly explanation of our progress, the ways to help and how to get involved.
+**Project at a glance:** [Lettering reference gallery and contact](https://gamesbyian.github.io/UR-Recomp/contributors/references/). The unofficial, unpaid project has existing engineering work and experimental Windows test builds; all roles offer email and optional GitHub contact without requiring an account.
 
-For pictures and source references, see the [regional artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/), which displays the original English lettering, three supplied styling concepts, and experimental Japanese, Russian and French SVGs. The concepts are exploratory, not finished or approved production art.
+For pictures, source references and ways to contribute, see the [regional artwork references](https://gamesbyian.github.io/UR-Recomp/contributors/references/), which displays the original English lettering, three supplied styling concepts, and experimental Japanese, Russian and French SVGs. The concepts are exploratory, not finished or approved production art.
 
 [Rectified separated English letter shapes](https://github.com/gamesbyian/UR-Recomp/blob/main/design/uniracers-wordmark-separated-rectified.svg) (use their shapes, not the oversized U/S display scaling), [English Uniracers trace](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-box-wordmark-traced.svg) and [English Unirally trace](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-box-wordmark-traced.svg) are the shape references. Existing **experimental** translations/transliterations include [Japanese katakana](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/uniracers-japanese-katakana-wordmark.svg), [Russian Cyrillic](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-russian-cyrillic-wordmark.svg) and an intentionally overlong [French treatment](https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-french-wordmark.svg).
 
@@ -22,9 +22,11 @@ I'm interested in coordinating with any other Uniracers / Unirally remake, rever
 
 ## Gallery and suggested image attachments
 
-The [Pages publication run #42718635056](https://github.com/gamesbyian/UR-Recomp/actions/runs/42718635056) completed successfully on 2026-11-09. The gallery URL is included in the proposed post; verify its public HTTP accessibility and image rendering in a normal browser immediately before posting.
+Before posting, inspect the live recruitment/gallery pages, source assets and this venue's current rules; Pages success alone is not an external visual check.
 
 Direct image routes (after browser verification): [concept 01](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-01.png), [concept 02](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-02.png), [concept 03](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-03.png). When a forum supports native attachments, upload the exact source concept PNG instead of relying on remote embeds. Individual concept filenames remain neutral because exact PNG-to-language identity has not been independently confirmed. Do not include box art.
+
+To help, use the [recruitment website](https://gamesbyian.github.io/UR-Recomp/contributors/) and choose email or optional GitHub contact, or reply here if permitted. No GitHub account is necessary.
 
 ## Reference / attachment and publication notes
 

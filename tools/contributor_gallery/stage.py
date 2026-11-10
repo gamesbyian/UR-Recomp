@@ -27,6 +27,12 @@ RACER_REFERENCE_IMAGES = (
     "racer-contour-overlay-close.png",
     "racer-contour-overlay-axle-detail.png",
 )
+BOX_ART_REFERENCES = ROOT / "media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours"
+BOX_ART_REFERENCE_IMAGES = (
+    "uniracers-box-art-wheel-contour-study.jpg",
+    "unirally-box-art-wheel-contour-study.jpg",
+)
+
 
 PROMO = ROOT / "assets" / "promo" / "canonical"
 PROMO_IMAGES = ("blueprint-16x9-logo-left.png", "blueprint-4x3-logo-left.png")
@@ -112,6 +118,16 @@ def stage(out: Path) -> dict:
         width, height = struct.unpack(">II", header[16:24])
         if not (400 <= width <= 10000 and 400 <= height <= 10000):
             raise ValueError(f"{name}: implausible image dimensions")
+    # Source-authored box-art studies are already compact JPEGs. Keep each
+    # exact original byte stream and never re-encode or enlarge it.
+    for name in BOX_ART_REFERENCE_IMAGES:
+        source = BOX_ART_REFERENCES / name
+        if (not source.is_file() or source.is_symlink()
+                or not (5_000 <= source.stat().st_size <= 600_000)):
+            raise ValueError(f"{name}: missing, redirected or oversized box-art reference")
+        with source.open("rb") as handle:
+            if handle.read(3) != bytes((255, 216, 255)):
+                raise ValueError(f"{name}: invalid JPEG source")
     import tempfile
     with tempfile.TemporaryDirectory(prefix="contributor-gallery-", dir=out) as temp:
         intermediate = Path(temp) / "contributors"
@@ -142,6 +158,16 @@ def stage(out: Path) -> dict:
                 raise ValueError(f"{name}: thumbnail did not reduce source bytes")
         if preview_total > 6_000_000:
             raise ValueError("combined racer preview payload exceeds 6MB")
+        # Two sub-300KB artist JPEGs can be served unchanged while large 3x
+        # title-screen PNGs remain source-linked only.
+        box_images = three_d / "box-art"
+        box_images.mkdir()
+        for name in BOX_ART_REFERENCE_IMAGES:
+            source = BOX_ART_REFERENCES / name
+            dest = box_images / name
+            shutil.copyfile(source, dest)
+            if hashlib.sha256(source.read_bytes()).digest() != hashlib.sha256(dest.read_bytes()).digest():
+                raise ValueError(f"{name}: box-art source changed during staging")
 
 
         report = {}

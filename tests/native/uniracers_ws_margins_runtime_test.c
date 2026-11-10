@@ -11,18 +11,20 @@ uint8_t g_ram[0x20000];
 static Ppu ppu;
 Ppu* g_ppu = &ppu;
 static int frames, worlds, forces, splits, resets;
+static uint32_t primary_world_x, secondary_world_x;
+static int secondary_first_line;
 void WsShadowReset(void) { resets++; }
 void WsShadowFrame(Ppu* unused) { (void)unused; frames++; }
 void WsShadowSetWorld(int layer,uint32_t x,uint32_t y) {
-    (void)layer; (void)x; (void)y; worlds++;
+    (void)layer; (void)y; primary_world_x=x; worlds++;
 }
 void WsShadowSetScroll(int layer,uint32_t x,uint32_t y) {
     (void)layer; (void)x; (void)y;
 }
 void WsShadowSetSplit(int layer,int first_line,uint32_t wx,uint32_t wy,
                       uint32_t sx,uint32_t sy) {
-    (void)layer; (void)first_line; (void)wx; (void)wy;
-    (void)sx; (void)sy; splits++;
+    (void)layer; (void)wy; (void)sx; (void)sy;
+    secondary_first_line=first_line; secondary_world_x=wx; splits++;
 }
 void WsShadowForceTile(int layer,uint32_t x,uint32_t y,uint16_t entry) {
     (void)layer; (void)x; (void)y; (void)entry; forces++;
@@ -45,6 +47,22 @@ static void course(void) {
         }
     }
 }
+/* Larger-than-1024-pixel track, with unique tile words across the 10-bit
+ * horizontal scroll seam. Structural fixture only, no original ROM/PPU. */
+static void course_scroll_wrap(void) {
+    memset(g_ram,0,sizeof(g_ram));
+    memset(&ppu,0,sizeof(ppu));
+    put16(0x04F1,32); put16(0x04F3,8);
+    for(int sy=0;sy<8;sy++) for(int sx=0;sx<32;sx++) {
+        uint16_t rec=(uint16_t)(sy*32+sx);
+        put16(0x10000+0x000F+2u*rec,rec);
+        for(int fy=0;fy<4;fy++) for(int fx=0;fx<4;fx++) {
+            int x=sx*4+fx,y=sy*4+fy;
+            put16(0x10000+0x800F+32u*rec+2u*(uint32_t)(fy*4+fx),
+                  (uint16_t)(0x1000|(y<<7)|x));
+        }
+    }
+}
 static void hdma(int split) {
     const uint32_t scroll=UR_WS_BG1_SCROLL_TABLE;
     const uint32_t sc=UR_WS_BG1_SC_TABLE;
@@ -62,11 +80,25 @@ static void stream(uint16_t base,int first_row,int last_row) {
         ppu.vram[base+((row&31)<<5)+col]=tile;
     }
 }
+/* Populate the authentic BG1 32-cell ring addresses with the synthetic
+ * source words currently visible from the two independent world origins. */
+static void stream_at(uint16_t base,int first_row,int last_row,int first_cell) {
+    for(int row=first_row;row<=last_row;row++) for(int col=0;col<17;col++) {
+        const int x=first_cell+col;
+        uint16_t tile=0;
+        assert(ur_ws_course_tile(g_ram,x,row,&tile));
+        ppu.vram[base+((row&31)<<5)+(x&31)]=tile;
+    }
+}
 static void flip_nine(uint16_t base,int row) {
     for(int col=1;col<=9;col++)
         ppu.vram[base+((row&31)<<5)+col]^=1;
 }
-static void counters(void) { frames=worlds=forces=splits=0; }
+static void counters(void) {
+    frames=worlds=forces=splits=0;
+    primary_world_x=secondary_world_x=UINT32_MAX;
+    secondary_first_line=-1;
+}
 static void present(void) {
     counters(); ur_ws_margins_prepare_frame(1,43);
     assert(frames==1 && worlds==1 && forces>0);
@@ -105,5 +137,43 @@ int main(void) {
     assert(!ur_ws_margins_calibrated());
     counters(); ur_ws_margins_prepare_frame(0,0);
     assert(resets==reset_before+1 && frames==0);
+    /* Compare the production code's 10-bit unwrapping with the donor
+     * ws_ring.c scroll contract. First top, then bottom crosses 1023->0;
+     * both cameras subsequently reverse. Nothing from this fixture alone
+     * proves original-USA BG1 pixels, WIDE-07 or a release gate. */
+    course_scroll_wrap(); hdma(1);
+    const uint32_t scroll=UR_WS_BG1_SCROLL_TABLE;
+    put16(scroll+1,0x3F0); put16(scroll+6,0x3E0);
+    put16(0x0419,0x3F0); put16(0x041B,0x3E0);
+    stream_at(0x0C00,0,7,63); stream_at(0x1C00,7,14,62);
+    counters(); ur_ws_margins_prepare_frame(1,43);
+    assert(ur_ws_margins_calibrated());
+    assert(frames==1 && worlds==1 && splits==1 && forces>0);
+    assert(primary_world_x==1008 && secondary_world_x==992);
+    assert(secondary_first_line==113);
+
+    put16(scroll+1,0x000); put16(scroll+6,0x3F0);
+    stream_at(0x0C00,0,7,64); stream_at(0x1C00,7,14,63);
+    counters(); ur_ws_margins_prepare_frame(1,43);
+    assert(ur_ws_margins_calibrated());
+    assert(frames==1 && worlds==1 && splits==1 && forces>0);
+    assert(primary_world_x==1024 && secondary_world_x==1008);
+    assert(secondary_first_line==113);
+
+    put16(scroll+1,0x010); put16(scroll+6,0x000);
+    stream_at(0x0C00,0,7,65); stream_at(0x1C00,7,14,64);
+    counters(); ur_ws_margins_prepare_frame(1,43);
+    assert(ur_ws_margins_calibrated());
+    assert(frames==1 && worlds==1 && splits==1 && forces>0);
+    assert(primary_world_x==1040 && secondary_world_x==1024);
+
+    put16(scroll+1,0x000); put16(scroll+6,0x3F0);
+    stream_at(0x0C00,0,7,64); stream_at(0x1C00,7,14,63);
+    counters(); ur_ws_margins_prepare_frame(1,43);
+    assert(ur_ws_margins_calibrated());
+    assert(frames==1 && worlds==1 && splits==1 && forces>0);
+    assert(primary_world_x==1024 && secondary_world_x==1008);
+    ur_ws_margins_prepare_frame(0,0);
+    assert(!ur_ws_margins_calibrated());
     return 0;
 }

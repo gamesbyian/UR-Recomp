@@ -15,6 +15,14 @@ SOURCE = ROOT / "tools" / "contributor_gallery" / "index.html"
 REFERENCES = ROOT / "tools" / "contributor_gallery" / "references.html"
 THREE_D = ROOT / "tools" / "contributor_gallery" / "three-d.html"
 RIG_SOURCE = ROOT / "tools" / "art" / "candidates" / "unicycle_shared_rig.scad"
+RACER_REFERENCES = ROOT / "media/showcase/art-reconstruction/2026-11-09/title-screen-racer"
+RACER_REFERENCE_IMAGES = (
+    "title-screen-racer-3x-upscale.png",
+    "racer-contour-overlay-wide.png",
+    "racer-contour-overlay-close.png",
+    "racer-contour-overlay-axle-detail.png",
+)
+
 PROMO = ROOT / "assets" / "promo" / "canonical"
 PROMO_IMAGES = ("blueprint-16x9-logo-left.png", "blueprint-4x3-logo-left.png")
 DRAWINGS = ROOT / "tools" / "contributor_gallery" / "source"
@@ -87,6 +95,18 @@ def stage(out: Path) -> dict:
     rig_bytes = RIG_SOURCE.read_bytes()
     if b"rig_pose" not in rig_bytes or b"module" not in rig_bytes:
         raise ValueError("invalid source-authored OpenSCAD blockout")
+    # Exact original source assets: larger resolution/size limit than logo concepts.
+    for name in RACER_REFERENCE_IMAGES:
+        source = RACER_REFERENCES / name
+        if not source.is_file() or source.is_symlink() or source.stat().st_size > 8_000_000:
+            raise ValueError(f"{name}: missing, redirected or oversized racer reference")
+        with source.open("rb") as handle:
+            header = handle.read(24)
+        if header[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or header[12:16] != b"IHDR":
+            raise ValueError(f"{name}: malformed racer reference PNG")
+        width, height = struct.unpack(">II", header[16:24])
+        if not (400 <= width <= 10000 and 400 <= height <= 10000):
+            raise ValueError(f"{name}: implausible image dimensions")
     import tempfile
     with tempfile.TemporaryDirectory(prefix="contributor-gallery-", dir=out) as temp:
         intermediate = Path(temp) / "contributors"
@@ -103,6 +123,15 @@ def stage(out: Path) -> dict:
         shutil.copyfile(RIG_SOURCE, models / "unicycle_shared_rig.scad")
         if hashlib.sha256((models / "unicycle_shared_rig.scad").read_bytes()).digest() != hashlib.sha256(rig_bytes).digest():
             raise ValueError("staged OpenSCAD rig differs from original")
+        racer_images = three_d / "images"
+        racer_images.mkdir()
+        for name in RACER_REFERENCE_IMAGES:
+            source = RACER_REFERENCES / name
+            destination = racer_images / name
+            shutil.copyfile(source, destination)
+            if hashlib.sha256(destination.read_bytes()).digest() != hashlib.sha256(source.read_bytes()).digest():
+                raise ValueError(f"{name}: staged racer reference differs from source")
+
 
         report = {}
         for source, name in all_sources:

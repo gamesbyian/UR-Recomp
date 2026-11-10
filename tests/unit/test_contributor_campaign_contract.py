@@ -59,6 +59,18 @@ class ContributorCampaignTests(unittest.TestCase):
             findings = VALIDATOR.validate(root)
             self.assertTrue(any("unverified report" in s for s in findings), findings)
 
+    def test_reported_share_url_must_match_the_subreddit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = json.loads((ROOT / "docs/contributors/campaign.json").read_text())
+            row = copy.deepcopy(next(v for v in config["venues"] if v["id"] == "inat"))
+            row["reported_post_url"] = "https://www.reddit.com/r/OtherSub/s/example"
+            config["venues"] = [row]
+            dest = root / "docs/contributors"
+            dest.mkdir(parents=True)
+            (dest / "campaign.json").write_text(json.dumps(config), encoding="utf-8")
+            self.assertTrue(any("correct subreddit" in s for s in VALIDATOR.validate(root)))
+
     def test_subreddit_homepage_is_not_a_post_permalink(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

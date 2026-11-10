@@ -40,3 +40,7 @@ Before publishing, check community rules, verify exact URLs and media, establish
 ## New 3D reference material
 
 For the 3D artist lane, use [the four-image title-screen/contour gallery and existing model-source download](https://gamesbyian.github.io/UR-Recomp/contributors/3d/) rather than sending applicants straight to the long reconstruction brief. Optionally attach [the wide 2D contour reference](https://github.com/gamesbyian/UR-Recomp/blob/main/media/showcase/art-reconstruction/2026-11-09/title-screen-racer/racer-contour-overlay-wide.png) where forum rules permit. The provided title-screen outlines are visual interpretation, separate from the provisional 2026 reconstructed rig.
+
+## New box-art wheel references
+
+The [3D visual reference gallery](https://gamesbyian.github.io/UR-Recomp/contributors/3d/) now includes two additional full-resolution, compact box-art wheel/fork contour studies: [Uniracers](https://github.com/gamesbyian/UR-Recomp/blob/main/media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours/uniracers-box-art-wheel-contour-study.jpg) and [Unirally](https://github.com/gamesbyian/UR-Recomp/blob/main/media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours/unirally-box-art-wheel-contour-study.jpg). Use one where the forum permits images, and describe them as *interpretive artwork reference*, not recovered original 3D mesh topology. The gallery remains the simplest single destination alongside model viewer/download access.

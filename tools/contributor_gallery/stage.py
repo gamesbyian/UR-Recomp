@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stage public, read-only contributor reference assets into an existing atlas Pages site.
 
-No novel art generation, no box-art exposure, no ROM, no third-party URL fetching.
+No novel art generation, no full-cover box-art images, no ROM, no third-party URL fetching.
 """
 from __future__ import annotations
 import argparse
@@ -187,7 +187,7 @@ def main() -> None:
     parser.add_argument("--site", required=True, type=Path)
     args = parser.parse_args()
     rows = stage(args.site)
-    print(f"Contributor landing + references staged: {len(rows)} original image assets; no box art")
+    print(f"Contributor landing + references staged: {len(rows)} original image assets; no full-cover box art")
 
 if __name__ == "__main__":
     main()

@@ -93,7 +93,7 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn('href="./3d/">View model &amp; downloads', home)
             # Every volunteer path has both public email and GitHub intake;
             # none requires a GitHub account to make contact.
-            self.assertEqual(home.count("Use GitHub instead"), 5)
+            self.assertEqual(home.count("Contribute on GitHub"), 5)
             self.assertGreaterEqual(home.count("mailto:ianmakesjokes@gmail.com"), 5)
 
             three_d = (folder/"contributors/3d/index.html").read_text(encoding="utf-8")

@@ -102,7 +102,7 @@ def stage(out: Path) -> dict:
             raise ValueError(f"{name}: missing, redirected or oversized racer reference")
         with source.open("rb") as handle:
             header = handle.read(24)
-        if header[:8] != b"\\x89PNG\\r\\n\\x1a\\n" or header[12:16] != b"IHDR":
+        if header[:8] != bytes((137, 80, 78, 71, 13, 10, 26, 10)) or header[12:16] != b"IHDR":
             raise ValueError(f"{name}: malformed racer reference PNG")
         width, height = struct.unpack(">II", header[16:24])
         if not (400 <= width <= 10000 and 400 <= height <= 10000):

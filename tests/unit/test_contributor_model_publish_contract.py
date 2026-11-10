@@ -6,16 +6,23 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ContributorModelPublishTests(unittest.TestCase):
-    def test_contributor_publish_regenerates_five_source_verified_poses(self):
+    def test_only_changed_model_sources_regenerate_five_verified_poses(self):
         w = (ROOT / ".github/workflows/windows-visual-atlas-site.yml").read_text(encoding="utf-8")
-        gate = "(github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')"
-        # Dependency installation, five-pose generation and receipt/measurement
-        # staging must all run on the same authorized contributor publish.
-        self.assertEqual(w.count(gate), 4)
-        self.assertIn('tools/art/candidates/unicycle_shared_rig.scad', w)
-        self.assertIn('tools/art/export_articulated_unicycle.py', w)
-        self.assertIn('tools/art/model-review/stage_pages.py', w)
-        self.assertIn('tools/art/prepare_model_review_measurement_sidecar.py', w)
+        # A button or page styling change copies HTML from exact main into
+        # the previous site artifact. It cannot invalidate model/atlas bytes.
+        self.assertIn("gh run download", w)
+        self.assertIn("publish_incremental.py plan", w)
+        self.assertIn("publish_incremental.py overlay", w)
+        self.assertIn("if: steps.plan.outputs.atlas == 'true'", w)
+        self.assertIn("if: steps.plan.outputs.gallery == 'true'", w)
+        self.assertIn("if: steps.plan.outputs.html == 'true'", w)
+        self.assertEqual(w.count("if: steps.plan.outputs.model == 'true'"), 2)
+        self.assertNotIn("gallery-change.outputs.publish", w)
+        self.assertIn("model-placeholder", w)
+        self.assertIn("tools/art/candidates/unicycle_shared_rig.scad", w)
+        self.assertIn("tools/art/export_articulated_unicycle.py", w)
+        self.assertIn("tools/art/model-review/stage_pages.py", w)
+        self.assertIn("tools/art/prepare_model_review_measurement_sidecar.py", w)
         self.assertIn('for pose in upright pedal wheelie stunt bank; do', w)
         self.assertIn('--source-commit "$source_commit"', w)
         self.assertIn('tools/contributor_gallery/stage.py --site', w)

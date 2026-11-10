@@ -7,15 +7,29 @@ on:
       - "tools/windows_visual_atlas.py"
       - "tools/windows_visual_atlas_intake.py"
       - "tools/visual_atlas_web/**"
-      - "tools/contributor_gallery/**"
-      - "docs/contributors/**"
-      - "assets/branding/**"
+      - "tools/contributor_gallery/*.html"
+      - "tools/contributor_gallery/stage.py"
+      - "tools/contributor_gallery/png_preview.py"
+      - "tools/contributor_gallery/source/**"
+      - "assets/branding/concepts/**"
+      - "assets/branding/uniracers-box-wordmark-traced.svg"
+      - "assets/branding/unirally-box-wordmark-traced.svg"
+      - "assets/branding/uniracers-japanese-katakana-wordmark.svg"
+      - "assets/branding/unirally-russian-cyrillic-wordmark.svg"
+      - "assets/branding/unirally-french-wordmark.svg"
+      - "assets/promo/canonical/blueprint-16x9-logo-left.png"
+      - "assets/promo/canonical/blueprint-4x3-logo-left.png"
       - "tools/art/model-review/**"
       - "tools/art/candidates/unicycle_shared_rig.scad"
       - "tools/art/export_articulated_unicycle.py"
+      - "tools/art/prepare_model_review_measurement_sidecar.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
       - "tools/art/racer_source_pixels.py"
       - "analysis/data/racer-hd-replacement-prototype.json"
+      - "analysis/data/racer-inverse-side-provisional-1205.json"
+      - "analysis/data/racer-original-index-lookup-20261102.json"
+      - "media/showcase/art-reconstruction/2026-11-09/title-screen-racer/**"
+      - "media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours/**"
       - "media/showcase/art-reconstruction/2026-10-10/stock/**"
       - "media/showcase/art-reconstruction/2026-10-10/inputs-p*.json"
       - "media/windows-visual-atlas/approved/**"
@@ -23,22 +37,23 @@ on:
   workflow_dispatch:
     inputs:
       deploy_pages:
-        description: "Deploy to GitHub Pages (only if Pages Actions source is configured)"
+        description: "Deploy assembled site to GitHub Pages"
         type: boolean
         default: false
       include_experimental_model:
-        description: "Build five-pose unapproved authoring model from exact checked-out main (automatic for contributor-gallery main pushes)"
+        description: "Explicitly regenerate five experimental model poses and measurements"
         type: boolean
         default: false
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: ur-atlas-static-publish-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   assemble-site:
     outputs:
-      contributor_publish: ${{ steps.gallery-change.outputs.publish }}
+      contributor_publish: ${{ steps.plan.outputs.publish }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -46,51 +61,84 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Detect first-party contributor-gallery publication change
-        id: gallery-change
+      # The site artifact is the previous successfully assembled *main* snapshot.
+      # Its model/atlas provenance remains attached to those unchanged bytes;
+      # a fresh site commit does not imply a fresh GLB or atlas capture.
+      - name: Restore previous successful site and calculate accumulated source delta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/atlas-site"
+          : > "$RUNNER_TEMP/site-changes.txt"
+          snapshot="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow windows-visual-atlas-site.yml --branch main --status success --limit 1 --json databaseId,headSha --jq '.[0] | "\(.databaseId) \(.headSha)"')"
+          if [[ -z "$snapshot" ]]; then
+            if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+              echo "::error::No prior successful site artifact. Use a manual bootstrap dispatch; do not silently regenerate the whole site."
+              exit 1
+            fi
+            exit 0
+          fi
+          read -r run_id base_sha <<< "$snapshot"
+          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+            git merge-base --is-ancestor "$base_sha" "$GITHUB_SHA" || {
+              echo "::error::Previous site source is not an ancestor of current main."
+              exit 1
+            }
+          fi
+          gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --name ur-windows-visual-atlas-latest-site --dir "$RUNNER_TEMP/atlas-site"
+          test -f "$RUNNER_TEMP/atlas-site/atlas.json"
+          test -f "$RUNNER_TEMP/atlas-site/contributors/index.html"
+          git diff --name-only "$base_sha" "$GITHUB_SHA" -- > "$RUNNER_TEMP/site-changes.txt"
+          echo "Restored successful main site run $run_id at $base_sha"
+      - name: Determine exactly which site components need publication
+        id: plan
         shell: bash
         run: |
           set -euo pipefail
-          echo "publish=false" >> "$GITHUB_OUTPUT"
-          if [[ "$GITHUB_EVENT_NAME" != "push" ]]; then exit 0; fi
-          before="${{ github.event.before }}"
-          if [[ -z "$before" || "$before" =~ ^0+$ ]]; then
-            echo "No trustworthy previous commit; manual Pages dispatch remains available"
-            exit 0
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            {
+              echo "atlas=true"
+              echo "gallery=true"
+              echo "html=false"
+              echo "model_page=false"
+              echo "model=${{ inputs.include_experimental_model }}"
+              echo "publish=false"
+            } >> "$GITHUB_OUTPUT"
+          else
+            python3 tools/contributor_gallery/publish_incremental.py plan \
+              --changed "$RUNNER_TEMP/site-changes.txt" --github-output "$GITHUB_OUTPUT"
           fi
-          if git diff --name-only "$before" "$GITHUB_SHA" -- |
-            grep -Eq '^(tools/contributor_gallery/|docs/contributors/|assets/branding/concepts/|tools/art/candidates/unicycle_shared_rig\.scad$|tools/art/export_articulated_unicycle\.py$|tools/art/model-review/)'; then
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Validate inventory and reuse source-approved incidental captures
+      - name: Rebuild visual atlas only when atlas inputs changed or explicitly dispatched
+        if: steps.plan.outputs.atlas == 'true'
+        shell: bash
         run: |
           set -euo pipefail
           python3 tools/windows_visual_atlas.py validate
-          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-site"
-          python3 - <<'PY'
-          import json,os,pathlib
-          report=json.loads((pathlib.Path(os.environ["RUNNER_TEMP"])/"atlas-site/atlas.json").read_text())
-          counts=report["counts"]
-          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
-              f.write("## Windows Visual Atlas (static snapshot)\n")
-              f.write("Source `"+os.environ["GITHUB_SHA"]+"`\n\n")
-              for name,amount in counts.items():
-                  f.write(f"- {name}: {amount}\n")
-              f.write("\nThis site contains current-source engineering captures or distinct COMING SOON plates; no hardware/visual/release approval.\n")
-          PY
-      # Keep model and gallery published from the same exact current main SHA.
-      # Every authorized contributor-gallery publish regenerates verified poses
-      # rather than silently deleting the existing hosted model.
-      - name: Prepare isolated, offline-authoring-only GLB dependencies
-        if: (github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true) || (github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')
+          python3 tools/windows_visual_atlas.py build --out "$RUNNER_TEMP/atlas-rebuilt"
+          # Carry forward unchanged independent surfaces, never regenerate them.
+          for page in contributors model-review; do
+            if [[ -d "$RUNNER_TEMP/atlas-site/$page" ]]; then
+              rm -rf "$RUNNER_TEMP/atlas-rebuilt/$page"
+              cp -a "$RUNNER_TEMP/atlas-site/$page" "$RUNNER_TEMP/atlas-rebuilt/$page"
+            fi
+          done
+          rm -rf "$RUNNER_TEMP/atlas-site"
+          mv "$RUNNER_TEMP/atlas-rebuilt" "$RUNNER_TEMP/atlas-site"
+          echo "Atlas: rebuilt from changed atlas inputs; unchanged gallery/model carried forward." >> "$GITHUB_STEP_SUMMARY"
+      - name: Prepare 3D authoring tools only when model inputs changed or explicitly requested
+        if: steps.plan.outputs.model == 'true'
+        shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq openscad
           python3 -m venv "$RUNNER_TEMP/rig-venv"
           "$RUNNER_TEMP/rig-venv/bin/python" -m pip install 'numpy==1.26.4' 'trimesh==4.5.3' 'scipy==1.14.1' 'pillow==11.1.0'
-      - name: Generate and verify the five exact source-owned blockout poses
-        if: (github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true) || (github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')
+      - name: Regenerate and verify only explicitly changed model data
+        if: steps.plan.outputs.model == 'true'
+        shell: bash
         run: |
           set -euo pipefail
           source_commit="$(git rev-parse HEAD)"
@@ -100,47 +148,61 @@ jobs:
               tools/art/candidates/unicycle_shared_rig.scad \
               "$RUNNER_TEMP/model-exports/$pose" --rig-pose "$pose" --timeout 120
           done
+          python3 tools/contributor_gallery/publish_incremental.py model-placeholder \
+            --changed "$RUNNER_TEMP/site-changes.txt" \
+            --site "$RUNNER_TEMP/atlas-site" \
+            --model-backup "$RUNNER_TEMP/previous-published-model"
           python3 tools/art/model-review/stage_pages.py \
             --exports "$RUNNER_TEMP/model-exports" \
             --site "$RUNNER_TEMP/atlas-site" \
             --source-commit "$source_commit"
-          {
-            echo "### Experimental 3D model review"
-            echo "Rig source: \`$source_commit\`"
-            echo "Five exact-main experimental authoring studies; no original likeness or release approval."
-          } >> "$GITHUB_STEP_SUMMARY"
-      - name: Generate source-verified measurements for the explicitly opted-in model
-        if: (github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true) || (github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')
-        run: |
-          set -euo pipefail
           "$RUNNER_TEMP/rig-venv/bin/python" tools/art/prepare_model_review_measurement_sidecar.py \
             --model-review-dir "$RUNNER_TEMP/atlas-site/model-review" \
             --camera analysis/data/racer-inverse-side-provisional-1205.json \
             --out "$RUNNER_TEMP/model-measurements.json"
-          # Only this opt-in path publishes a measurement packet. It was
-          # produced from the exact staged GLBs and sprite rail and checked
-          # against both manifest SHA values. Never publish a stale packet.
           ln "$RUNNER_TEMP/model-measurements.json" \
             "$RUNNER_TEMP/atlas-site/model-review/model-measurements.json"
-          {
-            echo "Source comparison: verified 32 original frame observations,"
-            echo "10 distinct original 2D silhouettes, 5 unpaired GLB poses."
-            echo "Provisional camera only; no original pose mapping or art approval."
-          } >> "$GITHUB_STEP_SUMMARY"
-      - name: Add ROM-free, source-preserving contributor artwork gallery
+          echo "Model: five source-verified poses regenerated from changed model source. No 1994 likeness approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Refresh contributor gallery only when source artwork/assets changed
+        if: steps.plan.outputs.gallery == 'true'
+        shell: bash
         run: |
           set -euo pipefail
-          python3 tools/contributor_gallery/stage.py --site "$RUNNER_TEMP/atlas-site"
-          echo "Contributor gallery: experimental references only; source artwork unchanged." >> "$GITHUB_STEP_SUMMARY"
-      - name: Retain independent browser-ready site (without copyrighted ROM)
+          mkdir -p "$RUNNER_TEMP/gallery-refresh"
+          python3 tools/contributor_gallery/stage.py --site "$RUNNER_TEMP/gallery-refresh"
+          rm -rf "$RUNNER_TEMP/atlas-site/contributors"
+          mv "$RUNNER_TEMP/gallery-refresh/contributors" "$RUNNER_TEMP/atlas-site/contributors"
+          echo "Gallery: source artwork or gallery packager changed; only gallery restaged." >> "$GITHUB_STEP_SUMMARY"
+      - name: Overlay changed contributor HTML without regenerating art or 3D
+        if: steps.plan.outputs.html == 'true' || steps.plan.outputs.model_page == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/contributor_gallery/publish_incremental.py overlay \
+            --changed "$RUNNER_TEMP/site-changes.txt" --site "$RUNNER_TEMP/atlas-site"
+          echo "HTML-only site edits copied verbatim; previous atlas/GLB/measurement bytes retained." >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify page outputs before publishing
+        if: github.event_name == 'workflow_dispatch' || steps.plan.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$RUNNER_TEMP/atlas-site/atlas.json"
+          for path in contributors/index.html contributors/references/index.html contributors/3d/index.html contributors/playtest/index.html; do
+            test -s "$RUNNER_TEMP/atlas-site/$path"
+          done
+          if [[ -d "$RUNNER_TEMP/atlas-site/model-review" ]]; then
+            test -s "$RUNNER_TEMP/atlas-site/model-review/manifest.json"
+          fi
+      - name: Retain independent browser-ready site without copyrighted ROM
+        if: github.event_name == 'workflow_dispatch' || steps.plan.outputs.publish == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ur-windows-visual-atlas-latest-site
           path: ${{ runner.temp }}/atlas-site/
           retention-days: 30
           if-no-files-found: error
-      - name: Stage Pages on explicit dispatch or contributor-gallery main change
-        if: (github.event_name == 'workflow_dispatch' && inputs.deploy_pages == true) || (github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')
+      - name: Stage Pages for authorized site changes or explicit deployment
+        if: (github.event_name == 'workflow_dispatch' && inputs.deploy_pages == true) || (github.event_name == 'push' && steps.plan.outputs.publish == 'true')
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/atlas-site/

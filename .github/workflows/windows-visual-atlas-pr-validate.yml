@@ -33,6 +33,12 @@ on:
       - "media/showcase/art-reconstruction/2026-10-10/stock/**"
       - "media/showcase/art-reconstruction/2026-10-10/inputs-p*.json"
       - "tests/unit/test_model_review_pages.py"
+      - "tools/art/candidates/unicycle_shared_rig.scad"
+      - "tools/art/export_articulated_unicycle.py"
+      - "tools/art/prepare_model_review_measurement_sidecar.py"
+      - "analysis/data/racer-inverse-side-provisional-1205.json"
+      - "tools/contributor_gallery/publish_incremental.py"
+      - "tests/unit/test_contributor_gallery_incremental_publish.py"
       - "tests/unit/test_windows_visual_atlas.py"
       - "tests/unit/test_windows_visual_atlas_intake.py"
       - "tests/unit/test_windows_visual_atlas_frontend.py"
@@ -41,11 +47,57 @@ on:
       - "tools/visual_atlas_web/tube-header.svg"
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: ur-windows-atlas-pr-validation-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 jobs:
+  classify-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      atlas: ${{ steps.detect.outputs.atlas }}
+      model: ${{ steps.detect.outputs.model }}
+      publisher: ${{ steps.detect.outputs.publisher }}
+    steps:
+      - id: detect
+        name: Scope expensive tests to changed source inputs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          # Complete PR file census via GitHub API. No giant git-history checkout.
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[].filename' > "$RUNNER_TEMP/changed.txt"
+          {
+            echo 'atlas=false'
+            echo 'model=false'
+            echo 'publisher=false'
+          } >> "$GITHUB_OUTPUT"
+          if grep -Eq '^((\.github/workflows/windows-visual-atlas(-intake|-pr-validate)?\.yml$)|(analysis/(windows-visual-atlas|ui-capture-manifest|modern-visual-acceptance-matrix)\.)|(tools/(windows_visual_atlas|qa_modern_visual_win32_capture_driver))|(tools/visual_atlas_web/)|(tools/art/model-review/)|(media/(windows-visual-atlas/|showcase/2026-10-20/graphpaper-final/cards/|showcase/art-reconstruction/2026-10-10/))|(tests/unit/test_(model_review_pages|windows_visual_atlas))|(docs/atlas/)|(design/visual-atlas/))' "$RUNNER_TEMP/changed.txt"; then
+            echo 'atlas=true' >> "$GITHUB_OUTPUT"
+          fi
+          if grep -Eq '^((tools/art/(candidates/unicycle_shared_rig\.scad|export_articulated_unicycle\.py|prepare_model_review_measurement_sidecar\.py|model-review/stage_pages\.py|collar_transition_review\.py|verify_collar_transition_review\.py|rounded_fork_clearance_review\.py|verify_rounded_fork_clearance_review\.py|pedal_axle_clearance_review\.py|verify_pedal_axle_clearance_review\.py|rotating_axle_bearing_review\.py|verify_rotating_axle_bearing_review\.py))|(analysis/data/(racer-hd-replacement-prototype|racer-inverse-side-provisional-1205)\.json)|(tests/unit/test_(rotating_axle_bearing_review|verify_rotating_axle_bearing_review)\.py))' "$RUNNER_TEMP/changed.txt"; then
+            echo 'model=true' >> "$GITHUB_OUTPUT"
+          fi
+          if grep -Eq '^(\.github/workflows/windows-visual-atlas-site\.yml$|tools/contributor_gallery/publish_incremental\.py$|tests/unit/test_contributor_gallery_incremental_publish\.py$)' "$RUNNER_TEMP/changed.txt"; then
+            echo 'publisher=true' >> "$GITHUB_OUTPUT"
+          fi
+  publication-contract:
+    needs: classify-source
+    if: needs.classify-source.outputs.publisher == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exercise no-regeneration and source-preservation contracts
+        run: |
+          python3 -m unittest tests.unit.test_contributor_gallery_incremental_publish
   atlas-contract:
+    needs: classify-source
+    if: needs.classify-source.outputs.atlas == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -73,7 +125,9 @@ jobs:
           node --check "$RUNNER_TEMP/model-review.mjs"
 
   mobile-chromium-smoke:
-    # Fast, targeted atlas-only real-browser test; no Windows build or ROM.
+    # Only atlas/browser source changes need actual Chromium.
+    needs: classify-source
+    if: needs.classify-source.outputs.atlas == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 7
     steps:
@@ -106,9 +160,9 @@ jobs:
           retention-days: 7
 
   experimental-real-model-export:
-    # One source-bound consumer of the SAME unapproved rig on the PR checkout.
-    # Do not wake this expensive OpenSCAD route while a PR is still a draft.
-    if: github.event.pull_request.draft == false
+    # Re-export actual GLBs only when model source, export or measurement inputs change.
+    needs: classify-source
+    if: github.event.pull_request.draft == false && needs.classify-source.outputs.model == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:

@@ -22,8 +22,11 @@ class AtlasReadyGateTests(unittest.TestCase):
         )
         self.assertIn('"tools/art/model-review/**"', trigger)
         self.assertIn("  experimental-real-model-export:\n", source)
+        self.assertIn("  classify-source:\n", source)
+        self.assertIn("      model: ${{ steps.detect.outputs.model }}", source)
         self.assertIn(
-            "    if: github.event.pull_request.draft == false\n", source
+            "    if: github.event.pull_request.draft == false && needs.classify-source.outputs.model == 'true'\n",
+            source,
         )
         self.assertIn("UR_MODEL_SMOKE_REAL=1 node", source)
 

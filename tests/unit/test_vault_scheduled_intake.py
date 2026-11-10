@@ -52,6 +52,8 @@ class RecurringVaultTests(unittest.TestCase):
             )
             self.assertEqual(observed, [A, B])
             self.assertEqual(report["listed_files"], 3)
+            self.assertTrue(report["inventory_complete"])
+            self.assertTrue(report["successor_checkpoint_written"])
             self.assertEqual(report["downloaded_bytes"], 200)
             self.assertEqual(report["remaining_due"], 1)
             self.assertEqual(queue["needs_first_audit"][0]["id"], C)
@@ -365,6 +367,44 @@ class RecurringVaultTests(unittest.TestCase):
         self.assertIn("ID_PATTERN.fullmatch(drive_id)", workflow)
         self.assertIn("classify_intake_error(error.get", workflow)
 
+    def test_public_folder_listing_failure_produces_red_receipt_without_checkpoint(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old = root / "old"
+            recurring.run_cycle(
+                out=old, enumerator=self.listing,
+                downloader=lambda entry, out, tree, stage=False:
+                    archive_result(entry),
+                max_files=1, git_tree=b"", now=NOW)
+            prior = old / "checkpoint.json"
+            original = prior.read_bytes()
+            out = root / "inaccessible"
+            called = []
+            def unavailable(url):
+                called.append(url)
+                raise OSError("private raw gdown response: token=DO_NOT_PRINT")
+            with self.assertRaisesRegex(ValueError,
+                                        "public folder listing failed; no successor"):
+                recurring.run_cycle(
+                    out=out, previous=prior, enumerator=unavailable,
+                    downloader=lambda *a, **k: self.fail("download on missing listing"),
+                    git_tree=b"", now=NOW + timedelta(hours=6))
+            self.assertEqual(called, [recurring.DEFAULT_FOLDER])
+            self.assertEqual(prior.read_bytes(), original)
+            self.assertEqual([p.name for p in out.iterdir()], ["report.json"])
+            data = json.loads((out / "report.json").read_text())
+            self.assertFalse(data["inventory_complete"])
+            self.assertFalse(data["successor_checkpoint_written"])
+            self.assertEqual(data["listing_error_category"], "folder-listing-failed")
+            self.assertIsNone(data["listed_files"])
+            self.assertIsNone(data["remaining_due"])
+            self.assertEqual(data["processed"], [])
+            self.assertEqual(data["errors"][0]["stage"], "listing")
+            self.assertFalse(data["automatic_publication_authorized"])
+            self.assertEqual(data["release_gate_credit"], 0)
+            self.assertNotIn("DO_NOT_PRINT", json.dumps(data))
+            self.assertNotIn("private raw", json.dumps(data))
+
     def test_invalid_prior_and_empty_inventory_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "prior.json"
@@ -376,6 +416,12 @@ class RecurringVaultTests(unittest.TestCase):
                     out=Path(tmp) / "out", enumerator=lambda url: [],
                     git_tree=b"",
                 )
+            report = json.loads((Path(tmp) / "out/report.json").read_text())
+            self.assertEqual(report["listing_error_category"], "empty-folder-listing")
+            self.assertFalse(report["inventory_complete"])
+            self.assertIsNone(report["listed_files"])
+            self.assertFalse((Path(tmp) / "out/checkpoint.json").exists())
+            self.assertFalse((Path(tmp) / "out/queue.json").exists())
 
 
 if __name__ == "__main__":

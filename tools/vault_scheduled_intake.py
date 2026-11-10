@@ -167,6 +167,47 @@ def oversized_retry_after(failure: dict | None, entry: dict, now: datetime,
     return retry_at.isoformat() if now < retry_at else None
 
 
+
+def write_incomplete_listing_report(out: Path, now: datetime,
+                                    reason: str) -> None:
+    """Preserve a bounded RED receipt, never a successor checkpoint.
+
+    A public Drive listing failure leaves its population unknown. Recording
+    zero files or carrying forward an old checkpoint as if freshly surveyed
+    would create misleading provenance. Raw gdown errors and filenames never
+    belong in the published diagnostic.
+    """
+    if reason not in ("folder-listing-failed", "empty-folder-listing"):
+        raise ValueError("invalid folder listing failure reason")
+    out.mkdir(parents=True, exist_ok=False)
+    report = {
+        "schema": REPORT_SCHEMA,
+        "scanned_at": now.isoformat(),
+        "inventory_complete": False,
+        "successor_checkpoint_written": False,
+        "listing_error_category": reason,
+        "listed_files": None,
+        "listed_files_independently_verified": False,
+        "previously_verified_skipped": None,
+        "queued_before_batch": None,
+        "processed": [],
+        "errors": [{"stage": "listing", "error": "public-folder-listing-unavailable"}],
+        "deferred": [],
+        "retry_cooldown": [],
+        "downloaded_bytes": 0,
+        "remaining_due": None,
+        "verified_total": None,
+        "published_source_bytes": 0,
+        "automatic_integration_decisions": 0,
+        "automatic_publication_authorized": False,
+        "archive_deletion_authorized": False,
+        "release_gate_credit": 0,
+    }
+    (out / "report.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8")
+
+
 def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
               previous: Path | None = None, max_files: int = 3,
               max_total_bytes: int = 64 * 1024 * 1024,
@@ -187,8 +228,14 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
     if now.tzinfo is None:
         raise ValueError("now requires timezone")
     checkpoint = read_checkpoint(previous)
-    entries = enumerator(folder_url)
+    try:
+        entries = enumerator(folder_url)
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+        write_incomplete_listing_report(out, now, "folder-listing-failed")
+        raise ValueError(
+            "public folder listing failed; no successor checkpoint") from exc
     if not entries:
+        write_incomplete_listing_report(out, now, "empty-folder-listing")
         raise ValueError("empty public folder listing; refusing to publish empty state")
     previous_items = dict(checkpoint["items"])
     previous_failures = dict(checkpoint.get("failures", {}))
@@ -213,7 +260,8 @@ def run_cycle(*, out: Path, folder_url: str = DEFAULT_FOLDER,
     out.mkdir(parents=True)
     report = {
         "schema": REPORT_SCHEMA, "scanned_at": now.isoformat(),
-        "folder": folder_url, "listed_files": len(entries),
+        "folder": folder_url, "inventory_complete": True,
+        "successor_checkpoint_written": True, "listed_files": len(entries),
         "listed_files_independently_verified": False,
         "previously_verified_skipped": len(skipped),
         "queued_before_batch": len(due),

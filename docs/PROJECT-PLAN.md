@@ -15,6 +15,8 @@
 
 This project has **two coequal long-term deliverables**: a faithful, approachable and extensible Uniracers remaster, and the **definitive independently reproducible technical reference** for the original game. The second includes mechanical coverage, source-backed semantic explanations, reproducible observations, data and art reconstruction, architectural clarity, and discoverable uncertainties. Read [DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md](DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md) for the acceptance contract and technical-atlas entry format.
 
+**Current owner scheduling exception (2026-11-09):** The 3D racer reconstruction program is on hold while the owner considers sourcing human-made 3D models. Its long-term artistic goals remain part of this product charter, but no agent should schedule new procedural sculpt/rig/pose experiments until explicitly reauthorized or a real human-made candidate arrives for provenance and artistic evaluation. Retain existing experimental assets as references; this is not a blocker for the authentic Windows game, widescreen QA or 2D lettering/recruitment.
+
 **Scheduling distinction:** Full archaeological/technical-reference completeness is an enduring goal, but does not automatically block the integrated Windows alpha, regular feature development or appropriately scoped private playtests. Correctness and data-integrity defects remain hard blockers at their relevant release stage. Maintain one authoritative original guest and shared evidence, not competing simulators. Distinguish a played build, independently accepted course and release candidate in every status claim.
 
 ## What we are building

@@ -21,11 +21,13 @@
       "forum_url": "https://www.reddit.com/r/INAT/",
       "role": "mixed",
       "post_file": "docs/contributors/posts/inat.md",
-      "state": "draft",
-      "gate": "Verify title/flair and contact form live",
+      "state": "reported_posted",
+      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
       "posted_url": null,
       "posted_at_utc": null,
-      "last_rules_checked_utc": null
+      "last_rules_checked_utc": null,
+      "reported_posted_on": "2026-11-09",
+      "report_source": "owner"
     },
     {
       "id": "itch",
@@ -69,11 +71,13 @@
       "forum_url": "https://www.reddit.com/r/aiagents/",
       "role": "agents",
       "post_file": "docs/contributors/posts/aiagents.md",
-      "state": "draft",
-      "gate": "Check community solicitation rules",
+      "state": "reported_posted",
+      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
       "posted_url": null,
       "posted_at_utc": null,
-      "last_rules_checked_utc": null
+      "last_rules_checked_utc": null,
+      "reported_posted_on": "2026-11-09",
+      "report_source": "owner"
     },
     {
       "id": "opensource",
@@ -129,11 +133,13 @@
       "forum_url": "https://www.reddit.com/r/snes/",
       "role": "fans",
       "post_file": "docs/contributors/posts/snes.md",
-      "state": "draft",
-      "gate": "Check self-promotion rules and genuine original/native comparison",
+      "state": "reported_posted",
+      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
       "posted_url": null,
       "posted_at_utc": null,
-      "last_rules_checked_utc": null
+      "last_rules_checked_utc": null,
+      "reported_posted_on": "2026-11-09",
+      "report_source": "owner"
     },
     {
       "id": "lettering",
@@ -141,11 +147,13 @@
       "forum_url": "https://www.reddit.com/r/lettering/",
       "role": "lettering",
       "post_file": "docs/contributors/posts/lettering.md",
-      "state": "draft",
-      "gate": "Check solicitation rules, adapt to critique only if needed",
+      "state": "reported_posted",
+      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
       "posted_url": null,
       "posted_at_utc": null,
-      "last_rules_checked_utc": null
+      "last_rules_checked_utc": null,
+      "reported_posted_on": "2026-11-09",
+      "report_source": "owner"
     },
     {
       "id": "logodesign",
@@ -153,11 +161,13 @@
       "forum_url": "https://www.reddit.com/r/logodesign/",
       "role": "lettering",
       "post_file": "docs/contributors/posts/logodesign.md",
-      "state": "draft",
-      "gate": "Check solicitation rules, adapt to critique only if needed",
+      "state": "reported_posted",
+      "gate": "Collect exact Reddit post permalink and timestamp; confirm public visibility and moderation status before marking verified posted",
       "posted_url": null,
       "posted_at_utc": null,
-      "last_rules_checked_utc": null
+      "last_rules_checked_utc": null,
+      "reported_posted_on": "2026-11-09",
+      "report_source": "owner"
     }
   ]
 }

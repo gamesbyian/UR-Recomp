@@ -2,6 +2,12 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). The [ranked hourly shared board](HOURLY-AGENT-LINES.md) is the only active five-agent assignment authority. Every generalist considers five eligible jobs. A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## Contributor recruitment and response coordination
+
+The [public contributor guide](contributors/README.md), [recruitment plan](contributors/PLAN.md), [13 venue-specific draft posts](contributors/posts/lettering.md), [reference pack](contributors/REFERENCE-PACK.md), and [response/attachment/email operations](contributors/OPERATIONS.md) own outreach instructions and privacy boundaries. These create no automatic forum posts, email sender, or new engineering queue; [launch gates](contributors/HANDOFF.md) control deployment. All contributor contact records must remain private. Engineering work and release acceptance retain their existing authorities.
+
+For the independently developed USA Uniracers recompilation `fselich/redcomp-dream`, use the [complete source-pinned intake plan](REDCOMP-DREAM-INTAKE-PLAN.md) and [1,828-entry Git-tree census](../reference/notes/redcomp-dream-tree-20261109.tsv). Its first live discriminator is a read-only course X-boundary probe, *not* an accepted graphics fix or an alternate guest core. Feed confirmed claims back into the existing course/widescreen/technical-reference authorities. The separate Baldosa/Malmazuke intake retains its own active ownership.
+
 ## Shared CI, compute, HP and five-agent implementation roadmap
 
 The [November 4 collective-qualification infrastructure plan](CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) connects the existing hosted/HP runner architecture, cross-PR test batching, Android build-once lessons, rollout/rollback stages, evidence requirements, science cadence and operational recovery. The [November 6 HP delivery and host-recovery audit](HP-RESEARCH-RELIABILITY-AUDIT-20261106.md) records a complete four-day started-job census, an unexpected shutdown behind a long queue and the verified independent fallback recovery. Its figures distinguish actual job spans and availability from billed compute or product acceptance. The [verbatim snapshot of all five live task prompts](CI-COLLECTIVE-QUALIFICATION-AGENT-PROMPTS-20261104.md) is an archival readback with a proposed addendum, **not an update to the live tasks**. The shared board and release ledger retain authority.
@@ -41,9 +47,9 @@ The [regional-presentation specification](REGIONAL-PRESENTATION.md) owns the app
 
 See the [Baldosa/malmazuke/UR apparatus synthesis](THREE-PROJECT-APPARATUS-SYNTHESIS-20261010.md), [shared route/evidence spine](THREE-PROJECT-SHARED-EVIDENCE-SPINE-20261010.md), [ordered adoption roadmap](THREE-PROJECT-APPARATUS-ROADMAP-20261010.md), and [trusted upstream accelerated-adoption policy](TRUSTED-UPSTREAM-ADOPTION.md). The read-only `tools/query_upstream_knowledge.py` provides a bulk Baldosa-USA / malmazuke-PAL advisory search without promoting external interpretations to canonical symbols. The source-grounded [reuse opportunity register](../analysis/three-project-reuse-opportunities.json) is queried via `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` and automatically appears in lane context packets. It is a decision overlay, not a second backlog. The pinned file inventories and 35-capability matrix are checked by `python3 tools/audit_three_project_apparatus.py`. These plans do not replace the work queue, technical reference or release ledger.
 
-## Ongoing original Baldosa / Malmazuke upstream delta intake
+## Conditional Baldosa/Malmazuke upstream intake
 
-Use the [active source-intelligence procedure](UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md) for bounded weekly/delta-triggered inspection of both originals and [the November 9 evidence census](../reference/notes/baldosa-malmazuke-upstream-census-20261109.md) plus [complete Malmazuke PR title/status index](../analysis/upstream-baldosa-malmazuke-state-20261109.json) for the checked source revisions. The shared board alone dispatches work; the earlier 35-capability three-project matrix and source pins remain in force. This is not a new release gate.
+For pinned research provenance and future material-delta checks, see [operational intake](UPSTREAM-BALDOSA-MALMAZUKE-INTAKE.md), [source census](../reference/notes/baldosa-malmazuke-upstream-census-20261109.md), and [machine index](../analysis/upstream-baldosa-malmazuke-state-20261109.json). Only the shared ranked board dispatches this held item; existing critical-path work owns immediately useful reuse.
 
 ## External Uniracers code-search disposition
 

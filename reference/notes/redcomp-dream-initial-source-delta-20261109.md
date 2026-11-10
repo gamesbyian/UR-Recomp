@@ -1,0 +1,56 @@
+# redcomp-dream first source comparison: evidence and differences
+
+**Observation date:** 2026-11-09. This is an immutable *historical comparison*, not an active work queue. Follow [the instructions and source scope](../../docs/REDCOMP-DREAM-INTAKE-PLAN.md), current source and [issue #3310](https://github.com/gamesbyian/UR-Recomp/issues/3310). All reported upstream measurements below are **the upstream author's reports** until reproduced with UR's original-USA tooling.
+
+**Pinned source:** `fselich/redcomp-dream@dc3d1edfd7a8e86921fd5ac35b1525e8069302ed` (Oct. 25 2026, v0.1.2). **UR comparison:** `gamesbyian/UR-Recomp@5b04d85e4421981c1cab3574daa53350ea7ea709` (Nov. 9). Both are moving repositories; read live owners before applying a claimed gap.
+
+**Coverage method:** read public Git's complete non-truncated source tree (1,828 entries; detailed blobs in `redcomp-dream-tree-20261109.tsv`); examined first-party code in `game/src/`, primary format/architecture/roadmap/validation docs, active/representative archived OpenSpec and framework patch, corresponding UR files and tests. This is not line-by-line review of every vendored framework file or full execution of either project.
+
+## First completed mechanical cross-check: six course geometry families
+
+Read UR's current `analysis/data/course-corpus.json` (all **45** course records) and grouped each `derived_presentation_geometry.coarse_grid` pair. Compared its exact aggregate against upstream's documented [45-track grid shapes](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/docs/formats/TRACK_FORMAT.md).
+
+| Coarse-sector grid | UR records | redcomp documented | Agreement |
+|---|---:|---:|---|
+| 1024×16 | 4 | 4 | yes |
+| 256×64 | 22 | 22 | yes |
+| 128×128 | 11 | 11 | yes |
+| 64×256 | 4 | 4 | yes |
+| 512×32 | 3 | 3 | yes |
+| 16×1024 | 1 | 1 | yes |
+| **Total** | **45** | **45** | **45/45 aggregate** |
+
+This is **independent source-derivation corroboration of the six families and counts**, not proof that each named course or track index matches individually, nor that a wrapped pixel outside a particular viewport agrees with the original PPU. Both projects ultimately draw on the same USA ROM, so the source is common even when the decoders are distinct. This observation closes any need to re-infer the six coarse-grid families for RD-01; retain source-index mapping and X-edge behavior as the narrower unresolved questions.
+
+## High-information original/source distinctions
+
+| Claim | External source / demonstrated code | Existing UR source | Assessment |
+|---|---|---|---|
+| **Horizontal course-grid edge** | [`ws_source.c`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/game/src/ws_source.c) function `WsSrcCell`: `tx` is normalized modulo `s_src_cols` including negative values; Y outside range gives 0. Research reports X crossing on later-tour grid. | [`uniracers_ws_margins.c`](../../native/title/uniracers_ws_margins.c): `ur_ws_course_tile` rejects X outside `[0, coarse_w*4)` and `force_margins` skips negative X. | **Confirmed code difference; real original visual effect unresolved.** The new read-only probe prints both hypotheses; demand an original-USA raster and world-origin witness |
+| **Course-sector layout** | [`TRACK_FORMAT.md`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/docs/formats/TRACK_FORMAT.md): decoded `7F:000F` u16 coarse-grid, `7F:800F` 32-byte 4×4 cell record and 16px BG1 cell. | [`COURSE-FORMAT.md`](../../docs/COURSE-FORMAT.md) and UR live course materializer already recover same two-level structure and additional `A000/C000` checkpoint/contact resources. | **Corroborated structure; don't import second decoder.** Compare edge handling and any still-unknown fields only |
+| **Track archive** | Upstream identifies 45 directory entries at `82:B6F9`, RNC Method 1, fixed 0x8000-byte coarse table, six grid aspect families. | UR has 45 USA streams with hashes, 4-ROM delta, independent RNC decoder and resource-family map. | **Mostly duplication.** Reconcile explicit `stream ordinal` versus runtime track ID and cross-region indexing before adopting labels |
+| **Visible BG1 ring** | [`ws_ring.c`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/game/src/ws_ring.c) records native visible cells per line with 10-bit scroll unwrap; [`TRACK_MARGIN.md`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/docs/TRACK_MARGIN.md) explains stale leading-edge ring tiles. | UR's renderer uses source-backed `WsShadowForceTile`, world calibration and BG1/HDMA bands. | **Distinct presentation architecture.** Test scene changes, scroll modulo, negative world and source-cell publication, rather than copying shadow or tile hooks |
+| **Ambiguous origins / jumping** | [`ws_source.c`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/game/src/ws_source.c) searches up to eight anchors, serves tiles only when candidates agree, self-checks and holds during `7E:0BE9` airborne movement. | `ur_ws_calibrate_bg1` requires a single candidate, `ur_ws_mismatch_transition` suppresses first excessive mismatch and invalidates on repeated mismatch. | **Different failure policy, not yet established regression.** Source-aligned repeated geometries, airborne Y camera and scene swaps are cheapest tests |
+| **9-bit rider X / OAM parking** | [`ws_oam_fix.c`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/game/src/ws_oam_fix.c) repairs X-high bits, hides slots 96/97 parked in 1P, hides `$170/$70` sentinel in 98/99; separate 2P line-size pass. | UR already has original effective OAM research, source visible pixels, and distinct 2P/HD presenter seam. | **Good independent reproduction cases** for false competitor appearance, especially at wide right/left edges. Not a license or reason to patch guest SRAM/WRAM or port code |
+| **Cull only guest WRAM write** | [`ws_cull.c`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/game/src/ws_cull.c) changes `7E:0421/0423`, scales by zoom `03ED`; says five cull compares read those words. | UR treats gameplay state as original authoritative, with host-owned wide course and source-pixel presentation. | **Candidate causal map**; verify original writer/reader and 4:3, camera, RNG, collision and release effects before considering a new write |
+| **Split screen and race gate** | [`TWO_PLAYER.md`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/docs/TWO_PLAYER.md) identifies 0/112/114 raster bands, different BG1 bases `0C00/1C00`, independent cameras `0419/041B`, VS `0DDB` and transition guards. | UR existing native margin bands, scene policy, two-human input and 2P OAM qualifications. | **Cross-check source frame and viewport evidence**, not 2P gameplay acceptance from a wide image |
+| **Unlock progression width** | [`uniracers_save.c`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/game/src/uniracers_save.c) modifies `0x10D3` only after checksums and user opt-in. | [Progression semantics](../../docs/knowledge/progression-sram-and-results.md) support 16-entry per-racer tiers at `10D3..10E2` and mirrored counterpart. | **Real semantic scope difference.** Do not infer unlock-all for all unicycle profiles; use exact original multi-profile behavior if needed |
+| **AOT/recomp framework** | `game/recomp/symbols.toml`, 65816 M/X entries, `game/snesrecomp`, `game/patches-snesrecomp-local.diff`; release generated from owned ROM. | UR preferred Baldosa native guest plus substantial PPU/QA and Modern product architecture. | **Symbol cross-reference and patch ideas only**, not a second framework or simulator |
+| **Validation method** | [`validate.sh`](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/game/tools/validate.sh), wrong-cell probe, deterministic scratch saves, 16:9/21:9/512, VS/2P/Hopper tests; upstream references were reportedly bit-exact on one host. | UR original/native event matrix, release ledger, actual Windows source/provenance QA and existing native unit suites. | **Complementary diagnostic methods, not release evidence** |
+| **Future features** | Radar, rival edge indicator (OpenSpec active), optional unlock, ghost, PB splits, capture, 120Hz motion and >512 width roadmap. | UR Modern records/replays/ghosts, 4K/HD/3D and P2P goals already planned/partly implemented. | **Design inspiration only after real current product blocker** |
+
+## Negative experiments to avoid repeating
+
+Upstream's [track margin findings](https://github.com/fselich/redcomp-dream/blob/dc3d1edfd7a8e86921fd5ac35b1525e8069302ed/docs/TRACK_MARGIN.md) record failures of naive copied VRAM columns, extending edge tiles, wrongly keyed VRAM history, a host VRAM bracket leaking into HUD, synthetic guest row-builder invocations, and a shadow-history-only leading-edge attempt. The ahead-of-game ghost-frame research reported ~2.3 ms extra average per frame with a 9.6 ms p99; their source-table renderer avoided the overhead. These measured timings are **upstream environment-specific**. The durable transferable fact is the failure mechanism and discriminating test, not that UR has the same performance.
+
+## Known unresolved external defects and scope limits
+
+- Upstream roadmap W1: an intermittent false rival display on a later-tour race, open pending better diagnostics; upstream [issue #5](https://github.com/fselich/redcomp-dream/issues/5) independently describes an ultrawide drag-race offscreen competitor reappearing visually ahead. **Connection is a hypothesis, not an established shared root cause.**
+- Upstream roadmap R1: its 45-course × width validation is **not completed**. A few 1P/2P routes and independent decoder checks do not imply all courses display correctly.
+- Upstream 512 logical-pixel cap is an X-high and renderer policy bound, not a fundamental maximum for UR's future authored HD renderer.
+- Bundled generic netplay, rewinding and launcher support do **not** establish correct title-specific netplay, P2P sync, original simulation parity, 4K art, release gates or Windows user journeys.
+- Source's `rom_identity.txt` asserts USA SHA-256 `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`; all cross-ROM claims require comparison with UR's actual canonical byte digest.
+
+## Preservation and promotion rule
+
+The initial cross-project evidence remains a **source comparison only**. There are no original-USA replay results, VRAM/P7 observed edge cells, exact Windows package trials, independent per-racer unlock tests, or source-code transfer license clearance in this report. The first candidate-word probe only generates hypotheses. Existing `docs/RESEARCH-LEDGER.md`, `docs/COURSE-FORMAT.md`, widescreen QA and release authorities own any future independently accepted conclusions; this note must not become a parallel status log.

@@ -36,11 +36,11 @@ class ContributorGalleryTests(unittest.TestCase):
                 "racer-contour-overlay-axle-detail.png",
             )
             for name in racer_names:
-                self.assertEqual(
-                    (source_dir / name).read_bytes(),
-                    (folder / "contributors/3d/images" / name).read_bytes(),
-                    name,
-                )
+                full_original = source_dir / name
+                preview_path = folder / "contributors/3d/previews" / name
+                self.assertTrue(preview_path.is_file(), name)
+                self.assertLess(preview_path.stat().st_size, full_original.stat().st_size, name)
+                self.assertFalse((folder / "contributors/3d/images" / name).exists(), name)
 
             self.assertEqual(
                 (ROOT / "tools/art/candidates/unicycle_shared_rig.scad").read_bytes(),
@@ -86,8 +86,13 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn('./models/unicycle_shared_rig.scad', three_d)
             self.assertIn('manifest.json', three_d)
             for name in racer_names:
-                self.assertIn('images/' + name, three_d)
+                self.assertIn('src="previews/' + name + '"', three_d)
+                self.assertIn(
+                    'https://github.com/gamesbyian/UR-Recomp/blob/main/media/showcase/art-reconstruction/2026-11-09/title-screen-racer/' + name,
+                    three_d,
+                )
             self.assertIn("artist's interpretation", three_d)
+            self.assertIn("non-generatively downscaled previews", three_d)
             self.assertIn('No hosted GLB is currently listed', three_d)
             for role in ("3D artists", "Lettering &amp; language", "Developers &amp; AI operators", "Future playtesters"):
                 self.assertIn(role, home)

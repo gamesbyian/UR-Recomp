@@ -11,6 +11,8 @@ on:
       - "docs/contributors/**"
       - "assets/branding/**"
       - "tools/art/model-review/**"
+      - "tools/art/candidates/unicycle_shared_rig.scad"
+      - "tools/art/export_articulated_unicycle.py"
       - "tools/art/build_racer_source_pixel_corpus.py"
       - "tools/art/racer_source_pixels.py"
       - "analysis/data/racer-hd-replacement-prototype.json"
@@ -25,7 +27,7 @@ on:
         type: boolean
         default: false
       include_experimental_model:
-        description: "Build five-pose unapproved authoring model from exact checked-out main (expensive opt-in)"
+        description: "Build five-pose unapproved authoring model from exact checked-out main (automatic for contributor-gallery main pushes)"
         type: boolean
         default: false
 permissions:
@@ -57,7 +59,7 @@ jobs:
             exit 0
           fi
           if git diff --name-only "$before" "$GITHUB_SHA" -- |
-            grep -Eq '^(tools/contributor_gallery/|docs/contributors/|assets/branding/concepts/)'; then
+            grep -Eq '^(tools/contributor_gallery/|docs/contributors/|assets/branding/concepts/|tools/art/candidates/unicycle_shared_rig\.scad$|tools/art/export_articulated_unicycle\.py$|tools/art/model-review/)'; then
             echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Validate inventory and reuse source-approved incidental captures
@@ -76,8 +78,11 @@ jobs:
                   f.write(f"- {name}: {amount}\n")
               f.write("\nThis site contains current-source engineering captures or distinct COMING SOON plates; no hardware/visual/release approval.\n")
           PY
+      # Keep model and gallery published from the same exact current main SHA.
+      # Every authorized contributor-gallery publish regenerates verified poses
+      # rather than silently deleting the existing hosted model.
       - name: Prepare isolated, offline-authoring-only GLB dependencies
-        if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
+        if: (github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true) || (github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')
         run: |
           set -euo pipefail
           sudo apt-get update -qq
@@ -85,7 +90,7 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/rig-venv"
           "$RUNNER_TEMP/rig-venv/bin/python" -m pip install 'numpy==1.26.4' 'trimesh==4.5.3' 'scipy==1.14.1' 'pillow==11.1.0'
       - name: Generate and verify the five exact source-owned blockout poses
-        if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
+        if: (github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true) || (github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')
         run: |
           set -euo pipefail
           source_commit="$(git rev-parse HEAD)"
@@ -105,7 +110,7 @@ jobs:
             echo "Five exact-main experimental authoring studies; no original likeness or release approval."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Generate source-verified measurements for the explicitly opted-in model
-        if: github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true
+        if: (github.event_name == 'workflow_dispatch' && inputs.include_experimental_model == true) || (github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/rig-venv/bin/python" tools/art/prepare_model_review_measurement_sidecar.py \

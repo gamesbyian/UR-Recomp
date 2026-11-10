@@ -93,6 +93,7 @@ class ContributorGalleryTests(unittest.TestCase):
             home = (folder/"contributors/index.html").read_text(encoding="utf-8")
             self.assertNotIn("One wheel.<br>A bigger future.", home)
             self.assertIn("MODERN", home)
+            self.assertIn("human-made racing unicycle model", home)
             self.assertIn("--race-red:#d92735", home)
             self.assertIn("--race-blue:#1268d3", home)
             self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", home)

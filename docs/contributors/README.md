@@ -21,3 +21,7 @@ Project links: [recruitment plan](PLAN.md), [site-specific outreach drafts](post
 ## Visual recruitment gallery
 
 The [GitHub Pages artwork gallery](https://gamesbyian.github.io/UR-Recomp/contributors/) was published through [the successful site deployment run](https://github.com/gamesbyian/UR-Recomp/actions/runs/42718635056). It displays the three supplied concept PNGs, original English wordmarks and experimental regional vectors. Confirm public gallery and image availability in an internet-connected browser before external posting.
+
+## Accessible 3D reconstruction entrypoint
+
+The [brief 3D model and viewer page](https://gamesbyian.github.io/UR-Recomp/contributors/3d/) is the public-first destination for artists. It links to the existing interactive model reviewer, visual likeness comparisons and a byte-identical downloadable experimental OpenSCAD rig. Published pose GLBs appear as downloads only when the source-verified model manifest actually lists them. The technical character reconstruction brief remains a secondary detail link. An unapproved 2026 model is not a recovered original 1994 3D mesh.

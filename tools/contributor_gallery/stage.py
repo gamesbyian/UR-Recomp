@@ -13,8 +13,12 @@ import struct
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tools" / "contributor_gallery" / "index.html"
 REFERENCES = ROOT / "tools" / "contributor_gallery" / "references.html"
+THREE_D = ROOT / "tools" / "contributor_gallery" / "three-d.html"
+RIG_SOURCE = ROOT / "tools" / "art" / "candidates" / "unicycle_shared_rig.scad"
 PROMO = ROOT / "assets" / "promo" / "canonical"
 PROMO_IMAGES = ("blueprint-16x9-logo-left.png", "blueprint-4x3-logo-left.png")
+DRAWINGS = ROOT / "tools" / "contributor_gallery" / "source"
+DRAWING_NAMES = ("uniracers_graphpaper_logo.jpg", "uniracers_track_unicycle.jpg")
 CONCEPT_DIR = ROOT / "assets/branding/concepts"
 BRANDING = ROOT / "assets/branding"
 NAMES = (
@@ -48,14 +52,22 @@ def stage(out: Path) -> dict:
     gallery = out / "contributors"
     if gallery.exists() or gallery.is_symlink():
         raise ValueError("refusing to overwrite contributor route")
-    if not SOURCE.is_file() or not REFERENCES.is_file() or SOURCE.is_symlink() or REFERENCES.is_symlink():
+    if (not SOURCE.is_file() or not REFERENCES.is_file() or not THREE_D.is_file()
+            or SOURCE.is_symlink() or REFERENCES.is_symlink() or THREE_D.is_symlink()):
         raise ValueError("missing or redirected recruitment HTML source")
     all_sources = [(CONCEPT_DIR / n, n) for n in NAMES] + [(BRANDING / n, n) for n in SVG_NAMES]
     all_sources += [(PROMO / n, n) for n in PROMO_IMAGES]
+    all_sources += [(DRAWINGS / n, n) for n in DRAWING_NAMES]
     for source, name in all_sources:
         if not source.is_file() or source.is_symlink():
             raise ValueError(f"missing/redirected source: {name}")
-        if source.suffix == ".png":
+        if source.suffix == ".jpg":
+            if source.parent != DRAWINGS or source.stat().st_size > 1_000_000:
+                raise ValueError(f"{name}: unexpected drawing source or oversize")
+            with source.open("rb") as handle:
+                if handle.read(3) != bytes((255, 216, 255)):
+                    raise ValueError(f"{name}: expected original JPEG source")
+        elif source.suffix == ".png":
             if source.parent == PROMO:
                 # Approved canonical blueprint backgrounds are larger than the concise concepts.
                 if source.stat().st_size > 4_000_000:
@@ -70,6 +82,11 @@ def stage(out: Path) -> dict:
             data = source.read_bytes()
             if len(data) > 1_000_000 or b"<svg" not in data:
                 raise ValueError(f"invalid/oversized SVG reference: {name}")
+    if not RIG_SOURCE.is_file() or RIG_SOURCE.is_symlink() or RIG_SOURCE.stat().st_size > 100_000:
+        raise ValueError("missing, redirected or oversized source-authored OpenSCAD model")
+    rig_bytes = RIG_SOURCE.read_bytes()
+    if b"rig_pose" not in rig_bytes or b"module" not in rig_bytes:
+        raise ValueError("invalid source-authored OpenSCAD blockout")
     import tempfile
     with tempfile.TemporaryDirectory(prefix="contributor-gallery-", dir=out) as temp:
         intermediate = Path(temp) / "contributors"
@@ -79,6 +96,14 @@ def stage(out: Path) -> dict:
         refs = intermediate / "references"
         refs.mkdir()
         shutil.copyfile(REFERENCES, refs / "index.html")
+        three_d = intermediate / "3d"
+        models = three_d / "models"
+        models.mkdir(parents=True)
+        shutil.copyfile(THREE_D, three_d / "index.html")
+        shutil.copyfile(RIG_SOURCE, models / "unicycle_shared_rig.scad")
+        if hashlib.sha256((models / "unicycle_shared_rig.scad").read_bytes()).digest() != hashlib.sha256(rig_bytes).digest():
+            raise ValueError("staged OpenSCAD rig differs from original")
+
         report = {}
         for source, name in all_sources:
             destination = images / name

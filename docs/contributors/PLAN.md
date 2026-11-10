@@ -39,3 +39,10 @@ Existing five agents continue their single ranked shared engineering queue; no n
 ## Pages gallery publication
 
 The recruitment reference gallery is published through the existing Visual Atlas workflow at [https://gamesbyian.github.io/UR-Recomp/contributors/](https://gamesbyian.github.io/UR-Recomp/contributors/). Its first [main deployment](https://github.com/gamesbyian/UR-Recomp/actions/runs/42718635056) succeeded. Main-branch contributor-gallery changes trigger the same publishing workflow; unrelated atlas updates retain their existing manual publish gate. Before a forum post, test actual browser access, direct media links and mobile layout. Only the provided concept PNGs and the existing wordmark SVGs are included, not box art.
+
+
+## Public experimental Windows playtester recruitment
+
+The project can already produce independently byte-audited ROM-free Windows x64 **experimental physical-playtest candidates**, so invite volunteers **now** to help test when a current, verified candidate is furnished. Requesting interest by email or GitHub does not imply that a fixed public release download exists or that an expiring GitHub Actions artifact is accessible without login. Before sharing any package, verify source commit, ZIP and PE SHA-256, ROM-free boundary, availability and clear startup/reporting instructions via the existing `docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md` and `docs/playtest/REQUEST-WINDOWS-PLAYTEST.md` process. Tell testers about limitations and treat all reports as observations requiring further reproduction, not original-game oracle evidence. Keep the r/playmygame and r/DestroyMyGame public-download/video publication gates in place until a stable public test package exists.
+
+All recruitment Pages subpages (`/contributors/`, `/contributors/references/`, `/contributors/3d/`) use the same sketched logo, fixed graph-paper treatment and bottom track/racer visual language. All five primary opportunities present equally visible email and GitHub routes; specialists can contact the owner-approved project email without a GitHub account.

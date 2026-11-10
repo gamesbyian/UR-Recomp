@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 REPO = Path(__file__).resolve().parents[2]
-VALID_STATES = {"draft", "blocked", "posted", "closed"}
+VALID_STATES = {"draft", "blocked", "reported_posted", "posted", "closed"}
 MANDATORY_TERMS = ("Baldosa", "malmazuke", "Uniracers", "Unirally", "unpaid")
 
 
@@ -54,6 +54,15 @@ def validate(root: Path = REPO) -> list[str]:
         if row.get("state") == "posted":
             if not is_https_url(row.get("posted_url")) or not row.get("posted_at_utc"):
                 errors.append(f"{vid}: a posted record requires actual permalink and timestamp")
+            elif row.get("posted_url").rstrip("/") == row.get("forum_url").rstrip("/"):
+                errors.append(f"{vid}: posted permalink cannot be the subreddit homepage")
+        elif row.get("state") == "reported_posted":
+            # Owner confirmed posting, but did not provide an individual post URL.
+            # Preserve evidence of outreach without inventing a permalink or date.
+            if row.get("report_source") != "owner" or not row.get("reported_posted_on"):
+                errors.append(f"{vid}: reported posting requires owner report and report date")
+            if row.get("posted_url") or row.get("posted_at_utc"):
+                errors.append(f"{vid}: unverified report must not claim a permalink or timestamp")
         elif row.get("posted_url") or row.get("posted_at_utc"):
             errors.append(f"{vid}: non-posted record must not claim a posted URL/time")
         rel = row.get("post_file")

@@ -50,10 +50,18 @@ footer{border-top:1px solid var(--line);padding-top:17px;margin-top:24px;font-si
   if(!res.ok)throw new Error('Manifest unavailable');
   const info=await res.json();
   if(info.model_url && info.poses && info.poses.upright && info.poses.upright.url){
-   const target=new URL(info.poses.upright.url,new URL('../../model-review/',location.href));
-   if(target.origin!==location.origin)throw new Error('Unexpected model origin');
-   node.textContent='A source-identified experimental GLB is currently hosted. ';
-   const a=document.createElement('a');a.href=target.href;a.download='uniracers-upright-experimental.glb';a.textContent='Download published upright GLB ↓';node.append(a);
+   node.textContent='Experimental pose GLBs are published from a source-identified rig: ';
+   const base=new URL('../../model-review/',location.href);
+   let shown=0;
+   for(const pose of ['upright','pedal','wheelie','stunt','bank']){
+    const entry=info.poses[pose];
+    if(!entry || typeof entry.url!=='string' || !entry.url.endsWith('.glb') || !/^[a-f0-9]{64}$/.test(entry.sha256||''))continue;
+    const target=new URL(entry.url,base);
+    if(target.origin!==location.origin || !target.pathname.startsWith(base.pathname+'assets/'))continue;
+    if(shown++)node.append(document.createTextNode(' · '));
+    const a=document.createElement('a');a.href=target.href;a.download='uniracers-'+pose+'-experimental.glb';a.textContent='Download '+pose+' GLB ↓';node.append(a);
+   }
+   if(!shown)node.textContent='The published model manifest has no valid downloadable pose entries. The OpenSCAD source below remains available.';
   }else{
    node.textContent='No hosted GLB is currently listed in the published manifest. The viewer supports local GLB inspection, and the editable OpenSCAD rig above is available now.';
   }

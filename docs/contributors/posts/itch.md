@@ -37,3 +37,7 @@ For 3D artists, start with the [live 3D reviewer, likeness comparisons and downl
 MANDATORY: only a human may post in this board under current rules; tag appropriately, attach approved examples and meet quality-of-effort standards.
 
 Before publishing, check community rules, verify exact URLs and media, establish a valid reply route, and record the actual permalink in campaign.json.
+
+## New 3D artwork references
+
+The [visual 3D volunteer page](https://gamesbyian.github.io/UR-Recomp/contributors/3d/) now pairs a 3× title-screen image and three outline/contour studies with the existing model viewer and source download. A [full title-screen image](https://gamesbyian.github.io/UR-Recomp/contributors/3d/images/title-screen-racer-3x-upscale.png) and [close component trace](https://gamesbyian.github.io/UR-Recomp/contributors/3d/images/racer-contour-overlay-close.png) make a strong optional art attachment set. Only a human should post on itch.io, respecting its posting policy. Explain that interpretive traces aren't 1994 mesh evidence.

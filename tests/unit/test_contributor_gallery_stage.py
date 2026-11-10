@@ -26,6 +26,12 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertEqual(len(report), 12)
             self.assertTrue((folder/"contributors/index.html").is_file())
             self.assertTrue((folder/"contributors/references/index.html").is_file())
+            self.assertTrue((folder/"contributors/3d/index.html").is_file())
+            self.assertTrue((folder/"contributors/3d/models/unicycle_shared_rig.scad").is_file())
+            self.assertEqual(
+                (ROOT / "tools/art/candidates/unicycle_shared_rig.scad").read_bytes(),
+                (folder/"contributors/3d/models/unicycle_shared_rig.scad").read_bytes()
+            )
             self.assertTrue((folder/"contributors/images/blueprint-16x9-logo-left.png").is_file())
             self.assertTrue((folder/"contributors/images/blueprint-4x3-logo-left.png").is_file())
             self.assertTrue((folder/"contributors/images/uniracers_graphpaper_logo.jpg").is_file())
@@ -59,6 +65,13 @@ class ContributorGalleryTests(unittest.TestCase):
                 self.assertTrue((folder / "contributors" / src).is_file(), src)
             self.assertIn("position:fixed", home)
             self.assertIn("./references/", home)
+            self.assertIn('href="./3d/">View model &amp; downloads', home)
+            three_d = (folder/"contributors/3d/index.html").read_text(encoding="utf-8")
+            self.assertIn('../../model-review/', three_d)
+            self.assertIn('../../model-review/visual-review.html', three_d)
+            self.assertIn('./models/unicycle_shared_rig.scad', three_d)
+            self.assertIn('manifest.json', three_d)
+            self.assertIn('No hosted GLB is currently listed', three_d)
             for role in ("3D artists", "Lettering &amp; language", "Developers &amp; AI operators", "Future playtesters"):
                 self.assertIn(role, home)
             self.assertIn("Three new regional styling concepts", (folder/"contributors/references/index.html").read_text())

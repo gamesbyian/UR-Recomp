@@ -41,8 +41,21 @@ body{padding-bottom:calc(120px + env(safe-area-inset-bottom))} main{padding-top:
 .site-footer a{color:var(--ink)}
 .fineprint{font-size:.79rem;color:var(--muted);margin-top:18px}
 @media(max-width:400px){dl{grid-template-columns:1fr;gap:0}dd{margin-bottom:8px}.action{width:100%}}
+
+/* Unified wordmark and high-contrast recruitment actions. */
+.modern-label{display:inline-block;flex:none;font-weight:950;font-size:clamp(.85rem,2.5vw,1.2rem);line-height:1;letter-spacing:.035em;color:#243a43;white-space:nowrap}
+.brand-group{display:inline-flex;align-items:center;gap:clamp(5px,1.5vw,12px);min-width:0}
+:root{--race-red:#d92735;--race-blue:#1268d3}
+.cta,.action,.actions-equal a{background:var(--race-red);border-color:var(--race-red);color:white}
+.cta:hover,.action:hover,.actions-equal a:hover{background:#b71829;border-color:#b71829;color:white}
+.cta:nth-of-type(2),.action:nth-of-type(2),.actions-equal a:nth-of-type(2){background:var(--race-blue);border-color:var(--race-blue);color:white}
+.cta:nth-of-type(2):hover,.action:nth-of-type(2):hover,.actions-equal a:nth-of-type(2):hover{background:#084ca0;border-color:#084ca0;color:white}
+.cta.secondary,.action.secondary,.actions-equal a.alt{background:transparent;color:var(--race-blue);border-color:var(--race-blue)}
+.cta:focus-visible,.action:focus-visible,.actions-equal a:focus-visible{outline:3px solid #243a43;outline-offset:3px}
+
+.brand-group img{max-width:145px} .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}.actions>.action{width:100%;min-width:0;text-align:center;overflow-wrap:anywhere}@media(max-width:480px){.actions{grid-template-columns:1fr}.brand-group img{max-width:115px}}
 </style></head><body>
-<header><nav aria-label="3D art navigation"><a href="../" aria-label="Back to Uniracers recruitment"><img src="../images/uniracers_graphpaper_logo.jpg" alt="Uniracers home"></a><a href="../">← Ways to help</a></nav></header>
+<header><nav aria-label="3D art navigation"><span class="brand-group"><a href="../" aria-label="Back to Uniracers recruitment"><img src="../images/uniracers_graphpaper_logo.jpg" alt="Uniracers home"></a><span class="modern-label">MODERN</span></span><a href="../">← Ways to help</a></nav></header>
 <main><span class="eyebrow">Volunteer art · Experimental 2026 blockout</span>
 <h1>Help shape the racer.</h1>
 <p class="intro">There's already an articulated 3D unicycle rig to inspect and improve. The wheel, frame, saddle and pedals have been reconstructed experimentally, but the character's likeness and movement still need artistic work.</p>

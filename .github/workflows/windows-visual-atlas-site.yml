@@ -20,6 +20,7 @@ on:
       - "tools/art/racer_source_pixels.py"
       - "analysis/data/racer-hd-replacement-prototype.json"
       - "analysis/data/racer-inverse-side-provisional-1205.json"
+      - "analysis/data/racer-original-index-lookup-20261102.json"
       - "media/showcase/art-reconstruction/2026-11-09/title-screen-racer/**"
       - "media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours/**"
       - "media/showcase/art-reconstruction/2026-10-10/stock/**"
@@ -94,6 +95,7 @@ jobs:
               echo "atlas=true"
               echo "gallery=true"
               echo "html=false"
+              echo "model_page=false"
               echo "model=${{ inputs.include_experimental_model }}"
               echo "publish=false"
             } >> "$GITHUB_OUTPUT"
@@ -138,7 +140,10 @@ jobs:
               tools/art/candidates/unicycle_shared_rig.scad \
               "$RUNNER_TEMP/model-exports/$pose" --rig-pose "$pose" --timeout 120
           done
-          rm -rf "$RUNNER_TEMP/atlas-site/model-review"
+          python3 tools/contributor_gallery/publish_incremental.py model-placeholder \
+            --changed "$RUNNER_TEMP/site-changes.txt" \
+            --site "$RUNNER_TEMP/atlas-site" \
+            --model-backup "$RUNNER_TEMP/previous-published-model"
           python3 tools/art/model-review/stage_pages.py \
             --exports "$RUNNER_TEMP/model-exports" \
             --site "$RUNNER_TEMP/atlas-site" \
@@ -161,7 +166,7 @@ jobs:
           mv "$RUNNER_TEMP/gallery-refresh/contributors" "$RUNNER_TEMP/atlas-site/contributors"
           echo "Gallery: source artwork or gallery packager changed; only gallery restaged." >> "$GITHUB_STEP_SUMMARY"
       - name: Overlay changed contributor HTML without regenerating art or 3D
-        if: steps.plan.outputs.html == 'true'
+        if: steps.plan.outputs.html == 'true' || steps.plan.outputs.model_page == 'true'
         shell: bash
         run: |
           set -euo pipefail

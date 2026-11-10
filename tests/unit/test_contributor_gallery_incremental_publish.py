@@ -16,12 +16,17 @@ class IncrementalPublishTests(unittest.TestCase):
     def test_button_colour_change_is_html_only(self):
         p = MODULE.plan_changes(["tools/contributor_gallery/index.html"])
         self.assertEqual(p, {"atlas": False, "gallery": False, "model": False,
-                             "html": True, "publish": True})
+                             "html": True, "model_page": False, "publish": True})
 
     def test_all_four_page_edits_are_html_only(self):
         p = MODULE.plan_changes(list(MODULE.HTML_ROUTES))
         self.assertTrue(p["publish"] and p["html"])
         self.assertFalse(p["atlas"] or p["gallery"] or p["model"])
+
+    def test_model_review_page_edits_reuse_existing_glbs(self):
+        p = MODULE.plan_changes(["tools/art/model-review/index.html", "tools/art/model-review/index_overlay.mjs"])
+        self.assertTrue(p["model_page"] and p["publish"])
+        self.assertFalse(p["model"] or p["atlas"] or p["gallery"])
 
     def test_gallery_asset_changes_do_not_trigger_model(self):
         p = MODULE.plan_changes([
@@ -61,6 +66,22 @@ class IncrementalPublishTests(unittest.TestCase):
             self.assertEqual(target.read_bytes(),
                              (ROOT / "tools/contributor_gallery/index.html").read_bytes())
             self.assertEqual(untouched.read_bytes(), b"preserve exact model bytes")
+
+    def test_model_placeholder_preserves_reference_materials(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            site = Path(tmp) / "site"
+            old = site / "model-review"
+            old.mkdir(parents=True)
+            (old / "manifest.json").write_text('{"schema":"ur-racer-model-review/1","model_url":"assets/p.glb"}')
+            (old / "original-mesen24").mkdir()
+            (old / "original-mesen24/source-poses.json").write_text("proof")
+            (old / "assets").mkdir()
+            (old / "assets/old.glb").write_bytes(b"old model")
+            backup = Path(tmp) / "saved-model"
+            MODULE.prepare_model_placeholder(site, backup)
+            self.assertTrue((backup / "assets/old.glb").exists())
+            self.assertEqual((old / "original-mesen24/source-poses.json").read_text(), "proof")
+            self.assertIsNone(__import__("json").loads((old / "manifest.json").read_text())["model_url"])
 
     def test_refuses_missing_or_redirected_staged_route(self):
         with tempfile.TemporaryDirectory() as tmp:

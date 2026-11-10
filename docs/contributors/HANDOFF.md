@@ -14,6 +14,8 @@
 7. Add a private, testable Gmail/forum event collector and consent ledger without committing PII or credentials. Validate edit/delete behavior, duplicate messages, risky attachments, failed/uncertain sends, opt-outs, and provenance.
 8. Connect release-driven opt-in mailings only after approved packages and verified sender/recipient consent exist. Record receipts and troubleshoot delivery failures before any retries.
 
+Owner-supplied Reddit post share links (report date 2026-11-09; exact Reddit publication times and moderation visibility have not been independently verified): [r/INAT](https://www.reddit.com/r/INAT/s/J4WSvtWuAS), [r/aiagents](https://www.reddit.com/r/aiagents/s/2JC5QjpZj5), [r/lettering](https://www.reddit.com/r/Lettering/s/PzECmZwo2C), [r/snes](https://www.reddit.com/r/snes/s/T4UtAuAJnn) and [r/logodesign](https://www.reddit.com/r/logodesign/s/pTvUfkhuer). Preserve these exact supplied URLs as submitted evidence until canonical post IDs and creation times can be confirmed.
+
 Authority: docs/contributors/PLAN.md for outreach; OPERATIONS.md for communications; AGENTS.md, WORK-QUEUE.md and the release QA ledger remain engineering/acceptance owners. This handoff is active instructions only; keep historical outreach outcomes in separate private records.
 
 ## Remaining Pages publication check

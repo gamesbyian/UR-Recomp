@@ -31,3 +31,10 @@ The [brief 3D model and viewer page](https://gamesbyian.github.io/UR-Recomp/cont
 All five recruitment roles now provide a no-account-required email link to **ianmakesjokes@gmail.com**, the project contact address explicitly approved by the owner for public volunteer inquiries. GitHub issue intake is retained as an optional alternative. Replies must respect privacy, opt-outs, and contributor permissions. Do not publish email messages, attachments or addresses in issues or source control without explicit consent.
 
 The Pages 3D reviewer is configured to generate source-verified, explicitly **unapproved experimental** five-pose GLB exports from the current checked-out `main` when the contributor site is republished. The current model is the source-authored `tools/art/candidates/unicycle_shared_rig.scad`, not recovered 1994 geometry. Publication checks must confirm the manifest, GLB SHA-256 records, downloads and visual load before artist outreach promises a hosted model. A failed export or deployment is a release blocker for these public claims; never mislabel a blank lab as a model viewer.
+
+
+## Existing Windows builds and no-account contact
+
+Volunteer Windows testing is **currently useful**. Source-identified, ROM-free Windows x64 experimental test packages already exist, and current-main candidates can be requested through the existing controlled playtest build process. Interested testers can use the email links on the landing page without GitHub; the maintainer provides a source-verified package and instructions only once the exact build has been checked. This does not announce a finished, publicly downloadable release.
+
+The lettering references and 3D artist detail pages share the main website's sketch-logo header, graph-paper background and sketched track/racer footer. Each specialty page presents email and GitHub as equal invitations, with privacy guidance for public GitHub issues.

@@ -41,6 +41,11 @@ MODEL_PAGES = {
 GALLERY_EXACT = {
     "assets/promo/canonical/blueprint-16x9-logo-left.png",
     "assets/promo/canonical/blueprint-4x3-logo-left.png",
+    "assets/branding/uniracers-box-wordmark-traced.svg",
+    "assets/branding/unirally-box-wordmark-traced.svg",
+    "assets/branding/uniracers-japanese-katakana-wordmark.svg",
+    "assets/branding/unirally-russian-cyrillic-wordmark.svg",
+    "assets/branding/unirally-french-wordmark.svg",
 }
 ATLAS_PREFIXES = (
     "tools/visual_atlas_web/",
@@ -72,10 +77,10 @@ def plan_changes(paths: list[str]) -> dict[str, bool]:
             and path.endswith(".json")
         ):
             plan["atlas"] = True
-        elif path in GALLERY_EXACT or path.startswith("assets/branding/") or any(
-            path.startswith(p) for p in GALLERY_PREFIXES
-        ) or (path.startswith("tools/contributor_gallery/") and
-              path != "tools/contributor_gallery/publish_incremental.py"):
+        elif path in GALLERY_EXACT or any(path.startswith(p) for p in GALLERY_PREFIXES) or (
+            path in {"tools/contributor_gallery/stage.py", "tools/contributor_gallery/png_preview.py"}
+            or path.startswith("tools/contributor_gallery/source/")
+        ):
             plan["gallery"] = True
     plan["publish"] = any(plan[k] for k in ("atlas", "gallery", "model", "html", "model_page"))
     return plan

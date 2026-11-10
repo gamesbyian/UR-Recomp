@@ -25,3 +25,22 @@ The [GitHub Pages artwork gallery](https://gamesbyian.github.io/UR-Recomp/contri
 ## Accessible 3D reconstruction entrypoint
 
 The [brief 3D model and viewer page](https://gamesbyian.github.io/UR-Recomp/contributors/3d/) is the public-first destination for artists. It links to the existing interactive model reviewer, visual likeness comparisons and a byte-identical downloadable experimental OpenSCAD rig. Published pose GLBs appear as downloads only when the source-verified model manifest actually lists them. The technical character reconstruction brief remains a secondary detail link. An unapproved 2026 model is not a recovered original 1994 3D mesh.
+
+## Public contact options and current 3D model
+
+All five recruitment roles now provide a no-account-required email link to **ianmakesjokes@gmail.com**, the project contact address explicitly approved by the owner for public volunteer inquiries. GitHub issue intake is retained as an optional alternative. Replies must respect privacy, opt-outs, and contributor permissions. Do not publish email messages, attachments or addresses in issues or source control without explicit consent.
+
+The Pages 3D reviewer is configured to generate source-verified, explicitly **unapproved experimental** five-pose GLB exports from the current checked-out `main` when the contributor site is republished. The current model is the source-authored `tools/art/candidates/unicycle_shared_rig.scad`, not recovered 1994 geometry. Publication checks must confirm the manifest, GLB SHA-256 records, downloads and visual load before artist outreach promises a hosted model. A failed export or deployment is a release blocker for these public claims; never mislabel a blank lab as a model viewer.
+
+
+## Existing Windows builds and no-account contact
+
+Volunteer Windows testing is **currently useful**. Source-identified, ROM-free Windows x64 experimental test packages already exist, and current-main candidates can be requested through the existing controlled playtest build process. Interested testers can use the email links on the landing page without GitHub; the maintainer provides a source-verified package and instructions only once the exact build has been checked. This does not announce a finished, publicly downloadable release.
+
+The lettering references and 3D artist detail pages share the main website's sketch-logo header, graph-paper background and sketched track/racer footer. Each specialty page presents email and GitHub as equal invitations, with privacy guidance for public GitHub issues.
+
+## Current visitor-facing recruitment paths
+
+All public recruitment subpages follow the same static cream graph-paper, original sketched-logo header, and bottom-track illustration as the main page. The regional lettering reference gallery is `/contributors/references/`, model viewing and assets are `/contributors/3d/`, and the approachable Windows playtesting explanation is `/contributors/playtest/`. Each accepts volunteers by email or public GitHub issue with equal visual prominence. Keep the option to email the owner visible, and check direct links and fixed-header/footer readability on a small phone after each redesign. Do not funnel non-GitHub visitors into GitHub-only instructions.
+
+**Playtesting status:** Experimental native Windows x64 build artifacts have been produced and independently byte-audited; source-specific candidates can be supplied to human testers. A generally available finished public release is not yet approved. Do not advertise an expired or obsolete artifact as a current download: check its source SHA, ZIP/PE digests, expiration and owner authorization before sending any particular build. Keep physical Windows audio/input/display observations separate from hosted CI qualification.

@@ -47,3 +47,24 @@ The public `/contributors/3d/` gallery serves **deterministic downscaled RGB PNG
 ## Box-art wheel contour studies (current outreach)
 
 The owner-supplied wheel/fork contour JPEGs are preserved byte-for-byte in [the box-art study directory](https://github.com/gamesbyian/UR-Recomp/tree/main/media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours) and published directly under `/contributors/3d/box-art/`. Use the [short 3D volunteer gallery](https://gamesbyian.github.io/UR-Recomp/contributors/3d/) as the default first click for artists; it shows title-screen imagery and both new box-art close-ups, with links to the original GitHub files. Keep these *source artwork studies* separate from experimentally reconstructed 2026 meshes. Do not expand the ordinary recruitment homepage with dense art or claim that the traced lines identify confirmed original 1994 model pieces. Verify the artifact and live image URLs before forum publication.
+
+## Active recruitment contact and GLB deployment contract
+
+The owner previously approved `ianmakesjokes@gmail.com` as a **public project contact email** for volunteer inquiries. All five contribution cards have role-specific mailto drafts and optional GitHub issue-form alternatives, including the 3D detail page. Do not require GitHub login to reach the project; no inbound mail or automatic sending is claimed by simply linking `mailto:`.
+
+The `Windows Visual Atlas (publish static site)` workflow must publish **current-source, hash-receipted experimental GLBs** whenever the contributor gallery is republished from main, using the unchanged exact-source five-pose exporter and `tools/art/model-review/stage_pages.py` checks. A new model-source commit also triggers this workflow. A failed export or sidecar must prevent publication, not silently revert the viewer to a blank placeholder. The generated manifest must identify the current source commit, list all five pose downloads and retain explicit nonapproval. The site owner must visually inspect the published model on a phone; full source-likeness approval remains separate.
+
+For any subsequent contributor gallery change, ensure the same-current-source model is regenerated along with the gallery so the previously published GLB does not disappear. Keep the expensive model export scoped to authorized Pages publication rather than unrelated routine engineering CI. To confirm publication, inspect the **exact merge-head** workflow log and `publish-pages` success, then verify that the public manifest resolves to an actual GLB before advertising the viewer in outreach.
+
+
+## Active playtester and site-style instructions
+
+Do not refer to volunteers as only *future playtesters*: authentic ROM-free Windows x64 physical-test candidates already exist. The site should say **Windows playtesters** and invite testers to request a newly verified experimental build, without inventing a current stable public download or assuming older Actions artifacts remain available. Bind every actual test package to its source SHA and digest and use `docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md` / `docs/playtest/REQUEST-WINDOWS-PLAYTEST.md` for distribution and reports; no release gate credit from volunteer sign-ups alone.
+
+All three public contributor pages must share the architectural graph-paper/sketch branding, header logo, track/racer bottom footer and accessible narrow-screen navigation. The lettering and 3D pages must present two equal-weight actions for emailing the owner-approved project address and opening a GitHub issue. Keep no-account-required email available across every volunteer card. Avoid a dense technical document as the sole first-click referral.
+
+## Recruitment site visual and playtester contract
+
+All three recruitment subpages, `/contributors/3d/`, `/contributors/references/`, and `/contributors/playtest/`, must retain the same **fixed sketch-logo header**, **static paper grid**, and **fixed track/racer footer** used by `/contributors/`, including mobile-safe content padding. Email to the approved public contact mailbox and a GitHub issue form are **equal-height and equally prominent** options; a GitHub login is never the only contact path. Update the staging tests when pages are added or removed.
+
+The main page and playtesting subpage should explicitly acknowledge that experimental, playable Windows test candidates already exist. They still need a current source/package verification and direct delivery to a human tester, and no public release gate is waived. Use `docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md` and `docs/playtest/REQUEST-WINDOWS-PLAYTEST.md` to request/qualify current exact-main ROM-free artifacts, rather than exposing historical expired artifacts or declaring a release. No participant needs to be an original-game expert. The human testing phase may start with verified candidate builds despite incomplete commercial-grade release qualification.

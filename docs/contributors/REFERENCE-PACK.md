@@ -51,3 +51,16 @@ For embedding in a forum, prefer a native upload where permitted, or use the gal
 ## Additional box-art wheel contour studies
 
 Two compact owner-supplied JPEG outlines over original box-art crops are organized [in the dated source directory](https://github.com/gamesbyian/UR-Recomp/tree/main/media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours) and displayed on the [3D volunteer gallery](https://gamesbyian.github.io/UR-Recomp/contributors/3d/). They focus on tire/rim profiles, spokes, hub, fork, pedals, and saddle structure. Link to the unchanged [Uniracers crop](https://github.com/gamesbyian/UR-Recomp/tree/main/media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours/uniracers-box-art-wheel-contour-study.jpg) or [Unirally crop](https://github.com/gamesbyian/UR-Recomp/tree/main/media/showcase/art-reconstruction/2026-11-10/box-art-wheel-contours/unirally-box-art-wheel-contour-study.jpg) for direct full-resolution inspection. Unlike the larger title-screen PNGs, these two JPEGs are already small enough to publish byte-identically on Pages at `https://gamesbyian.github.io/UR-Recomp/contributors/3d/box-art/`. Interpretive lines and glints are not recovered mesh topology.
+
+## Recruitment contact alternatives
+
+Every contribution opportunity on [the main page](https://gamesbyian.github.io/UR-Recomp/contributors/) provides both a project email compose link (`ianmakesjokes@gmail.com`, owner-approved for public volunteer contact) and a GitHub issue-form link. The [3D reference/model access page](https://gamesbyian.github.io/UR-Recomp/contributors/3d/) provides the same choice. When writing forum posts, invite volunteers to contact the project by email **or** GitHub issue; do not imply a GitHub account is needed. Use the existing role-specific website links to avoid embedding private applicant information in a public thread. The 3D lab's five-pose GLBs remain experimental and require their published manifest/asset verification before claiming they are downloadable.
+
+## Consistent public destinations
+
+- [Single short recruitment page](https://gamesbyian.github.io/UR-Recomp/contributors/)
+- [3D models, source downloads and images](https://gamesbyian.github.io/UR-Recomp/contributors/3d/)
+- [Regional lettering and logo concept references](https://gamesbyian.github.io/UR-Recomp/contributors/references/)
+- [Windows playtesting overview](https://gamesbyian.github.io/UR-Recomp/contributors/playtest/)
+
+All pages use the same original sketch and graph-paper language and present the owner-approved email contact and public GitHub intake equally. Existing Windows experimental builds are appropriate for a **qualified human test**, though the project has no approved finished public release. Only send current source-verified download links after a real package has been confirmed.

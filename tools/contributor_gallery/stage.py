@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tools" / "contributor_gallery" / "index.html"
 REFERENCES = ROOT / "tools" / "contributor_gallery" / "references.html"
 THREE_D = ROOT / "tools" / "contributor_gallery" / "three-d.html"
+PLAYTEST = ROOT / "tools" / "contributor_gallery" / "playtest.html"
 RIG_SOURCE = ROOT / "tools" / "art" / "candidates" / "unicycle_shared_rig.scad"
 RACER_REFERENCES = ROOT / "media/showcase/art-reconstruction/2026-11-09/title-screen-racer"
 RACER_REFERENCE_IMAGES = (
@@ -72,6 +73,7 @@ def stage(out: Path) -> dict:
     if gallery.exists() or gallery.is_symlink():
         raise ValueError("refusing to overwrite contributor route")
     if (not SOURCE.is_file() or not REFERENCES.is_file() or not THREE_D.is_file()
+            or not PLAYTEST.is_file() or PLAYTEST.is_symlink()
             or SOURCE.is_symlink() or REFERENCES.is_symlink() or THREE_D.is_symlink()):
         raise ValueError("missing or redirected recruitment HTML source")
     all_sources = [(CONCEPT_DIR / n, n) for n in NAMES] + [(BRANDING / n, n) for n in SVG_NAMES]
@@ -141,6 +143,9 @@ def stage(out: Path) -> dict:
         models = three_d / "models"
         models.mkdir(parents=True)
         shutil.copyfile(THREE_D, three_d / "index.html")
+        playtest = intermediate / "playtest"
+        playtest.mkdir()
+        shutil.copyfile(PLAYTEST, playtest / "index.html")
         shutil.copyfile(RIG_SOURCE, models / "unicycle_shared_rig.scad")
         if hashlib.sha256((models / "unicycle_shared_rig.scad").read_bytes()).digest() != hashlib.sha256(rig_bytes).digest():
             raise ValueError("staged OpenSCAD rig differs from original")

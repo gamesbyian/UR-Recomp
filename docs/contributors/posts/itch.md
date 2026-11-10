@@ -30,6 +30,8 @@ The [Pages publication run #42718635056](https://github.com/gamesbyian/UR-Recomp
 
 Direct image routes (after browser verification): [concept 01](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-01.png), [concept 02](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-02.png), [concept 03](https://gamesbyian.github.io/UR-Recomp/contributors/images/regional-wordmark-concept-03.png). When a forum supports native attachments, upload the exact source concept PNG instead of relying on remote embeds. Individual concept filenames remain neutral because exact PNG-to-language identity has not been independently confirmed. Do not include box art.
 
+For 3D artists, start with the [live 3D reviewer, likeness comparisons and downloadable OpenSCAD source](https://gamesbyian.github.io/UR-Recomp/contributors/3d/). Current public GLB availability is manifest-dependent; the editable source model is always provided.
+
 ## Reference / attachment and publication notes
 
 MANDATORY: only a human may post in this board under current rules; tag appropriately, attach approved examples and meet quality-of-effort standards.

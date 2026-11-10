@@ -63,6 +63,18 @@ def validate(root: Path = REPO) -> list[str]:
                 errors.append(f"{vid}: reported posting requires owner report and report date")
             if row.get("posted_url") or row.get("posted_at_utc"):
                 errors.append(f"{vid}: unverified report must not claim a permalink or timestamp")
+            shared_url = row.get("reported_post_url")
+            if shared_url is not None:
+                if not is_https_url(shared_url):
+                    errors.append(f"{vid}: invalid owner-supplied post share URL")
+                else:
+                    shared = urlsplit(shared_url)
+                    if (
+                        shared.netloc.lower() not in {"www.reddit.com", "reddit.com"}
+                        or not shared.path.lower().startswith(f"/r/{str(vid).lower()}/")
+                        or shared.path.lower().rstrip("/") == f"/r/{str(vid).lower()}"
+                    ):
+                        errors.append(f"{vid}: reported post URL must belong to the correct subreddit")
         elif row.get("posted_url") or row.get("posted_at_utc"):
             errors.append(f"{vid}: non-posted record must not claim a posted URL/time")
         rel = row.get("post_file")

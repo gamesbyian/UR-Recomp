@@ -127,6 +127,12 @@ jobs:
           import sys
           data = json.load(open(sys.argv[1], encoding="utf-8"))
           print("## Vault recurring intake")
+          print(f"- inventory complete: {data.get('inventory_complete', True)}")
+          print(f"- successor checkpoint written: {data.get('successor_checkpoint_written', True)}")
+          if data.get("inventory_complete") is False:
+              print("- Public folder listing unavailable; no file population was checked,")
+              print("  no successor checkpoint was issued and the prior checkpoint is unchanged.")
+              print(f"- listing error category: {data.get('listing_error_category', 'unknown')}")
           for key in ("listed_files", "previously_verified_skipped", "queued_before_batch",
                       "downloaded_bytes", "remaining_due", "verified_total"):
               print(f"- {key}: {data[key]}")

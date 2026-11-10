@@ -47,6 +47,7 @@ on:
       - "tools/visual_atlas_web/tube-header.svg"
 permissions:
   contents: read
+  pull-requests: read
 concurrency:
   group: ur-windows-atlas-pr-validation-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -58,16 +59,17 @@ jobs:
       model: ${{ steps.detect.outputs.model }}
       publisher: ${{ steps.detect.outputs.publisher }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          persist-credentials: false
       - id: detect
         name: Scope expensive tests to changed source inputs
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
-          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}" -- > "$RUNNER_TEMP/changed.txt"
+          # Complete PR file census via GitHub API. No giant git-history checkout.
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[].filename' > "$RUNNER_TEMP/changed.txt"
           {
             echo 'atlas=false'
             echo 'model=false'

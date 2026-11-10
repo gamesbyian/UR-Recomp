@@ -40,7 +40,7 @@ class ContributorGalleryTests(unittest.TestCase):
             for src in parser.images:
                 self.assertTrue((folder / "contributors/references" / src).is_file(), src)
             home = (folder/"contributors/index.html").read_text(encoding="utf-8")
-            self.assertIn("One wheel. A bigger future.", home)
+            self.assertIn("One wheel.<br>A bigger future.", home)
             self.assertIn('background-attachment:fixed', home)
             self.assertIn('class="sketch-logo"', home)
             self.assertIn('class="bottom"', home)

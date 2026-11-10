@@ -1,0 +1,72 @@
+"""Targeted no-regeneration contract for contributor Pages publication."""
+from pathlib import Path
+import importlib.util
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+SPEC = importlib.util.spec_from_file_location(
+    "incremental_pages", ROOT / "tools/contributor_gallery/publish_incremental.py"
+)
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
+
+
+class IncrementalPublishTests(unittest.TestCase):
+    def test_button_colour_change_is_html_only(self):
+        p = MODULE.plan_changes(["tools/contributor_gallery/index.html"])
+        self.assertEqual(p, {"atlas": False, "gallery": False, "model": False,
+                             "html": True, "publish": True})
+
+    def test_all_four_page_edits_are_html_only(self):
+        p = MODULE.plan_changes(list(MODULE.HTML_ROUTES))
+        self.assertTrue(p["publish"] and p["html"])
+        self.assertFalse(p["atlas"] or p["gallery"] or p["model"])
+
+    def test_gallery_asset_changes_do_not_trigger_model(self):
+        p = MODULE.plan_changes([
+            "assets/branding/concepts/regional-wordmark-concept-01.png",
+            "tools/contributor_gallery/source/uniracers_graphpaper_logo.jpg",
+        ])
+        self.assertTrue(p["gallery"])
+        self.assertFalse(p["model"] or p["atlas"])
+
+    def test_model_and_atlas_rebuild_only_for_their_own_inputs(self):
+        model = MODULE.plan_changes(["tools/art/candidates/unicycle_shared_rig.scad"])
+        self.assertTrue(model["model"])
+        self.assertFalse(model["atlas"] or model["gallery"])
+        atlas = MODULE.plan_changes(["tools/visual_atlas_web/atlas.css"])
+        self.assertTrue(atlas["atlas"])
+        self.assertFalse(atlas["model"] or atlas["gallery"])
+
+    def test_docs_and_publisher_code_do_not_republish(self):
+        p = MODULE.plan_changes([
+            "docs/contributors/README.md",
+            "tools/contributor_gallery/publish_incremental.py",
+            ".github/workflows/windows-visual-atlas-site.yml",
+        ])
+        self.assertFalse(any(p.values()))
+
+    def test_overlays_only_changed_html_preserving_assets(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            site = Path(tmp)
+            target = site / "contributors/index.html"
+            target.parent.mkdir()
+            target.write_text("old")
+            untouched = site / "model-review/pose.glb"
+            untouched.parent.mkdir()
+            untouched.write_bytes(b"preserve exact model bytes")
+            copied = MODULE.overlay_html(site, ["tools/contributor_gallery/index.html"])
+            self.assertEqual(copied, ["contributors/index.html"])
+            self.assertEqual(target.read_bytes(),
+                             (ROOT / "tools/contributor_gallery/index.html").read_bytes())
+            self.assertEqual(untouched.read_bytes(), b"preserve exact model bytes")
+
+    def test_refuses_missing_or_redirected_staged_route(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(ValueError):
+                MODULE.overlay_html(Path(tmp), ["tools/contributor_gallery/index.html"])
+
+
+if __name__ == "__main__":
+    unittest.main()

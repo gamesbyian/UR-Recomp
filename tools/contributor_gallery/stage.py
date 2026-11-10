@@ -10,7 +10,10 @@ from pathlib import Path
 import shutil
 import struct
 
-from tools.contributor_gallery.png_preview import preview
+# Supports both direct CLI execution and importlib-loaded offline contract tests.
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from png_preview import preview
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tools" / "contributor_gallery" / "index.html"

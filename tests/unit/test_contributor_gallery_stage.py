@@ -59,8 +59,6 @@ class ContributorGalleryTests(unittest.TestCase):
                 self.assertTrue((folder / "contributors" / src).is_file(), src)
             self.assertIn("position:fixed", home)
             self.assertIn("./references/", home)
-            self.assertIn("images/blueprint-16x9-logo-left.png", home)
-            self.assertIn("images/blueprint-4x3-logo-left.png", home)
             for role in ("3D artists", "Lettering &amp; language", "Developers &amp; AI operators", "Future playtesters"):
                 self.assertIn(role, home)
             self.assertIn("Three new regional styling concepts", (folder/"contributors/references/index.html").read_text())

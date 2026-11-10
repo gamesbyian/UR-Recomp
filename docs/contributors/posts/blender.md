@@ -18,6 +18,8 @@ This is a **voluntary, unpaid fan project**, with named credit and portfolio use
 
 I'm also actively interested in coordinating with other Uniracers / Unirally remakes, recompilations, preservation and art projects. I'm familiar with the [Baldosa](https://github.com/baldosa/uniracers-recomp) and [malmazuke](https://github.com/malmazuke/unirally-reconstruction) projects, and would welcome contact from other teams to share findings or avoid duplicating work. I'm not claiming any current partnership with them.
 
+For 3D artists, start with the [live 3D reviewer, likeness comparisons and downloadable OpenSCAD source](https://gamesbyian.github.io/UR-Recomp/contributors/3d/). Current public GLB availability is manifest-dependent; the editable source model is always provided.
+
 ## Reference / attachment and publication notes
 
 Attach: genuine screenshot of the current experimental 3D model and source reference with legal display rights; optionally approved promo PNG. Do not pretend the HTML source link is a hosted interactive viewer.

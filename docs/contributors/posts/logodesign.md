@@ -1,4 +1,6 @@
-# logodesign: draft, NOT published
+# logodesign: owner-reported posted; original proposed copy
+
+**Owner report (`2026-11-09`):** [Reddit share link supplied by the owner](https://www.reddit.com/r/logodesign/s/pTvUfkhuer). The campaign record is `reported_posted`, not independently verified `posted`. Public visibility, canonical Reddit post identity, creation timestamp, and whether the published body matches the original draft below remain **unverified**. Preserve this proposed draft as a reference, **do not repost** this venue, and do not invent actual post text or publication time.
 
 Destination: https://www.reddit.com/r/logodesign/
 

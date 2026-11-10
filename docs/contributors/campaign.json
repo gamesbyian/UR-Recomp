@@ -16,6 +16,21 @@
       "last_rules_checked_utc": null
     },
     {
+      "id": "3drequests",
+      "site": "r/3Drequests",
+      "forum_url": "https://www.reddit.com/r/3Drequests/",
+      "role": "3d",
+      "post_file": "docs/contributors/posts/3drequests.md",
+      "state": "reported_posted",
+      "gate": "Owner supplied Reddit share link; verify public visibility and exact creation timestamp before promoting to verified posted",
+      "posted_url": null,
+      "posted_at_utc": null,
+      "last_rules_checked_utc": null,
+      "reported_posted_on": "2026-11-09",
+      "report_source": "owner",
+      "reported_post_url": "https://www.reddit.com/r/3Drequests/s/UqxTnbDkn7"
+    },
+    {
       "id": "inat",
       "site": "r/INAT",
       "forum_url": "https://www.reddit.com/r/INAT/",

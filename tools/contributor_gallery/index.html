@@ -81,6 +81,19 @@ h3{font-size:1.14rem;letter-spacing:-.025em;line-height:1.18}
 .cta.secondary,.action.secondary,.actions-equal a.alt{background:transparent;color:var(--race-blue);border-color:var(--race-blue)}
 .cta:focus-visible,.action:focus-visible,.actions-equal a:focus-visible{outline:3px solid #243a43;outline-offset:3px}
 
+/* Treat the sketched wordmark and MODERN as one close-set lockup. */
+.brand-group{gap:0}
+.brand-group .sketch-logo{margin-right:-10px}
+.modern-label{font-size:clamp(1.275rem,3.75vw,1.8rem);font-weight:950;letter-spacing:.005em}
+@media(max-width:670px){
+  .brand-group .sketch-logo{width:108px;margin-right:-9px}
+  .modern-label{font-size:1.275rem}
+}
+@media(max-width:370px){
+  .brand-group .sketch-logo{width:92px;margin-right:-8px}
+  .modern-label{font-size:1.14rem}
+}
+
 </style>
 </head>
 <body>
@@ -90,11 +103,11 @@ h3{font-size:1.14rem;letter-spacing:-.025em;line-height:1.18}
 <main>
 <section>
 <span class="eyebrow">Unirally · Uniracers · 1994 → today</span>
-<p class="lead">Help recreate the SNES cult classic for Windows, preserving its personality and bringing its presentation and features forward.</p>
+<p class="lead">Help recreate Uniracers/Unirally, the SNES cult classic for Windows, preserving its personality and bringing its presentation and features forward.</p>
 <p class="progress"><strong>Substantial progress already made:</strong> reverse-engineering, native development, experimental artwork and automated testing. Still plenty left to build.</p>
 </section>
 <section id="help" aria-labelledby="help-title">
-<div class="section-head"><h2 id="help-title">Find your part.</h2><span class="hint">Small contributions welcome · No commitment</span></div>
+<div class="section-head"><h2 id="help-title">JOIN THE RACE</h2><span class="hint">Small contributions welcome · No commitment</span></div>
 <div class="cards">
 <article class="card"><span class="tag">01 / CHARACTER ART</span><h3>3D artists</h3><p>Help source or create a human-made racing unicycle model. The experimental rig remains available as a reference.</p><div class="actions"><a class="cta" href="mailto:ianmakesjokes@gmail.com?subject=Uniracers%20volunteer%3A%203D%20art&amp;body=Hello%2C%0A%0AI'm%20interested%20in%203d%20art.%0A%0AMy%20background%20or%20proposal%3A%0A%0A%0AHow%20best%20to%20reach%20me%3A%0A%0A">Email about 3D ↗</a><a class="cta" href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Contribute on GitHub ↗</a><a class="small-link" href="./3d/">View model &amp; downloads ↗</a></div></article>
 <article class="card"><span class="tag">02 / REGIONAL TITLES</span><h3>Lettering &amp; language</h3><p>Help carry the original wordmark style into other scripts and languages.</p><div class="actions"><a class="cta" href="mailto:ianmakesjokes@gmail.com?subject=Uniracers%20volunteer%3A%20Lettering%20and%20localization&amp;body=Hello%2C%0A%0AI'm%20interested%20in%20lettering%20and%20localization.%0A%0AMy%20background%20or%20proposal%3A%0A%0A%0AHow%20best%20to%20reach%20me%3A%0A%0A">Email about lettering ↗</a><a class="cta" href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Contribute on GitHub ↗</a><a class="small-link" href="./references/">View concepts ↗</a></div></article>

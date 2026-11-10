@@ -15,6 +15,8 @@ SOURCE = ROOT / "tools" / "contributor_gallery" / "index.html"
 REFERENCES = ROOT / "tools" / "contributor_gallery" / "references.html"
 PROMO = ROOT / "assets" / "promo" / "canonical"
 PROMO_IMAGES = ("blueprint-16x9-logo-left.png", "blueprint-4x3-logo-left.png")
+DRAWINGS = ROOT / "tools" / "contributor_gallery" / "source"
+DRAWING_NAMES = ("uniracers_graphpaper_logo.jpg", "uniracers_track_unicycle.jpg")
 CONCEPT_DIR = ROOT / "assets/branding/concepts"
 BRANDING = ROOT / "assets/branding"
 NAMES = (
@@ -52,10 +54,17 @@ def stage(out: Path) -> dict:
         raise ValueError("missing or redirected recruitment HTML source")
     all_sources = [(CONCEPT_DIR / n, n) for n in NAMES] + [(BRANDING / n, n) for n in SVG_NAMES]
     all_sources += [(PROMO / n, n) for n in PROMO_IMAGES]
+    all_sources += [(DRAWINGS / n, n) for n in DRAWING_NAMES]
     for source, name in all_sources:
         if not source.is_file() or source.is_symlink():
             raise ValueError(f"missing/redirected source: {name}")
-        if source.suffix == ".png":
+        if source.suffix == ".jpg":
+            if source.parent != DRAWINGS or source.stat().st_size > 1_000_000:
+                raise ValueError(f"{name}: unexpected drawing source or oversize")
+            with source.open("rb") as handle:
+                if handle.read(3) != b"\\xff\\xd8\\xff":
+                    raise ValueError(f"{name}: expected original JPEG source")
+        elif source.suffix == ".png":
             if source.parent == PROMO:
                 # Approved canonical blueprint backgrounds are larger than the concise concepts.
                 if source.stat().st_size > 4_000_000:

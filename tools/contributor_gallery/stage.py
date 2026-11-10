@@ -10,6 +10,8 @@ from pathlib import Path
 import shutil
 import struct
 
+from tools.contributor_gallery.png_preview import preview
+
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tools" / "contributor_gallery" / "index.html"
 REFERENCES = ROOT / "tools" / "contributor_gallery" / "references.html"
@@ -123,14 +125,20 @@ def stage(out: Path) -> dict:
         shutil.copyfile(RIG_SOURCE, models / "unicycle_shared_rig.scad")
         if hashlib.sha256((models / "unicycle_shared_rig.scad").read_bytes()).digest() != hashlib.sha256(rig_bytes).digest():
             raise ValueError("staged OpenSCAD rig differs from original")
-        racer_images = three_d / "images"
-        racer_images.mkdir()
+        # The public site carries deterministic thumbnails only. Full-resolution
+        # source PNGs stay in GitHub with their original blob hashes unchanged.
+        previews = three_d / "previews"
+        previews.mkdir()
+        preview_total = 0
         for name in RACER_REFERENCE_IMAGES:
             source = RACER_REFERENCES / name
-            destination = racer_images / name
-            shutil.copyfile(source, destination)
-            if hashlib.sha256(destination.read_bytes()).digest() != hashlib.sha256(source.read_bytes()).digest():
-                raise ValueError(f"{name}: staged racer reference differs from source")
+            destination = previews / name
+            info = preview(source, destination)
+            preview_total += info["preview_bytes"]
+            if info["preview_bytes"] >= info["source_bytes"]:
+                raise ValueError(f"{name}: thumbnail did not reduce source bytes")
+        if preview_total > 6_000_000:
+            raise ValueError("combined racer preview payload exceeds 6MB")
 
 
         report = {}

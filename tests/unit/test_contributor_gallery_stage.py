@@ -91,11 +91,18 @@ class ContributorGalleryTests(unittest.TestCase):
             self.assertIn("position:fixed", home)
             self.assertIn("./references/", home)
             self.assertIn('href="./3d/">View model &amp; downloads', home)
+            # Every volunteer path has both public email and GitHub intake;
+            # none requires a GitHub account to make contact.
+            self.assertEqual(home.count("Use GitHub instead"), 5)
+            self.assertGreaterEqual(home.count("mailto:ianmakesjokes@gmail.com"), 5)
+
             three_d = (folder/"contributors/3d/index.html").read_text(encoding="utf-8")
             self.assertIn('../../model-review/', three_d)
             self.assertIn('../../model-review/visual-review.html', three_d)
             self.assertIn('./models/unicycle_shared_rig.scad', three_d)
             self.assertIn('manifest.json', three_d)
+            self.assertIn("mailto:ianmakesjokes@gmail.com", three_d)
+            self.assertIn("Use GitHub instead", three_d)
             for name in racer_names:
                 self.assertIn('src="previews/' + name + '"', three_d)
                 self.assertIn(

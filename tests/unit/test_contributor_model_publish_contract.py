@@ -11,7 +11,7 @@ class ContributorModelPublishTests(unittest.TestCase):
         gate = "(github.event_name == 'push' && steps.gallery-change.outputs.publish == 'true')"
         # Dependency installation, five-pose generation and receipt/measurement
         # staging must all run on the same authorized contributor publish.
-        self.assertEqual(w.count(gate), 3)
+        self.assertEqual(w.count(gate), 4)
         self.assertIn('tools/art/candidates/unicycle_shared_rig.scad', w)
         self.assertIn('tools/art/export_articulated_unicycle.py', w)
         self.assertIn('tools/art/model-review/stage_pages.py', w)

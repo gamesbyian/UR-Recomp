@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#171424">
+<meta name="theme-color" content="#f4f2e9">
 <meta name="description" content="Uniracers / Unirally volunteer recruitment: regional wordmark concepts and source references.">
 <title>Uniracers · Contributor Art References</title>
 <style>
@@ -26,25 +26,25 @@ footer{color:var(--muted);border-top:1px solid var(--edge);margin-top:60px}
 :root{color-scheme:light;--bg:#f4f2e9;--panel:#fbfaf3;--ink:#243a43;--muted:#586a70;--edge:#a8babb;--yellow:#9d4839;--link:#234758}
 body{background:#f4f2e9;color:var(--ink);background-image:linear-gradient(#738f9125 1px,transparent 1px),linear-gradient(90deg,#738f9125 1px,transparent 1px);background-size:24px 24px;background-attachment:fixed}
 a{color:var(--link)}a:focus-visible{outline-color:#9d4839}
-header{position:sticky;top:0;z-index:10;max-width:none;height:78px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px max(16px,calc((100vw - 960px)/2));background:#f4f2e9f7;border-bottom:1.5px solid var(--edge)}
+header{position:fixed;top:0;left:0;right:0;z-index:10;max-width:none;height:calc(78px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px max(16px,calc((100vw - 960px)/2));background:#f4f2e9f7;border-bottom:1.5px solid var(--edge)}
 header .brandmark{height:58px;max-width:190px;min-width:130px;display:flex;align-items:center}
 header .brandmark img{width:100%;max-height:100%;object-fit:contain;mix-blend-mode:multiply}
 header .return-link{font-size:.85rem;font-weight:750;white-space:nowrap}
-main{padding-bottom:166px}
-main .intro-area{max-width:900px}
+main{padding-top:22px;padding-bottom:calc(166px + env(safe-area-inset-bottom))}
+.intro-area{padding-top:calc(95px + env(safe-area-inset-top)) !important;max-width:900px}
 main .intro-area h1{font-size:clamp(2rem,6vw,3.3rem)}
 .eyebrow{color:#9d4839}
 nav a{border-color:var(--edge);border-radius:4px;background:#fcfaf3}
 figure{background:rgba(251,250,243,.87);border-color:var(--edge);border-radius:4px}
 .panel{background:rgba(251,250,243,.86);border-color:var(--edge);border-radius:4px}
 .warning{border-left-color:#9d4839}
-.site-footer{position:fixed;bottom:0;left:0;right:0;z-index:10;max-width:none;height:118px;margin:0;padding:0;border-top:1.5px solid var(--edge);overflow:hidden;background:#f4f2e9f7}
+.site-footer{position:fixed;bottom:0;left:0;right:0;z-index:10;max-width:none;height:calc(118px + env(safe-area-inset-bottom));margin:0;padding:0 0 env(safe-area-inset-bottom);border-top:1.5px solid var(--edge);overflow:hidden;background:#f4f2e9f7}
 .site-footer img{position:absolute;bottom:0;right:0;width:100%;height:100%;object-fit:cover;object-position:right bottom;mix-blend-mode:multiply;opacity:.8;mask-image:linear-gradient(to bottom,transparent 4%,#000 40%);pointer-events:none}
 .site-footer .footer-nav{position:relative;z-index:2;background:linear-gradient(to bottom,#f4f2e9fb,#f4f2e9c0);display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px max(16px,calc((100vw - 960px)/2));font-size:.72rem;font-weight:700}
 .actions-equal{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
 .actions-equal a{display:inline-flex;min-height:44px;align-items:center;justify-content:center;min-width:170px;padding:10px 14px;background:#243a43;color:white;text-decoration:none;border:1.5px solid #243a43;border-radius:4px;font-weight:750;font-size:.9rem}
 .actions-equal a.alt{background:#f4f2e9;color:#243a43}
-@media(max-width:670px){header{height:70px}.site-footer{height:112px}main{padding-left:16px;padding-right:16px}header .brandmark{max-width:145px}.actions-equal a{flex:1 1 150px}}
+@media(max-width:670px){header{height:calc(70px + env(safe-area-inset-top))}.site-footer{height:calc(112px + env(safe-area-inset-bottom))}main{padding-left:16px;padding-right:16px}header .brandmark{max-width:145px}.actions-equal a{flex:1 1 150px}}
 @media(max-width:355px){header .brandmark{max-width:120px}.site-footer .footer-nav{font-size:.62rem}}
 </style>
 </head>
@@ -77,7 +77,7 @@ figure{background:rgba(251,250,243,.87);border-color:var(--edge);border-radius:4
 <figure><img loading="lazy" src="../images/unirally-russian-cyrillic-wordmark.svg" alt="Experimental Russian Cyrillic Unirally wordmark"><figcaption><strong>Russian · Юниралли</strong><small>Experimental vector</small><div class="links"><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-russian-cyrillic-wordmark.svg">Source SVG</a></div></figcaption></figure>
 <figure><img loading="lazy" src="../images/unirally-french-wordmark.svg" alt="Experimental long-form French Unirally wordmark"><figcaption><strong>French · La roue unique</strong><small>Intentionally elaborate experimental title; see vector for full text</small><div class="links"><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/assets/branding/unirally-french-wordmark.svg">Source SVG</a></div></figcaption></figure>
 </div></section>
-<section id="model"><h2>An animated 3D character, still under construction</h2><div class="panel"><p>The existing experimental five-part model is a foundation for expert work, <strong>not an approved reconstruction of a recovered 1994 mesh</strong>. Artists can help with silhouette, fork, saddle, cranks, hub and coherent motion, especially from side, front and oblique views.</p><div class="links"><a href="../model-review/">Experimental model review (may lack GLB unless explicitly exported)</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md">Character reconstruction brief</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-ART-DIRECTION.md">Art direction</a></div></div></section>
-<section id="contribute"><h2>Interested in collaborating?</h2><div class="panel"><p>One correction, critique, code review or a Windows playtest is enough. No payment, employment or recurring availability is offered. The project is interested in sharing research with other <em>Uniracers</em> / <em>Unirally</em> teams, including the independent Baldosa and malmazuke efforts.</p><p>Choose whichever way of getting in touch works for you. You don't need a GitHub account.</p><div class="actions-equal"><a href="mailto:ianmakesjokes@gmail.com?subject=Uniracers%20volunteer%3A%20lettering%20and%20language">Email about lettering ↗</a><a href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Contribute on GitHub ↗</a></div><p><a href="https://github.com/gamesbyian/UR-Recomp">Project repository</a> · <a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/contributors/README.md">Full contributor guide</a></p><p class="note">The contributor issue form is available. GitHub issue submissions are public: do not disclose private contact details or submitted assets.</p></div></section>
+<section id="model"><h2>An animated 3D character, still under construction</h2><div class="panel"><p>The existing experimental five-part model is a foundation for expert work, <strong>not an approved reconstruction of a recovered 1994 mesh</strong>. Artists can help with silhouette, fork, saddle, cranks, hub and coherent motion, especially from side, front and oblique views.</p><div class="links"><a href="../3d/">See 3D models, references and downloads</a><a href="../../model-review/">Experimental model reviewer</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-RACER-CHARACTER-RECONSTRUCTION.md">Character reconstruction brief</a><a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/HD-ART-DIRECTION.md">Art direction</a></div></div></section>
+<section id="contribute"><h2>Interested in collaborating?</h2><div class="panel"><p>One correction, critique, code review or a Windows playtest is enough. No payment, employment or recurring availability is offered. The project is interested in sharing research with other <em>Uniracers</em> / <em>Unirally</em> teams, including the independent Baldosa and malmazuke efforts.</p><p>Choose whichever way of getting in touch works for you. You don't need a GitHub account.</p><div class="actions-equal"><a href="mailto:ianmakesjokes@gmail.com?subject=Uniracers%20volunteer%3A%20lettering%20and%20language">Email about lettering ↗</a><a href="https://github.com/gamesbyian/UR-Recomp/issues/new?template=contributor-interest.yml">Contribute on GitHub ↗</a></div><p><a href="https://github.com/gamesbyian/UR-Recomp">Project repository</a> · <a href="https://github.com/gamesbyian/UR-Recomp/blob/main/docs/contributors/README.md">Full contributor guide</a></p><p class="note">GitHub submissions are public; email is preferable for private correspondence or attachments.</p></div></section>
 </main><footer class="site-footer"><img src="../images/uniracers_track_unicycle.jpg" alt="" aria-hidden="true"><div class="footer-nav"><span>UNOFFICIAL · UNPAID · IN DEVELOPMENT</span><a href="../">RECRUITMENT HOME ↑</a></div></footer>
 </body></html>

@@ -91,7 +91,11 @@ class ContributorGalleryTests(unittest.TestCase):
             for src in parser.images:
                 self.assertTrue((folder / "contributors/references" / src).is_file(), src)
             home = (folder/"contributors/index.html").read_text(encoding="utf-8")
-            self.assertIn("One wheel.<br>A bigger future.", home)
+            self.assertNotIn("One wheel.<br>A bigger future.", home)
+            self.assertIn("MODERN", home)
+            self.assertIn("--race-red:#d92735", home)
+            self.assertIn("--race-blue:#1268d3", home)
+            self.assertIn("grid-template-columns:repeat(2,minmax(0,1fr))", home)
             self.assertIn('background-attachment:fixed', home)
             self.assertIn('class="sketch-logo"', home)
             self.assertIn('class="bottom"', home)

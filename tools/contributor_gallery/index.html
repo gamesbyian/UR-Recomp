@@ -59,16 +59,37 @@ h3{font-size:1.14rem;letter-spacing:-.025em;line-height:1.18}
 @media(max-width:670px){:root{--header:70px;--footer:112px}main{padding-left:16px;padding-right:16px;padding-top:calc(var(--header) + env(safe-area-inset-top) + 20px)}.sketch-logo{width:148px;height:56px}.topnav{gap:10px}.topnav a{font-size:.74rem}.cards{grid-template-columns:1fr}.card{padding:12px 13px}.card p{min-height:0}.section-head{margin-top:23px}.hint{display:none}.cooperate{flex-direction:column;align-items:stretch;gap:10px}.cooperate .cta{align-self:flex-start}.bottom-links{font-size:.66rem;padding:7px 13px}.track{object-fit:cover;object-position:right bottom}}
 @media(max-width:360px){.sketch-logo{width:123px}.topnav{gap:7px}.topnav a{font-size:.67rem}.bottom-links{font-size:.59rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Buttons keep a shared two-column rhythm, and reference links get their own row. */
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;justify-content:initial;gap:9px}
+.actions>.cta{width:100%;min-width:0;text-align:center;overflow-wrap:anywhere}
+.actions>.small-link{grid-column:1/-1;justify-self:start;min-height:30px;display:inline-flex;align-items:center}
+.cooperate{display:grid;grid-template-columns:minmax(0,1fr) repeat(2,minmax(0,auto));align-items:center;justify-content:initial}
+.cooperate>.cta{min-width:0;text-align:center}
+.brand-group .sketch-logo{width:clamp(124px,23vw,185px)}
+@media(max-width:670px){.cooperate{grid-template-columns:repeat(2,minmax(0,1fr))}.cooperate>div{grid-column:1/-1}.cooperate>.cta{width:100%;overflow-wrap:anywhere}.brand-group .sketch-logo{width:115px;height:52px}.modern-label{font-size:.85rem}}
+@media(max-width:370px){.topnav a{font-size:.68rem}.brand-group .sketch-logo{width:98px}.modern-label{font-size:.76rem}.actions{grid-template-columns:1fr}.actions>.small-link{grid-column:1}}
+
+/* Unified wordmark and high-contrast recruitment actions. */
+.modern-label{display:inline-block;flex:none;font-weight:950;font-size:clamp(.85rem,2.5vw,1.2rem);line-height:1;letter-spacing:.035em;color:#243a43;white-space:nowrap}
+.brand-group{display:inline-flex;align-items:center;gap:clamp(5px,1.5vw,12px);min-width:0}
+:root{--race-red:#d92735;--race-blue:#1268d3}
+.cta,.action,.actions-equal a{background:var(--race-red);border-color:var(--race-red);color:white}
+.cta:hover,.action:hover,.actions-equal a:hover{background:#b71829;border-color:#b71829;color:white}
+.cta:nth-of-type(2),.action:nth-of-type(2),.actions-equal a:nth-of-type(2){background:var(--race-blue);border-color:var(--race-blue);color:white}
+.cta:nth-of-type(2):hover,.action:nth-of-type(2):hover,.actions-equal a:nth-of-type(2):hover{background:#084ca0;border-color:#084ca0;color:white}
+.cta.secondary,.action.secondary,.actions-equal a.alt{background:transparent;color:var(--race-blue);border-color:var(--race-blue)}
+.cta:focus-visible,.action:focus-visible,.actions-equal a:focus-visible{outline:3px solid #243a43;outline-offset:3px}
+
 </style>
 </head>
 <body>
 <header class="top">
-<div class="topbar"><a class="sketch-logo" href="./" aria-label="Uniracers recruitment home"><img src="images/uniracers_graphpaper_logo.jpg" width="240" height="76" alt="Hand-sketched Uniracers wordmark"></a><nav class="topnav" aria-label="Page navigation"><a href="#help">Ways to help</a><a href="#contact">Get involved</a></nav></div>
+<div class="topbar"><div class="brand-group"><a class="sketch-logo" href="./" aria-label="Uniracers recruitment home"><img src="images/uniracers_graphpaper_logo.jpg" width="240" height="76" alt="Hand-sketched Uniracers wordmark"></a><span class="modern-label">MODERN</span></div><nav class="topnav" aria-label="Page navigation"><a href="#help">Ways to help</a><a href="#contact">Get involved</a></nav></div>
 </header>
 <main>
-<section aria-labelledby="hero-title">
+<section>
 <span class="eyebrow">Unirally · Uniracers · 1994 → today</span>
-<h1 id="hero-title">One wheel.<br>A bigger future.</h1>
 <p class="lead">Help recreate the SNES cult classic for Windows, preserving its personality and bringing its presentation and features forward.</p>
 <p class="progress"><strong>Substantial progress already made:</strong> reverse-engineering, native development, experimental artwork and automated testing. Still plenty left to build.</p>
 </section>

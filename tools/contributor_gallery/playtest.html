@@ -17,8 +17,21 @@ ol{margin:8px 0 0;padding-left:22px}li{margin-bottom:7px}.note{font-size:.86rem;
 .site-footer .footer-nav{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px max(16px,calc((100vw - 960px)/2));background:linear-gradient(to bottom,#f4f2e9fb,#f4f2e9b8);font-size:.7rem;font-weight:750}
 @media(max-width:425px){header{height:calc(70px + env(safe-area-inset-top))}header img{width:145px;height:55px}.actions .action{flex:1 1 145px}.site-footer{height:calc(112px + env(safe-area-inset-bottom))}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Unified wordmark and high-contrast recruitment actions. */
+.modern-label{display:inline-block;flex:none;font-weight:950;font-size:clamp(.85rem,2.5vw,1.2rem);line-height:1;letter-spacing:.035em;color:#243a43;white-space:nowrap}
+.brand-group{display:inline-flex;align-items:center;gap:clamp(5px,1.5vw,12px);min-width:0}
+:root{--race-red:#d92735;--race-blue:#1268d3}
+.cta,.action,.actions-equal a{background:var(--race-red);border-color:var(--race-red);color:white}
+.cta:hover,.action:hover,.actions-equal a:hover{background:#b71829;border-color:#b71829;color:white}
+.cta:nth-of-type(2),.action:nth-of-type(2),.actions-equal a:nth-of-type(2){background:var(--race-blue);border-color:var(--race-blue);color:white}
+.cta:nth-of-type(2):hover,.action:nth-of-type(2):hover,.actions-equal a:nth-of-type(2):hover{background:#084ca0;border-color:#084ca0;color:white}
+.cta.secondary,.action.secondary,.actions-equal a.alt{background:transparent;color:var(--race-blue);border-color:var(--race-blue)}
+.cta:focus-visible,.action:focus-visible,.actions-equal a:focus-visible{outline:3px solid #243a43;outline-offset:3px}
+
+.brand-group img{width:145px;max-width:30vw}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}.actions .action{min-width:0;width:100%;overflow-wrap:anywhere;text-align:center}@media(max-width:420px){.actions{grid-template-columns:1fr}.brand-group img{width:106px}}
 </style></head><body>
-<header><nav aria-label="Playtesting navigation"><a href="../" aria-label="Back to Uniracers recruitment"><img src="../images/uniracers_graphpaper_logo.jpg" alt="Sketched Uniracers logo"></a><a href="../">← Ways to help</a></nav></header>
+<header><nav aria-label="Playtesting navigation"><span class="brand-group"><a href="../" aria-label="Back to Uniracers recruitment"><img src="../images/uniracers_graphpaper_logo.jpg" alt="Sketched Uniracers logo"></a><span class="modern-label">MODERN</span></span><a href="../">← Ways to help</a></nav></header>
 <main><span class="eyebrow">Windows x64 · Human testing</span><h1>Give the racer a spin.</h1>
 <p class="lead">Experimental, playable Windows builds already exist. Human testing helps discover what automated tests and emulator comparisons miss.</p>
 <p class="muted">These are work-in-progress test candidates, not a finished public release. You'll receive a specific verified ROM-free package and its instructions when one is available for your session.</p>

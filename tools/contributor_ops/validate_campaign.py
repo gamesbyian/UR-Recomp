@@ -7,12 +7,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlsplit
 
 REPO = Path(__file__).resolve().parents[2]
 VALID_STATES = {"draft", "blocked", "reported_posted", "posted", "closed"}
 MANDATORY_TERMS = ("Baldosa", "malmazuke", "Uniracers", "Unirally", "unpaid")
+PROJECT_REPO_URL = "https://github.com/gamesbyian/UR-Recomp"
+PROJECT_RECRUITMENT_URL = "https://gamesbyian.github.io/UR-Recomp/contributors/"
 
 
 def is_https_url(value: object) -> bool:
@@ -101,7 +104,13 @@ def validate(root: Path = REPO) -> list[str]:
         for term in MANDATORY_TERMS:
             if term.lower() not in body.lower():
                 errors.append(f"{vid}: missing {term} disclosure")
-        if "https://github.com/gamesbyian/UR-Recomp" not in body:
+        # Outreach can route to the official no-account-required recruitment
+        # landing as well as to the GitHub source. A role subpage alone does
+        # not satisfy this link: require the exact landing URL boundary.
+        if (PROJECT_REPO_URL not in body
+                and not re.search(
+                    re.escape(PROJECT_RECRUITMENT_URL) + r"(?![A-Za-z0-9_/-])",
+                    body)):
             errors.append(f"{vid}: missing project evidence link")
         if row.get("forum_url") not in body:
             errors.append(f"{vid}: draft does not identify its target venue")

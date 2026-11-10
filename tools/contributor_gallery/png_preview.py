@@ -25,7 +25,7 @@ def dimensions(data: bytes) -> tuple[int, int]:
     if len(data) < 33 or data[:8] != SIGNATURE or data[12:16] != b"IHDR":
         raise ValueError("invalid PNG signature or IHDR")
     width, height = struct.unpack(">II", data[16:24])
-    if not (100 <= width <= 10000 and 100 <= height <= 10000):
+    if not (1 <= width <= 10000 and 1 <= height <= 10000):
         raise ValueError("PNG dimensions out of bounds")
     return width, height
 
@@ -118,6 +118,8 @@ def preview(source: Path, destination: Path, max_width: int = 960, max_height: i
         raise ValueError("unsafe source/destination")
     payload = source.read_bytes()
     width, height = dimensions(payload)
+    if width < 100 or height < 100 or width * height > 20_000_000:
+        raise ValueError("source reference dimensions out of supported bounds")
     pos = 8
     compressed = []
     palette = transparency = None

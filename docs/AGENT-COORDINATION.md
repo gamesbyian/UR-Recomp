@@ -6,7 +6,7 @@
 
 Agent 1 starts at :00, 2 at :12, 3 at :24, 4 at :36, 5 at :48, hourly in America/Edmonton. These are staggered starts, not execution-duration caps. As of the October 26 2026 scheduler readback **all five were enabled and their prompts had been updated to the generic shared-pool contract**; preserve the installed staggered starts and validate live task state separately from this offline document. The `tools/agent_control.py --check` offline validator verifies the board minute contract and shared selection shape; it **cannot read the live scheduler**. A schedule check must explicitly inspect the actual five installed automations. No arbitrary change to minutes is required by this refactor.
 
-## Cohort-first dispatch experiment (2026-10-27)
+**Remote tool routing:** Apply [the shared PC/GitHub efficiency contract](AGENT-REMOTE-EXECUTION-EFFICIENCY.md). In particular, a Git DNS failure in one executor should trigger a supported GitHub connector/local/CI fallback and an actionable work selection, not five identical failed onboarding reports. Avoid PC tool calls for routine GitHub reads and poll loops, without withholding Windows evidence when truly required.\n\n## Cohort-first dispatch experiment (2026-10-27)
 
 The offline `python3 tools/agent_control.py --agent N` command now reports **the same top-five eligible job census** for every worker, plus a distinct, UTC-day-rotating **first choice** for each agent. This is a low-risk anti-herding experiment, not permanent agent specialties or a scheduler with source-lock authority. Examples:
 

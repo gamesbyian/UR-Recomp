@@ -82,3 +82,7 @@ outer SHA256/size to precisely one GitHub artifact, while retaining
 distinct Actions head, build-checkout claim, executable digest and private
 ZIP claim. Synthetic PR merge evidence is not exact PR-head/main executable
 evidence, and no QA gate is awarded.
+
+## Portable development Skills (advisory)
+
+Use [local Skills architecture](skills/CAPABILITY-ARCHITECTURE.md) to choose a single task-matched procedure for substantial research, planning, engineering judgment, conceptual modelling or documentation reconciliation. The complete pinned package is in `skills/` ([source revision](skills/VENDOR-SOURCE.md)); [Operational Documentation Integrity](skills/references/operational-documentation-integrity.md) keeps current plans, queues, onboarding and handoffs instructive while preserving important history separately. The project's existing gameplay, ROM, licensing, build, CI, agent coordination, and release-acceptance instructions remain authoritative. Do not apply the Android specialist procedure to unrelated desktop game work or mandate a full Skills pass for a routine fix.

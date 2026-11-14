@@ -143,7 +143,7 @@ class OwnerCommentDispatchTests(unittest.TestCase):
         self.assertIn("actions: write", wf)
         science = Path(".github/workflows/owner-hp-seeded-2p-research.yml").read_text()
         self.assertIn("  workflow_dispatch:", science)
-        self.assertIn("  schedule:", science)
+        self.assertNotIn("  schedule:", science)
         self.assertIn("github.ref == 'refs/heads/main'", science)
         self.assertIn("run_on_hp: true", science)
         self.assertIn("hp_seeded_2p: true", science)

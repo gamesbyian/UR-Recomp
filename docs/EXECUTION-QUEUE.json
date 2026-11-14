@@ -51,9 +51,10 @@
       "owner": "UR Windows Delivery",
       "execution_location": "GitHub Actions Windows acceptance and independent artifact verifier",
       "experiment_kind": "existing_gate_specific_runner",
-      "next_action": "Compare all twelve gates to current main implementation and real receipts, identify shortest true remaining discriminator (check QA-02 original NTFS recovery first), run targeted exact candidate test, then hand evidence to an independent reviewer.",
+      "next_action": "Execute nearest independently achievable QA-02/QA-12 L4 discriminator on a nominated exact-source Windows candidate. Existing real Win32 source-bound NTFS artifacts from run 43533114491: full-volume before/two-cold-boots artifact 14088614910 and post-raw typed-recovery artifact 14088694680 (actual VHDX NTFS and Win32 112). Rehash their original binary snapshots; then determine which QA-02 C04 torn/power-loss, C17 migration and actual packaged application journeys remain, and run the hosted executable ones. A physical electrical power cut stays an explicitly external question; switch to independently executable QA-12 provenance proof when unable to perform it. Do not award a gate for a Win32 filler unit test or isolated fixture.",
       "completion_condition": "At least one QA-01..QA-12 gate independently judged fully passed on exact nominated Windows candidate; only then ledger count increases.",
-      "on_blocker": "Name precisely missing positive/negative evidence, executable test, expected result and owner; do another gate while waiting."
+      "on_blocker": "Name precisely missing positive/negative evidence, executable test, expected result and owner; do another gate while waiting.",
+      "evidence_observation": "Independent original-archive inspection of run 43533114491 shows actual NTFS VHDX exhaustion, original CMD exit8, postraw recovery intent, two cold Windows boots, exact source-member SHA receipts; electrical power cut or human physical packaged recovery not observed. QA-02 still lacks complete L4 witness. ZIP candidate and binding exact SHA/PE verified; this is evidence towards QA-12, not acceptance."
     }
   ]
 }

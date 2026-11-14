@@ -44,8 +44,8 @@ class QA01NativeCompileCacheContract(unittest.TestCase):
 
     def test_cache_save_is_optional_and_cannot_replace_rehash(self):
         text = self.workflow
-        self.assertIn("uses: actions/cache/restore@v4", text)
-        self.assertIn("uses: actions/cache/save@v4", text)
+        self.assertRegex(text, r"uses: actions/cache/restore@[0-9a-f]{40}")
+        self.assertRegex(text, r"uses: actions/cache/save@[0-9a-f]{40}")
         self.assertRegex(text, r"(?s)name: Restore QA01 native compile cache.*?continue-on-error: true")
         self.assertRegex(text, r"(?s)name: Save reusable QA01 native compile cache.*?continue-on-error: true")
         self.assertRegex(text, r"(?s)name: Save reusable QA01 native compile cache.*?if: success\(\)")

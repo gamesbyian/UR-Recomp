@@ -119,7 +119,7 @@ class RF094DSPSource(unittest.TestCase):
         block = flow.split(
             "      - name: Always retain per-case receipt and bounded diagnostic logs\n", 1
         )[1].split("\n  aggregate:", 1)[0]
-        self.assertIn("uses: actions/upload-artifact@v4", block)
+        self.assertRegex(block, r"uses: actions/upload-artifact@[0-9a-f]{40}")
         for suffix in (
             "qa01-rf094-spc-dsp-followthrough.json",
             "work/${{ matrix.case }}/replay/reference.log",

@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Does press right 0, 1, or 2 between consecutive dumps advance original Snes9x by one, two, or another number of actual emulator frames? Inspect info.json frame indices and OAM.",
+  "expected": "Source-bound original-USA frame-index differences at each duration, or exact producer failure and logs; no course acceptance.",
+  "owner": "fidelity",
+  "attempt": 1
+}

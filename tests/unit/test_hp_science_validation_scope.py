@@ -98,7 +98,7 @@ class HpScienceValidationScopeTests(unittest.TestCase):
         for token in (
             "github.repository == 'gamesbyian/UR-Recomp'",
             "github.ref == 'refs/heads/main'",
-            "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'",
+            "github.event_name == 'workflow_dispatch'",
             "run_on_hp: true",
             "hp_seeded_2p: true",
             "hp_ninja_auto: true",

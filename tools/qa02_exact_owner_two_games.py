@@ -18,7 +18,8 @@ import time
 from baldosa_windows_native_pause_route import (
     USA_SHA256, run_route, verify_named_profile_boot_bytes,
 )
-from qa02_exact_owner_win32_seam import extract_original
+from qa02_exact_owner_win32_seam import extract_original, extract_source_bound
+from qa02_candidate_identity import CandidateIdentity
 from qa02_exact_owner_two_process_selector import decode_host_profile_stock_sram
 from verify_retained_owner_playtest import SOURCE_COMMIT, CANDIDATE_SHA256, EXE_SHA256
 
@@ -129,15 +130,24 @@ def main() -> int:
     p = argparse.ArgumentParser()
     for arg in ("retained", "rom", "script", "fixture", "out"):
         p.add_argument("--" + arg, type=Path, required=True)
+    p.add_argument("--candidate-zip", type=Path)
+    p.add_argument("--candidate-receipt", type=Path)
     a = p.parse_args()
+    if (a.candidate_zip is None) != (a.candidate_receipt is None):
+        p.error("--candidate-zip and --candidate-receipt must be supplied together")
     for key in ("retained", "rom", "script", "fixture"):
         setattr(a, key, getattr(a, key).resolve(strict=True))
     a.out = a.out.resolve()
     if a.out.exists() or digest(a.rom.read_bytes()) != USA_SHA256:
         raise ValueError("reused root or incorrect source USA ROM")
     a.out.mkdir(parents=True)
-    exe = extract_original(a.retained, a.out)
-    if digest(exe.read_bytes()) != EXE_SHA256:
+    identity = (CandidateIdentity.from_receipt(a.candidate_receipt.resolve(strict=True))
+                if a.candidate_receipt else None)
+    exe = (extract_source_bound(a.candidate_zip.resolve(strict=True), a.out,
+                                a.candidate_receipt.resolve(strict=True))
+           if identity else extract_original(a.retained, a.out))
+    expected_exe = identity.exe_sha256 if identity else EXE_SHA256
+    if digest(exe.read_bytes()) != expected_exe:
         raise ValueError("not unchanged original nominated Windows executable")
     baseline = a.out / "baseline"
     baseline.mkdir()
@@ -228,9 +238,9 @@ def main() -> int:
         raise ValueError("invented earned result on Pause/Quit")
     report = {
         "schema": "qa02-exact-owner-two-running-win32-games/1",
-        "candidate_source": SOURCE_COMMIT,
-        "candidate_zip_sha256": CANDIDATE_SHA256,
-        "candidate_exe_sha256": EXE_SHA256,
+        "candidate_source": identity.source_sha if identity else SOURCE_COMMIT,
+        "candidate_zip_sha256": identity.zip_sha256 if identity else CANDIDATE_SHA256,
+        "candidate_exe_sha256": expected_exe,
         "reference_rom_sha256": digest(a.rom.read_bytes()),
         "original_route_sha256": digest(a.script.read_bytes()),
         "qa_fixture_sha256": digest(a.fixture.read_bytes()),
@@ -248,7 +258,7 @@ def main() -> int:
     (evidence / "qa02-two-original-game-report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print("QA02_TWO_ORIGINAL_WIN32_GAMES " + json.dumps({
-        "exe": EXE_SHA256, "guest_bytes_changed": comparison["raw_changed_bytes"],
+        "exe": expected_exe, "guest_bytes_changed": comparison["raw_changed_bytes"],
         "stale_A_preserved": True, "cold_C": True, "gate_credit": 0}))
     return 0
 

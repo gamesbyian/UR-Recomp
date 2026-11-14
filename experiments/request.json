@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "windows_candidate",
+  "question": "Does the exact independent QA-02 reader pass on newly produced native Win32 journaled fault snapshots from current main after PR 3360, alongside controller, persistence and multiplayer journeys?",
+  "expected": "Produce fresh ROM-free source-bound Windows x64 ZIP, genuine hosted Win32 journeys, and an executed independent QA-02 journal reader result; retain precise failures and artifacts for repair.",
+  "owner": "windows",
+  "attempt": 1
+}

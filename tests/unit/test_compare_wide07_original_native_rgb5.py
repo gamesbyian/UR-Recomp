@@ -130,5 +130,59 @@ class Wide07OriginalNativeTests(unittest.TestCase):
                 cmp.analyze(original,native)
 
 
+    def test_full_memory_comparison_recovers_real_value_correspondence(self):
+        tag = "ws-product-race"
+        original = {}
+        native = {}
+        for ext, size in cmp.MEMORY_COMPONENT_SIZES.items():
+            old = bytearray(size)
+            fixed = bytearray(size)
+            wide = bytearray(size)
+            if ext == "wram.bin":
+                old[0xC6] = 29
+                fixed[0xC6] = wide[0xC6] = 5
+                old[0x1CF] = 0
+                fixed[0x1CF] = wide[0x1CF] = 14
+            if ext == "sram.bin":
+                old[0xF31] = 29
+                fixed[0xF31] = wide[0xF31] = 5
+                old[0x10A7] = 7
+                fixed[0x10A7] = wide[0x10A7] = 9
+            original["evidence/frames/" + tag + "." + ext] = bytes(old)
+            native["evidence/original/" + tag + "." + ext] = bytes(fixed)
+            native["evidence/16x9/" + tag + "." + ext] = bytes(wide)
+        original_observation = {"checkpoints": {tag: {
+            "wram_sha256": cmp.sha(original["evidence/frames/" + tag + ".wram.bin"]),
+            "sram_sha256": cmp.sha(original["evidence/frames/" + tag + ".sram.bin"]),
+        }}}
+        native_observation = {"result": {tag: {"producer": {
+            view: {"wram_sha256": cmp.sha(native["evidence/" + view + "/" + tag + ".wram.bin"])}
+            for view in ("original", "16x9")
+        }}}}
+        report = cmp.compare_memory(
+            tag, original, native, original_observation, native_observation)
+        self.assertEqual(report["wram.bin"]["original_native_differing_bytes"], 2)
+        self.assertEqual(report["sram.bin"]["original_native_differing_bytes"], 2)
+        for ext in cmp.MEMORY_COMPONENT_SIZES:
+            self.assertEqual(report[ext]["native_fixed_wide_differing_bytes"], 0)
+        self.assertEqual(report["observed_plus_0x0e6b_wram_sram_correspondence"], [
+            {"wram_offset": 0xC6, "sram_offset": 0xF31}])
+        self.assertFalse(report["wram_sram_mirroring_causally_proven"])
+        # An orphan WRAM mismatch is not silently recategorized as a mirror.
+        native["evidence/original/" + tag + ".wram.bin"] = b"\0"
+        with self.assertRaisesRegex(ValueError, "size"):
+            cmp.compare_memory(
+                tag, original, native, original_observation, native_observation)
+
+    def test_reject_missing_native_guest_memory_in_strict_mode(self):
+        with tempfile.TemporaryDirectory() as d:
+            original = Path(d) / "old.zip"
+            native = Path(d) / "new.zip"
+            fixtures(original, native)
+            with self.assertRaisesRegex(ValueError, "Required native guest memory"):
+                cmp.analyze(original, native, require_memory=True)
+
+
+
 if __name__ == "__main__":
     unittest.main()

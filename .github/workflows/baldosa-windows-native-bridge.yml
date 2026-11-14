@@ -1372,6 +1372,49 @@ jobs:
             --revision "$GITHUB_SHA" \
             --out "$RUNNER_TEMP/baldosa-candidate-binding/candidate-binding.json" | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # Execute an actual same-profile A/B/C overlap against the exact candidate
+      # assembled and hash-bound in THIS job. Historical owner probes above stay
+      # immutable and branch-scoped. Evidence is retained even on failure.
+      - name: QA-02 source-bound candidate two-game overlap
+        if: ${{ inputs.export_campaign_inputs == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          binding = json.loads((Path(os.environ["RUNNER_TEMP"]) / "baldosa-candidate-binding/candidate-binding.json").read_text())
+          if binding["source_revision"] != os.environ["GITHUB_SHA"]:
+              raise ValueError("candidate source differs from workflow checkout")
+          receipt = {
+              "source_sha": binding["source_revision"],
+              "zip_sha256": binding["zip_sha256"],
+              "exe_sha256": binding["journey_and_packaged_executable_sha256"],
+          }
+          path = Path(os.environ["RUNNER_TEMP"]) / "qa02-current-candidate-identity.json"
+          path.write_text(json.dumps(receipt, sort_keys=True) + "\\n")
+          PY
+          python tools/qa02_exact_owner_two_games.py \
+            --retained "$RUNNER_TEMP/qa02-two-original-games-retained" \
+            --candidate-zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --candidate-receipt "$RUNNER_TEMP/qa02-current-candidate-identity.json" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-current-two-games"
+
+      - name: Retain QA-02 exact-candidate A/B/C evidence on failure
+        if: ${{ always() && inputs.export_campaign_inputs == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-current-candidate-two-game-evidence
+          path: |
+            ${{ runner.temp }}/qa02-current-candidate-identity.json
+            ${{ runner.temp }}/qa02-current-two-games/two_games/evidence/
+            ${{ runner.temp }}/qa02-current-two-games/two_games/*.json
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Prove extracted CMD launcher, ROM gates and isolated user SRAM
         run: |
           set -euo pipefail

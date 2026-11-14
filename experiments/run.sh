@@ -11,7 +11,7 @@ import sys
 src=Path(sys.argv[1]).read_text()
 needle='press right 900\ndump ws-product-after-scroll'
 assert src.count(needle)==1, 'input route changed'
-new='press right 300\ndump ws-product-motion-300\npress right 1\ndump ws-product-motion-301\npress right 148\ndump ws-product-motion-450\npress right 2\ndump ws-product-motion-451\npress right 148\ndump ws-product-motion-600\npress right 1\ndump ws-product-motion-601\npress right 149\ndump ws-product-motion-750\npress right 1\ndump ws-product-motion-751\npress right 149\ndump ws-product-after-scroll'
+new='press right 300\ndump ws-product-motion-300\npress right 1\ndump ws-product-motion-301\npress right 149\ndump ws-product-motion-450\npress right 1\ndump ws-product-motion-451\npress right 149\ndump ws-product-motion-600\npress right 1\ndump ws-product-motion-601\npress right 149\ndump ws-product-motion-750\npress right 1\ndump ws-product-motion-751\npress right 149\ndump ws-product-after-scroll'
 Path(sys.argv[2]).write_text(src.replace(needle,new))
 PY
 python3 tools/verify_rom.py "$ROM" >"$OUT/rom-identity.txt"

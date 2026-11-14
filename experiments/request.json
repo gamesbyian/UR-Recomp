@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "At the same genuine USA guest frames 1045 and 1946, does the native 342x224 widened moving-course raster preserve every pixel of the 256x224 fixed centre?",
-  "expected": "Build one source-exact native game, replay fixed and wide from matching saves, compare exact 57344-pixel center twice and report first differences or equal bytes.",
+  "question": "Do identical original-view and 342-wide native USA moving-course runs preserve full 128-KiB guest WRAM, and can their frame-origin records be compared with real Snes9x checkpoints?",
+  "expected": "Preserve real native fixed/wide source-frame WRAM, SRAM, info and framebuffer bytes for menu, race and after-scroll; compute exact paired differences or isolate why the renderer fails to emit full guest state.",
   "owner": "fidelity",
-  "attempt": 3
+  "attempt": 4
 }

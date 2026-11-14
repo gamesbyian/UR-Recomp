@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "qa01_rf095_pcm",
+  "question": "Do actual original/native DSP stereo output samples agree at the USA Zoo result and Bowl transition?",
+  "expected": "Capture both exact frame-bound stereo sample streams with provenance or isolate the first producer failure.",
+  "owner": "fidelity",
+  "attempt": 1
+}

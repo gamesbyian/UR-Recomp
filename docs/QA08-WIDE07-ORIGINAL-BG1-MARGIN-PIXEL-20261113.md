@@ -1,10 +1,13 @@
-# WIDE-07 original-USA-derived BG1 pixel oracle (2026-11-13)
+# WIDE-07 original-USA-derived complete BG1/BG2 margin raster (2026-11-13)
 
-**Result:** 2,403/2,403 native 342-wide opaque BG1 margin pixels match an
-independently decoded **original-USA Snes9x course-RAM, VRAM, CGRAM and PPU**
-prediction in RGB5. This is first bounded offscreen **pixel** evidence, beyond
-the earlier 160/160 original-source course tile-word crosswalk. It is not full
-widescreen qualification, a full USA course, or a Windows release gate.
+**Result:** **38,528/38,528** native 342-wide margin pixels match a
+source-only, independently decoded **original-USA Snes9x BG1/BG2 course-RAM,
+VRAM, CGRAM and PPU raster prediction** in RGB5. This covers every pixel in
+both 43-pixel margins for two real source checkpoints (race entry and after
+900 input frames). It supersedes the initial BG1-only 2,403-pixel comparison
+and the earlier 160/160 source tile-word crosswalk; it does **not** establish
+a physical original-SNES 342-wide output, a complete game course, complete
+WIDE-07 qualification or a Windows release gate.
 
 ## Actual executed producers
 
@@ -35,25 +38,30 @@ camera and original BG1 scroll. The actual source PPU write journal confirms
 no BG1 scroll/character-map register changes over visible scanlines 1..224
 for either captured frame.
 
-The source original VRAM character graphics are decoded as SNES Mode-1 BG1
-planar 4bpp, 16x16 cells, including tile flips and per-tile palette indices.
-The original CGRAM words produce RGB5. Only **opaque BG1** samples are
-compared, because palette index zero delegates visibility to BG2/OBJ and
-colour composition, which this oracle does not implement. Original
-256-wide central pixels are an independent raster sanity check; the native
-margin BMP is read only after all source-only alignment is fixed.
+The original VRAM character graphics are independently decoded as SNES Mode-1
+**BG1 16x16 planar 4bpp**, with tile flips, and original CGRAM produces RGB5.
+At BG1 palette-index-zero pixels, the source-only decoder then reconstructs
+**BG2 8x8 4bpp**, including its 64x64 VRAM tilemap quadrant layout,
+per-scanline-constant source PPU scroll, character base, tile flips and CGRAM
+palette. BG2 has 100% opaque coverage of all BG1-transparent sampled margin
+pixels at these two checkpoints. The original 256-wide centre is a separate
+sanity check, complicated by source original OBJ/blue-arrow overlays. Neither
+native margin colour nor native tilemap is used to calibrate source pixel
+positions. Both BG1 and BG2 horizontal/vertical source PPU scroll/map write
+journals have no visible V1..224 mutations for these checkpoints.
 
-| Actual checkpoint | Left 43px, opaque BG1 | Right 43px, opaque BG1 | Original-centre BG1 |
+| Actual checkpoint | BG1 opaque margins | BG2 fills BG1-transparent | Complete margins |
 |---|---:|---:|---:|
-| Race entry | 554/554 | 645/645 | 3,153/3,736 |
-| After 900 right-held frames | 602/602 | 602/602 | 3,584/3,584 |
-| **Margins total** | **1,156/1,156** | **1,247/1,247** | N/A |
+| Race entry | 1,199 / 1,199 | 18,065 / 18,065 | **19,264 / 19,264** |
+| After 900 movement frames | 1,204 / 1,204 | 18,060 / 18,060 | **19,264 / 19,264** |
+| **Both checkpoints** | **2,403 / 2,403** | **36,125 / 36,125** | **38,528 / 38,528** |
 
-The 583 original-centre BG1 mismatches at race entry are not omitted from
-the report. The original/native framebuffer investigation already localized
-the transient race-entry *blue directional arrow* overlay to a 1-pixel
-boundary/phase difference. BG1 alone cannot be assumed to own those
-occluded pixels; center differences require separate layer/OBJ accounting.
+The original centre remains in the machine-readable report, including all
+predicted-versus-observed differences; it is affected by OBJ, blue-arrow
+rendering and other source overlay/priority decisions. Its transient
+race-entry one-pixel blue arrow remains a separate timing/composition task.
+Zero **offscreen margin** RGB5 mismatches does not establish absence of
+offscreen OBJ/colour-math effects at other scene times or different courses.
 
 ## Reproduce from retained genuine artifacts
 
@@ -68,25 +76,29 @@ python3 tools/wide07_original_margin_bg1.py \
 The report includes per-checkpoint source SHA, producer-archive SHA, source
 WRAM/VRAM/CGRAM hashes, original-only world alignment, eligible pixel
 denominators, actual RGB5 mismatches and explicit zero qualification credit.
-Tests reject ambiguous source-only alignments, visible-scanline BG1 register
-changes and incorrect 4bpp palette/flip handling. Any margin pixel
+Tests reject ambiguous source-only alignments, visible-scanline BG1/BG2
+register changes, incorrect 4bpp palette/flip handling, wrong VRAM quadrant
+addressing, and any unaccounted margin pixel. Any source-derived margin pixel
 disagreement becomes a coordinate-level, source-bound failure.
 
 ## What is still missing
 
-The 2,403 samples are all opaque BG1 pixels at **two checkpoints**. Actual
-transparent-BG1 margin output depends on BG2, OBJ, window/HDMA colour math,
-sprite overlay and priority rules, which remain unqualified. The source's
-256-wide emulator did not literally rasterize the offscreen area. Absolute
+All 38,528 margin pixels are source-derived BG1/BG2 RGB5 matches at **two
+checkpoints**, and source BG2 covers every source-BG1-transparent margin pixel.
+Potential OBJ, window/HDMA colour-math, sprite priority and moving-frame
+changes outside these captures remain unqualified. The original 256-wide
+emulator did not literally rasterize 342 pixels, so this is a source-derived
+counterfactual, not a second physical wide-renderer observation. Absolute
 original/native guest-frame timing is not registered. The transient entry
-arrow remains unresolved, and this observation cannot certify the remaining
-43+ courses or Windows visual acceptance.
+arrow remains unresolved. Two original-derived frame predictions cannot
+certify the remaining course journey or Windows visual acceptance.
 
-**Next executable discriminator:** extend the same source-only oracle to
-original-derived BG2, OBJ and per-scanline window/colour composition in the
-*same* two already retained archives. Before adding another instrumented
-capture, check whether the original PPU journal, OAM, VRAM and CGRAM contain
-all required inputs. If a first margin pixel differs, isolate the earliest
-source layer/palette/priority discrepancy and repair the actual renderer.
+**Next executable discriminator:** determine why the original/native
+race-entry blue arrow differs by one pixel despite after-scroll exact
+centre RGB5 agreement. Register its original PPU/OBJ raster phase with
+native guest/display clocks using actual PPU journals. Then extend the
+source-derived full-margin oracle from two frames into independently chosen
+moving camera checkpoints, including an overlap or sprite/HDMA colour-effect
+case, and rerun without reusing native colour to select source alignment.
 In parallel finish the independently executable RF095 audio-onset and
 complete-event criteria. Formal counters remain **0/45 and 0/12**.

@@ -1,90 +1,95 @@
-# UR-Recomp: agent guide
+# UR-Recomp agent operating contract
 
-**Active execution model (2026-11-13):** The owner replaced the five-agent ranked-pool dispatch model with two hourly **execution** workstreams (Fidelity and Windows) and an on-demand verifier. Start with [execution-first rules](docs/EXECUTION-FIRST-OPERATING-MODEL.md) and the short [executable queue](docs/EXECUTION-QUEUE.json), then inspect fresh `main`, active branches, actual Actions runs and exact evidence. Existing `docs/WORK-QUEUE.md`, `docs/HOURLY-AGENT-LINES.md`, the five-generalist instructions below and historical CI/HP plans are superseded for scheduling and priority; retain them as research context, not current instructions. Prefer real hosted experiments and automatic blocker removal over another board audit. An unresolved genuine physical/authority dependency does not block independent hosted engineering. No course or gate credit without independent acceptance.
+**Owner direction, November 13, 2026:** the project operates as **two execution
+workstreams** with a verifier on demand, not five board-checking generalists.
+The sole operating authority for scheduling and next jobs is
+[the execution-first model](docs/EXECUTION-FIRST-OPERATING-MODEL.md) together
+with [the executable queue](docs/EXECUTION-QUEUE.json). Read fresh GitHub
+`main`, current Actions/PRs and actual evidence before deciding an action.
+Do not spend a run rediscovering historical blockers or rewriting the board.
 
-**Goal:** deliver a fully playable, faithful Uniracers remaster, with usable modern menus, complete controller journeys and reliable records/profiles. The immediate critical path is the **private Windows x64 release**, independently qualified against original/native behavior, exact packaged builds and release QA. The repository itself is public. The owner accepts ROM and ROM-derived research discoverability risks and prioritizes swift reproducible development; see [owner direction](docs/OWNER-ROM-RESEARCH-RISK-PRIORITY.md). Acceptance of risk does not itself grant redistribution rights or waive explicit legal/platform restrictions.
+## Required outcome of every run
 
-**Owner research-access priority (2026-10-26):** The owner explicitly accepts the risks of ROM and ROM-derived materials being discoverable through the public repository and prioritizes fast, open, reproducible development over secrecy-driven friction. Apply [owner risk and research-access direction](docs/OWNER-ROM-RESEARCH-RISK-PRIORITY.md). This does not grant redistribution rights, authorize circumvention of platform refusals, or weaken credential/data/CI integrity controls.
+Advance **Fidelity** (first fully accepted original-USA course; 0/45) or
+**Windows** (first independently accepted exact-candidate release-quality gate;
+0/12), prioritizing an actual game experiment, executable repair, source-bound
+player journey or independently testable missing witness. Verifier is on
+demand, not an hourly third auditor. Never award acceptance based solely on
+a CI green, a test of a harness, similar waveforms, provisional process
+evidence or a self-approval under a shared GitHub identity.
 
-This is the **small orientation and enduring contract**, not a progress diary. The [November 4 collective qualification / compute implementation plan](docs/CI-COLLECTIVE-QUALIFICATION-INFRASTRUCTURE-PLAN-20261104.md) coordinates CI, HP, scheduled agents and shared-build proposals, but does **not** supersede the live queue, project spec, CI policy or release ledger. The [live work queue](docs/WORK-QUEUE.md) owns priority, the [durable project plan](docs/PROJECT-PLAN.md) owns product intent, the [document map](docs/README.md) owns reference routing and [release quality ledger](docs/RELEASE-QUALITY-LEDGER.json) alone owns acceptance. For a compact, non-authoritative 12-gate review packet at a specific checked-out commit, use `python3 tools/release_evidence_brief.py --source-sha $(git rev-parse HEAD)`; see [its limits](docs/RELEASE-EVIDENCE-BRIEF.md). Read current source, PRs and recent merged evidence before trusting a dated description. An unclosed test, ongoing research or tool prototype does not grant a release gate.
+**A missing executable dependency is an engineering task.** If the emulator,
+library, runner, script, sample or build is unavailable, install/build/repair
+the needed hosted execution route and retry. The standing nonprivileged
+`.github/workflows/agent-bounded-experiments.yml` executes source-controlled
+`experiments/request.json` on `experiments/*` branches. New bounded Linux
+experiments use `kind=script_linux` and `experiments/run.sh`; specialized
+original/native and Windows profiles are also available. No new PR, workflow
+or owner intervention per experiment retry. The owner's physical HP PC and
+Desktop Commander are not ordinary CI compute; do not use either to avoid
+normal hosted development.
 
-**Tool routing and remote-call efficiency:** [shared-agent remote execution policy](docs/AGENT-REMOTE-EXECUTION-EFFICIENCY.md) favors native GitHub operations and bounded, evidence-bearing PC jobs over repeated remote terminal launches and output polling. It does not weaken Windows access, source checks or release gates.\n\nFor either scheduled execution stream, inspect `docs/EXECUTION-QUEUE.json` and the exact current experiment run before new work. `tools/agent_control.py` and `docs/AGENT-COORDINATION.md` are retained for historical context; neither is an active dispatch gate. Use `.github/workflows/agent-bounded-experiments.yml` on `experiments/*` for hosted retries without a new bespoke workflow.
+On a genuinely external dependency, write the **exact source SHA, owning
+workstream, attempted commands and GHA run/artifact, observed failure,
+blocker owner, next executable command/location, prerequisite and
+observable completion condition**. Then work the next independent task.
+Repeated identical blockers without an attempted fix are failure of the
+development operation.
 
-For live, read-only GitHub PR/head/CI collision, evidence-reuse and measured-runtime preflight, use python3 tools/agent_release_control.py --live --lane release-qa --gate QA-04 (GitHub read token); see docs/AGENT-RELEASE-CONTROL-PREFLIGHT.md. Results are advisory and never replace the owning board or ledger. For a source-matched artifact-expiry decision, create metadata-only JSON with `tools/artifact_retention_preflight.py --live-run-id RUN_ID --expected-sha EXACT_HEAD --json-out FILE` and pass `--artifact-availability FILE` to the live preflight; reported availability is not independently audited bytes.
+## Current known positive executable evidence
 
-**November 6 progress measurement pilot:** [per-task measurement guide](docs/progress/daily/README.md) and `python3 tools/daily_measurement.py --format markdown` are now available. For substantive player-facing source changes or material research findings, record the bounded effect in the **existing PR/issue handoff** and, if it matches a registered milestone, bundle a small source-linked `docs/progress/daily/entries/*.json` event with the current work. For all work, state the affected criterion or `none`, remaining discriminator, and whether remaining relative effort changed or was not measured. Never grant a release gate, owner art approval, or original USA event by such a record; avoid new CI or extra PRs solely for bookkeeping. The two execution workstreams record results incidentally in their actual engineering PRs; do not dispatch a separate bookkeeping lane.
+- Real source-bound Zoo original/native RF095 PCM: GHA
+  [43532930092](https://github.com/gamesbyian/UR-Recomp/actions/runs/43532930092).
+  Strong aligned waveform correlation is not yet audio parity.
+- Real original Snes9x and native WIDE-07 experiments: GHA
+  [43539425650](https://github.com/gamesbyian/UR-Recomp/actions/runs/43539425650)
+  and [43540488054](https://github.com/gamesbyian/UR-Recomp/actions/runs/43540488054).
+  Merged [#3359](https://github.com/gamesbyian/UR-Recomp/pull/3359) reconstructs
+  both BG1/BG2 layers from original source and finds all **38,528/38,528**
+  widened margin RGB5 pixels match at two authentic checkpoints. The
+  transient blue arrow, additional moving frames and whole-course acceptance
+  remain open.
+- Fresh ROM-free Windows x64 candidate with hosted player journeys and real
+  Win32 NTFS evidence: GHA
+  [43545814590](https://github.com/gamesbyian/UR-Recomp/actions/runs/43545814590).
+  This is an experiment-branch source with only the experiment request added,
+  **not** an independently accepted exact-main physical release.
 
-**Fast per-task measurement authoring:** use `python3 tools/record_agent_measurement.py --help` for validated no-overwrite receipt creation inside the existing feature PR, then `python3 tools/daily_measurement.py --format markdown` to see provisional coverage and remaining effort. The [daily operator guide](docs/progress/daily/README.md) includes an exact command pattern. The milestone list has expanded to ten active criteria; evidence must support an observable deliverable, never a presumed release gate.
+**Do not re-run these identical experiments** without a new falsifiable
+question or materially different source. Take the next discriminator from
+[the queue](docs/EXECUTION-QUEUE.json).
 
-## Dispatch and task routes
+## Ground rules and sources
 
-| Task | Start here |
-|---|---|
-| New agent / current release blocker | `docs/WORK-QUEUE.md`, current PRs, then the owning specialist and direct code. For relevant specialist context: `python3 tools/build_agent_context.py <lane>`; for one source-bound actionable gate handoff, use `python3 tools/agent_action_handoff.py <lane> --gate QA-XX` (read-only, explicit gate, no inferred ownership) |
-| Two scheduled execution streams and on-demand independent verification | `docs/EXECUTION-FIRST-OPERATING-MODEL.md`, `docs/EXECUTION-QUEUE.json`, current exact-source Actions/PR artifacts. Fidelity owns 0/45; Windows owns 0/12; shared tools and verification are reusable. Automatically clear blockers or advance another independent task |
-| Windows boot/build, exact package, native host | `docs/BRINGUP.md`, `docs/VALIDATION.md`, `docs/PLATFORM-TARGETS.md`, current workflow/host source |
-| Modern menus, controller, screen state and 2P | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, `analysis/ui-capture-manifest.json`, `docs/TWO-PLAYER-FIXTURE-PLAN.md` |
-| Original/native gameplay, fidelity, timing, QA | `docs/QA-BOUNDED-RELEASE-CAMPAIGN.md`, `docs/QA-PLAYER-JOURNEYS.md`, `docs/VALIDATION.md`, `docs/RELEASE-QUALITY-LEDGER.json` |
-| Baldosa/Modern adapter, records, profiles or migration | `docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md`, `docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md`, current adapters and tests |
-| Widescreen/presentation or racer art | `docs/WIDESCREEN.md`, `docs/HD-RACER-CHARACTER-RECONSTRUCTION.md`, `docs/HD-ART-DIRECTION.md`, `docs/DISPLAY-PRESENTATION-POLICY.md` |
-| Course formats, original/code archaeology, recovered symbols | `docs/COURSE-FORMAT.md`, `docs/RESEARCH-LEDGER.md`, `docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md`, `docs/SYMBOLS.md` as appropriate |
-| C guest/ABI, platform portability | `docs/RECOMP-C-PRACTICES.md`, `docs/VALIDATION.md`, `docs/PLATFORM-TARGETS.md` |
-| Tool choice, third-party research or source adoption | `docs/TOOLCHAIN.md`, `docs/TRUSTED-UPSTREAM-ADOPTION.md`, `docs/THIRD-PARTY-CODE-AUDIT.md`, `docs/EXTERNAL-EVIDENCE-INTAKE.md` |
-| CI/workflow efficiency, heavyweight analysis | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, `docs/VALIDATION.md` |
-| Vault recovery / stranded source / publication | `docs/recovery/RECOVERY-AGENT-DIRECT-INTAKE-HANDOFF.md`, `docs/recovery/RECURRING-VAULT-INTAKE.md`, `docs/recovery/SANDBOX-EVIDENCE-RECOVERY.md`, `docs/recovery/DIRECT-VAULT-INTAKE.md`, publication and preservation contracts |
-| Research method or orientation to a subsystem | `docs/knowledge/README.md`, `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`, then source/evidence |
-| Periodic repo hygiene, historical diary | `docs/PERIODIC-REPOSITORY-HYGIENE.md`; for diary specifically `prod_diary/README.md` and editorial guide |
+Build a faithful, enjoyable, eventually multiplayer Windows x64 remaster;
+portable builds should be ROM-free. A valid owner-supplied original USA ROM is
+necessary for genuine original/native differential observations. Source ROM
+risk policy: [owner direction](docs/OWNER-ROM-RESEARCH-RISK-PRIORITY.md).
+Owner willingness to tolerate discoverability never grants third-party
+redistribution rights, permission to leak secrets or bypass platform refusals.
+Hosted experiments run least privilege, ephemeral, with no repository-write
+credentials, owner's private machine or unbounded external access.
 
-**Cross-upstream accelerated qualification:** At current `UR-QA01-EVENT`/`UR-CPU-CAUSE`, WIDE-07, QA08, Windows display, UI navigation or Windows QA, use the [cross-upstream preflight on the single ranked board](docs/HOURLY-AGENT-LINES.md) before coding an equivalent method. Consult the three-project selector for Baldosa/Malmazuke/UR and separately redcomp-dream's pinned work; compare actual current UR source and PRs, transfer only compatible and rights-cleared elements, and prove any game-visible change on an exact USA original/native first difference. Malmazuke's PAL clock/map/captures do not establish USA acceptance. [Merged PR #3305](https://github.com/gamesbyian/UR-Recomp/pull/3305) supplies the pinned Baldosa/Malmazuke census and conditional delta procedure. Its single rank-9 intake row remains held until a material upstream delta warrants a source-specific owner action; donor research is not release acceptance. This is an instruction preflight, never a new agent or second queue.
+Game intent: [project plan](docs/PROJECT-PLAN.md).
+Acceptance: [release ledger](docs/RELEASE-QUALITY-LEDGER.json);
+specific original comparison: [QA01](docs/QA01-EVENT-CAMPAIGN.md);
+Windows build and release: [BRINGUP](docs/BRINGUP.md),
+[validation](docs/VALIDATION.md);
+graphics and widescreen: [WIDESCREEN](docs/WIDESCREEN.md).
+Other dated documentation, historical work board, five-agent schedules,
+CI optimization plans and legacy PRs are **reference material**, not
+execution policy. Use [doc map](docs/README.md) only for the needed subsystem.
 
-For **external reuse before substantial implementation**, run `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` for **Baldosa/Malmazuke/UR**, and also inspect the independently pinned [redcomp-dream findings](docs/REDCOMP-DREAM-INTAKE-PLAN.md) where they address a live source, widescreen, PPU, save or test question. The helper currently covers three projects only: do not treat it as an automated redcomp comparison. Route WIDE-07 directly through existing `UR-RELEASE-PROGRESS-20261026`; broader nonduplicative intake is ranked `UR-REDCOMP-INTAKE-20261109` ([issue #3310](https://github.com/gamesbyian/UR-Recomp/issues/3310)). Adapt original-observed mechanics, independent probes and negative results, **not** noncommercial-licensed implementation/asset bytes without a rights review. No extra recurring agent, secondary simulator, CI fanout or donor-authored release acceptance.
+Consult original executable evidence and directly useful pinned
+Baldosa/Malmazuke/redcomp-dream observations before implementing a duplicate
+tool, but transfer only rights-compatible verified behavior or methods.
+Human-made 3D racer modelling is currently paused pending collaborators;
+do not divert Fidelity or Windows execution sessions into speculative 3D.
 
-## Owner-aligned execution contract
-
-1. **Work ahead with real deliverables.** Start at fresh `main`, identify the earliest unresolved shipping dependency and work a bounded useful portion autonomously. Treat the prompt as a goal rather than an artificial file boundary; adjacent work is welcome when it materially closes the task. Do not create busywork or resurrect completed archaeology.
-2. **Two workstreams, real execution.** Fidelity advances genuine original/native USA event parity (0/45) and Windows advances player-ready x64 release quality (0/12), both with source-bound GHA experiments, not repeated five-item inspections. On every blocking dependency, attempt an executable removal first, then retry or move to another independent task; hand off the exact source SHA, run/command, location and observable next result. Only a genuinely independent verifier may judge release/event evidence and update acceptance; GitHub refuses self-approval under a shared account, and no agent-session label can change that. Preserve real GitHub protections and never claim self-review as external approval.
-3. **Keep the project executable.** Use existing build, QA, menu and guest abstraction seams; do not fork a competing modern frontend, records store, emulator or replay harness. Reuse one compiled candidate for equivalent tests; keep different evidence classes and platforms separately qualified.
-4. **Record truth with one owner.** The queue describes current work, the release ledger controls gate status, knowledge pages synthesize current understanding and dated evidence/report/diary captures history. Correct stale authorities instead of appending another competing status paragraph.
-5. **Publish GitHub-first.** Manually launched agents publish code/tests/evidence/progress to branch, PR, issue and owning docs; successful GitHub publication is a complete handoff, with **no routine Drive mirror**. Scheduled agents follow their separate recovery fallback contract. Keep coherent source/tests durable before risky publication, preserve failed operations, and do not disguise or repeatedly evade a safety refusal. The vault is a source of recoverable work, not a second project board.
-6. **Finish with verifiable facts.** Tests run and their actual outputs, commit/build identity, remaining failures, evidence provenance, release gates unchanged/changed and one executable next step belong in the PR/issue. A blocked lane gets an exact blocker and conditions for reopening. Merge through existing checks and branch protections when safe.
-7. **Reconcile PR families at each integration.** Before opening a branch, inspect live PRs for the same work ID, source files and parent stack; advance an existing candidate rather than forking duplicates. After any qualified merge or deliberate retirement, inspect related child/sibling PRs, preserve unique unmerged source and evidence with an exact head reference in an owning issue or dated archive, close verified superseded branches with explicit reasons, and update the ranked board only when selection changes. For an externally held draft, record its precise reopening trigger and avoid re-running expensive CI merely to keep it current. Do not treat reducing open-PR count as proof of progress, close unresolved security/permission refusals, bypass review requirements, or create a new standing housekeeping lane.
-
-## Faithfulness and evidence rules
-
-- Preserve genuine original **simulation semantics**, gameplay and player-visible behavior while modernizing presentation, controls and menus. 1P does not stand in for 2P. Widescreen is one feature; do not use 'widescreen/HD' as shorthand for the entire project.
-- Independent original ROM/hardware/emulator observation, recomp/native parity and a completed Windows package/controller/storage journey are **different proof classes**. A green build, smoke boot, stage exit, visual screenshot, WRAM similarity or previous-agent declaration never automatically accepts an authentic USA event or a release gate.
-- When fidelity differs, seek the **first causally meaningful divergence**. Inspect writers/state transitions and use the existing `snesref` differential route, traces, fixtures and controlled source builds. Stale WRAM bytes, free-running presentation counters, missing producer artifacts, harness timeouts and cancelled/obsolete CI runs should not be mislabeled as gameplay regressions.
-- **Owner fidelity rule:** exact internal emulator-state equality is an important *diagnostic*, not itself the definition of a faithful game. Proven causally unobservable differences may qualify as semantically equivalent only after independently reviewed source/guest read/write-consumer analysis and controlled downstream original/native tests across gameplay, audio/visuals, scoring, progression and saves. Never simply blanket-mask WRAM/APU/stack or let repaired/resynchronized diagnostic traces award event credit. The canonical decision procedure is in `docs/PROJECT-PLAN.md` and the independent QA01 acceptance document.
-- **Owner milestone rule:** individual real-hardware observations remain required wherever the beta criterion calls for them; the *three-dissimilar-environment including two physical PCs* composite is release-quality qualification, **not a beta completion prerequisite**. The frozen historical v2 score remains unmodified, including its legacy QA-09 release-signoff item; the [versioned beta-v3 scorecard](docs/progress/WINDOWS-BETA-V3-SCORECARD.md) now projects the frozen reviewed v2 evidence with QA-09 **only** excluded. Do not compare its changed denominator to historical v2 as engineering progress or assume it covers unreviewed current main. No automatic QA/FID/release credit.
-- Treat mechanical or reproducible evidence as the oracle when available. A decompiler, model explanation, external patch, generated illustration, imported script or agreement among agents is a hypothesis until qualified. The [research ledger](docs/RESEARCH-LEDGER.md) and [cross-project corroboration](docs/CROSS-PROJECT-BEHAVIOR-CORROBORATION.md) identify negative results and when claims may be reopened.
-- For visual art, respect the owner's rejection of procedurally enlarged character artwork lacking original title/packaging likeness. Old render hashes alone do **not** establish artistic approval. **Controlling owner pause (2026-11-09):** suspend new procedural 3D racer reconstruction, sculpting, rig fitting, animation/motion experiments, and GLB/model promotion while human-made sources are explored. Preserve the existing five-part candidate, GLBs, source, viewers, original-art comparisons, and recorded saddle/spoke/hub/collar findings as **unapproved historical references**, not instructions to resume 3D production. Only explicitly renewed owner direction or an actually submitted human-made model may reopen a narrowly scoped rights, provenance, and likeness review. Continue original/native gameplay, WIDE-07, Windows qualification, 2D lettering, and contributor recruitment. See `docs/HOURLY-AGENT-LINES.md` rank 6 for current priority and trigger.
-- Preserve provenance, exact input/source hashes and applicable rights/platform boundaries. ROM/ROM-derived discoverability is explicitly accepted by the owner and is not by itself a reason to conceal, redact, create artificial private handoffs or delay reproducible research. The owner claims no redistribution license, and explicit platform refusals must not be evaded. Protect secrets, executable/build integrity, user data and required release evidence.
-
-## Evidence economy and CI
-
-Before an experiment, define the decision, prior evidence/control, exact candidate/source/build, cheapest discriminator, expected outcomes, stopping rule and where the result will be recorded. Escalate from existing artifacts → bounded observation → targeted capture → first-divergence trace → independent-core/hardware only as consequence demands. Stop when more observation cannot change a gate, implementation decision or confidence class. After repeated uninformative attempts, consult other emulators, recompilation projects, tooling/source issues and retro-development literature, then report what new premise justifies another trial.
-
-Prefer the cheapest targeted local test, then the owning [validation strategy](docs/VALIDATION.md). `python3 tools/check_repo_hygiene.py` checks repository structure. Native guest/ABI work follows [portable C rules](docs/RECOMP-C-PRACTICES.md). For CI failures inspect the current head and **first failed step**, not cascading skips; producer failures are not scientific negatives.
-
-**Publish related files atomically.** A source change and its regression test should normally reach an open PR in one push, not one GitHub Contents API commit per file. When using remote GitHub tools, prepare related blobs and publish a single commit/tree update against the **observed branch head** with a non-forced ref update; on a non-fast-forward response, refetch and reconcile, never overwrite a colleague's branch. An intermediate push is warranted for a genuinely separate computational experiment or needed evidence, not merely because files were edited sequentially. Keep final-head CI and independent review unchanged.
-
-**Automatic workflows consume a budget.** Classify new workflows as durable PR validation, release regression, manual research, bounded diagnostics or obsolete experiments. Reuse shared builds and proven runner/toolchain paths. Avoid creating recurring CI for one-off research; retire temporary triggers after the question closes. Long evidence runs and Git-writing workflows must not be cancelled by frequent branch pushes; writers serialize with `cancel-in-progress: false` and do not force-push stale output. After workflow changes check trigger-policy tests, YAML and actual fan-out. See [CI workflow practices](docs/CI-WORKFLOW-BEST-PRACTICES.md).
-
-## Boundaries and specialized instructions
-
-Keep generated files and large imported research separate from hand-edited core code. The bonus emulator-assisted ROM hack, future decentralized P2P, extra platforms and promotional experiments do not silently become Windows release blockers. New platforms use host adapters rather than changes to authoritative game simulation. No proprietary SDKs, keys or confidential materials in source.
-
-The historical [pre-audit AGENTS snapshot](docs/archive/AGENTS-PRE-ROUTER-2026-10-22.md) preserves detailed old operational incidents and one-off rules for reference. It is **not another current work queue or override**. When a rare subsystem requires more detail, route to its named current owner above, confirm current source and avoid compulsory full-history reading.
-
-
-For an already downloaded public Windows smoke ZIP, optionally add
-`--romfree-archive PATH` alongside `--artifact-availability FILE`.
-This reuses the existing independent byte auditor and binds the actual
-outer SHA256/size to precisely one GitHub artifact, while retaining
-distinct Actions head, build-checkout claim, executable digest and private
-ZIP claim. Synthetic PR merge evidence is not exact PR-head/main executable
-evidence, and no QA gate is awarded.
-
-## Portable development Skills (advisory)
-
-Use [local Skills architecture](skills/CAPABILITY-ARCHITECTURE.md) to choose a single task-matched procedure for substantial research, planning, engineering judgment, conceptual modelling or documentation reconciliation. The complete pinned package is in `skills/` ([source revision](skills/VENDOR-SOURCE.md)); [Operational Documentation Integrity](skills/references/operational-documentation-integrity.md) keeps current plans, queues, onboarding and handoffs instructive while preserving important history separately. The project's existing gameplay, ROM, licensing, build, CI, agent coordination, and release-acceptance instructions remain authoritative. Do not apply the Android specialist procedure to unrelated desktop game work or mandate a full Skills pass for a routine fix.
+Make substantive fixes in the repo with source-bound tests and inspected
+Actions results. Prefer one coherent PR, integrate after relevant actual CI
+passes, update the active queue as soon as a discriminator changes, and
+publish a concise final handoff: code/evidence, actual observed behavior,
+accepted counters, one runnable next action, and whether your job is done
+or needs more work. Don't need repeated "go on" messages to resume an
+obvious executable job.

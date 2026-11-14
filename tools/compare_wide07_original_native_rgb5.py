@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import struct
 import zipfile
 from pathlib import Path
@@ -157,6 +158,106 @@ def compare_memory(tag: str, original: dict[str, bytes],
     return result
 
 
+
+MARGIN_TRACE_PATTERN = re.compile(
+    r"^URWS_SHADOW_EXT provider=course-runtime margin=48 "
+    r"column=([2-6]) camx=(\d+) edge=([0-9A-F]+) "
+    r"count=(\d+) payload=([0-9A-F]+) camy=(\d+) "
+    r"finex=(\d+) finey=(\d+)(?:\s.*)?$"
+)
+
+
+def source_course_tile(wram: bytes, cell_x: int, cell_y: int) -> int | None:
+    """Recover an original Snes9x bank-$7F course tile word, without native RAM.
+
+    The original game stores coarse 64-pixel sectors and fine 16-pixel tile
+    records in bank $7F. This is the documented source table format, not a
+    rendering oracle or proof that a word was presented on a screen.
+    """
+    if len(wram) != 131072:
+        raise ValueError("Actual full 128-KiB original WRAM required")
+    def word(offset: int) -> int:
+        if not 0 <= offset < len(wram) - 1:
+            raise ValueError("Course table pointer outside original source RAM")
+        return wram[offset] | (wram[offset + 1] << 8)
+    coarse_w, coarse_h = word(0x04F1), word(0x04F3)
+    if (not coarse_w or not coarse_h or cell_x < 0 or cell_y < 0 or
+            cell_x >= 4 * coarse_w or cell_y >= 4 * coarse_h):
+        return None
+    coarse_address = 0x000F + 2 * ((cell_y >> 2) * coarse_w + (cell_x >> 2))
+    if coarse_address > 0xFFFE:
+        return None
+    record = word(0x10000 + coarse_address)
+    fine_address = (0x800F + 32 * record +
+                    2 * (((cell_y & 3) * 4) + (cell_x & 3)))
+    if fine_address > 0xFFFE:
+        return 0
+    return word(0x10000 + fine_address)
+
+
+def compare_source_margin_words(tag: str, original: dict[str, bytes],
+                                native: dict[str, bytes]) -> dict:
+    """Compare native offscreen source-word trace against actual original RAM.
+
+    Same camera-X does not independently establish the same original/native
+    frame, camera-Y, CPU clock, HDMA raster or resulting screen pixels.
+    """
+    raw = original[f"evidence/frames/{tag}.wram.bin"]
+    log = native["evidence/16x9/moving-course-run.log"]
+    if len(raw) != 131072 or len(log) > 2 * 1024 * 1024:
+        raise ValueError("Incomplete source RAM or oversized native trace")
+    camera_x = raw[0x0419] | (raw[0x041A] << 8)
+    camera_y = raw[0x041D] | (raw[0x041E] << 8)
+    rows = {}
+    for line in log.decode("ascii").splitlines():
+        match = MARGIN_TRACE_PATTERN.fullmatch(line)
+        if not match or int(match.group(2)) != camera_x:
+            continue
+        column = int(match.group(1))
+        if column in rows:
+            raise ValueError("Duplicate native offscreen trace for source camera-X")
+        count = int(match.group(4))
+        payload = bytes.fromhex(match.group(5))
+        if count != 16 or len(payload) != 2 * count:
+            raise ValueError("Incorrect native margin tile-word payload")
+        cam_y, cell_x, cell_y = map(int, match.group(6, 7, 8))
+        actual = [int.from_bytes(payload[i:i + 2], "little")
+                  for i in range(0, len(payload), 2)]
+        expected = [source_course_tile(raw, cell_x, cell_y + i)
+                    for i in range(count)]
+        if any(item is None for item in expected):
+            raise ValueError("Source course index absent for native reported edge")
+        rows[column] = {
+            "source_camera_x": camera_x, "source_camera_y": camera_y,
+            "native_trace_camera_y": cam_y,
+            "native_trace_cell_x": cell_x, "native_trace_cell_y": cell_y,
+            "compared_words": count,
+            "matching_words": sum(a == b for a, b in zip(actual, expected)),
+            "first_differing_word": next(
+                ({"row_offset": i, "original_source_word": expected[i],
+                  "native_emitted_word": actual[i]}
+                 for i in range(count) if actual[i] != expected[i]), None),
+            "source_predicted_words_sha256":
+                sha(b"".join(int(w).to_bytes(2, "little") for w in expected)),
+            "native_emitted_words_sha256": sha(payload),
+        }
+    if set(rows) != {2, 3, 4, 5, 6}:
+        raise ValueError("Missing original-camera native margin columns")
+    return {
+        "source_original_wram_sha256": sha(raw),
+        "native_margin_log_sha256": sha(log),
+        "source_original_camera_x": camera_x,
+        "source_original_camera_y": camera_y,
+        "columns": rows,
+        "total_compared_words": sum(v["compared_words"] for v in rows.values()),
+        "total_matching_words": sum(v["matching_words"] for v in rows.values()),
+        "source_ppu_per_scanline_margin_pixels_proven": False,
+        "exact_original_native_frame_registration_proven": False,
+        "complete_wide07_qualified": False,
+        "usa_course_credit": 0,
+    }
+
+
 def archive(path: Path) -> tuple[str, dict[str, bytes]]:
     if not path.is_file() or path.is_symlink() or path.stat().st_size > 128 * 1024 * 1024:
         raise ValueError("Expected regular bounded artifact archive")
@@ -187,6 +288,7 @@ def analyze(original_zip: Path, native_zip: Path, *, require_memory: bool = Fals
             or nat_exec["execution_step_outcome"] != "success"):
         raise ValueError("Missing original/native source-bound successful provenance")
     results = {}
+    margin_trace_present = "evidence/16x9/moving-course-run.log" in native
     memory_witness = native.get("evidence/paired-native-guest-state.json")
     memory_present = memory_witness is not None
     if require_memory and not memory_present:
@@ -222,6 +324,9 @@ def analyze(original_zip: Path, native_zip: Path, *, require_memory: bool = Fals
         if memory_present:
             comparison["memory"] = compare_memory(
                 tag, original, native, orig, memory_observation)
+            if margin_trace_present and tag != "ws-product-main-menu":
+                comparison["original_source_offscreen_tile_words"] = (
+                    compare_source_margin_words(tag, original, native))
         results[tag] = comparison
     if memory_present:
         a = results["ws-product-race"]["memory"]

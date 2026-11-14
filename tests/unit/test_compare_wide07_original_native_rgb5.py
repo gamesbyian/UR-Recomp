@@ -184,5 +184,59 @@ class Wide07OriginalNativeTests(unittest.TestCase):
 
 
 
+    def test_original_source_course_words_match_actual_native_margin_format(self):
+        tag = "ws-product-race"
+        original = bytearray(131072)
+        def write16(offset, value):
+            original[offset:offset + 2] = value.to_bytes(2, "little")
+        write16(0x04F1, 2)
+        write16(0x04F3, 4)
+        write16(0x0419, 100)
+        write16(0x041D, 16)
+        # Coarse records all point to the first complete 4x4 fine record.
+        for i in range(8):
+            write16(0x1000F + 2 * i, 0)
+        for i in range(16):
+            write16(0x1800F + 2 * i, 0x1234)
+        source = {"evidence/frames/" + tag + ".wram.bin": bytes(original)}
+        lines = []
+        for column in range(2, 7):
+            lines.append(
+                "URWS_SHADOW_EXT provider=course-runtime margin=48 "
+                + f"column={column} camx=100 edge=0042 count=16 "
+                + "payload=" + "3412" * 16
+                + f" camy=16 finex={column - 2} finey=0 edgey=FFFF county=0")
+        native = {"evidence/16x9/moving-course-run.log":
+                  ("\n".join(lines) + "\n").encode()}
+        result = cmp.compare_source_margin_words(tag, source, native)
+        self.assertEqual(result["total_compared_words"], 80)
+        self.assertEqual(result["total_matching_words"], 80)
+        self.assertFalse(result["source_ppu_per_scanline_margin_pixels_proven"])
+        self.assertFalse(result["exact_original_native_frame_registration_proven"])
+        self.assertEqual(result["usa_course_credit"], 0)
+        self.assertEqual(cmp.source_course_tile(bytes(original), 4, 15), 0x1234)
+        self.assertIsNone(cmp.source_course_tile(bytes(original), 8, 15))
+        # Positive receipt cannot survive an actual wrong native tile word.
+        bad = dict(native)
+        bad["evidence/16x9/moving-course-run.log"] = native[
+            "evidence/16x9/moving-course-run.log"].replace(
+                b"3412", b"0000", 1)
+        report = cmp.compare_source_margin_words(tag, source, bad)
+        self.assertEqual(report["total_matching_words"], 79)
+        self.assertIsNotNone(report["columns"][2]["first_differing_word"])
+        duplicate = dict(native)
+        duplicate["evidence/16x9/moving-course-run.log"] += (
+            lines[0] + "\n").encode()
+        with self.assertRaisesRegex(ValueError, "Duplicate"):
+            cmp.compare_source_margin_words(tag, source, duplicate)
+        truncated = dict(native)
+        truncated["evidence/16x9/moving-course-run.log"] = (
+            native["evidence/16x9/moving-course-run.log"]
+            .replace(b"3412" * 16, b"3412" * 15, 1))
+        with self.assertRaisesRegex(ValueError, "payload"):
+            cmp.compare_source_margin_words(tag, source, truncated)
+
+
+
 if __name__ == "__main__":
     unittest.main()

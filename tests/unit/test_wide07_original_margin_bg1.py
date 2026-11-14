@@ -60,6 +60,37 @@ class OriginalMarginTests(unittest.TestCase):
         self.assertEqual(margin.bg1_pixel(0x400, 0, 0, vram, cgram, 0x2000), (0, 31, 0))
         self.assertIsNone(margin.bg1_pixel(0, 1, 0, vram, cgram, 0x2000))
 
+    def test_original_64x64_bg2_map_quadrants_and_palette(self):
+        vram = bytearray(65536)
+        cgram = bytearray(512)
+        bg2 = {"tile16": 0, "scsize": 3, "scbase": "7000",
+               "namebase": "1000", "hofs": 0, "vofs": 0}
+        # Force an opaque red pixel at tile (0,0) in all four quadrants.
+        # Quadrant offsets are 0,1024,2048,3072 original VRAM words.
+        for quadrant, base in enumerate((0, 1024, 2048, 3072)):
+            struct.pack_into("<H", vram, 2 * (0x7000 + base), quadrant)
+            vram[0x2000 + quadrant * 32] = 0x80
+        struct.pack_into("<H", cgram, 2, 0x001f)
+        for (x, y) in ((0, 0), (256, 0), (0, 256), (256, 256)):
+            self.assertEqual(
+                margin.bg2_pixel(vram, cgram, bg2, x, y), (31, 0, 0))
+        self.assertIsNone(margin.bg2_pixel(vram, cgram, bg2, 1, 0))
+        with self.assertRaisesRegex(ValueError, "BG2"):
+            margin.bg2_pixel(vram, cgram, {**bg2, "scsize": 0}, 0, 0)
+
+    def test_bg2_tile_flips_and_second_palette(self):
+        vram = bytearray(65536)
+        cgram = bytearray(512)
+        bg2 = {"tile16": 0, "scsize": 3, "scbase": "7000",
+               "namebase": "1000", "hofs": 0, "vofs": 0}
+        vram[0x2000] = 0x80
+        struct.pack_into("<H", cgram, 2 * 17, 0x03e0)
+        for (x, y, flags) in ((0, 0, 0), (7, 0, 0x4000),
+                              (0, 7, 0x8000), (7, 7, 0xc000)):
+            struct.pack_into("<H", vram, 2 * 0x7000, 0x0400 | flags)
+            self.assertEqual(
+                margin.bg2_pixel(vram, cgram, bg2, x, y), (0, 31, 0))
+
     def test_visible_scanline_scroll_writes_are_not_ignored(self):
         header = "#frame\tvcounter\thcounter\taddr\tvalue\tsource\n"
         self.assertTrue(margin.source_scanline_scroll_stable(

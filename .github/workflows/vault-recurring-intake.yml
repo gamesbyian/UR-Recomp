@@ -1,7 +1,7 @@
 name: Vault Recurring Intake (Public Drive)
 on:
-  schedule:
-    - cron: '23 */6 * * *'
+  # Recurring cloud archive scans retired 2026-11-13: keep manual targeted
+  # recovery and relevant PR contract tests, but do not run periodic failures.
   workflow_dispatch:
     inputs:
       scope:

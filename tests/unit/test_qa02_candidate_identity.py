@@ -36,6 +36,30 @@ class IdentityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "nominated ZIP"):
                 CandidateIdentity.from_receipt(receipt).verify(archive, "game.exe")
 
+    def test_reject_wrong_executable_and_duplicate_members(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive = root / "candidate.zip"
+            receipt = root / "identity.json"
+            record = {
+                "source_sha": "a" * 40,
+                "zip_sha256": "",
+                "exe_sha256": hashlib.sha256(b"expected").hexdigest(),
+            }
+            with zipfile.ZipFile(archive, "w") as z:
+                z.writestr("game.exe", b"wrong")
+            record["zip_sha256"] = hashlib.sha256(archive.read_bytes()).hexdigest()
+            receipt.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "executable does not match"):
+                CandidateIdentity.from_receipt(receipt).verify(archive, "game.exe")
+            with zipfile.ZipFile(archive, "w") as z:
+                z.writestr("game.exe", b"expected")
+                z.writestr("game.exe", b"expected")
+            record["zip_sha256"] = hashlib.sha256(archive.read_bytes()).hexdigest()
+            receipt.write_text(json.dumps(record), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Duplicate or corrupt"):
+                CandidateIdentity.from_receipt(receipt).verify(archive, "game.exe")
+
     def test_reject_partial_or_untrusted_receipt(self):
         with tempfile.TemporaryDirectory() as tmp:
             receipt = Path(tmp) / "identity.json"

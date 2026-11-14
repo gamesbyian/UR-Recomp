@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does the exact SHA-bound Windows candidate pass the genuine A/B/C QA-02 fault witness with executable-substitution and duplicate-package regression guards?",
+  "question": "Does exact source-bound Windows QA-02 A/B/C witness execute and retain evidence after PR #3362 integration?",
   "expected": "Build ROM-free ZIP, bind hashes, execute genuine two-process Windows save overlap, retain exact before/after bytes and logs even on failure.",
   "owner": "windows",
-  "attempt": 5
+  "attempt": 6
 }

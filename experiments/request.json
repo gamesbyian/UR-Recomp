@@ -4,5 +4,5 @@
   "question": "Does same-job hash-bound ROM-free Win32 candidate pass genuine QA-02 A/B/C competing-process fault witness?",
   "expected": "Build ROM-free ZIP, bind hashes, execute genuine two-process Windows save overlap, retain exact before/after bytes and logs even on failure.",
   "owner": "windows",
-  "attempt": 3
+  "attempt": 4
 }

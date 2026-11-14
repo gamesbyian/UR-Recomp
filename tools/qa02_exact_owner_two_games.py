@@ -128,15 +128,20 @@ def game(exe: Path, rom: Path, script: Path, config: Path, cwd: Path,
 
 def main() -> int:
     p = argparse.ArgumentParser()
-    for arg in ("retained", "rom", "script", "fixture", "out"):
+    p.add_argument("--retained", type=Path)
+    for arg in ("rom", "script", "fixture", "out"):
         p.add_argument("--" + arg, type=Path, required=True)
     p.add_argument("--candidate-zip", type=Path)
     p.add_argument("--candidate-receipt", type=Path)
     a = p.parse_args()
     if (a.candidate_zip is None) != (a.candidate_receipt is None):
         p.error("--candidate-zip and --candidate-receipt must be supplied together")
-    for key in ("retained", "rom", "script", "fixture"):
+    if a.candidate_receipt is None and a.retained is None:
+        p.error("--retained required for historical candidate mode")
+    for key in ("rom", "script", "fixture"):
         setattr(a, key, getattr(a, key).resolve(strict=True))
+    if a.retained is not None:
+        a.retained = a.retained.resolve(strict=True)
     a.out = a.out.resolve()
     if a.out.exists() or digest(a.rom.read_bytes()) != USA_SHA256:
         raise ValueError("reused root or incorrect source USA ROM")

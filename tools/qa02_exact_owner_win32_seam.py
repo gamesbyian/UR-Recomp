@@ -58,6 +58,30 @@ def extract_original(retained: Path, work: Path) -> Path:
     return exe
 
 
+
+def extract_source_bound(candidate: Path, work: Path, receipt: Path) -> Path:
+    """Extract a newly nominated ZIP only after independent identity verification.
+
+    This is intentionally separate from extract_original: historical owner
+    receipts and their immutable verifier remain unchanged.
+    """
+    from qa02_candidate_identity import CandidateIdentity
+
+    identity = CandidateIdentity.from_receipt(receipt)
+    member = PREFIX + EXE
+    exe_bytes = identity.verify(candidate, member)
+    with zipfile.ZipFile(candidate) as archive:
+        expected = sorted(PREFIX + name for name in (EXE, LAUNCHER, README, MANIFEST))
+        if sorted(archive.namelist()) != expected:
+            raise ValueError("Source-bound candidate has unexpected package members")
+    exe = work / EXE
+    with exe.open("xb") as dst:
+        dst.write(exe_bytes)
+    if digest(exe) != identity.exe_sha256:
+        raise ValueError("Source-bound extracted executable changed")
+    return exe
+
+
 def inspect_seam(seam: Path) -> dict:
     report = json.loads((seam / "file-receipt.json").read_text("utf-8"))
     if set(report) != {"raw-sram", "typed-profile", "selector", "roster"}:

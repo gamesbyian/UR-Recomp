@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Do adjacent original-USA moving-course frames reveal a one-frame OBJ/PPU phase transition explaining the transient blue-arrow boundary?",
+  "expected": "Ten source-bound original frame/OAM/PPU checkpoints at race, 300/301, 450/451, 600/601, 750/751 and 900 right-input frames; classify genuine adjacent phase transitions, retain hashes and logs.",
+  "owner": "fidelity",
+  "attempt": 1
+}

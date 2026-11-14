@@ -14,7 +14,7 @@ import re
 from pathlib import Path
 
 SCHEMA = "ur-agent-experiment-request/1"
-KINDS = frozenset(("qa01_zoo", "qa01_rf095_pcm", "windows_candidate"))
+KINDS = frozenset(("qa01_zoo", "qa01_rf095_pcm", "windows_candidate", "script_linux"))
 FIELDS = frozenset(("schema", "kind", "question", "expected", "owner", "attempt"))
 HEX_SHA = re.compile(r"[0-9a-f]{40}\Z")
 OWNER = re.compile(r"[A-Za-z0-9._-]{1,48}\Z")
@@ -69,6 +69,24 @@ def validate_request(raw: bytes, source_sha: str, ref: str) -> dict:
     }
 
 
+def script_digest(kind: str, root: Path) -> str | None:
+    """Require an ordinary source-controlled script, never a request command.
+
+    The script is executed only on an ephemeral, unprivileged-token hosted
+    runner. Its bytes and the immutable workflow source SHA are recorded.
+    """
+    if kind != "script_linux":
+        return None
+    script = root / "experiments" / "run.sh"
+    if not script.is_file() or script.is_symlink():
+        raise ValueError("script_linux needs a regular experiments/run.sh")
+    raw = script.read_bytes()
+    if (not raw.startswith(b"#!/usr/bin/env bash\n") or
+            len(raw) > 262144 or b"\x00" in raw):
+        raise ValueError("script_linux needs a small, nonbinary bash script")
+    return hashlib.sha256(raw).hexdigest()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--request", type=Path, required=True)
@@ -83,6 +101,9 @@ def main() -> None:
         raise SystemExit("refusing to overwrite an earlier experiment receipt")
     receipt = validate_request(args.request.read_bytes(),
                                args.source_sha, args.ref)
+    pinned_script = script_digest(receipt["request"]["kind"], Path.cwd())
+    if pinned_script is not None:
+        receipt["script_sha256"] = pinned_script
     args.receipt.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n",
                             encoding="utf-8")
     with args.gha_output.open("a", encoding="utf-8") as out:

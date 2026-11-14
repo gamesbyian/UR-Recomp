@@ -85,3 +85,88 @@ jobs:
     uses: ./.github/workflows/baldosa-windows-native-bridge.yml
     with:
       export_campaign_inputs: true
+
+  script_linux:
+    if: needs.validate.outputs.kind == 'script_linux'
+    needs: validate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Execute source-pinned experiment with no inherited credentials
+        id: execute
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests/unit -p test_agent_experiment_request.py
+          test -f experiments/run.sh && test ! -L experiments/run.sh
+          mkdir -p "$RUNNER_TEMP/agent-script-result/evidence" "$RUNNER_TEMP/agent-script-home"
+          # Fixed source-controlled entrypoint. The agent edits this script on
+          # an experiments/* branch; this workflow never evals a request field.
+          # env -i excludes Actions runtime and checkout credentials.
+          # Hosted runner only, hard 30-minute process budget.
+          env -i \
+            PATH="$PATH" \
+            HOME="$RUNNER_TEMP/agent-script-home" \
+            USER=runner \
+            GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
+            UR_EXPERIMENT_OUTPUT_DIR="$RUNNER_TEMP/agent-script-result/evidence" \
+            UR_EXPERIMENT_SOURCE_SHA="$GITHUB_SHA" \
+            timeout --signal=TERM --kill-after=30s 1800s \
+              bash experiments/run.sh
+
+      - name: Always retain bounded result and exact script/source receipt
+        if: always()
+        shell: bash
+        env:
+          EXPERIMENT_OUTCOME: ${{ steps.execute.outcome }}
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/agent-script-result"
+          mkdir -p "$ROOT"
+          python3 - "$ROOT" <<'PY'
+          import hashlib, json, os, sys
+          from pathlib import Path
+          root = Path(sys.argv[1])
+          script = Path("experiments/run.sh")
+          request = Path("experiments/request.json")
+          receipt = {
+              "schema": "ur-hosted-script-experiment-result/1",
+              "source_sha": os.environ["GITHUB_SHA"],
+              "source_ref": os.environ["GITHUB_REF"],
+              "script_sha256": hashlib.sha256(script.read_bytes()).hexdigest()
+                               if script.is_file() and not script.is_symlink() else None,
+              "request_sha256": hashlib.sha256(request.read_bytes()).hexdigest()
+                                if request.is_file() and not request.is_symlink() else None,
+              "execution_step_outcome": os.environ["EXPERIMENT_OUTCOME"],
+              "usa_course_credit": 0,
+              "release_gate_credit": 0,
+              "qualification": "unreviewed_experiment",
+          }
+          (root / "execution-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+          PY
+          # A script may create arbitrary bounded evidence, but must not turn
+          # artifact upload into a bulk data exfiltration or storage job.
+          if [ -d "$ROOT/evidence" ]; then
+            size=$(du -sb "$ROOT/evidence" | cut -f1)
+            if (( size > 67108864 )); then
+              rm -rf -- "$ROOT/evidence"
+              echo "Experiment evidence exceeded 64 MiB and was omitted" >"$ROOT/evidence-over-budget.txt"
+              exit 1
+            fi
+          fi
+
+      - name: Upload attempt result even when script fails
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: agent-hosted-script-evidence
+          path: ${{ runner.temp }}/agent-script-result/
+          retention-days: 14
+          if-no-files-found: error

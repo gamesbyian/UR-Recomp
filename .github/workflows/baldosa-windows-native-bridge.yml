@@ -1290,7 +1290,7 @@ jobs:
       # demonstrates consumer schema agreement on exact source-produced
       # bytes, not independent QA qualification or release ledger credit.
       - name: Validate journaled Win32 evidence against independent QA02 reader
-        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
+        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true || inputs.export_campaign_inputs == true }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip"

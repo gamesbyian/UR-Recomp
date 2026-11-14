@@ -67,14 +67,19 @@ class ThreeProjectReuseTest(unittest.TestCase):
         self.assertNotIn("after_baseline", text)
         self.assertLess(len(text), 2300)
 
-    def test_cold_start_guide_and_live_queue_point_to_reuse_preflight(self):
+    def test_cold_start_uses_execution_first_and_reuse_is_advisory(self):
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         queue = (ROOT / "docs/WORK-QUEUE.md").read_text(encoding="utf-8")
-        self.assertIn("tools/select_three_project_reuse.py", agents)
+        directive = (ROOT / "docs/EXECUTION-FIRST-OPERATING-MODEL.md").read_text(encoding="utf-8")
+        self.assertIn("EXECUTION-FIRST-OPERATING-MODEL.md", agents)
+        self.assertIn("EXECUTION-FIRST-OPERATING-MODEL.md", readme)
+        self.assertIn("EXECUTION-FIRST-OPERATING-MODEL.md", queue)
+        self.assertIn("two scheduled execution workstreams", directive)
         self.assertIn("tools/select_three_project_reuse.py", readme)
         self.assertIn("three-project reuse preflight", queue)
-        # The active queue has a strict compact-document budget.
+        self.assertIn("Superseded on 2026-11-13", queue)
+        # The historical queue retains research, not dispatch authority.
         self.assertLess(len(queue), 16000)
 
     def test_duplicate_capability_matrix_ids_fail_closed(self):

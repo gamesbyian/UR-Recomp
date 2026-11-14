@@ -8,7 +8,7 @@ This is a build **request**, not an acceptance claim. Do not run it for every PR
 
 ## Next build request
 
-- Request sequence: **4** (Windows physical candidate after Quick Practice and Unicode save-lock integration)
+- Request sequence: **4** (execution-first exact-main physical Windows candidate)
 - Requested reason: Produce the first verified Windows x64 physical-playtest candidate from the execution-first main integration epoch after the general-purpose hosted experiment service and successful genuine Win32 player-journey run 43533114491. The earlier candidate was tested on an experiments/* branch, not on the exact current merged-main source; the owner explicitly requires a fresh playable build and independently bound SHA/PE/ROM-free ZIP to begin real-world H01-H07 feedback. This is a single intentional main-only request to exercise the already successful existing Windows native-bridge workflow, not a release certification or automatic gate credit.
 - Expected candidate: The exact `main` merge commit of **this** request PR (not the setup PR or test merge)
 - Requested by: Authorized project maintainer/agent

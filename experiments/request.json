@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Which actual USA course preparation entry callers are statically reachable before the WIDE-07 moving-course experiment?",
+  "expected": "A source-pinned USA ROM call-reference report and an explicit executable next observation, or a precise tool failure.",
+  "owner": "fidelity",
+  "attempt": 1
+}

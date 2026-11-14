@@ -90,7 +90,18 @@ EOF
     grep -q "URWS_SHADOW_EXT provider=course-runtime margin=48" "$DEST/moving-course-run.log"
   fi
   for t in ws-product-main-menu ws-product-race ws-product-after-scroll; do
-    cp "$DUMPS/$t.fb.bmp" "$DEST/$t.fb.bmp"
+    # Bind the actual guest state to each original/wide framebuffer checkpoint.
+    # A 256-pixel screenshot alone cannot distinguish native guest-frame
+    # misalignment from a 1-pixel directional-arrow rendering defect.
+    for ext in fb.bmp wram.bin sram.bin info.json; do
+      test -s "$DUMPS/$t.$ext" || { echo "MISSING_SOURCE_GUEST_DUMP $view $t.$ext"; exit 1; }
+      cp "$DUMPS/$t.$ext" "$DEST/$t.$ext"
+    done
+    for ext in vram.bin cgram.bin oam.bin regs.json; do
+      if test -s "$DUMPS/$t.$ext"; then
+        cp "$DUMPS/$t.$ext" "$DEST/$t.$ext"
+      fi
+    done
   done
 done
 python3 - "$OUT" <<'PY'
@@ -154,4 +165,43 @@ out={
 }
 (root/"matched-centre-observation.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
 print("WIDE07_REAL_MATCHED_CENTRE",json.dumps(out,sort_keys=True))
+PY
+
+python3 - "$OUT" <<'PY'
+import hashlib,json,os,sys
+from pathlib import Path
+root=Path(sys.argv[1])
+tags=("ws-product-main-menu","ws-product-race","ws-product-after-scroll")
+results={}
+for tag in tags:
+    pair={}
+    for view in ("original","16x9"):
+        path=root/view/(tag+".wram.bin")
+        mem=path.read_bytes()
+        if len(mem)!=131072:
+            raise ValueError("Native guest WRAM dump not a full 128-KiB image: "+str(path))
+        meta=json.loads((root/view/(tag+".info.json")).read_text())
+        pair[view]={"wram_sha256":hashlib.sha256(mem).hexdigest(),
+                    "info":meta}
+    a=(root/"original"/(tag+".wram.bin")).read_bytes()
+    b=(root/"16x9"/(tag+".wram.bin")).read_bytes()
+    first=[{"offset":i,"fixed":a[i],"wide":b[i]}
+           for i in range(len(a)) if a[i]!=b[i]][:12]
+    results[tag]={"guest_wram_equal":a==b,
+                  "wram_differing_bytes":sum(x!=y for x,y in zip(a,b)),
+                  "first_differences":first,"producer":pair}
+out={
+  "schema":"ur-wide07-native-paired-full-guest-state/1",
+  "source_sha":os.environ["UR_EXPERIMENT_SOURCE_SHA"],
+  "actual_full_128kiB_guest_wram":True,
+  "paired_fixed_wide_original_centre_only":True,
+  "scripted_event_registration_to_original_snes9x_proven":False,
+  "source_original_guest_wram_equivalence_proven":False,
+  "widened_margin_original_source_parity_proven":False,
+  "result":results,
+  "usa_course_credit":0,
+  "next_discriminator":"Reopen original Snes9x artifact 14090194177 and compare source original 128-KiB WRAM at same checkpoint names, then independently register actual source PPU/HDMA and margin tile provenance. Any mismatch must be scoped by addresses rather than calling native 1-pixel arrow a proven defect."
+}
+(root/"paired-native-guest-state.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+print("WIDE07_REAL_NATIVE_GUEST_STATE",json.dumps({k:{"diff":v["wram_differing_bytes"]} for k,v in results.items()},sort_keys=True))
 PY

@@ -40,35 +40,71 @@ def connect(host: str, port: int, timeout: float):
     raise RuntimeError(f"could not connect to {host}:{port}: {last_error}")
 
 
-def page_events(command_fn, *, first: int, page_size: int, event_filter: int) -> tuple[list[dict], dict]:
-    """Fetch available events beginning at an absolute ring index."""
+def page_events(command_fn, *, first: int, page_size: int, event_filter: int,
+                stop_at: int | None = None) -> tuple[list[dict], dict]:
+    """Fetch event slots, optionally ending at an immutable stats snapshot.
+
+    A live DSP producer can keep returning full pages indefinitely. Strict
+    capture passes the pre-scan event head as stop_at, limiting both the
+    number of requests and the source interval independently of production.
+    """
+    if (type(first) is not int or first < 0 or
+            type(page_size) is not int or page_size <= 0 or
+            (stop_at is not None and
+             (type(stop_at) is not int or stop_at < first))):
+        raise ValueError("invalid DSP event scan bounds")
     events: list[dict] = []
     cursor = first
     last_meta: dict = {}
-    while True:
-        result = command_fn(f"audio_events {cursor} {page_size} {event_filter}")
-        last_meta = result
+    contiguous = True
+    while stop_at is None or cursor < stop_at:
+        request_size = (page_size if stop_at is None else
+                        min(page_size, stop_at - cursor))
+        result = command_fn(f"audio_events {cursor} {request_size} {event_filter}")
+        last_meta = dict(result)
         page = result.get("events", [])
         scanned = int(result.get("scanned", len(page)))
         returned_first = int(result.get("first", cursor))
+        # The native server emits integer scanned/first/oldest fields. Keep
+        # generic best-effort collection, but never certify a coerced or
+        # missing counter as complete source-owned ring coverage.
+        if (type(result.get("scanned")) is not int or
+                type(result.get("first")) is not int or
+                type(result.get("oldest")) is not int):
+            contiguous = False
+        # Preserve the generic collector's historic best-effort behavior,
+        # but expose absolute scan coverage for strict KON evidence consumers.
+        # The native server separately reports returned=len(serialized events)
+        # and scanned=absolute ring slots. A mismatch could hide a voice-7
+        # KON despite a seemingly contiguous scanned interval.
+        if (returned_first != cursor or scanned < 0 or scanned > request_size
+                or not isinstance(page, list) or len(page) > scanned
+                or type(result.get("returned")) is not int
+                or result["returned"] != len(page)):
+            contiguous = False
         if page:
             events.extend(page)
         if scanned <= 0:
             break
         cursor = max(cursor, returned_first) + scanned
-        if scanned < page_size:
+        if scanned < request_size:
             break
+    last_meta["_client_scan_end"] = cursor
+    last_meta["_client_contiguous"] = contiguous
     return events, last_meta
 
 
 def capture(command_fn, *, page_size: int = 8000, event_filter: int = 0) -> dict:
     stats = command_fn("audio_stats 5")
-    head = int(stats.get("event_count", 0))
+    head = stats.get("event_count")
+    if type(head) is not int or head < 0:
+        raise ValueError("malformed audio_stats event_count")
     events, meta = page_events(
         command_fn,
         first=0,
         page_size=page_size,
         event_filter=event_filter,
+        stop_at=head,
     )
     oldest = int(meta.get("oldest", 0)) if meta else 0
     return {
@@ -76,6 +112,8 @@ def capture(command_fn, *, page_size: int = 8000, event_filter: int = 0) -> dict
         "event_filter": event_filter,
         "event_head": head,
         "oldest_available": oldest,
+        "last_scanned_event_index": meta.get("_client_scan_end", 0),
+        "event_pages_contiguous": meta.get("_client_contiguous", False),
         "events_returned": len(events),
         "stats": stats,
         "events": events,

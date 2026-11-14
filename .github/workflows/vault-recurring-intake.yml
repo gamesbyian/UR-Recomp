@@ -20,11 +20,8 @@ on:
         description: Optional exact Drive file ID in the chosen folder to audit even if already checked
         required: false
         type: string
-  pull_request:
-    paths:
-      - '.github/workflows/vault-recurring-intake.yml'
-      - 'tools/vault_scheduled_intake.py'
-      - 'tests/unit/test_vault_scheduled_intake.py'
+  # No PR-triggered external Drive probes. Local fail-closed tests remain
+  # covered by Project tooling unit tests; real Drive intake is manual only.
 
 permissions:
   contents: read

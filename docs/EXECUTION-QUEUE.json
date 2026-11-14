@@ -1,7 +1,7 @@
 {
   "schema": "UR-EXECUTION-QUEUE/1",
   "updated": "2026-11-13",
-  "instructions": "Read live Actions/PR state first. Do not treat queue as a lock, historical ledger, or acceptance evidence. Never scan the retired 51 KB board before executing.",
+  "instructions": "Two workstreams, real execution first. Source-controlled script_linux is available on the standing GHA experiment service for any bounded hosted Linux experiment; inspect newest exact-source runs and artifacts before retry. No historic board scanning, no fabricated acceptance.",
   "acceptance": {
     "usa_courses": "0/45 until independent complete original/native USA event qualification",
     "windows_release": "0/12 until independently accepted exact-candidate gate evidence"
@@ -15,21 +15,22 @@
       "execution_location": "GitHub Actions hosted ubuntu via agent-bounded-experiments",
       "experiment_kind": "qa01_rf095_pcm",
       "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43532930092",
-      "next_action": "Download exact artifact 14088083271 from run 43532930092; correlate PCM onset with RF094 original/native DSP KON/F3 and port2 markers and same-semantic clock. Prove or reject genuine 2.7-frame native audio-delay hypothesis. Repair instrument/guest only with causal evidence, rerun bounded PCM and independently judge course behavior.",
+      "next_action": "Reopen actual RF095 artifact 14088083271 and the merged source-bound waveform comparator PR #3353. Expanded original 6445..6457 versus native 6447..6457 gives Pearson 0.99464/0.99583 at +76 original sample lag; producer origins and output stages differ. Register equivalent semantic voice-7 KON and frame/sample clocks, then repair any causally established audible/native discrepancy and qualify full Zoo event. Do not rebuild identical PCM to rediscover capture or claim audio equivalence from correlation alone.",
       "completion_condition": "One independently reproduced original USA course from authentic source race through result, progression and cold save, satisfying explicit observed behavior, audio and visual criteria. Audio onset mismatch must be investigated with clock/output-boundary registration, not dismissed as a stack-byte technicality.",
       "on_blocker": "Own missing emulator/toolchain/runner fix and rerun. If external, write command, input, location, expected output and move to WIDE-07.",
-      "evidence_observation": "RF095 real Zoom Zoo case succeeded on source 77bd2cfdce48b63e587133bcdb541197b38f0eab; artifact 14088083271 includes authentic original/native stereo sample windows. Original first nonzero at frame 6449 and native at 6452 in respective registration; output-stage/clock equivalence unproven. See issue #1689 comment 6868492654."
+      "evidence_observation": "RF095 original/native source-pinned captured sound from run 43532930092; case artifact 14088083271. Merged PR #3353 offers a hash-bound waveform comparator. High measured correlation is diagnostic, not audio parity. Source original/native startup offset and output stage remain unproven; 0/45."
     },
     {
       "id": "WIDE07-MOVING-USA",
       "stream": "fidelity",
       "rank": 2,
       "owner": "UR Fidelity Execution",
-      "execution_location": "GitHub Actions Ubuntu native/original experiment adapter to be built",
-      "experiment_kind": "not_yet_supported",
-      "next_action": "Extend bounded dispatcher with genuine original-USA moving-course frame/VRAM/PPU/HDMA/WRAM source capture, including X-edge/reversal and P1/P2 camera. Use tools/redcomp_course_boundary_probe.py only as read-only hypothesis; compare against original pixels before production changes.",
+      "execution_location": "GitHub Actions hosted Ubuntu through reusable script_linux experiment profile",
+      "experiment_kind": "script_linux",
+      "next_action": "Inspect attempt-2 actual native 342x224 moving-course execution, run 43537459560, and repair any build/race failure on experiments/wide07-rom-caller-observation. Attempt 1 run 43537142710 already verified actual USA ROM source callers 81:A52B and 81:A52F. If native moving pixels are captured, build the independent original-USA moving-course replay and compare real source tiles, split/P1-P2 HDMA scroll and widened-margin RGB at first edge/camera movement. Push changed experiments/run.sh and increment experiments/request.json attempt; no workflow/PR needed.",
       "completion_condition": "Source-bound real original/native moving course pair proving correct camera, tile streaming and wide presentation at identified X edge/viewport event, with regression or isolated reproducible defect.",
-      "on_blocker": "Implement missing original capture producer on hosted runner; never stop with 'requires original evidence'."
+      "on_blocker": "Use generic hosted script_linux route to install or compile missing emulator/tools, collect exact failure output and retry same experiments/* branch; if waiting on external physical data, proceed with the separate PCM course.",
+      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43537459560"
     },
     {
       "id": "WINDOWS-FRESH-CANDIDATE",
@@ -39,7 +40,7 @@
       "execution_location": "GitHub Actions windows-2022 via agent-bounded-experiments",
       "experiment_kind": "windows_candidate",
       "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43533114491",
-      "next_action": "Inspect real Win32 candidate build, hosted player-journey logs and ROM-free artifacts. Fix any build/packaging/host defects and retry request on experiments/windows-candidate-first. Present a source-pinned playable candidate for informal physical inspection.",
+      "next_action": "Successful exact experiment Windows candidate run 43533114491 produced native Win32 execution, player-journey, packaged ROM-free ZIP artifact 14089471396 and source-binding artifact 14089113447. Compare with current main product commits; if differing, build a fresh exact-main artifact, independently reverify ZIP/PE and offer informal physical playtest without certification.",
       "completion_condition": "Source-exact tested Windows x64 ROM-free artifact and reproducible hosted player journeys; no physical sign-off inferred.",
       "on_blocker": "Repair build, fixture, toolchain or hosted runner; if physical hardware required switch to an independent hosted gate."
     },

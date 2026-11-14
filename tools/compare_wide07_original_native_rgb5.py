@@ -99,6 +99,64 @@ def compare_images(original: list[tuple[int, int, int]],
     }
 
 
+
+MEMORY_COMPONENT_SIZES = {
+    "wram.bin": 131072, "sram.bin": 8192, "vram.bin": 65536,
+    "cgram.bin": 512, "oam.bin": 544,
+}
+SRAM_MIRROR_OFFSET = 0x0E6B
+
+
+def compare_memory(tag: str, original: dict[str, bytes],
+                   native: dict[str, bytes], original_observation: dict,
+                   native_observation: dict) -> dict:
+    """Rehash full raw state; compare without masking or granting acceptance."""
+    original_components, fixed_components, wide_components = {}, {}, {}
+    result = {}
+    for ext, size in MEMORY_COMPONENT_SIZES.items():
+        old_path = f"evidence/frames/{tag}.{ext}"
+        fix_path = f"evidence/original/{tag}.{ext}"
+        wide_path = f"evidence/16x9/{tag}.{ext}"
+        if any(path not in origin for path, origin in
+               ((old_path, original), (fix_path, native), (wide_path, native))):
+            raise ValueError("Incomplete genuine original/native memory capture: " + ext)
+        ref, fixed, wide = original[old_path], native[fix_path], native[wide_path]
+        if len(ref) != size or len(fixed) != size or len(wide) != size:
+            raise ValueError("Unexpected guest memory image size: " + ext)
+        field = {"wram.bin": "wram_sha256", "sram.bin": "sram_sha256"}.get(ext)
+        if field and sha(ref) != original_observation["checkpoints"][tag][field]:
+            raise ValueError("Original guest memory disagrees with source receipt: " + ext)
+        if ext == "wram.bin":
+            witness = native_observation["result"][tag]["producer"]
+            if (sha(fixed) != witness["original"]["wram_sha256"] or
+                    sha(wide) != witness["16x9"]["wram_sha256"]):
+                raise ValueError("Native guest WRAM disagrees with producer receipt")
+        differences = [i for i, (a, b) in enumerate(zip(ref, fixed)) if a != b]
+        native_differences = sum(a != b for a, b in zip(fixed, wide))
+        result[ext] = {
+            "bytes": size, "original_native_differing_bytes": len(differences),
+            "native_fixed_wide_differing_bytes": native_differences,
+            "first_differences": [
+                {"offset": i, "original": ref[i], "native": fixed[i]}
+                for i in differences[:24]],
+            "original_sha256": sha(ref),
+            "native_fixed_sha256": sha(fixed),
+            "native_wide_sha256": sha(wide),
+        }
+        original_components[ext], fixed_components[ext], wide_components[ext] = ref, fixed, wide
+    ref_wram, native_wram = original_components["wram.bin"], fixed_components["wram.bin"]
+    ref_sram, native_sram = original_components["sram.bin"], fixed_components["sram.bin"]
+    mirrored = []
+    for i, (a, b) in enumerate(zip(ref_wram, native_wram)):
+        j = i + SRAM_MIRROR_OFFSET
+        if (a != b and j < len(ref_sram) and ref_sram[j] == a and native_sram[j] == b):
+            mirrored.append({"wram_offset": i, "sram_offset": j})
+    result["observed_plus_0x0e6b_wram_sram_correspondence"] = mirrored
+    result["wram_sram_mirroring_causally_proven"] = False
+    result["original_native_emulator_clocks_equated"] = False
+    return result
+
+
 def archive(path: Path) -> tuple[str, dict[str, bytes]]:
     if not path.is_file() or path.is_symlink() or path.stat().st_size > 128 * 1024 * 1024:
         raise ValueError("Expected regular bounded artifact archive")
@@ -113,7 +171,7 @@ def archive(path: Path) -> tuple[str, dict[str, bytes]]:
         return sha(path.read_bytes()), {name: z.read(name) for name in wanted}
 
 
-def analyze(original_zip: Path, native_zip: Path) -> dict:
+def analyze(original_zip: Path, native_zip: Path, *, require_memory: bool = False) -> dict:
     original_zip_sha, original = archive(original_zip)
     native_zip_sha, native = archive(native_zip)
     orig = json.loads(original["evidence/original-usa-ppu-observation.json"])
@@ -129,6 +187,15 @@ def analyze(original_zip: Path, native_zip: Path) -> dict:
             or nat_exec["execution_step_outcome"] != "success"):
         raise ValueError("Missing original/native source-bound successful provenance")
     results = {}
+    memory_witness = native.get("evidence/paired-native-guest-state.json")
+    memory_present = memory_witness is not None
+    if require_memory and not memory_present:
+        raise ValueError("Required native guest memory witness is absent")
+    memory_observation = json.loads(memory_witness) if memory_present else None
+    if memory_present and (
+            memory_observation.get("schema") != "ur-wide07-native-paired-full-guest-state/1"
+            or memory_observation.get("source_sha") != nat["source_sha"]):
+        raise ValueError("Native guest memory witness is not source-bound")
     for tag in TAGS:
         original_bytes = original["evidence/frames/" + tag + ".fb.bmp"]
         fixed_bytes = native["evidence/original/" + tag + ".fb.bmp"]
@@ -152,8 +219,24 @@ def analyze(original_zip: Path, native_zip: Path) -> dict:
             "native_fixed_bmp_sha256": sha(fixed_bytes),
             "native_wide_bmp_sha256": sha(wide_bytes),
         })
+        if memory_present:
+            comparison["memory"] = compare_memory(
+                tag, original, native, orig, memory_observation)
         results[tag] = comparison
+    if memory_present:
+        a = results["ws-product-race"]["memory"]
+        b = results["ws-product-after-scroll"]["memory"]
+        stable = all(
+            a[ext]["first_differences"] == b[ext]["first_differences"] and
+            a[ext]["original_native_differing_bytes"] ==
+                b[ext]["original_native_differing_bytes"]
+            for ext in MEMORY_COMPONENT_SIZES
+        )
+    else:
+        stable = None
     return {
+        "native_memory_evidence_present": memory_present,
+        "sampled_race_and_after_scroll_memory_difference_sets_stable": stable,
         "schema": SCHEMA,
         "original_archive_sha256": original_zip_sha,
         "native_archive_sha256": native_zip_sha,
@@ -174,8 +257,9 @@ def main() -> None:
     p.add_argument("--original-zip", type=Path, required=True)
     p.add_argument("--native-zip", type=Path, required=True)
     p.add_argument("--out", type=Path)
+    p.add_argument("--require-memory", action="store_true")
     args = p.parse_args()
-    result = json.dumps(analyze(args.original_zip, args.native_zip), indent=2, sort_keys=True) + "\n"
+    result = json.dumps(analyze(args.original_zip, args.native_zip, require_memory=args.require_memory), indent=2, sort_keys=True) + "\n"
     if args.out is None:
         print(result, end="")
     else:

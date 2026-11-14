@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Can independent original-USA input histories ending at 299 and 300 right frames yield adjacent emulator frame captures and isolate sprite/pixel changes?",
+  "expected": "Two original Snes9x runs, source-bound checkpoint frames differing by exactly one, OAM/framebuffer comparison with no course acceptance credit.",
+  "owner": "fidelity",
+  "attempt": 1
+}

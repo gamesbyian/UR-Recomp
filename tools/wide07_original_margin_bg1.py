@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Independently predict WIDE-07 opaque BG1 margin pixels from original USA RAM.
+"""Independently predict WIDE-07 complete BG1/BG2 margin pixels from original USA RAM.
 
 Input: two untouched original Snes9x/native GHA evidence ZIPs. The original
 Snes9x's bank-$7F course tables, VRAM 4bpp characters, CGRAM colours and PPU
 registers are the ONLY inputs to the prediction and camera calibration. Native
 widescreen BMP pixels are consulted only AFTER the source-only calibration.
 
-This proves neither transparent BG1 pixels (other layers), sprite ownership,
-HDMA colour compositing, exact emulator frame clocks nor a complete USA course.
+BG1 transparent pixels are filled by source-derived BG2 (Mode-1 4bpp). It
+cannot prove absence of offscreen OBJ, window/HDMA colour-compositing effects,
+exact emulator frame clocks or a complete USA course.
 """
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ from compare_wide07_original_native_rgb5 import archive, bmp24, source_course_ti
 
 TAGS = ("ws-product-race", "ws-product-after-scroll")
 SOURCE_WIDTH, HEIGHT, WIDE_WIDTH, CROP = 256, 224, 342, 43
-SCHEMA = "ur-wide07-original-usa-derived-bg1-margin-pixels/1"
+SCHEMA = "ur-wide07-original-usa-derived-bg1-bg2-margin-pixels/1"
 
 
 def sha(raw: bytes) -> str:
@@ -34,11 +35,11 @@ def raw_word(memory: bytes, offset: int) -> int:
 
 
 def source_scanline_scroll_stable(ppuw: bytes, frame: int) -> bool:
-    """No original BG1 scroll, character or tilemap register changes in V1..224."""
+    """Reject original BG1/BG2 map/character/scroll writes in visible V1..224."""
     lines = ppuw.decode("ascii").splitlines()
     if not lines or lines[0] != "#frame\tvcounter\thcounter\taddr\tvalue\tsource":
         raise ValueError("original PPU write journal lacks authenticated format")
-    watched = {"2105", "2107", "210B", "210D", "210E"}
+    watched = {"2105", "2107", "2108", "210B", "210C", "210D", "210E", "210F", "2110"}
     for line in lines[1:]:
         if line.startswith("#"):
             raise ValueError("truncated/ambiguous original PPU write journal")
@@ -69,6 +70,37 @@ def bg1_pixel(tileword: int, x: int, y: int, vram: bytes,
     if index == 0:  # BG1 is transparent here: BG2/OBJ/colour math can own output.
         return None
     palette_index = 16 * ((tileword >> 10) & 7) + index
+    colour = raw_word(cgram, palette_index * 2)
+    return colour & 31, (colour >> 5) & 31, (colour >> 10) & 31
+
+
+def bg2_pixel(vram: bytes, cgram: bytes, bg: dict, x: int,
+              y: int) -> tuple[int, int, int] | None:
+    """Read original VRAM Mode-1 8x8 BG2 64x64 tilemap and 4bpp characters.
+
+    x/y are original PPU scroll-relative *world* pixels, not native output
+    coordinates. Word offsets use quadrant-tiled SNES map layout.
+    """
+    if bg["tile16"] != 0 or bg["scsize"] != 3:
+        raise ValueError("Original BG2 8x8 64x64 tilemap required")
+    tile_x, tile_y = (x // 8) & 63, (y // 8) & 63
+    map_word = (int(bg["scbase"], 16) +
+                (tile_x // 32) * 1024 + (tile_y // 32) * 2048 +
+                (tile_y % 32) * 32 + tile_x % 32) & 0x7fff
+    tile = raw_word(vram, map_word * 2)
+    xx, yy = x & 7, y & 7
+    if tile & 0x4000:
+        xx = 7 - xx
+    if tile & 0x8000:
+        yy = 7 - yy
+    glyph = tile & 0x3ff
+    offset = (int(bg["namebase"], 16) * 2 + glyph * 32 + yy * 2) & 0xffff
+    bit = 7 - xx
+    colour_index = sum(((vram[(offset + plane) & 0xffff] >> bit) & 1) << i
+                       for i, plane in enumerate((0, 1, 16, 17)))
+    if colour_index == 0:
+        return None
+    palette_index = 16 * ((tile >> 10) & 7) + colour_index
     colour = raw_word(cgram, palette_index * 2)
     return colour & 31, (colour >> 5) & 31, (colour >> 10) & 31
 
@@ -138,12 +170,15 @@ def compare_pixels(source_zip: Path, native_zip: Path) -> dict:
             raise ValueError("original/native graphics RAM differs at source checkpoint")
         regs = json.loads(original[old + "regs.json"])
         bg = regs["ppu"]["bg"][0]
+        bg2 = regs["ppu"]["bg"][1]
         if (regs["ppu"]["bgmode"] != 1 or bg["tile16"] != 1
-                or bg["scsize"] != 0 or regs["ppu"]["inidisp"]["brightness"] != 15):
-            raise ValueError("original BG1 mode/brightness unsupported")
+                or bg["scsize"] != 0 or bg2["tile16"] != 0
+                or bg2["scsize"] != 3
+                or regs["ppu"]["inidisp"]["brightness"] != 15):
+            raise ValueError("original Mode-1 BG1/BG2/brightness unsupported")
         info = json.loads(original[old + "info.json"])
         if not source_scanline_scroll_stable(original[old + "ppuw.tsv"], info["frame"]):
-            raise ValueError("visible original BG1 PPU scroll changed per scanline")
+            raise ValueError("visible original BG1/BG2 PPU scroll/map changed per scanline")
         map_base = int(bg["scbase"], 16)
         char_base = int(bg["namebase"], 16)
         camx = raw_word(wram, 0x419)
@@ -165,6 +200,7 @@ def compare_pixels(source_zip: Path, native_zip: Path) -> dict:
                                     ("center", CROP, CROP + SOURCE_WIDTH),
                                     ("right", CROP + SOURCE_WIDTH, WIDE_WIDTH)):
             eligible = equal = 0
+            opaque_bg1 = opaque_bg2 = unresolved = 0
             first = []
             for y in range(HEIGHT):
                 world_y = camy + y + dy
@@ -172,12 +208,24 @@ def compare_pixels(source_zip: Path, native_zip: Path) -> dict:
                     source_x = x - CROP
                     world_x = camx + source_x + dx
                     tile = source_course_tile(wram, world_x // 16, world_y // 16)
-                    if tile is None:
-                        continue
-                    prediction = bg1_pixel(tile, sx + source_x, sy + 1 + y,
-                                           vram, cgram, char_base)
+                    prediction = (bg1_pixel(tile, sx + source_x, sy + 1 + y,
+                                            vram, cgram, char_base)
+                                  if tile is not None else None)
+                    layer = "BG1"
                     if prediction is None:
+                        # The PPU, not a native margin image, supplies BG2
+                        # scroll, 64x64 tilemap, flips and palette selection.
+                        prediction = bg2_pixel(
+                            vram, cgram, bg2, int(bg2["hofs"]) + source_x,
+                            int(bg2["vofs"]) + 1 + y)
+                        layer = "BG2"
+                    if prediction is None:
+                        unresolved += 1
                         continue
+                    if layer == "BG1":
+                        opaque_bg1 += 1
+                    else:
+                        opaque_bg2 += 1
                     observed = (old_pixels[y * SOURCE_WIDTH + source_x]
                                 if region == "center" else wide_pixels[y * WIDE_WIDTH + x])
                     actual = tuple(v >> 3 for v in observed)
@@ -185,17 +233,22 @@ def compare_pixels(source_zip: Path, native_zip: Path) -> dict:
                     if prediction == actual:
                         equal += 1
                     elif len(first) < 12:
-                        first.append({"x_wide": x, "y": y,
-                                      "original_bg1_rgb5": prediction,
+                        first.append({"x_wide": x, "y": y, "source_layer": layer,
+                                      "original_source_rgb5": prediction,
                                       "observed_rgb5": actual})
             metrics[region] = {
-                "source_predicted_opaque_bg1_pixels": eligible,
+                "pixels_in_region": (right - left) * HEIGHT,
+                "original_source_bg1_opaque_pixels": opaque_bg1,
+                "original_source_bg2_opaque_pixels": opaque_bg2,
+                "unresolved_transparent_pixels": unresolved,
+                "source_predicted_rgb5_pixels": eligible,
                 "matching_rgb5_pixels": equal,
                 "differing_rgb5_pixels": eligible - equal,
                 "first_differences": first,
             }
-        if not metrics["left"]["source_predicted_opaque_bg1_pixels"] or not metrics["right"]["source_predicted_opaque_bg1_pixels"]:
-            raise ValueError("no opaque BG1 pixels in a margin; cannot claim test")
+        if (metrics["left"]["unresolved_transparent_pixels"] or
+                metrics["right"]["unresolved_transparent_pixels"]):
+            raise ValueError("original source does not resolve complete BG1/BG2 margins")
         results[tag] = {"source_calibration": {
             "original_ppu_vram_map_words_matching": words,
             "original_ppu_vram_map_words_compared": SOURCE_WIDTH * HEIGHT,
@@ -208,19 +261,30 @@ def compare_pixels(source_zip: Path, native_zip: Path) -> dict:
             "original_vram_sha256": sha(vram),
             "original_cgram_sha256": sha(cgram),
         }, "regions": metrics}
-    margin_compared = sum(results[tag]["regions"][s]["source_predicted_opaque_bg1_pixels"]
+    margin_compared = sum(results[tag]["regions"][s]["source_predicted_rgb5_pixels"]
                           for tag in TAGS for s in ("left", "right"))
     margin_matching = sum(results[tag]["regions"][s]["matching_rgb5_pixels"]
                           for tag in TAGS for s in ("left", "right"))
+    margin_bg1 = sum(results[tag]["regions"][s]["original_source_bg1_opaque_pixels"]
+                     for tag in TAGS for s in ("left", "right"))
+    margin_bg2 = sum(results[tag]["regions"][s]["original_source_bg2_opaque_pixels"]
+                     for tag in TAGS for s in ("left", "right"))
+    expected_pixels = len(TAGS) * 2 * CROP * HEIGHT
+    if margin_compared != expected_pixels or margin_bg1 + margin_bg2 != expected_pixels:
+        raise ValueError("original layer prediction did not cover every margin pixel")
     return {"schema": SCHEMA, "original_artifact_sha256": original_hash,
             "native_artifact_sha256": native_hash,
             "original_source_sha": ref["source_sha"],
             "native_source_sha": nat["source_sha"],
-            "margin_source_predicted_opaque_bg1_pixels": margin_compared,
+            "expected_margin_pixels": expected_pixels,
+            "margin_source_bg1_opaque_pixels": margin_bg1,
+            "margin_source_bg2_opaque_pixels": margin_bg2,
+            "margin_source_predicted_pixels": margin_compared,
             "margin_matching_rgb5_pixels": margin_matching,
             "margin_differing_rgb5_pixels": margin_compared - margin_matching,
             "source_only_calibration": True,
-            "transparent_bg1_or_other_layers_qualified": False,
+            "every_margin_pixel_bg1_or_bg2_source_predicted": True,
+            "offscreen_obj_window_hdma_color_effects_independently_proven_absent": False,
             "frame_clock_and_live_snes_offscreen_raster_proven": False,
             "widescreen_qualified": False, "usa_course_credit": 0,
             "release_gate_credit": 0, "checkpoints": results}
@@ -243,7 +307,7 @@ def main() -> None:
     else:
         print(output, end="")
     if args.require_margin_parity and report["margin_differing_rgb5_pixels"]:
-        raise SystemExit("original-derived opaque BG1 margin pixel mismatch")
+        raise SystemExit("original-derived BG1/BG2 margin pixel mismatch")
 
 
 if __name__ == "__main__":

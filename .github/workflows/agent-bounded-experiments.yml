@@ -1,0 +1,86 @@
+name: Agent bounded experiment execution
+
+# Agents create an experiments/* branch, change one JSON request and push.
+# No owner comment, bespoke workflow edit or PR merge is needed per attempt.
+on:
+  push:
+    branches:
+      - "experiments/**"
+    paths:
+      - "experiments/request.json"
+  workflow_dispatch:
+
+# Deliberately no secrets, OIDC, write scopes, environment, or self-hosted runner.
+permissions:
+  contents: read
+
+concurrency:
+  group: ur-agent-experiment-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 4
+    outputs:
+      kind: ${{ steps.request.outputs.kind }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Parse strict request bound to this exact source revision
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests/unit -p test_agent_experiment_request.py
+          python3 tools/agent_experiment_request.py \
+            --request experiments/request.json \
+            --source-sha "$GITHUB_SHA" \
+            --ref "$GITHUB_REF" \
+            --gha-output "$GITHUB_OUTPUT" \
+            --receipt "$RUNNER_TEMP/agent-experiment-request.json"
+      - name: Retain exact request and source binding
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: agent-experiment-request
+          path: ${{ runner.temp }}/agent-experiment-request.json
+          retention-days: 14
+          if-no-files-found: error
+
+  qa01_zoo:
+    if: needs.validate.outputs.kind == 'qa01_zoo'
+    needs: validate
+    # Real original/native evidence, not a fabricated or synthetic demonstration.
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      source_followthrough: true
+      zoo_next_bowl: true
+
+  qa01_pcm:
+    if: needs.validate.outputs.kind == 'qa01_rf095_pcm'
+    needs: validate
+    # RF095 captures actual post-DSP stereo samples on both original and native.
+    # Prerequisites are enforced again by the underlying experiment.
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      qa01_rf084_native_sound_dp: true
+      qa01_rf088_rf089_echo: true
+      qa01_rf094_spc_dsp: true
+      qa01_rf095_pcm: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+
+  windows_candidate:
+    if: needs.validate.outputs.kind == 'windows_candidate'
+    needs: validate
+    # Native Win32 journeys and exact-ROM-free candidate export; no gate claimed.
+    uses: ./.github/workflows/baldosa-windows-native-bridge.yml
+    with:
+      export_campaign_inputs: true

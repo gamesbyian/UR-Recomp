@@ -1409,6 +1409,7 @@ jobs:
           name: qa02-current-candidate-two-game-evidence
           path: |
             ${{ runner.temp }}/qa02-current-candidate-identity.json
+            ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
             ${{ runner.temp }}/qa02-current-two-games/two_games/evidence/
             ${{ runner.temp }}/qa02-current-two-games/two_games/*.json
           if-no-files-found: warn

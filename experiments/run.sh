@@ -11,7 +11,7 @@ import sys
 src=Path(sys.argv[1]).read_text()
 needle='press right 900\ndump ws-product-after-scroll'
 assert src.count(needle)==1, 'original input script changed; do not silently alter route'
-new='press right 300\ndump ws-product-motion-300\npress right 300\ndump ws-product-motion-600\npress right 300\ndump ws-product-after-scroll'
+new='press right 300\ndump ws-product-motion-300\npress right 150\ndump ws-product-motion-450\npress right 150\ndump ws-product-motion-600\npress right 150\ndump ws-product-motion-750\npress right 150\ndump ws-product-after-scroll'
 Path(sys.argv[2]).write_text(src.replace(needle,new))
 PY
 python3 tools/verify_rom.py "$ROM" >"$OUT/rom-identity.txt"
@@ -36,7 +36,7 @@ import hashlib,json,struct,sys
 from pathlib import Path
 root=Path(sys.argv[1]); sha=sys.argv[2]; status=int(sys.argv[3])
 result={'schema':'ur-wide07-original-intermediate-motion/1','source_sha':sha,'emulator_exit':status,'checkpoints':{},'native_comparison':False,'usa_course_credit':0}
-for tag in ('ws-product-race','ws-product-motion-300','ws-product-motion-600','ws-product-after-scroll'):
+for tag in ('ws-product-race','ws-product-motion-300','ws-product-motion-450','ws-product-motion-600','ws-product-motion-750','ws-product-after-scroll'):
  paths={ext:root/'frames'/f'{tag}.{ext}' for ext in ('fb.bmp','wram.bin','sram.bin','info.json')}
  if not all(p.is_file() for p in paths.values()): raise SystemExit('MISSING_ORIGINAL_FRAME '+tag)
  bmp=paths['fb.bmp'].read_bytes()

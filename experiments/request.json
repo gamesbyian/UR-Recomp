@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does exact source-bound Windows QA-02 A/B/C witness execute and retain evidence after PR #3362 integration?",
+  "question": "Does the exact source-bound QA-02 A/B/C Windows witness pass and retain both candidate binding and raw before/after evidence?",
   "expected": "Build ROM-free ZIP, bind hashes, execute genuine two-process Windows save overlap, retain exact before/after bytes and logs even on failure.",
   "owner": "windows",
-  "attempt": 6
+  "attempt": 7
 }

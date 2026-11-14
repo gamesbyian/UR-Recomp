@@ -1,4 +1,6 @@
-# HP unattended research: source-bound seeded native 2P gameplay
+# HP former unattended research: source-bound seeded native 2P gameplay
+
+**2026-11-13 operational change:** automatic GitHub schedule retired. The owner-PC research is **manual only** and must be justified by a current unresolved engineering question. Historic observed runs, provenance and eight-cohort receipt contracts below remain genuine archival evidence; scheduling/throughput directives and the five-agent sentence below are superseded. Ordinary experiments use hosted Actions and the [execution-first operating model](EXECUTION-FIRST-OPERATING-MODEL.md).
 
 **Purpose:** keep producing new, independently checkable real Windows game
 evidence between source changes, without reserving a sixth LLM agent.

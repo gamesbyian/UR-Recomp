@@ -16,8 +16,9 @@ name: HP unattended seeded 2P gameplay research
 # without a competing workflow, preserving one HP concurrency group.
 # GitHub can defer/drop runs: count observed receipts, not nominal slots.
 on:
-  schedule:
-    - cron: '11,41 * * * *'
+  # Retired automatic HP wake-ups per execution-first owner direction (2026-11-13).
+  # Manual source-bound research remains available only when a genuine product
+  # decision depends on new evidence. Never reserve the owner's PC by default.
   workflow_dispatch:
     inputs:
       research_wall_seconds:

@@ -151,13 +151,13 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertIn("  workflow_dispatch:", s)
         self.assertNotIn("17 */3 * * *", s)
         self.assertNotIn("cron: '17 * * * *'", s)
-        # Exactly one scheduled entry is admitted: no overlapping extra
-        # cron, second scheduler, fork/PR dispatch or fast-path QA bypass.
+        # No scheduled entry is admitted: retain the authenticated manual
+        # caller and prevent fork/PR dispatch or fast-path QA bypass.
         self.assertEqual(s.count("- cron:"), 0)
         self.assertIn("group: hp-seeded-2p-research-${{ github.ref }}", s)
         for expected in ("github.repository == 'gamesbyian/UR-Recomp'",
                          "github.ref == 'refs/heads/main'",
-                         "github.event_name == 'schedule'",
+                         "github.event_name == 'workflow_dispatch'",
                          "uses: ./.github/workflows/windows-native-smoke.yml",
                          "run_on_hp: true", "hp_ninja_auto: true",
                          "hp_seeded_2p: true", "cancel-in-progress: false"):

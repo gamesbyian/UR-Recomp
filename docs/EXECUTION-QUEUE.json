@@ -15,9 +15,10 @@
       "execution_location": "GitHub Actions hosted ubuntu via agent-bounded-experiments",
       "experiment_kind": "qa01_rf095_pcm",
       "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43532930092",
-      "next_action": "Inspect complete original/native RF095 run and artifacts. If producer fails, change instrumentation or build and retry request on experiments/qa01-rf095-first, bump attempt. If actual PCM exists, align by exact frame/sample boundaries and isolate effect on original/native event; fix game or demonstrate unobservable difference.",
-      "completion_condition": "One independently reproduced original USA course from authentic source race through result, progression and cold save, satisfying explicit observed behavior, audio and visual criteria.",
-      "on_blocker": "Own missing emulator/toolchain/runner fix and rerun. If external, write command, input, location, expected output and move to WIDE-07."
+      "next_action": "Download exact artifact 14088083271 from run 43532930092; correlate PCM onset with RF094 original/native DSP KON/F3 and port2 markers and same-semantic clock. Prove or reject genuine 2.7-frame native audio-delay hypothesis. Repair instrument/guest only with causal evidence, rerun bounded PCM and independently judge course behavior.",
+      "completion_condition": "One independently reproduced original USA course from authentic source race through result, progression and cold save, satisfying explicit observed behavior, audio and visual criteria. Audio onset mismatch must be investigated with clock/output-boundary registration, not dismissed as a stack-byte technicality.",
+      "on_blocker": "Own missing emulator/toolchain/runner fix and rerun. If external, write command, input, location, expected output and move to WIDE-07.",
+      "evidence_observation": "RF095 real Zoom Zoo case succeeded on source 77bd2cfdce48b63e587133bcdb541197b38f0eab; artifact 14088083271 includes authentic original/native stereo sample windows. Original first nonzero at frame 6449 and native at 6452 in respective registration; output-stage/clock equivalence unproven. See issue #1689 comment 6868492654."
     },
     {
       "id": "WIDE07-MOVING-USA",

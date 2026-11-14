@@ -57,17 +57,47 @@ dispatch or merge is required for a retry.
 }
 ```
 
-Allowed `kind` values:
-- `qa01_rf095_pcm`: actual paired original/native Zoo result audio;
-- `qa01_zoo`: actual original/native Zoo through Bowl follow-through;
-- `windows_candidate`: native Win32 hosted journeys and candidate export.
+Allowed \`kind\` values:
+- \`qa01_rf095_pcm\`: actual paired original/native Zoo result audio;
+- \`qa01_zoo\`: actual original/native Zoo through Bowl follow-through;
+- \`windows_candidate\`: native Win32 hosted journeys and candidate export;
+- \`script_linux\`: **general-purpose source-controlled experiment recipe**,
+  edited and rerun entirely by the agent without a workflow edit, PR,
+  merge or owner intervention per attempt.
 
-The dispatcher intentionally uses **fixed allowlisted profiles**, not a
-request-supplied shell command. The executing agent may change code and
-instrumentation on that branch and bump `attempt`, with complete provenance,
-but cannot ask this control plane to execute an arbitrary privileged task.
-To add an experiment family, wire another bounded reusable implementation
-and test it; do not add one workflow per investigation. For each attempt:
+For \`script_linux\`, supply \`experiments/run.sh\` on that experiment branch
+alongside \`experiments/request.json\`. The JSON uses the same exact six
+fields shown above, with \`kind\` set to \`script_linux\`. The shell file must
+begin with \`#!/usr/bin/env bash\`, be a regular file under 256 KiB, and be
+in the same exact source revision as the request. Each new attempt modifies
+the script or product sources as needed, increments \`attempt\`, commits
+\`experiments/request.json\` and pushes the branch. That request change is
+the only automatic trigger. Do not try to dispatch by editing the workflow.
+
+The hosted worker executes \`bash experiments/run.sh\` after stripping the
+Actions environment down to an explicit allowlist. It has no inherited
+\`GH_TOKEN\`, GitHub App credential, OIDC token or repository write scope; its
+checkout has no persisted Git credential. No self-hosted/HP runner, owner PC
+or private environment is available. Install missing packages or compile
+emulators and native binaries on that ephemeral Ubuntu runner as needed.
+A 30-minute script limit plus the job timeout bounds execution. Put useful
+machine-readable outputs, logs and bounded evidence in
+\`$UR_EXPERIMENT_OUTPUT_DIR\` (64 MiB uploaded-evidence limit);
+\`$UR_EXPERIMENT_SOURCE_SHA\` identifies the exact checkout.
+The automatically retained receipt records source SHA, script/request hashes
+and the execution step outcome. A failed experiment retains whatever bounded
+evidence it produced; the next agent inspects that output and **repairs the
+recipe, toolchain or product**, rather than restating the failure.
+
+The three specialized profiles remain available for lengthy already-proven
+original/native and Windows pipelines. \`script_linux\` is the normal route
+for a new bounded Linux-side question, including WIDE-07 instrumentation,
+new audio alignment experiments, and independent code reproduction.
+Do not treat an agent-supplied script as an authorization to access secrets,
+the owner's PC, proprietary external services, or another system. Even a
+successful hosted experiment does not grant a USA course or release gate.
+
+For each attempt:
 open Actions > Agent bounded experiment execution > branch run, inspect all
 failed jobs and download their artifacts before changing source/request.
 Use the failed command and its exact output as the next question.
@@ -100,8 +130,10 @@ and 0/12 counters change only upon evidence-backed qualification.
 
 ## Migration sequence
 
-1. Demonstrate this service with a **real** hosted RF095 result, and fix
-   dispatch/runner failures instead of calling them external blockers.
+1. **Done for specialized RF095:** genuine executed hosted run 43532930092
+   produced original/native stereo PCM and source-bound evidence. The
+   generalized script profile must likewise be demonstrated with real work;
+   a parser unit test alone cannot certify that execution path.
 2. Extend the service for WIDE-07 moving-course and course-fanout adapters;
    retain the same non-privileged request discipline.
 3. Prove a fresh current-main Windows package and gate audit.

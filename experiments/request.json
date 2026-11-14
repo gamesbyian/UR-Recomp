@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does QA-02 exact candidate receipt reject modified archives and malformed identities while preserving immutable historical owner pins?",
+  "question": "Do source-bound Win32 two-game candidate injection and historical defaults compile and pass strict identity tests?",
   "expected": "Unit tests pass on hosted source SHA; no release gate credit.",
   "owner": "windows",
-  "attempt": 1
+  "attempt": 2
 }

@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Can the authentic original USA Snes9x emulator execute the same source-controlled moving-course route and produce PPU, WRAM and SRAM frames?",
+  "expected": "Capture and hash original Snes9x framebuffer/memory for menu, race and after-scroll with exact emulator provenance, or isolate and repair the missing build or emulator dependency.",
+  "owner": "fidelity",
+  "attempt": 1
+}

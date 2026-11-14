@@ -1395,7 +1395,6 @@ jobs:
           path.write_text(json.dumps(receipt, sort_keys=True) + "\\n")
           PY
           python tools/qa02_exact_owner_two_games.py \
-            --retained "$RUNNER_TEMP/qa02-two-original-games-retained" \
             --candidate-zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
             --candidate-receipt "$RUNNER_TEMP/qa02-current-candidate-identity.json" \
             --rom "reference/roms/retail/Uniracers_USA.sfc" \

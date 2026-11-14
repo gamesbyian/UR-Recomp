@@ -6,8 +6,8 @@ name: Live operations snapshot
 # additional recurring trigger, or auto-merge action.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 14 * * *'
+  # Retired failing daily status scans on 2026-11-13.
+  # Explicit manual investigation and source-change diagnostics remain.
   # Keep workflow registration diagnostics observable immediately after a
   # watchdog source change even when GitHub schedule delivery is unreliable.
   # Do not self-trigger on edits to this workflow YAML: CI policy reserves

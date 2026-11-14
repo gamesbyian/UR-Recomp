@@ -8,7 +8,7 @@ Private technical reconstruction and modern-port project for **Uniracers / Unira
 
 ## Start here
 
-- **Coding agent:** [AGENTS.md](AGENTS.md) → [live work queue](docs/WORK-QUEUE.md) → one lane-specific authority.
+- **Coding agent:** [AGENTS.md](AGENTS.md) → [execution-first operating model](docs/EXECUTION-FIRST-OPERATING-MODEL.md) → [short executable queue](docs/EXECUTION-QUEUE.json) → exact source/run. The old five-agent ranked board is historical.
 - **Cross-project leverage:** run `python3 tools/select_three_project_reuse.py --lane all --include-conditional` before substantive work; this consults the pinned [three-project capability matrix](analysis/data/three-project-apparatus-capability-matrix-20261010.json) without overriding the live queue.
 - **Product architecture:** [project plan](docs/PROJECT-PLAN.md); feature-status and provenance are distinguished from implementation and release proof.
 - **Baldosa reuse:** [UR-Recomp/Baldosa code and asset audit](docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md), [measured native bridge](docs/BALDOSA-NATIVE-EXECUTION-EXPERIMENT-20261009.md), [migration runbook](docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md).

@@ -1,4 +1,6 @@
-# UR-Recomp: active work queue
+# UR-Recomp: historical ranked work queue (superseded)
+
+**Superseded on 2026-11-13.** Active scheduled dispatch now uses the two execution workstreams and on-demand independent verification in [`EXECUTION-FIRST-OPERATING-MODEL.md`](EXECUTION-FIRST-OPERATING-MODEL.md). The machine-readable current work selection is [`EXECUTION-QUEUE.json`](EXECUTION-QUEUE.json). This document records research and former task priorities, but must not override current execution, launch duplicate agents or block a runnable experiment. Retain historical evidence links, not the five-agent selection policy.
 
 **October 26, 2026: the only active dispatch model is the [ranked shared hourly pool](HOURLY-AGENT-LINES.md).** The five scheduled agents are **generalists**. Each invocation inspects five eligible jobs, reconciles live work, advances the highest-value unblocked candidate as far as practical and leaves a job-specific handoff. There are **no permanent two-anchor assignments, reserved Agent 5 integration lane, or compulsory five patches per invocation**. The former allocation and dated decisions are preserved in [the historical queue](archive/WORK-QUEUE-FIXED-ANCHORS-20261026.md) and [old board](archive/HOURLY-AGENT-LINES-FIXED-ANCHORS-20261026.md), but neither schedules work.
 

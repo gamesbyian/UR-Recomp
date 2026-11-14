@@ -1,5 +1,7 @@
 """Adversarial contract tests for the standing hosted-experiment service."""
+import hashlib
 import json
+import tempfile
 import sys
 import unittest
 from pathlib import Path
@@ -90,6 +92,42 @@ class AgentExperimentRequestTests(unittest.TestCase):
         raw = encode(request()) + b" " * 4200
         with self.assertRaises(ValueError):
             experiment.validate_request(raw, SHA, REF)
+
+    def test_script_profile_requires_exact_source_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            out = root / "experiments"
+            out.mkdir()
+            self.assertIsNone(experiment.script_digest("qa01_zoo", root))
+            with self.assertRaisesRegex(ValueError, "regular"):
+                experiment.script_digest("script_linux", root)
+            script = out / "run.sh"
+            sample = b"#!/usr/bin/env bash\nset -euo pipefail\nprintf 'real experiment'\n"
+            script.write_bytes(sample)
+            self.assertEqual(experiment.script_digest("script_linux", root),
+                             hashlib.sha256(sample).hexdigest())
+            for invalid in (b"#!/bin/sh\ntrue\n",
+                            b"#!/usr/bin/env bash\n" + b"a" * 262144,
+                            sample + b"\x00"):
+                with self.subTest(raw_size=len(invalid)):
+                    script.write_bytes(invalid)
+                    with self.assertRaisesRegex(ValueError, "small, nonbinary"):
+                        experiment.script_digest("script_linux", root)
+            script.unlink()
+            real = root / "real.sh"
+            real.write_bytes(sample)
+            script.symlink_to(real)
+            with self.assertRaisesRegex(ValueError, "regular"):
+                experiment.script_digest("script_linux", root)
+
+    def test_script_request_keeps_source_and_zero_credits(self):
+        raw = request()
+        raw["kind"] = "script_linux"
+        r = experiment.validate_request(encode(raw), SHA, REF)
+        self.assertEqual(r["source_sha"], SHA)
+        self.assertEqual(r["usa_course_credit"], 0)
+        self.assertEqual(r["release_gate_credit"], 0)
+        self.assertEqual(r["qualification_status"], "unreviewed_experiment")
 
 
 if __name__ == "__main__":

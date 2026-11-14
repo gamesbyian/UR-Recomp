@@ -2,8 +2,11 @@
 
 Owner direction, 2026-11-13: working game and honest original evidence outrank
 agent-scheduling continuity, process volume, and CI infrastructure preservation.
-The old five-worker board remains provisional until executable replacement is
-demonstrated. No existing evidence or source revision is silently discarded.
+The two scheduled execution workstreams are active; the former five-worker
+shared-pool board is retired as dispatch authority. Hosted specialized and
+general source-controlled experiment execution have both been demonstrated
+against real original/native game data. No existing evidence or source revision
+is silently discarded.
 
 ## What a worker does
 
@@ -128,23 +131,50 @@ Do not claim metric movement for a tool test, source-only fixture, receipt,
 synthetic-only Windows test or absence of a reproduced failure. The 0/45
 and 0/12 counters change only upon evidence-backed qualification.
 
-## Migration sequence
+## Verified migration status, 2026-11-13
 
-1. **Done for specialized RF095:** genuine executed hosted run 43532930092
-   produced original/native stereo PCM and source-bound evidence. The
-   generalized script profile must likewise be demonstrated with real work;
-   a parser unit test alone cannot certify that execution path.
-2. Extend the service for WIDE-07 moving-course and course-fanout adapters;
-   retain the same non-privileged request discipline.
-3. Prove a fresh current-main Windows package and gate audit.
-4. Replace five duplicate hourly scans with fidelity and Windows execution
-   workstreams, plus on-demand independent verification.
-5. Replace ranked prose with a small actionable queue; retire unused workflows
-   after confirming their active callers. Retire stale unattended HP/ops/Vault
-   work only after checking what evidence it uniquely provides.
-6. Report accepted courses, accepted release gates, verified player journeys,
-   new defects and removed blockers; investigate repeated identical blocked
-   runs automatically.
+1. **Hosted service operational:** Specialized actual original/native stereo PCM
+   run [43532930092](https://github.com/gamesbyian/UR-Recomp/actions/runs/43532930092)
+   and real source-controlled `script_linux` WIDE-07 original Snes9x
+   run [43539425650](https://github.com/gamesbyian/UR-Recomp/actions/runs/43539425650)
+   and native real state run
+   [43540488054](https://github.com/gamesbyian/UR-Recomp/actions/runs/43540488054)
+   prove the general hosted execution route can build and run original/native
+   experiments. Retry through updated request scripts; do not establish another
+   execution platform as an answer to a successfully solved dependency.
+2. **Original-USA-derived WIDE-07 pixels:** Merged
+   [#3359](https://github.com/gamesbyian/UR-Recomp/pull/3359)
+   independently predicts all 38,528 left/right 342-wide margin RGB5 samples
+   at two real moving-course checkpoints from original source BG1/BG2,
+   all 38,528 matching the actual native framebuffer. It does not prove other
+   moving frames, true 342-pixel original-SNES rendering, sprite/HDMA
+   interactions, matched absolute guest clocks or full WIDE-07/course acceptance.
+   A transient 1-pixel original/native blue-arrow boundary remains to isolate.
+3. **Playable Windows candidate operational:** Hosted source-controlled request
+   [run 43545814590](https://github.com/gamesbyian/UR-Recomp/actions/runs/43545814590)
+   succeeded against a branch from main differing only in the experiment
+   request, emitted ROM-free native x64 candidate artifact 14094547287,
+   controller journeys and genuine NTFS recovery evidence. Its actual
+   experiment SHA is `513bc5ad42f52c790a028eb2e20a9a3d51d9c065`,
+   not the `main` source SHA. Independently verify before physical playtest
+   and nominate an exact-source release candidate separately when required.
+4. **Coordination replacement active:** Fidelity and Windows hourly execution
+   workstreams replace the five redundant shared-pool agents; the on-demand
+   independent verifier remains distinct. Recurring noncritical HP/Vault/ops
+   scans were retired or converted to manual. Six dormant operations/CI
+   proposals (#3295, #3302, #3281, #3274, #3258, #3229) were closed with
+   recoverable branches instead of remaining active reviews. Old ranked board,
+   211 historical workflows and dated deep-research documents are not mandates
+   to preserve process overhead. Retire a specific remaining workflow only
+   after checking actual build and evidence consumers.
+5. **Next actual targets:** first fully independent USA course qualification,
+   then 44 more; first fully independent Windows QA gate, then 11 more.
+   `docs/EXECUTION-QUEUE.json` carries exact next actions, owner,
+   execution location, source runs and completion discriminators. Reuse evidence
+   already captured; pursue causal first failures or additional distinct
+   moving frames rather than re-observing the same source traces.
 
-Until step 1 has been demonstrated, do not shut off the five agents or erase
-their references solely because the new policy has been written.
+**Formal acceptance remains 0/45 USA courses and 0/12 Windows release gates**
+until complete evidence-backed independent evaluation. A file count, workflow
+success, correlation, two-frame positive image, hosted candidate or self-review
+must not increment either counter.

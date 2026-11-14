@@ -258,7 +258,7 @@ class HpComputeWatchTests(unittest.TestCase):
 
     def test_existing_daily_ops_gets_read_only_monitor_and_bounded_artifacts(self):
         source = WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn("cron: '30 14 * * *'", source)
+        self.assertNotIn("- cron:", source)
         # Any future change to this watcher is validated by one real, trusted
         # main-only read, without waiting for a best-effort daily cron.
         self.assertIn("push:", source)

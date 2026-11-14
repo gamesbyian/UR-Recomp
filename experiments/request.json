@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "windows_candidate",
+  "question": "Can the current 3f612489 main source produce a fresh ROM-free Windows x64 playable candidate with authentic hosted game journeys and exact SHA-bound packaging?",
+  "expected": "Execute current-source hosted Windows game journeys, emit verifiable ROM-free ZIP and source identity, or isolate and repair actual build/test failure.",
+  "owner": "windows",
+  "attempt": 1
+}

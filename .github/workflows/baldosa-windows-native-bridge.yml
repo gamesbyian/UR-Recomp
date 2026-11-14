@@ -1392,7 +1392,7 @@ jobs:
               "exe_sha256": binding["journey_and_packaged_executable_sha256"],
           }
           path = Path(os.environ["RUNNER_TEMP"]) / "qa02-current-candidate-identity.json"
-          path.write_text(json.dumps(receipt, sort_keys=True) + "\\n")
+          path.write_text(json.dumps(receipt, sort_keys=True) + "\n")
           PY
           python tools/qa02_exact_owner_two_games.py \
             --candidate-zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \

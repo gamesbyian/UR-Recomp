@@ -1003,7 +1003,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
                 self.assertIn('      - ".github/workflows/qa05-qa09-windows-candidate.yml"', segment)
 
         science = (WORKFLOWS / "owner-hp-seeded-2p-research.yml").read_text()
-        self.assertIn("cron: '11,41 * * * *'", science)
+        self.assertNotIn("- cron:", science)
+        self.assertIn("  workflow_dispatch:", science)
         self.assertIn("hp_seeded_2p: true", science)
         self.assertIn("run_on_hp: true", science)
         self.assertIn("github.ref == 'refs/heads/main'", science)

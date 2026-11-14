@@ -1,6 +1,6 @@
 # Document map and source-of-truth policy
 
-**For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). The [ranked hourly shared board](HOURLY-AGENT-LINES.md) is the only active five-agent assignment authority. Every generalist considers five eligible jobs. A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
+**For agents (active 2026-11-13):** start at [AGENTS.md](../AGENTS.md), the [execution-first operating model](EXECUTION-FIRST-OPERATING-MODEL.md), and [EXECUTION-QUEUE.json](EXECUTION-QUEUE.json). Two scheduled execution workstreams and an on-demand verifier replace the five-agent ranked pool. The [old work queue](WORK-QUEUE.md) and [hourly board](HOURLY-AGENT-LINES.md) remain historical context, not dispatch authorities. The release-quality ledger still owns formal acceptance.
 
 ## Contributor recruitment and response coordination
 

@@ -21,6 +21,10 @@ on:
   # decision depends on new evidence. Never reserve the owner's PC by default.
   workflow_dispatch:
     inputs:
+      manual_authorization:
+        description: 'Enter RUN-HP-RESEARCH to explicitly authorize using the owner PC'
+        type: string
+        required: true
       research_wall_seconds:
         description: 'Owner-only trial; scheduled/default horizon remains 360 seconds'
         type: choice
@@ -42,7 +46,8 @@ jobs:
     if: >-
       github.repository == 'gamesbyian/UR-Recomp' &&
       github.ref == 'refs/heads/main' &&
-      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+      github.event_name == 'workflow_dispatch' &&
+      inputs.manual_authorization == 'RUN-HP-RESEARCH'
     uses: ./.github/workflows/windows-native-smoke.yml
     with:
       run_on_hp: true

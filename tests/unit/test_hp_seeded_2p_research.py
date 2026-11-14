@@ -79,9 +79,8 @@ class HpScheduledResearchTests(unittest.TestCase):
             encoding="utf-8")
         lines = [line.strip() for line in SCHEDULE.read_text(
             encoding="utf-8").splitlines() if line.strip().startswith("- cron:")]
-        self.assertEqual(len(lines), 1)
-        cron = lines[0].split("'", 2)[1]
-        self.assertIn("`" + cron + "`", contract)
+        self.assertEqual(lines, [], "retired HP research must not run on cron")
+        self.assertIn("manual only", contract)
         self.assertEqual(hp.WORKERS, 8)
         self.assertIn("**eight independent source-owned QA02 native 2P cohorts**",
                       contract)
@@ -113,7 +112,8 @@ class HpScheduledResearchTests(unittest.TestCase):
         self.assertIn("hp_research_wall_seconds: ${{ github.event_name == 'workflow_dispatch'", caller)
         self.assertIn("hp_research_wall_seconds:", reusable)
         self.assertIn("UR_HP_RESEARCH_WALL_SECONDS: ${{ inputs.hp_research_wall_seconds }}", reusable)
-        self.assertEqual(caller.count("- cron:"), 1)
+        self.assertEqual(caller.count("- cron:"), 0)
+        self.assertIn("  workflow_dispatch:", caller)
 
     def test_manual_600_second_collector_requires_matching_source_budget(self):
         source, run_id = "a" * 40, 41151999999
@@ -147,16 +147,17 @@ class HpScheduledResearchTests(unittest.TestCase):
     def test_schedule_uses_only_trusted_hp_main_and_no_new_compiler(self):
         s = SCHEDULE.read_text()
         win = WIN.read_text()
-        self.assertIn("cron: '11,41 * * * *'", s)
+        self.assertNotIn("- cron:", s)
+        self.assertIn("  workflow_dispatch:", s)
         self.assertNotIn("17 */3 * * *", s)
         self.assertNotIn("cron: '17 * * * *'", s)
-        # Exactly one scheduled entry is admitted: no overlapping extra
-        # cron, second scheduler, fork/PR dispatch or fast-path QA bypass.
-        self.assertEqual(s.count("- cron:"), 1)
+        # No scheduled entry is admitted: retain the authenticated manual
+        # caller and prevent fork/PR dispatch or fast-path QA bypass.
+        self.assertEqual(s.count("- cron:"), 0)
         self.assertIn("group: hp-seeded-2p-research-${{ github.ref }}", s)
         for expected in ("github.repository == 'gamesbyian/UR-Recomp'",
                          "github.ref == 'refs/heads/main'",
-                         "github.event_name == 'schedule'",
+                         "github.event_name == 'workflow_dispatch'",
                          "uses: ./.github/workflows/windows-native-smoke.yml",
                          "run_on_hp: true", "hp_ninja_auto: true",
                          "hp_seeded_2p: true", "cancel-in-progress: false"):

@@ -374,13 +374,13 @@ class HPSDL3CacheTests(unittest.TestCase):
             self.assertFalse(env_file.exists())
 
     def test_scheduled_hp_cache_allows_only_trusted_main_and_owner_runner(self):
-        # The existing owner-only 2P cron calls the SAME SDL3 helper with
-        # --hp; rejecting schedule before the actual Windows build would
-        # strand every unattended science run. PR/fork/foreign runners still
-        # cannot invoke this trusted-machine path.
+        # The manual owner-only 2P experiment uses the same SDL3 helper with
+        # --hp. No automatic cron dispatch remains; PR/fork/foreign runners
+        # still cannot invoke this trusted-machine path.
         workflow = (MODULE.parents[2] /
                     ".github/workflows/owner-hp-seeded-2p-research.yml").read_text()
-        self.assertIn("github.event_name == 'schedule'", workflow)
+        self.assertIn("github.event_name == 'workflow_dispatch'", workflow)
+        self.assertNotIn("- cron:", workflow)
         self.assertIn("run_on_hp: true", workflow)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -390,7 +390,7 @@ class HPSDL3CacheTests(unittest.TestCase):
                     str(root / "private.env"), "--hp"]
             trusted = {"GITHUB_REPOSITORY": "gamesbyian/UR-Recomp",
                        "GITHUB_REF": "refs/heads/main",
-                       "GITHUB_EVENT_NAME": "schedule",
+                       "GITHUB_EVENT_NAME": "workflow_dispatch",
                        "RUNNER_NAME": "hpmini-ur-recomp"}
             with patch.object(sys, "argv", args), patch.dict(os.environ, trusted):
                 with patch.object(cache, "visual_studio_root", return_value=root), \

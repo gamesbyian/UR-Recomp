@@ -75,8 +75,11 @@ class CurrentDocumentationAuthoritiesTest(unittest.TestCase):
         docs_map = (ROOT / "docs/README.md").read_text(encoding="utf-8")
         queue = (ROOT / "docs/WORK-QUEUE.md").read_text(encoding="utf-8")
         for text in (agent, docs_map):
-            self.assertIn("WORK-QUEUE.md", text)
-        self.assertTrue(queue.startswith("# UR-Recomp: active work queue"))
+            self.assertIn("EXECUTION-QUEUE.json", text)
+            self.assertIn("EXECUTION-FIRST-OPERATING-MODEL.md", text)
+        active = json.loads((ROOT / "docs/EXECUTION-QUEUE.json").read_text())
+        self.assertEqual(active["schema"], "UR-EXECUTION-QUEUE/1")
+        self.assertTrue(queue.startswith("# UR-Recomp: historical ranked work queue (superseded)"))
         self.assertIn("Baldosa", queue)
         self.assertIn("RELEASE-QUALITY-LEDGER.json", docs_map)
         self.assertIn("RELEASE-QUALITY-LEDGER.json", queue)

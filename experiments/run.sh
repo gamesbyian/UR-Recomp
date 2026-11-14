@@ -11,7 +11,7 @@ import sys
 src=Path(sys.argv[1]).read_text()
 needle='press right 900\ndump ws-product-after-scroll'
 assert src.count(needle)==1, 'input route changed'
-new='press right 300\ndump ws-product-motion-300\npress right 0\ndump ws-product-motion-301\npress right 1\ndump ws-product-motion-450\npress right 2\ndump ws-product-motion-451\npress right 149\ndump ws-product-motion-600\npress right 0\ndump ws-product-motion-601\npress right 149\ndump ws-product-motion-750\npress right 2\ndump ws-product-motion-751\npress right 149\ndump ws-product-after-scroll'
+new='press right 300\ndump ws-product-motion-300\npress right 1\ndump ws-product-motion-301\npress right 1\ndump ws-product-motion-450\npress right 2\ndump ws-product-motion-451\npress right 149\ndump ws-product-motion-600\npress right 1\ndump ws-product-motion-601\npress right 149\ndump ws-product-motion-750\npress right 2\ndump ws-product-motion-751\npress right 149\ndump ws-product-after-scroll'
 Path(sys.argv[2]).write_text(src.replace(needle,new))
 PY
 python3 tools/verify_rom.py "$ROM" >"$OUT/rom-identity.txt"
@@ -39,7 +39,9 @@ tags=['ws-product-race','ws-product-motion-300','ws-product-motion-301','ws-prod
 result={'schema':'ur-wide07-dump-cadence-calibration/1','source_sha':sha,'emulator_exit':status,'checkpoints':{},'usa_course_credit':0}
 for tag in tags:
     files=sorted(root.joinpath('frames').glob(tag+'.*'))
-    if not files: raise SystemExit('MISSING_CHECKPOINT '+tag)
+    if not files:
+        result['checkpoints'][tag]={'missing':True}
+        continue
     entry={'files':{p.name.removeprefix(tag+'.'):{'size':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in files}}
     info=root/'frames'/f'{tag}.info.json'
     if info.exists(): entry['info']=json.loads(info.read_text())
@@ -49,6 +51,7 @@ for tag in tags:
     result['checkpoints'][tag]=entry
 (root/'obj-phase-inventory.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
 print('WIDE07_OBJ_PHASE',json.dumps(result,sort_keys=True))
-if status: raise SystemExit('ORIGINAL_EXECUTION_FAILED')
+if status: raise SystemExit('ORIGINAL_EXECUTION_FAILED: inspect original.log and exit.txt retained in artifact')
+if any(v.get('missing') for v in result['checkpoints'].values()): raise SystemExit('MISSING_CHECKPOINTS: inspect original.log and obj-phase-inventory.json')
 if not any('oam' in k.lower() for v in result['checkpoints'].values() for k in v['files']): raise SystemExit('OAM_NOT_EMITTED: inspect source snesref dump adapter and extend it')
 PY

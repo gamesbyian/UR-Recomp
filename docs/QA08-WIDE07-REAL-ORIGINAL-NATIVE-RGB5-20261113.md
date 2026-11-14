@@ -67,6 +67,8 @@ These are **prior bounded observations and imported-symbol leads**, not an autom
 
 The five remaining WRAM offsets are `01CF,01D1,01D2,01D3,01D4`. The three remaining SRAM offsets are `0EF1,0EF6,10A7`. `10A7` is independently observed as differing in an older Zoo result-relative sample and tentatively labeled `sCutsceneTimer2` in the imported map, but neither observation proves its role in *this* first-race route. Determine actual readers/writers or future consumer effects before waiving any difference. Source/native samples are semantically script-aligned rather than independently CPU-cycle aligned.
 
+**Actual original/native PPU register crosswalk at these checkpoints:** Both producers report the same source brightness, HDMA-enabled channel mask (`0x7C` at race entry, `0x3C` after scroll), main/subscreen enables (`0x17/0x10`), colour math (`0x04`), and BG1/BG2 vertical scroll (race `203/101`, after scroll `208/104`). BG1/BG2 horizontal scroll is also equal **modulo 1,024**, consistent with the SNES 10-bit horizontal scroll field: original race `152/76` versus native `152/76`; original after scroll `11242/5621`, native `1002/501`. These are top-level/per-capture register observations; source-vs-native per-scanline HDMA-write timing and original 342-wide offscreen margin pixel prediction are not yet established. The reported differences in original wider accumulated H-scroll counters must not be misclassified as different camera positions.
+
 **To reproduce**, download the two original GitHub artifacts above. Run:
 
 ```bash

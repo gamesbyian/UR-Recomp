@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Can genuine original USA moving-course PPU frames be captured at 300 and 600 right-input frames between existing WIDE-07 checkpoints?",
+  "expected": "Retain source-bound original Snes9x BMP, WRAM and clock metadata for two new motion checkpoints; on failure retain exact build or producer logs.",
+  "owner": "fidelity",
+  "attempt": 1
+}

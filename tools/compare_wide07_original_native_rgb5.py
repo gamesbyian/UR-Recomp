@@ -78,6 +78,7 @@ def compare_images(original: list[tuple[int, int, int]],
     original_blue = [blue_overlay(p) for p in original]
     native_blue = [blue_overlay(p) for p in fixed]
     blue_xor = [a != b for a, b in zip(original_blue, native_blue)]
+    differing_set = set(rgb5_diff)
     shifted_native = [False] * (256 * 224)
     shifted_native[256:] = native_blue[:-256]
     return {
@@ -90,7 +91,7 @@ def compare_images(original: list[tuple[int, int, int]],
         "first_rgb5_differences": [
             {"x": i % 256, "y": i // 256} for i in rgb5_diff[:10]],
         "blue_overlay_xor_exactly_covers_rgb5_differences":
-            blue_xor == [i in set(rgb5_diff) for i in range(256 * 224)],
+            blue_xor == [i in differing_set for i in range(256 * 224)],
         "blue_overlay_source_pixels": sum(original_blue),
         "blue_overlay_native_pixels": sum(native_blue),
         "blue_overlay_mask_shift_down_one_residual_pixels":

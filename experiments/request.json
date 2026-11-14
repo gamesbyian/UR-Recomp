@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "windows_candidate",
+  "question": "Does the latest service-branch source build a real Win32 native candidate and pass its hosted journeys?",
+  "expected": "Produce source-bound Windows native journey results and ROM-free candidate artifacts or an actionable build defect.",
+  "owner": "windows",
+  "attempt": 1
+}

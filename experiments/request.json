@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Does genuine original-USA moving-course capture expose OAM/OBJ and PPU phase evidence at six source-frame checkpoints, including the blue-arrow boundary?",
+  "expected": "Six exact-source original frame inventories with OAM/PPU evidence and phase metadata; if missing, explicit OAM_NOT_EMITTED receipt identifying required adapter repair.",
+  "owner": "fidelity",
+  "attempt": 1
+}

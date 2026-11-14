@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does a valid positive-duration (1 versus 2) right-input cadence produce one or two emulator frames per requested input, after removing zero-duration commands that may abort script parsing?",
-  "expected": "Original-USA race checkpoint plus adjacent frame/OAM evidence, or retained complete checkpoint inventory and original.log identifying producer failure; no course credit.",
+  "question": "With positive-duration commands and exact 300/301 450/451 600/601 750/751 cumulative input, what are the actual original-USA emulator frame and OAM differences?",
+  "expected": "All race and moving checkpoints emitted, frame indices and OAM retained; no acceptance credit.",
   "owner": "fidelity",
-  "attempt": 2
+  "attempt": 3
 }

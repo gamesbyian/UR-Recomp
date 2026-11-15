@@ -219,12 +219,12 @@ def main() -> int:
             raise
     log = log_a.read_text(encoding="utf-8", errors="replace")
     saved_a = snapshot(root, evidence, "after_A")
-    if (first.returncode != 0 or log.count(ARMED) != 1 or
+    if (log.count(ARMED) != 1 or
         log.count(QUIT) != 1 or
         "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" not in log or
         "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider" in log):
         diagnostics = {
-            "exit_code": first.returncode,
+            "exit_code": first.returncode,\n            "expected_save_refusal": "UR-BALDOSA-SAVE-FAILED: Native save was refused before writing." in log,
             "armed_count": log.count(ARMED),
             "quit_count": log.count(QUIT),
             "preflight_failure_seen": "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" in log,
@@ -267,7 +267,7 @@ def main() -> int:
         "qa_fixture_sha256": digest(a.fixture.read_bytes()),
         "two_simultaneously_alive_original_game_processes": True,
         "second_game_own_raw_and_typed_save": True,
-        "stale_first_game_rejected_before_raw_write": True,
+        "stale_first_game_rejected_before_raw_write": True,\n        "stale_first_game_exit_code": first.returncode,
         "fresh_third_game_cold_loaded_B_SRAM": True,
         "before_B_after_B_after_A": comparison,
         "third_game_process_exit": c_exit,

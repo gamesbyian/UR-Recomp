@@ -250,7 +250,17 @@ def main() -> int:
         exe, a.rom, cold, config, dirs[2], environment(root, pause=False),
         evidence / "game-C.log",
     )
-    if c_exit or "UR-BALDOSA-SAVE-MISMATCH" in log_c:
+    # Retain the actual cold-load witness even if the process fails before
+    # the post-C canonical files can be snapshotted.
+    cold_diagnostics = {
+        "exit_code": c_exit,
+        "save_mismatch_seen": "UR-BALDOSA-SAVE-MISMATCH" in log_c,
+        "log_tail": log_c[-4000:],
+        "after_B_sha256": {key: digest(value) for key, value in saved_b.items()},
+    }
+    (evidence / "cold-C-diagnostics.json").write_text(
+        json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if c_exit or cold_diagnostics["save_mismatch_seen"]:
         raise ValueError("fresh third original Windows game rejected saved B SRAM")
     verify_named_profile_boot_bytes(log_c, saved_a["raw"])
     saved_c = snapshot(root, evidence, "after_C")

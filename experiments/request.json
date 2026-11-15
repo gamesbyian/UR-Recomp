@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Which exact stale-A rejection predicate fails in the source-bound QA-02 Windows overlap, and do B's committed bytes survive A?",
-  "expected": "Retain failure diagnostics, game A/B logs, candidate receipt and four-file snapshots; no gate credit until independent verification.",
+  "question": "Does genuine Windows A/B/C QA-02 pass after accepting explicit stale-save refusal with nonzero exit, while all four post-B files remain byte-identical and C cold-loads B?",
+  "expected": "Source-bound exact candidate, A/B/C logs and binary snapshots; independently verify all post-B bytes and cold C, without awarding gate credit.",
   "owner": "windows",
-  "attempt": 8
+  "attempt": 9
 }

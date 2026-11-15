@@ -87,6 +87,22 @@ def verify_interleaving(before: dict[str, bytes], b: dict[str, bytes],
     }
 
 
+
+def verify_cold_recovery(b: dict[str, bytes], a: dict[str, bytes],
+                         c: dict[str, bytes], committed_generation: int) -> int:
+    """Independent byte contract for the third genuine cold game."""
+    if any(set(x) != set(FILES) for x in (b, a, c)):
+        raise ValueError("partial canonical cold recovery snapshot")
+    generation = validate_typed_raw(c)
+    if c["raw"] != b["raw"]:
+        raise ValueError("cold C changed B committed SRAM instead of preserving it")
+    if generation < committed_generation:
+        raise ValueError("cold C regressed the committed typed generation")
+    if c["selector"] != a["selector"] or c["catalog"] != a["catalog"]:
+        raise ValueError("cold C mutated unrelated global authority")
+    return generation
+
+
 def environment(root: Path, *, gate: Path | None = None,
                 pause: bool = True) -> dict[str, str]:
     env = os.environ.copy()
@@ -264,13 +280,8 @@ def main() -> int:
         raise ValueError("fresh third original Windows game rejected saved B SRAM")
     verify_named_profile_boot_bytes(log_c, saved_a["raw"])
     saved_c = snapshot(root, evidence, "after_C")
-    cold_generation = validate_typed_raw(saved_c)
-    if saved_c["raw"] != saved_b["raw"]:
-        raise ValueError("cold C changed B committed SRAM instead of preserving it")
-    if cold_generation < comparison["generation_after_B"]:
-        raise ValueError("cold C regressed the committed typed generation")
-    if saved_c["selector"] != saved_a["selector"] or saved_c["catalog"] != saved_a["catalog"]:
-        raise ValueError("cold C mutated unrelated global authority")
+    cold_generation = verify_cold_recovery(saved_b, saved_a, saved_c,
+                                           comparison["generation_after_B"])
     if any(path for ext in ("*.urrun", "*.urmatch", "*.urghost") for path in root.rglob(ext)):
         raise ValueError("invented earned result on Pause/Quit")
     report = {

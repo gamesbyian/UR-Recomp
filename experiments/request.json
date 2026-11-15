@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does hosted Win32 QA-02 reject missing checkout identity and complete genuine source-bound A/B/C overlap and cold recovery?",
+  "question": "Does hosted Win32 QA-02 validation now retain the exact request receipt even if focused regression tests fail, and can genuine A/B/C overlap complete?",
   "expected": "Focused regression suite, exact ROM-free Windows candidate, retained A/B/C evidence and independent review; zero automatic gate credit.",
   "owner": "windows",
-  "attempt": 20
+  "attempt": 21
 }

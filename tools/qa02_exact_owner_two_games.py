@@ -291,8 +291,26 @@ def main() -> int:
         json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if c_exit or cold_diagnostics["save_mismatch_seen"]:
         raise ValueError("fresh third original Windows game rejected saved B SRAM")
-    verify_named_profile_boot_bytes(log_c, saved_a["raw"])
-    saved_c = snapshot(root, evidence, "after_C")
+    try:
+        verify_named_profile_boot_bytes(log_c, saved_a["raw"])
+        saved_c = snapshot(root, evidence, "after_C")
+    except (ValueError, OSError) as error:
+        # A malformed or missing post-C save is itself the crucial evidence.
+        # Preserve the failure reason before the workflow uploads the directory.
+        cold_diagnostics["cold_load_or_snapshot_failure"] = str(error)
+        cold_diagnostics["after_C_files"] = {
+            key: {
+                "exists": (root / rel).is_file(),
+                "sha256": digest((root / rel).read_bytes())
+                if (root / rel).is_file() and not (root / rel).is_symlink()
+                else None,
+            }
+            for key, rel in FILES.items()
+        }
+        (evidence / "cold-C-diagnostics.json").write_text(
+            json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8")
+        raise
     try:
         cold_generation = verify_cold_recovery(
             saved_b, saved_a, saved_c, comparison["generation_after_B"])

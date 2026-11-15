@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does the genuine Windows A/B/C overlap pass, and on failure does cold-C retain missing-file or boot-witness diagnostics for exact-source independent QA-02 review?",
-  "expected": "Run QA-02 byte regression preflight, build ROM-free Windows candidate, preserve cold-C failure hashes or verified A/B/C snapshots; no automatic gate credit.",
+  "question": "Does genuine Windows A/B/C cold recovery pass, and if C exits or reports a mismatch, which canonical B-committed files were altered on disk?",
+  "expected": "Run focused QA-02 preflight and real ROM-free Windows candidate; retain exact-source C exit and four canonical disk hashes before failure; no gate credit without independent review.",
   "owner": "windows",
-  "attempt": 22
+  "attempt": 23
 }

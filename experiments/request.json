@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does hosted Win32 QA-02 validation now retain the exact request receipt even if focused regression tests fail, and can genuine A/B/C overlap complete?",
-  "expected": "Focused regression suite, exact ROM-free Windows candidate, retained A/B/C evidence and independent review; zero automatic gate credit.",
+  "question": "Does the genuine Windows A/B/C overlap pass, and on failure does cold-C retain missing-file or boot-witness diagnostics for exact-source independent QA-02 review?",
+  "expected": "Run QA-02 byte regression preflight, build ROM-free Windows candidate, preserve cold-C failure hashes or verified A/B/C snapshots; no automatic gate credit.",
   "owner": "windows",
-  "attempt": 21
+  "attempt": 22
 }

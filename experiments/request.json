@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Do the exact-candidate QA-02 byte-contract regression tests pass before the hosted Windows A/B/C run, and does the cold C process preserve B's committed SRAM and typed generation?",
-  "expected": "Fail fast on QA-02 unit regressions; then run actual source-bound Win32 A/B/C and retain candidate binding and all byte evidence. No gate credit without independent acceptance.",
+  "question": "Does Windows-only QA-02 validation pass, and does the genuine Win32 A/B/C candidate retain B's SRAM and typed generation after stale A and cold C?",
+  "expected": "Scope QA-02 regressions to Windows requests; validate exact source then retain genuine candidate-bound Win32 A/B/C evidence without premature gate credit.",
   "owner": "windows",
-  "attempt": 16
+  "attempt": 17
 }

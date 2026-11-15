@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does genuine Windows A/B/C QA-02 pass after accepting explicit stale-save refusal with nonzero exit, while all four post-B files remain byte-identical and C cold-loads B?",
+  "question": "Does source-bound Windows QA-02 A/B/C complete after repairing the verifier Python parse error and recognizing explicit stale-save refusal?",
   "expected": "Source-bound exact candidate, A/B/C logs and binary snapshots; independently verify all post-B bytes and cold C, without awarding gate credit.",
   "owner": "windows",
-  "attempt": 9
+  "attempt": 10
 }

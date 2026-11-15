@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Does one press right 2 command advance fewer native guest frames than two separate press right 1 commands from same USA checkpoint?",
+  "expected": "Capture 899, after one press right 2, then immediate no-input dump. Compare observed cadence to run 43755306876 [2,2]; retain actual framebuffer and WRAM.",
+  "owner": "fidelity",
+  "attempt": 1
 }

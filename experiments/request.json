@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Does real original-USA Snes9x moving-course capture at scripted durations 899 and 902 yield a three-guest-frame interval matching native 1945->1948?",
+  "expected": "Retain original framebuffer, OAM, WRAM, VRAM and PPU evidence; require observed delta 3. Compare phases against native run 43767096090 without asserting absolute parity.",
+  "owner": "fidelity",
+  "attempt": 1
 }

@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Do independent original-USA runs at 299/300, 449/450, 599/600, and 749/750 right frames consistently yield consecutive frame evidence, and where do sprite/pixel transitions first appear?",
+  "expected": "Four source-bound adjacent-frame pairs with OAM and framebuffer hashes, frame indices, per-pair differences, and no acceptance credit.",
+  "owner": "fidelity",
+  "attempt": 1
+}

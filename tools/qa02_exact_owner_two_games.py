@@ -223,7 +223,23 @@ def main() -> int:
         log.count(QUIT) != 1 or
         "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" not in log or
         "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider" in log):
-        raise ValueError("stale game A was not rejected before its raw save")
+        diagnostics = {
+            "exit_code": first.returncode,
+            "armed_count": log.count(ARMED),
+            "quit_count": log.count(QUIT),
+            "preflight_failure_seen": "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" in log,
+            "checkpoint_seen": "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider" in log,
+            "log_tail": log[-4000:],
+            "after_B_vs_after_A_sha256": {
+                key: {"after_B": digest(saved_b[key]), "after_A": digest(saved_a[key])}
+                for key in FILES
+            },
+        }
+        (evidence / "stale-A-failure-diagnostics.json").write_text(
+            json.dumps(diagnostics, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        raise ValueError("stale game A failed rejection witness: " +
+                         json.dumps({k: v for k, v in diagnostics.items()
+                                     if k != "log_tail"}, sort_keys=True))
     verify_named_profile_boot_bytes(log, before["raw"])
     comparison = verify_interleaving(before, saved_b, saved_a)
     cold = case / "cold_script.txt"

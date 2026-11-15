@@ -47,9 +47,12 @@ class NativeTwoRealGameProcessTests(unittest.TestCase):
 
     def test_source_bound_candidate_rejects_wrong_host_checkout(self):
         receipt = SimpleNamespace(source_sha="a" * 40)
-        qa.verify_checkout_identity(receipt, "a" * 40)
-        qa.verify_checkout_identity(None, "b" * 40)
-        qa.verify_checkout_identity(receipt, None)
+        # Explicitly model a non-hosted environment. GitHub Actions sets
+        # GITHUB_ACTIONS=true even while executing these unit tests.
+        with patch.dict("os.environ", {"GITHUB_ACTIONS": "false"}):
+            qa.verify_checkout_identity(receipt, "a" * 40)
+            qa.verify_checkout_identity(None, "b" * 40)
+            qa.verify_checkout_identity(receipt, None)
         with patch.dict("os.environ", {"GITHUB_ACTIONS": "true"}):
             with self.assertRaisesRegex(ValueError, "missing checkout SHA"):
                 qa.verify_checkout_identity(receipt, None)

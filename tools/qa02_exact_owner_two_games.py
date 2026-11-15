@@ -290,6 +290,21 @@ def main() -> int:
     (evidence / "cold-C-diagnostics.json").write_text(
         json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if c_exit or cold_diagnostics["save_mismatch_seen"]:
+        # A failed cold boot can still have touched disk. Capture the four
+        # canonical files before raising, rather than losing the most useful
+        # proof of whether the committed B save survived.
+        cold_diagnostics["after_C_files"] = {
+            key: {
+                "exists": (root / rel).is_file() and not (root / rel).is_symlink(),
+                "sha256": digest((root / rel).read_bytes())
+                if (root / rel).is_file() and not (root / rel).is_symlink()
+                else None,
+            }
+            for key, rel in FILES.items()
+        }
+        (evidence / "cold-C-diagnostics.json").write_text(
+            json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8")
         raise ValueError("fresh third original Windows game rejected saved B SRAM")
     try:
         verify_named_profile_boot_bytes(log_c, saved_a["raw"])

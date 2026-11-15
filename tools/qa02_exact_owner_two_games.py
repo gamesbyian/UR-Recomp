@@ -254,7 +254,11 @@ def main() -> int:
         raise ValueError("fresh third original Windows game rejected saved B SRAM")
     verify_named_profile_boot_bytes(log_c, saved_a["raw"])
     saved_c = snapshot(root, evidence, "after_C")
-    validate_typed_raw(saved_c)
+    cold_generation = validate_typed_raw(saved_c)
+    if saved_c["raw"] != saved_b["raw"]:
+        raise ValueError("cold C changed B committed SRAM instead of preserving it")
+    if cold_generation < comparison["generation_after_B"]:
+        raise ValueError("cold C regressed the committed typed generation")
     if saved_c["selector"] != saved_a["selector"] or saved_c["catalog"] != saved_a["catalog"]:
         raise ValueError("cold C mutated unrelated global authority")
     if any(path for ext in ("*.urrun", "*.urmatch", "*.urghost") for path in root.rglob(ext)):
@@ -272,6 +276,8 @@ def main() -> int:
         "stale_first_game_rejected_before_raw_write": True,
         "stale_first_game_exit_code": first.returncode,
         "fresh_third_game_cold_loaded_B_SRAM": True,
+        "fresh_third_game_preserved_B_SRAM_bytes": True,
+        "cold_C_typed_generation": cold_generation,
         "before_B_after_B_after_A": comparison,
         "third_game_process_exit": c_exit,
         "release_gate_credit": 0,

@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "Which exact original-USA VRAM, WRAM, CGRAM and PPU transitions accompany four proven consecutive moving-course frame pairs despite unchanged OAM?",
+  "expected": "Eight source-bound original captures, per-pair changed state offsets and field diffs, exact frame-index proof, or explicit producer failure with logs; no course credit.",
+  "owner": "fidelity",
+  "attempt": 1
+}

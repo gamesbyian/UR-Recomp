@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does native post-scroll pair produce real consecutive frames when the framebuffer may be widescreen, and what is its exact tilewise motion relative to the original-USA oracle?",
-  "expected": "Build actual native USA product; capture 899/900 inputs, parse 256 or supported widescreen 24bpp BMPs with width-derived indexing, enforce frame delta 1, retain native evidence or explicit failure; no course credit.",
+  "question": "Can one native-USA product process produce consecutive post-scroll moving-course frame captures after 899 then 1 right-input frames, eliminating independent-start checkpoint phase drift [1945,1942]?",
+  "expected": "Build actual USA native product, capture both BMP/WRAM/info dumps within one process, enforce native frame delta +1 and retain tilewise changes or explicit producer failure; no course credit.",
   "owner": "fidelity",
-  "attempt": 2
+  "attempt": 3
 }

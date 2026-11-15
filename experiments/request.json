@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does exact-source Windows QA-02 A/B/C prove stale A refusal with explicit user warning and preserve B bytes through cold C?",
-  "expected": "Retain candidate identity, actual A/B/C logs, four-file byte snapshots and independent cold-C verification; zero gate credit without independent review.",
+  "question": "Does exact-source Windows QA-02 A/B/C prove stale A refusal and that cold C preserves B raw SRAM bytes and nonregressing typed generation?",
+  "expected": "Retain exact candidate identity and four-stage A/B/C evidence; fail if cold C changes B SRAM or regresses generation; no gate credit without independent review.",
   "owner": "windows",
-  "attempt": 11
+  "attempt": 12
 }

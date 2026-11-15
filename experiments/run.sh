@@ -53,6 +53,17 @@ for a,b in ((299,300),(449,450),(599,600),(749,750)):
          'framebuffer_changed_pixels':sum(fa[i:i+4]!=fb[i:i+4] for i in range(0,len(fa),4)),
          'oam_sha256':[hashlib.sha256(x).hexdigest() for x in (oa,ob)],
          'fb_sha256':[hashlib.sha256(x).hexdigest() for x in (fa,fb)]}
+ # Localize the first visible divergence, preserving scanline counts and bounds.
+ changed=[i//4 for i in range(0,len(fa),4) if fa[i:i+4]!=fb[i:i+4]]
+ if changed:
+  xs=[p%256 for p in changed]; ys=[p//256 for p in changed]
+  result['framebuffer_delta_geometry']={
+   'bounds_xyxy':[min(xs),min(ys),max(xs),max(ys)],
+   'first_changed_xy':[changed[0]%256,changed[0]//256],
+   'changed_pixels_per_scanline':{str(y):sum(p//256==y for p in changed)
+                                   for y in sorted(set(ys))}}
+ else:
+  result['framebuffer_delta_geometry']={'bounds_xyxy':None,'first_changed_xy':None,'changed_pixels_per_scanline':{}}
  # Classify all available source-state byte transitions, retaining offsets and counts.
  for ext in ('vram.bin','wram.bin','cgram.bin'):
   pa=root/f'atlas-{a}'/f'ws-product-atlas-{a}.{ext}'

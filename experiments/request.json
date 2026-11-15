@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the single-process native-USA 899/900 post-scroll capture succeed when accounting for the dump command's observed one-frame advance (1945→1947)?",
-  "expected": "Build actual USA native product, retain paired BMP/WRAM/info and 16x16 spatial changes with observed +2 guest-frame cadence; explicitly do not claim consecutive-frame or original/native parity.",
+  "question": "Does the source-bound native USA 899/900 post-scroll pair produce actual comparison evidence after removing the Python literal backslash-n syntax defect?",
+  "expected": "Build real USA native product, verify +2 dump cadence and retain BMP, WRAM, metadata, tile changes, or preserve the first executable failure; no parity/course credit.",
   "owner": "fidelity",
-  "attempt": 4
+  "attempt": 5
 }

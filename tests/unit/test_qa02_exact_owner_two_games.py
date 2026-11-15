@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from types import SimpleNamespace
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -39,6 +40,9 @@ class NativeTwoRealGameProcessTests(unittest.TestCase):
         qa.verify_checkout_identity(receipt, "a" * 40)
         qa.verify_checkout_identity(None, "b" * 40)
         qa.verify_checkout_identity(receipt, None)
+        with patch.dict("os.environ", {"GITHUB_ACTIONS": "true"}):
+            with self.assertRaisesRegex(ValueError, "missing checkout SHA"):
+                qa.verify_checkout_identity(receipt, None)
         with self.assertRaisesRegex(ValueError, "differs from hosted checkout"):
             qa.verify_checkout_identity(receipt, "b" * 40)
 

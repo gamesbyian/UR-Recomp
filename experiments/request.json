@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does Windows-only QA-02 validation pass, and does the genuine Win32 A/B/C candidate retain B's SRAM and typed generation after stale A and cold C?",
-  "expected": "Scope QA-02 regressions to Windows requests; validate exact source then retain genuine candidate-bound Win32 A/B/C evidence without premature gate credit.",
+  "question": "Does QA-02 exact-checkout identity reject cross-source receipts and does the hosted A/B/C real Windows run preserve B's committed data through stale A and cold C?",
+  "expected": "Run focused QA-02 unit validation and actual Windows x64 candidate A/B/C; retain source-bound binary witnesses and diagnose any failing job before gate credit.",
   "owner": "windows",
-  "attempt": 17
+  "attempt": 18
 }

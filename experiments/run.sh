@@ -113,7 +113,8 @@ def bmp(n):
  payload=d[start:start+stride*224]
  assert len(payload)==stride*224
  return payload,stride,w,hashlib.sha256(d).hexdigest()
-a,sa,wa,ha=bmp(899);b,sb,wb,hb=bmp(900)\nc,sc,wc,hc=bmp(901)\nassert wa==wc, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wc}'
+a,sa,wa,ha=bmp(899);b,sb,wb,hb=bmp(900)
+c,sc,wc,hc=bmp(901)\nassert wa==wc, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wc}'
 assert wa==wb, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wb}'
 def pixels(buf,stride,width):
  return [buf[y*stride+x*3:y*stride+x*3+3] for y in range(224) for x in range(width)]
@@ -128,14 +129,16 @@ meta=[json.loads((root/f'native-{n}'/'state.info.json').read_text()) for n in (8
 wram=[(root/f'native-{n}'/'state.wram.bin').read_bytes() for n in (899,900,901)]
 assert all(len(x)==131072 for x in wram)
 frame=[m.get('frame') for m in meta]
-assert all(isinstance(x,int) for x in frame) and frame[0]<=frame[1]<=frame[2], f'REVERSED_NATIVE_INPUT_CADENCE {frame}'\nassert frame[2]>frame[0], f'NONADVANCING_NATIVE_INPUT {frame}'
+assert all(isinstance(x,int) for x in frame) and frame[0]<=frame[1]<=frame[2], f'REVERSED_NATIVE_INPUT_CADENCE {frame}'
+assert frame[2]>frame[0], f'NONADVANCING_NATIVE_INPUT {frame}'
 result={'schema':'wide07-native-postscroll-pair/1','source_sha':os.environ['UR_EXPERIMENT_SOURCE_SHA'],
  'host':'github-hosted-ubuntu','input_right_frames':[899,900,901],
  'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0], 'native_per_command_guest_deltas':[frame[1]-frame[0],frame[2]-frame[1]], 'native_total_guest_delta':frame[2]-frame[0],
  'native_capture_interval':'two separate press right 1 commands, with dumps after each, to isolate command-boundary semantics',
  'framebuffer_changed_pixels':len(changed),'changed_pixels_16x16_tiles':tiles,
  'first_changed_xy':([changed[0]%wa,changed[0]//wa] if changed else None),
- 'wram_changed_bytes':sum(x!=y for x,y in zip(*wram)),
+ 'wram_changed_bytes':sum(x!=y for x,y in zip(wram[0],wram[1])),
+ 'wram_changed_bytes_second_interval':sum(x!=y for x,y in zip(wram[1],wram[2])),
  'framebuffer_sha256':[ha,hb,hc],
  'wram_sha256':[hashlib.sha256(x).hexdigest() for x in wram],
  'single_frame_command_cadence_probe':True,'original_snes9x_parity_proven':False,'usa_course_credit':0}

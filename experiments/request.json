@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Do two adjacent native diagnostic dump commands at the actual USA race checkpoint preserve the same guest frame and framebuffer, confirming zero-frame dump cadence observed in run 43732933000?",
-  "expected": "Native real-product evidence at source SHA, exact guest frame indices, hashes, pixel-change grid and WRAM changes; require zero guest-frame delta, preserve observed differences, no parity or course credit.",
+  "question": "How many native guest frames advance when two scripted right-input frames intervene between actual USA moving-course dumps in one process?",
+  "expected": "Build verified USA native product, retain both real framebuffer/WRAM captures, report exact observed guest delta and spatial motion, reject nonadvancing input; no original parity or course credit.",
   "owner": "fidelity",
-  "attempt": 7
+  "attempt": 8
 }

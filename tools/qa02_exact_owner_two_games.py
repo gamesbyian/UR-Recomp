@@ -164,6 +164,11 @@ def main() -> int:
     a.out.mkdir(parents=True)
     identity = (CandidateIdentity.from_receipt(a.candidate_receipt.resolve(strict=True))
                 if a.candidate_receipt else None)
+    # A valid receipt can still name a different build. On hosted Actions,
+    # require its source to be the exact checked-out experiment revision.
+    hosted_sha = os.environ.get("GITHUB_SHA")
+    if identity and hosted_sha and identity.source_sha != hosted_sha:
+        raise ValueError("QA-02 candidate receipt source differs from hosted checkout")
     exe = (extract_source_bound(a.candidate_zip.resolve(strict=True), a.out,
                                 a.candidate_receipt.resolve(strict=True))
            if identity else extract_original(a.retained, a.out))

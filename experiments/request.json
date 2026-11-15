@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does QA-02 exact-checkout identity reject cross-source receipts and does the hosted A/B/C real Windows run preserve B's committed data through stale A and cold C?",
-  "expected": "Run focused QA-02 unit validation and actual Windows x64 candidate A/B/C; retain source-bound binary witnesses and diagnose any failing job before gate credit.",
+  "question": "Does the tested exact-checkout identity guard and genuine hosted Win32 A/B/C recovery pass for this source-bound candidate?",
+  "expected": "Validate cross-source rejection unit test, build ROM-free Windows x64 candidate, retain A/B/C evidence; no gate credit without independent verification.",
   "owner": "windows",
-  "attempt": 18
+  "attempt": 19
 }

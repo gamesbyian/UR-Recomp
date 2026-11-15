@@ -106,20 +106,21 @@ def bmp(n):
  w,h=struct.unpack_from('<ii',d,18)
  bpp=struct.unpack_from('<H',d,28)[0]
  start=struct.unpack_from('<I',d,10)[0]
- assert (w,abs(h),bpp)==(256,224,24),(w,h,bpp)
+ assert abs(h)==224 and bpp==24 and w in (256,342,344,352), (w,h,bpp)
  stride=(w*3+3)//4*4
  payload=d[start:start+stride*224]
  assert len(payload)==stride*224
- return payload,stride,hashlib.sha256(d).hexdigest()
-a,sa,ha=bmp(899);b,sb,hb=bmp(900)
-def pixels(buf,stride):
- return [buf[y*stride+x*3:y*stride+x*3+3] for y in range(224) for x in range(256)]
-pa,pb=pixels(a,sa),pixels(b,sb)
+ return payload,stride,w,hashlib.sha256(d).hexdigest()
+a,sa,wa,ha=bmp(899);b,sb,wb,hb=bmp(900)
+assert wa==wb, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wb}'
+def pixels(buf,stride,width):
+ return [buf[y*stride+x*3:y*stride+x*3+3] for y in range(224) for x in range(width)]
+pa,pb=pixels(a,sa,wa),pixels(b,sb,wb)
 changed=[i for i,(x,y) in enumerate(zip(pa,pb)) if x!=y]
 changed_set=set(changed)
-tiles=[[sum((y*256+x) in changed_set for y in range(ty*16,(ty+1)*16)
-             for x in range(tx*16,(tx+1)*16))
-        for tx in range(16)] for ty in range(14)]
+tiles=[[sum((y*wa+x) in changed_set for y in range(ty*16,(ty+1)*16)
+             for x in range(tx*16,min((tx+1)*16,wa)))
+        for tx in range((wa+15)//16)] for ty in range(14)]
 assert sum(map(sum,tiles))==len(changed)
 meta=[json.loads((root/f'native-{n}'/'state.info.json').read_text()) for n in (899,900)]
 wram=[(root/f'native-{n}'/'state.wram.bin').read_bytes() for n in (899,900)]
@@ -128,9 +129,9 @@ frame=[m.get('frame') for m in meta]
 assert all(isinstance(x,int) for x in frame) and frame[1]-frame[0]==1, f'NOT_CONSECUTIVE_NATIVE_FRAMES {frame}'
 result={'schema':'wide07-native-postscroll-pair/1','source_sha':os.environ['UR_EXPERIMENT_SOURCE_SHA'],
  'host':'github-hosted-ubuntu','input_right_frames':[899,900],
- 'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0],
+ 'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0],
  'framebuffer_changed_pixels':len(changed),'changed_pixels_16x16_tiles':tiles,
- 'first_changed_xy':([changed[0]%256,changed[0]//256] if changed else None),
+ 'first_changed_xy':([changed[0]%wa,changed[0]//wa] if changed else None),
  'wram_changed_bytes':sum(x!=y for x,y in zip(*wram)),
  'framebuffer_sha256':[ha,hb],
  'wram_sha256':[hashlib.sha256(x).hexdigest() for x in wram],

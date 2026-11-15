@@ -57,6 +57,25 @@ class NativeTwoRealGameProcessTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "partial canonical"):
             qa.verify_interleaving(old, {"raw": newer}, b)
 
+    def test_cold_C_preserves_committed_B_and_rejects_regressions(self):
+        original = bytes(range(256)) * 32
+        newer = original[:-1] + bytes([original[-1] ^ 0x5a])
+        b = row(newer, 2)
+        self.assertEqual(qa.verify_cold_recovery(b, b, dict(b), 2), 2)
+        self.assertEqual(qa.verify_cold_recovery(b, b, row(newer, 3), 2), 3)
+        with self.assertRaisesRegex(ValueError, "changed B committed SRAM"):
+            qa.verify_cold_recovery(b, b, row(original, 3), 2)
+        with self.assertRaisesRegex(ValueError, "regressed"):
+            qa.verify_cold_recovery(b, b, row(newer, 1), 2)
+        with self.assertRaisesRegex(ValueError, "global authority"):
+            qa.verify_cold_recovery(b, b, dict(b, selector=b"wrong"), 2)
+        with self.assertRaisesRegex(ValueError, "global authority"):
+            qa.verify_cold_recovery(b, b, dict(b, catalog=b"wrong"), 2)
+        with self.assertRaisesRegex(ValueError, "typed 8192 SRAM"):
+            qa.verify_cold_recovery(b, b, dict(b, typed=row(original, 2)["typed"]), 2)
+        with self.assertRaisesRegex(ValueError, "partial canonical"):
+            qa.verify_cold_recovery(b, b, {"raw": newer}, 2)
+
     def test_four_canonical_files_full_snapshot(self):
         with tempfile.TemporaryDirectory() as temp:
             root, output = Path(temp) / "root", Path(temp) / "out"

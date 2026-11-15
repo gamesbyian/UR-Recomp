@@ -103,6 +103,14 @@ def verify_cold_recovery(b: dict[str, bytes], a: dict[str, bytes],
     return generation
 
 
+def verify_checkout_identity(identity: CandidateIdentity | None, hosted_sha: str | None) -> None:
+    """Reject a candidate from another checkout before extraction or execution."""
+    if identity is None or not hosted_sha:
+        return
+    if identity.source_sha != hosted_sha:
+        raise ValueError("QA-02 candidate receipt source differs from hosted checkout")
+
+
 def environment(root: Path, *, gate: Path | None = None,
                 pause: bool = True) -> dict[str, str]:
     env = os.environ.copy()
@@ -166,9 +174,7 @@ def main() -> int:
                 if a.candidate_receipt else None)
     # A valid receipt can still name a different build. On hosted Actions,
     # require its source to be the exact checked-out experiment revision.
-    hosted_sha = os.environ.get("GITHUB_SHA")
-    if identity and hosted_sha and identity.source_sha != hosted_sha:
-        raise ValueError("QA-02 candidate receipt source differs from hosted checkout")
+    verify_checkout_identity(identity, os.environ.get("GITHUB_SHA"))
     exe = (extract_source_bound(a.candidate_zip.resolve(strict=True), a.out,
                                 a.candidate_receipt.resolve(strict=True))
            if identity else extract_original(a.retained, a.out))

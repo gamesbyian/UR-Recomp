@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# WIDE-07 attempt 8: genuinely build and run the current product's USA
+# WIDE-07 attempt 9: genuinely build and run the current product's USA
 # moving-course 1P path on the hosted native emulator. Original/world parity
 # must be checked separately; this experiment only establishes executable
 # scene, source geometry and movement without fabricating source frames.
@@ -62,7 +62,7 @@ import sys
 src=Path(sys.argv[1]).read_text()
 needle='press right 900\ndump ws-product-after-scroll'
 assert src.count(needle)==1, 'PRODUCT_ROUTE_CHANGED'
-replacement='press right 899\ndump ws-product-native-899\npress right 2\ndump ws-product-native-900'
+replacement='press right 899\ndump ws-product-native-899\npress right 1\ndump ws-product-native-900\npress right 1\ndump ws-product-native-901'
 Path(sys.argv[2]).write_text(src.replace(needle,replacement))
 PY
 DUMPS="$TMP/native-pair-dumps"
@@ -84,7 +84,7 @@ UR_PRODUCT_DIAGNOSTICS=1 UR_HOST_STATE_PATH="$STATE" \
   SDL_AUDIODRIVER=dummy timeout 180s xvfb-run -a "$EXE" "$ROM" \
   --script "$SCRIPT" >"$OUT/native-pair.log" 2>&1
 grep -q "UR_HOST_STATE LOADED" "$OUT/native-pair.log"
-for duration in 899 900; do
+for duration in 899 900 901; do
   DEST="$OUT/native-$duration"
   mkdir -p "$DEST"
   grep -q "dump ws-product-native-$duration ok" "$OUT/native-pair.log"
@@ -113,7 +113,7 @@ def bmp(n):
  payload=d[start:start+stride*224]
  assert len(payload)==stride*224
  return payload,stride,w,hashlib.sha256(d).hexdigest()
-a,sa,wa,ha=bmp(899);b,sb,wb,hb=bmp(900)
+a,sa,wa,ha=bmp(899);b,sb,wb,hb=bmp(900)\nc,sc,wc,hc=bmp(901)\nassert wa==wc, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wc}'
 assert wa==wb, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wb}'
 def pixels(buf,stride,width):
  return [buf[y*stride+x*3:y*stride+x*3+3] for y in range(224) for x in range(width)]
@@ -124,21 +124,21 @@ tiles=[[sum((y*wa+x) in changed_set for y in range(ty*16,(ty+1)*16)
              for x in range(tx*16,min((tx+1)*16,wa)))
         for tx in range((wa+15)//16)] for ty in range(14)]
 assert sum(map(sum,tiles))==len(changed)
-meta=[json.loads((root/f'native-{n}'/'state.info.json').read_text()) for n in (899,900)]
-wram=[(root/f'native-{n}'/'state.wram.bin').read_bytes() for n in (899,900)]
-assert len(wram[0])==len(wram[1])==131072
+meta=[json.loads((root/f'native-{n}'/'state.info.json').read_text()) for n in (899,900,901)]
+wram=[(root/f'native-{n}'/'state.wram.bin').read_bytes() for n in (899,900,901)]
+assert all(len(x)==131072 for x in wram)
 frame=[m.get('frame') for m in meta]
-assert all(isinstance(x,int) for x in frame) and frame[1]>frame[0], f'NONADVANCING_NATIVE_INPUT {frame}'
+assert all(isinstance(x,int) for x in frame) and frame[0]<=frame[1]<=frame[2], f'REVERSED_NATIVE_INPUT_CADENCE {frame}'\nassert frame[2]>frame[0], f'NONADVANCING_NATIVE_INPUT {frame}'
 result={'schema':'wide07-native-postscroll-pair/1','source_sha':os.environ['UR_EXPERIMENT_SOURCE_SHA'],
- 'host':'github-hosted-ubuntu','input_right_frames':[899,901],
- 'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0],
- 'native_capture_interval':'two additional scripted right-input frames between dumps; observed guest-frame delta reported separately',
+ 'host':'github-hosted-ubuntu','input_right_frames':[899,900,901],
+ 'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0], 'native_per_command_guest_deltas':[frame[1]-frame[0],frame[2]-frame[1]], 'native_total_guest_delta':frame[2]-frame[0],
+ 'native_capture_interval':'two separate press right 1 commands, with dumps after each, to isolate command-boundary semantics',
  'framebuffer_changed_pixels':len(changed),'changed_pixels_16x16_tiles':tiles,
  'first_changed_xy':([changed[0]%wa,changed[0]//wa] if changed else None),
  'wram_changed_bytes':sum(x!=y for x,y in zip(*wram)),
- 'framebuffer_sha256':[ha,hb],
+ 'framebuffer_sha256':[ha,hb,hc],
  'wram_sha256':[hashlib.sha256(x).hexdigest() for x in wram],
- 'two_frame_input_cadence_probe':True,'original_snes9x_parity_proven':False,'usa_course_credit':0}
+ 'single_frame_command_cadence_probe':True,'original_snes9x_parity_proven':False,'usa_course_credit':0}
 (root/'native-postscroll-comparison.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
 print('WIDE07_NATIVE_POSTSCROLL',json.dumps({k:v for k,v in result.items() if k!='changed_pixels_16x16_tiles'},sort_keys=True))
 PY

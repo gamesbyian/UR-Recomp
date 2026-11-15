@@ -222,6 +222,7 @@ def main() -> int:
     if (log.count(ARMED) != 1 or
         log.count(QUIT) != 1 or
         "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" not in log or
+        "UR-BALDOSA-SAVE-FAILED: Native save was refused before writing." not in log or
         "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider" in log):
         diagnostics = {
             "exit_code": first.returncode,

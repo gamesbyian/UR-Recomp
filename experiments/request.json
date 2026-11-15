@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does the exact source-bound QA-02 A/B/C Windows witness pass and retain both candidate binding and raw before/after evidence?",
-  "expected": "Build ROM-free ZIP, bind hashes, execute genuine two-process Windows save overlap, retain exact before/after bytes and logs even on failure.",
+  "question": "Which exact stale-A rejection predicate fails in the source-bound QA-02 Windows overlap, and do B's committed bytes survive A?",
+  "expected": "Retain failure diagnostics, game A/B logs, candidate receipt and four-file snapshots; no gate credit until independent verification.",
   "owner": "windows",
-  "attempt": 7
+  "attempt": 8
 }

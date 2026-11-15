@@ -1372,6 +1372,20 @@ jobs:
             --revision "$GITHUB_SHA" \
             --out "$RUNNER_TEMP/baldosa-candidate-binding/candidate-binding.json" | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # Retain the playable exact-source candidate BEFORE the fault probe.
+      # QA-02 can legitimately fail, but that must not suppress the ROM-free
+      # ZIP needed for independent review and the next bounded reproduction.
+      - name: Retain ROM-free Windows candidate before QA-02 fault execution
+        if: ${{ inputs.export_campaign_inputs == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-pre-fault-romfree-candidate
+          path: |
+            ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
+            ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
+          if-no-files-found: error
+          retention-days: 14
+
       # Execute an actual same-profile A/B/C overlap against the exact candidate
       # assembled and hash-bound in THIS job. Historical owner probes above stay
       # immutable and branch-scoped. Evidence is retained even on failure.

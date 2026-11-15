@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "At the previously tested 900-right-input USA moving-course checkpoint, do independently captured original emulator frames at 899/900 form a consecutive pair, and what is the spatial 16x16 distribution of framebuffer changes and source graphics-state transitions?",
+  "expected": "Exact source-bound original Snes9x frames, frame-index delta 1, 16x16 pixel accounting, VRAM/WRAM/CGRAM/PPU evidence and hashes, or explicit retained producer failure. No native parity or course credit claimed.",
+  "owner": "fidelity",
+  "attempt": 1
+}

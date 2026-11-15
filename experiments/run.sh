@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# WIDE-07 attempt 2: genuinely build and run the current product's USA
+# WIDE-07 attempt 4: genuinely build and run the current product's USA
 # moving-course 1P path on the hosted native emulator. Original/world parity
 # must be checked separately; this experiment only establishes executable
 # scene, source geometry and movement without fabricating source frames.
@@ -53,7 +53,7 @@ sha256sum "$EXE" >"$OUT/actual-native-executable.sha256"
 # Capture both native phases within ONE process. Independent process startup
 # follows asynchronous scene checkpoints and previously yielded [1945,1942]
 # despite input durations [899,900] (Actions run 43711997665). The paired
-# dumps must share a deterministic checkpoint and differ by one right frame.
+# dumps must share a deterministic checkpoint; the scripted dump itself advances\n# one guest frame, so press right 1 plus the next dump yields a +2-frame interval.
 BASE="$GITHUB_WORKSPACE/tests/input/widescreen-product-acceptance.script"
 SCRIPT="$TMP/native-pair.script"
 python3 - "$BASE" "$SCRIPT" <<'PY'
@@ -128,10 +128,10 @@ meta=[json.loads((root/f'native-{n}'/'state.info.json').read_text()) for n in (8
 wram=[(root/f'native-{n}'/'state.wram.bin').read_bytes() for n in (899,900)]
 assert len(wram[0])==len(wram[1])==131072
 frame=[m.get('frame') for m in meta]
-assert all(isinstance(x,int) for x in frame) and frame[1]-frame[0]==1, f'NOT_CONSECUTIVE_NATIVE_FRAMES {frame}'
+assert all(isinstance(x,int) for x in frame) and frame[1]-frame[0]==2, f'UNEXPECTED_NATIVE_DUMP_CADENCE {frame}'
 result={'schema':'wide07-native-postscroll-pair/1','source_sha':os.environ['UR_EXPERIMENT_SOURCE_SHA'],
  'host':'github-hosted-ubuntu','input_right_frames':[899,900],
- 'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0],
+ 'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0],\n 'native_capture_interval':'two guest frames; scripted dump advances one frame',
  'framebuffer_changed_pixels':len(changed),'changed_pixels_16x16_tiles':tiles,
  'first_changed_xy':([changed[0]%wa,changed[0]//wa] if changed else None),
  'wram_changed_bytes':sum(x!=y for x,y in zip(*wram)),

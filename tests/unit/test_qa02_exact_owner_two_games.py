@@ -4,6 +4,7 @@ import json
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,6 +33,14 @@ class NativeTwoRealGameProcessTests(unittest.TestCase):
         self.assertIn("--retained", source)
         self.assertIn("12016101293", source)
         self.assertIn("tools/qa02_exact_owner_two_games.py", source)
+
+    def test_source_bound_candidate_rejects_wrong_host_checkout(self):
+        receipt = SimpleNamespace(source_sha="a" * 40)
+        qa.verify_checkout_identity(receipt, "a" * 40)
+        qa.verify_checkout_identity(None, "b" * 40)
+        qa.verify_checkout_identity(receipt, None)
+        with self.assertRaisesRegex(ValueError, "differs from hosted checkout"):
+            qa.verify_checkout_identity(receipt, "b" * 40)
 
     def test_authentic_B_commit_and_stale_A_failclosed_contract(self):
         first = bytes(range(256)) * 32

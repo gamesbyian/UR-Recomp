@@ -53,7 +53,7 @@ sha256sum "$EXE" >"$OUT/actual-native-executable.sha256"
 # Capture both native phases within ONE process. Independent process startup
 # follows asynchronous scene checkpoints and previously yielded [1945,1942]
 # despite input durations [899,900] (Actions run 43711997665). The paired
-# dumps must share a deterministic checkpoint; the scripted dump itself advances\n# one guest frame; adjacent dumps test the +1 cadence without extra input.
+# dumps must share a deterministic checkpoint; the scripted dump itself advances\n# no guest frame; adjacent dumps test the zero cadence without extra input.
 BASE="$GITHUB_WORKSPACE/tests/input/widescreen-product-acceptance.script"
 SCRIPT="$TMP/native-pair.script"
 python3 - "$BASE" "$SCRIPT" <<'PY'
@@ -128,17 +128,17 @@ meta=[json.loads((root/f'native-{n}'/'state.info.json').read_text()) for n in (8
 wram=[(root/f'native-{n}'/'state.wram.bin').read_bytes() for n in (899,900)]
 assert len(wram[0])==len(wram[1])==131072
 frame=[m.get('frame') for m in meta]
-assert all(isinstance(x,int) for x in frame) and frame[1]-frame[0]==1, f'UNEXPECTED_NATIVE_DUMP_CADENCE {frame}'
+assert all(isinstance(x,int) for x in frame) and frame[1]-frame[0]==0, f'UNEXPECTED_NATIVE_DUMP_CADENCE {frame}'
 result={'schema':'wide07-native-postscroll-pair/1','source_sha':os.environ['UR_EXPERIMENT_SOURCE_SHA'],
  'host':'github-hosted-ubuntu','input_right_frames':[899,899],
  'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0],
- 'native_capture_interval':'one guest frame; adjacent dump commands without intervening input',
+ 'native_capture_interval':'zero guest frames; adjacent dump commands without intervening input',
  'framebuffer_changed_pixels':len(changed),'changed_pixels_16x16_tiles':tiles,
  'first_changed_xy':([changed[0]%wa,changed[0]//wa] if changed else None),
  'wram_changed_bytes':sum(x!=y for x,y in zip(*wram)),
  'framebuffer_sha256':[ha,hb],
  'wram_sha256':[hashlib.sha256(x).hexdigest() for x in wram],
- 'original_snes9x_parity_proven':False,'usa_course_credit':0}
+ 'adjacent_dump_zero_cadence_expected':True,'original_snes9x_parity_proven':False,'usa_course_credit':0}
 (root/'native-postscroll-comparison.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
 print('WIDE07_NATIVE_POSTSCROLL',json.dumps({k:v for k,v in result.items() if k!='changed_pixels_16x16_tiles'},sort_keys=True))
 PY

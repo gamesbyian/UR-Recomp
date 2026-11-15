@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Which exact original-USA VRAM, WRAM, CGRAM and PPU transitions accompany four proven consecutive moving-course frame pairs despite unchanged OAM?",
-  "expected": "Eight source-bound original captures, per-pair changed state offsets and field diffs, exact frame-index proof, or explicit producer failure with logs; no course credit.",
+  "question": "At four proven consecutive original-USA moving-course frame pairs, which framebuffer scanlines and bounding boxes change alongside source-state offsets, to localize the blue-arrow boundary before native phase registration?",
+  "expected": "Eight exact-source original captures plus per-scanline pixel delta geometry, graphics-state offsets and frame-index proof, or retained explicit producer failure; zero course credit.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

@@ -105,9 +105,11 @@ def verify_cold_recovery(b: dict[str, bytes], a: dict[str, bytes],
 
 def verify_checkout_identity(identity: CandidateIdentity | None, hosted_sha: str | None) -> None:
     """Reject a candidate from another checkout before extraction or execution."""
-    if identity is None or not hosted_sha:
+    if identity is None:
         return
-    if identity.source_sha != hosted_sha:
+    if os.environ.get("GITHUB_ACTIONS") == "true" and not hosted_sha:
+        raise ValueError("QA-02 hosted candidate missing checkout SHA")
+    if hosted_sha and identity.source_sha != hosted_sha:
         raise ValueError("QA-02 candidate receipt source differs from hosted checkout")
 
 

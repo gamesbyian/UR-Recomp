@@ -48,6 +48,7 @@ jobs:
           set -euo pipefail
           python3 -m unittest discover -s tests/unit -p test_qa02_exact_owner_two_games.py
       - name: Retain exact request and source binding
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: agent-experiment-request

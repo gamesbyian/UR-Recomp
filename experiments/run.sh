@@ -50,26 +50,25 @@ test -x "$EXE"
 sha256sum "$EXE" >"$OUT/actual-native-executable.sha256"
 
 
-# Two consecutive native-USA moving-course captures from independent fresh
-# processes, each using the identical product script except right-input length.
-# This is a native phase witness, not a claim of original/native parity.
+# Capture both native phases within ONE process. Independent process startup
+# follows asynchronous scene checkpoints and previously yielded [1945,1942]
+# despite input durations [899,900] (Actions run 43711997665). The paired
+# dumps must share a deterministic checkpoint and differ by one right frame.
 BASE="$GITHUB_WORKSPACE/tests/input/widescreen-product-acceptance.script"
-for duration in 899 900; do
-  SCRIPT="$TMP/native-$duration.script"
-  python3 - "$BASE" "$SCRIPT" "$duration" <<'PY'
+SCRIPT="$TMP/native-pair.script"
+python3 - "$BASE" "$SCRIPT" <<'PY'
 from pathlib import Path
 import sys
 src=Path(sys.argv[1]).read_text()
 needle='press right 900\ndump ws-product-after-scroll'
 assert src.count(needle)==1, 'PRODUCT_ROUTE_CHANGED'
-n=int(sys.argv[3])
-Path(sys.argv[2]).write_text(src.replace(needle,f'press right {n}\ndump ws-product-native-{n}'))
+replacement='press right 899\ndump ws-product-native-899\npress right 1\ndump ws-product-native-900'
+Path(sys.argv[2]).write_text(src.replace(needle,replacement))
 PY
-  DEST="$OUT/native-$duration"
-  DUMPS="$TMP/dumps-$duration"
-  mkdir -p "$DEST" "$DUMPS"
-  STATE="$TMP/host-state-$duration.txt"
-  cat >"$STATE" <<EOF
+DUMPS="$TMP/native-pair-dumps"
+mkdir -p "$DUMPS"
+STATE="$TMP/host-state-pair.txt"
+cat >"$STATE" <<EOF
 UR-HOST-STATE/6
 profile=
 pause_on_focus_loss=1
@@ -80,12 +79,15 @@ presentation_fps=game
 output_resolution=native
 widescreen=original
 EOF
-  UR_PRODUCT_DIAGNOSTICS=1 UR_HOST_STATE_PATH="$STATE" \
-    URRECOMP_WS_NATIVE_TRACE=1 SNESRECOMP_DUMP_DIR="$DUMPS" \
-    SDL_AUDIODRIVER=dummy timeout 180s xvfb-run -a "$EXE" "$ROM" \
-    --script "$SCRIPT" >"$DEST/native.log" 2>&1
-  grep -q "UR_HOST_STATE LOADED" "$DEST/native.log"
-  grep -q "dump ws-product-native-$duration ok" "$DEST/native.log"
+UR_PRODUCT_DIAGNOSTICS=1 UR_HOST_STATE_PATH="$STATE" \
+  URRECOMP_WS_NATIVE_TRACE=1 SNESRECOMP_DUMP_DIR="$DUMPS" \
+  SDL_AUDIODRIVER=dummy timeout 180s xvfb-run -a "$EXE" "$ROM" \
+  --script "$SCRIPT" >"$OUT/native-pair.log" 2>&1
+grep -q "UR_HOST_STATE LOADED" "$OUT/native-pair.log"
+for duration in 899 900; do
+  DEST="$OUT/native-$duration"
+  mkdir -p "$DEST"
+  grep -q "dump ws-product-native-$duration ok" "$OUT/native-pair.log"
   for ext in fb.bmp wram.bin info.json; do
     test -s "$DUMPS/ws-product-native-$duration.$ext" || {
       echo "MISSING_NATIVE_DUMP duration=$duration ext=$ext"; exit 1;

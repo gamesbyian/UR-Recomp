@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "script_linux",
+  "question": "At the original-USA WIDE-07 899/900 right-input moving-course checkpoint, do genuine native product captures produce consecutive guest frames, and what is their local pixel-motion and WRAM transition relative to the separately captured Snes9x oracle?",
+  "expected": "Build actual native product on hosted Ubuntu, replay exact USA script with right input 899 and 900 in fresh processes, retain BMP/WRAM/info and 16x16 motion grid; prove frame delta 1 or retain explicit producer failure. No USA acceptance credit.",
+  "owner": "fidelity",
+  "attempt": 1
+}

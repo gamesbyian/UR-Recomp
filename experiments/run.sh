@@ -114,7 +114,8 @@ def bmp(n):
  assert len(payload)==stride*224
  return payload,stride,w,hashlib.sha256(d).hexdigest()
 a,sa,wa,ha=bmp(899);b,sb,wb,hb=bmp(900)
-c,sc,wc,hc=bmp(901)\nassert wa==wc, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wc}'
+c,sc,wc,hc=bmp(901)
+assert wa==wc, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wc}'
 assert wa==wb, f'NATIVE_FRAME_WIDTH_CHANGED {wa} {wb}'
 def pixels(buf,stride,width):
  return [buf[y*stride+x*3:y*stride+x*3+3] for y in range(224) for x in range(width)]

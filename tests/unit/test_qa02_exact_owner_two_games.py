@@ -4,7 +4,9 @@ import json
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
@@ -33,6 +35,30 @@ class NativeTwoRealGameProcessTests(unittest.TestCase):
         self.assertIn("12016101293", source)
         self.assertIn("tools/qa02_exact_owner_two_games.py", source)
 
+    def test_romfree_candidate_retained_before_fault_probe(self):
+        workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text("utf-8")
+        upload = workflow.index("name: Retain ROM-free Windows candidate before QA-02 fault execution")
+        fault = workflow.index("name: QA-02 source-bound candidate two-game overlap")
+        self.assertLess(upload, fault)
+        self.assertIn("name: qa02-pre-fault-romfree-candidate", workflow[upload:fault])
+        self.assertIn("if-no-files-found: error", workflow[upload:fault])
+        self.assertIn("baldosa-candidate-binding/candidate-binding.json", workflow[upload:fault])
+        self.assertIn("UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip", workflow[upload:fault])
+
+    def test_source_bound_candidate_rejects_wrong_host_checkout(self):
+        receipt = SimpleNamespace(source_sha="a" * 40)
+        # Explicitly model a non-hosted environment. GitHub Actions sets
+        # GITHUB_ACTIONS=true even while executing these unit tests.
+        with patch.dict("os.environ", {"GITHUB_ACTIONS": "false"}):
+            qa.verify_checkout_identity(receipt, "a" * 40)
+            qa.verify_checkout_identity(None, "b" * 40)
+            qa.verify_checkout_identity(receipt, None)
+        with patch.dict("os.environ", {"GITHUB_ACTIONS": "true"}):
+            with self.assertRaisesRegex(ValueError, "missing checkout SHA"):
+                qa.verify_checkout_identity(receipt, None)
+        with self.assertRaisesRegex(ValueError, "differs from hosted checkout"):
+            qa.verify_checkout_identity(receipt, "b" * 40)
+
     def test_authentic_B_commit_and_stale_A_failclosed_contract(self):
         first = bytes(range(256)) * 32
         newer = first[:-1] + bytes([first[-1] ^ 0x5a])
@@ -56,6 +82,25 @@ class NativeTwoRealGameProcessTests(unittest.TestCase):
             qa.verify_interleaving(old, same_generation, same_generation)
         with self.assertRaisesRegex(ValueError, "partial canonical"):
             qa.verify_interleaving(old, {"raw": newer}, b)
+
+    def test_cold_C_preserves_committed_B_and_rejects_regressions(self):
+        original = bytes(range(256)) * 32
+        newer = original[:-1] + bytes([original[-1] ^ 0x5a])
+        b = row(newer, 2)
+        self.assertEqual(qa.verify_cold_recovery(b, b, dict(b), 2), 2)
+        self.assertEqual(qa.verify_cold_recovery(b, b, row(newer, 3), 2), 3)
+        with self.assertRaisesRegex(ValueError, "changed B committed SRAM"):
+            qa.verify_cold_recovery(b, b, row(original, 3), 2)
+        with self.assertRaisesRegex(ValueError, "regressed"):
+            qa.verify_cold_recovery(b, b, row(newer, 1), 2)
+        with self.assertRaisesRegex(ValueError, "global authority"):
+            qa.verify_cold_recovery(b, b, dict(b, selector=b"wrong"), 2)
+        with self.assertRaisesRegex(ValueError, "global authority"):
+            qa.verify_cold_recovery(b, b, dict(b, catalog=b"wrong"), 2)
+        with self.assertRaisesRegex(ValueError, "typed 8192 SRAM"):
+            qa.verify_cold_recovery(b, b, dict(b, typed=row(original, 2)["typed"]), 2)
+        with self.assertRaisesRegex(ValueError, "partial canonical"):
+            qa.verify_cold_recovery(b, b, {"raw": newer}, 2)
 
     def test_four_canonical_files_full_snapshot(self):
         with tempfile.TemporaryDirectory() as temp:

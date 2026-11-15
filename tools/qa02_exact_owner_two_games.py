@@ -18,7 +18,8 @@ import time
 from baldosa_windows_native_pause_route import (
     USA_SHA256, run_route, verify_named_profile_boot_bytes,
 )
-from qa02_exact_owner_win32_seam import extract_original
+from qa02_exact_owner_win32_seam import extract_original, extract_source_bound
+from qa02_candidate_identity import CandidateIdentity
 from qa02_exact_owner_two_process_selector import decode_host_profile_stock_sram
 from verify_retained_owner_playtest import SOURCE_COMMIT, CANDIDATE_SHA256, EXE_SHA256
 
@@ -86,6 +87,32 @@ def verify_interleaving(before: dict[str, bytes], b: dict[str, bytes],
     }
 
 
+
+def verify_cold_recovery(b: dict[str, bytes], a: dict[str, bytes],
+                         c: dict[str, bytes], committed_generation: int) -> int:
+    """Independent byte contract for the third genuine cold game."""
+    if any(set(x) != set(FILES) for x in (b, a, c)):
+        raise ValueError("partial canonical cold recovery snapshot")
+    generation = validate_typed_raw(c)
+    if c["raw"] != b["raw"]:
+        raise ValueError("cold C changed B committed SRAM instead of preserving it")
+    if generation < committed_generation:
+        raise ValueError("cold C regressed the committed typed generation")
+    if c["selector"] != a["selector"] or c["catalog"] != a["catalog"]:
+        raise ValueError("cold C mutated unrelated global authority")
+    return generation
+
+
+def verify_checkout_identity(identity: CandidateIdentity | None, hosted_sha: str | None) -> None:
+    """Reject a candidate from another checkout before extraction or execution."""
+    if identity is None:
+        return
+    if os.environ.get("GITHUB_ACTIONS") == "true" and not hosted_sha:
+        raise ValueError("QA-02 hosted candidate missing checkout SHA")
+    if hosted_sha and identity.source_sha != hosted_sha:
+        raise ValueError("QA-02 candidate receipt source differs from hosted checkout")
+
+
 def environment(root: Path, *, gate: Path | None = None,
                 pause: bool = True) -> dict[str, str]:
     env = os.environ.copy()
@@ -127,17 +154,34 @@ def game(exe: Path, rom: Path, script: Path, config: Path, cwd: Path,
 
 def main() -> int:
     p = argparse.ArgumentParser()
-    for arg in ("retained", "rom", "script", "fixture", "out"):
+    p.add_argument("--retained", type=Path)
+    for arg in ("rom", "script", "fixture", "out"):
         p.add_argument("--" + arg, type=Path, required=True)
+    p.add_argument("--candidate-zip", type=Path)
+    p.add_argument("--candidate-receipt", type=Path)
     a = p.parse_args()
-    for key in ("retained", "rom", "script", "fixture"):
+    if (a.candidate_zip is None) != (a.candidate_receipt is None):
+        p.error("--candidate-zip and --candidate-receipt must be supplied together")
+    if a.candidate_receipt is None and a.retained is None:
+        p.error("--retained required for historical candidate mode")
+    for key in ("rom", "script", "fixture"):
         setattr(a, key, getattr(a, key).resolve(strict=True))
+    if a.retained is not None:
+        a.retained = a.retained.resolve(strict=True)
     a.out = a.out.resolve()
     if a.out.exists() or digest(a.rom.read_bytes()) != USA_SHA256:
         raise ValueError("reused root or incorrect source USA ROM")
     a.out.mkdir(parents=True)
-    exe = extract_original(a.retained, a.out)
-    if digest(exe.read_bytes()) != EXE_SHA256:
+    identity = (CandidateIdentity.from_receipt(a.candidate_receipt.resolve(strict=True))
+                if a.candidate_receipt else None)
+    # A valid receipt can still name a different build. On hosted Actions,
+    # require its source to be the exact checked-out experiment revision.
+    verify_checkout_identity(identity, os.environ.get("GITHUB_SHA"))
+    exe = (extract_source_bound(a.candidate_zip.resolve(strict=True), a.out,
+                                a.candidate_receipt.resolve(strict=True))
+           if identity else extract_original(a.retained, a.out))
+    expected_exe = identity.exe_sha256 if identity else EXE_SHA256
+    if digest(exe.read_bytes()) != expected_exe:
         raise ValueError("not unchanged original nominated Windows executable")
     baseline = a.out / "baseline"
     baseline.mkdir()
@@ -204,11 +248,29 @@ def main() -> int:
             raise
     log = log_a.read_text(encoding="utf-8", errors="replace")
     saved_a = snapshot(root, evidence, "after_A")
-    if (first.returncode != 0 or log.count(ARMED) != 1 or
+    if (log.count(ARMED) != 1 or
         log.count(QUIT) != 1 or
         "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" not in log or
+        "UR-BALDOSA-SAVE-FAILED: Native save was refused before writing." not in log or
         "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider" in log):
-        raise ValueError("stale game A was not rejected before its raw save")
+        diagnostics = {
+            "exit_code": first.returncode,
+            "expected_save_refusal": "UR-BALDOSA-SAVE-FAILED: Native save was refused before writing." in log,
+            "armed_count": log.count(ARMED),
+            "quit_count": log.count(QUIT),
+            "preflight_failure_seen": "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" in log,
+            "checkpoint_seen": "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider" in log,
+            "log_tail": log[-4000:],
+            "after_B_vs_after_A_sha256": {
+                key: {"after_B": digest(saved_b[key]), "after_A": digest(saved_a[key])}
+                for key in FILES
+            },
+        }
+        (evidence / "stale-A-failure-diagnostics.json").write_text(
+            json.dumps(diagnostics, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        raise ValueError("stale game A failed rejection witness: " +
+                         json.dumps({k: v for k, v in diagnostics.items()
+                                     if k != "log_tail"}, sort_keys=True))
     verify_named_profile_boot_bytes(log, before["raw"])
     comparison = verify_interleaving(before, saved_b, saved_a)
     cold = case / "cold_script.txt"
@@ -217,27 +279,83 @@ def main() -> int:
         exe, a.rom, cold, config, dirs[2], environment(root, pause=False),
         evidence / "game-C.log",
     )
-    if c_exit or "UR-BALDOSA-SAVE-MISMATCH" in log_c:
+    # Retain the actual cold-load witness even if the process fails before
+    # the post-C canonical files can be snapshotted.
+    cold_diagnostics = {
+        "exit_code": c_exit,
+        "save_mismatch_seen": "UR-BALDOSA-SAVE-MISMATCH" in log_c,
+        "log_tail": log_c[-4000:],
+        "after_B_sha256": {key: digest(value) for key, value in saved_b.items()},
+    }
+    (evidence / "cold-C-diagnostics.json").write_text(
+        json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if c_exit or cold_diagnostics["save_mismatch_seen"]:
+        # A failed cold boot can still have touched disk. Capture the four
+        # canonical files before raising, rather than losing the most useful
+        # proof of whether the committed B save survived.
+        cold_diagnostics["after_C_files"] = {
+            key: {
+                "exists": (root / rel).is_file() and not (root / rel).is_symlink(),
+                "sha256": digest((root / rel).read_bytes())
+                if (root / rel).is_file() and not (root / rel).is_symlink()
+                else None,
+            }
+            for key, rel in FILES.items()
+        }
+        (evidence / "cold-C-diagnostics.json").write_text(
+            json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8")
         raise ValueError("fresh third original Windows game rejected saved B SRAM")
-    verify_named_profile_boot_bytes(log_c, saved_a["raw"])
-    saved_c = snapshot(root, evidence, "after_C")
-    validate_typed_raw(saved_c)
-    if saved_c["selector"] != saved_a["selector"] or saved_c["catalog"] != saved_a["catalog"]:
-        raise ValueError("cold C mutated unrelated global authority")
+    try:
+        verify_named_profile_boot_bytes(log_c, saved_a["raw"])
+        saved_c = snapshot(root, evidence, "after_C")
+    except (ValueError, OSError) as error:
+        # A malformed or missing post-C save is itself the crucial evidence.
+        # Preserve the failure reason before the workflow uploads the directory.
+        cold_diagnostics["cold_load_or_snapshot_failure"] = str(error)
+        cold_diagnostics["after_C_files"] = {
+            key: {
+                "exists": (root / rel).is_file(),
+                "sha256": digest((root / rel).read_bytes())
+                if (root / rel).is_file() and not (root / rel).is_symlink()
+                else None,
+            }
+            for key, rel in FILES.items()
+        }
+        (evidence / "cold-C-diagnostics.json").write_text(
+            json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8")
+        raise
+    try:
+        cold_generation = verify_cold_recovery(
+            saved_b, saved_a, saved_c, comparison["generation_after_B"])
+    except ValueError as error:
+        cold_diagnostics["byte_contract_failure"] = str(error)
+        cold_diagnostics["after_C_sha256"] = {
+            key: digest(value) for key, value in saved_c.items()}
+        cold_diagnostics["after_C_vs_after_B_equal"] = {
+            key: saved_c[key] == saved_b[key] for key in FILES}
+        (evidence / "cold-C-diagnostics.json").write_text(
+            json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8")
+        raise
     if any(path for ext in ("*.urrun", "*.urmatch", "*.urghost") for path in root.rglob(ext)):
         raise ValueError("invented earned result on Pause/Quit")
     report = {
         "schema": "qa02-exact-owner-two-running-win32-games/1",
-        "candidate_source": SOURCE_COMMIT,
-        "candidate_zip_sha256": CANDIDATE_SHA256,
-        "candidate_exe_sha256": EXE_SHA256,
+        "candidate_source": identity.source_sha if identity else SOURCE_COMMIT,
+        "candidate_zip_sha256": identity.zip_sha256 if identity else CANDIDATE_SHA256,
+        "candidate_exe_sha256": expected_exe,
         "reference_rom_sha256": digest(a.rom.read_bytes()),
         "original_route_sha256": digest(a.script.read_bytes()),
         "qa_fixture_sha256": digest(a.fixture.read_bytes()),
         "two_simultaneously_alive_original_game_processes": True,
         "second_game_own_raw_and_typed_save": True,
         "stale_first_game_rejected_before_raw_write": True,
+        "stale_first_game_exit_code": first.returncode,
         "fresh_third_game_cold_loaded_B_SRAM": True,
+        "fresh_third_game_preserved_B_SRAM_bytes": True,
+        "cold_C_typed_generation": cold_generation,
         "before_B_after_B_after_A": comparison,
         "third_game_process_exit": c_exit,
         "release_gate_credit": 0,
@@ -248,7 +366,7 @@ def main() -> int:
     (evidence / "qa02-two-original-game-report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print("QA02_TWO_ORIGINAL_WIN32_GAMES " + json.dumps({
-        "exe": EXE_SHA256, "guest_bytes_changed": comparison["raw_changed_bytes"],
+        "exe": expected_exe, "guest_bytes_changed": comparison["raw_changed_bytes"],
         "stale_A_preserved": True, "cold_C": True, "gate_credit": 0}))
     return 0
 

@@ -280,8 +280,19 @@ def main() -> int:
         raise ValueError("fresh third original Windows game rejected saved B SRAM")
     verify_named_profile_boot_bytes(log_c, saved_a["raw"])
     saved_c = snapshot(root, evidence, "after_C")
-    cold_generation = verify_cold_recovery(saved_b, saved_a, saved_c,
-                                           comparison["generation_after_B"])
+    try:
+        cold_generation = verify_cold_recovery(
+            saved_b, saved_a, saved_c, comparison["generation_after_B"])
+    except ValueError as error:
+        cold_diagnostics["byte_contract_failure"] = str(error)
+        cold_diagnostics["after_C_sha256"] = {
+            key: digest(value) for key, value in saved_c.items()}
+        cold_diagnostics["after_C_vs_after_B_equal"] = {
+            key: saved_c[key] == saved_b[key] for key in FILES}
+        (evidence / "cold-C-diagnostics.json").write_text(
+            json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8")
+        raise
     if any(path for ext in ("*.urrun", "*.urmatch", "*.urghost") for path in root.rglob(ext)):
         raise ValueError("invented earned result on Pause/Quit")
     report = {

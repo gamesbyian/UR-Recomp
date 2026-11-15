@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does exact-source Windows QA-02 A/B/C pass the independently unit-tested cold C byte and generation acceptance predicates?",
-  "expected": "Run focused QA-02 unit regression and real Win32 source-bound A/B/C; retain actual candidate binding, binary snapshots and failure diagnostics without gate credit.",
+  "question": "Does the genuine source-bound Windows QA-02 A/B/C cold-process run satisfy every byte and generation predicate after the verifier diagnostic repair?",
+  "expected": "Run the real Win32 candidate and QA-02 verifier; preserve exact candidate identity, A/B/C snapshots, and on cold-C failure four-file hash comparisons and predicate error. No gate credit without independent acceptance.",
   "owner": "windows",
-  "attempt": 14
+  "attempt": 15
 }

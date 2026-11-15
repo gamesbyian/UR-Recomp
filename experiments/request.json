@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "How many native guest frames advance when two scripted right-input frames intervene between actual USA moving-course dumps in one process?",
-  "expected": "Build verified USA native product, retain both real framebuffer/WRAM captures, report exact observed guest delta and spatial motion, reject nonadvancing input; no original parity or course credit.",
+  "question": "Does each separate press right 1 advance the same number of native guest frames, or is the extra frame caused by command boundaries?",
+  "expected": "Capture three real USA native frames at 899, 900, 901 scripted right inputs in one process; report per-command frame deltas and retained BMP/WRAM; reject no total advancement; no parity credit.",
   "owner": "fidelity",
-  "attempt": 8
+  "attempt": 9
 }

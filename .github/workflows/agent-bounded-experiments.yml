@@ -35,6 +35,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m unittest discover -s tests/unit -p test_agent_experiment_request.py
+          # Fail fast on exact-candidate QA-02 byte-contract regressions before the expensive Win32 build.
+          python3 -m unittest discover -s tests/unit -p test_qa02_exact_owner_two_games.py
           python3 tools/agent_experiment_request.py \
             --request experiments/request.json \
             --source-sha "$GITHUB_SHA" \

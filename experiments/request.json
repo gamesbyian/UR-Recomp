@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does source-bound Windows QA-02 A/B/C complete after repairing the verifier Python parse error and recognizing explicit stale-save refusal?",
-  "expected": "Source-bound exact candidate, A/B/C logs and binary snapshots; independently verify all post-B bytes and cold C, without awarding gate credit.",
+  "question": "Does exact-source Windows QA-02 A/B/C prove stale A refusal with explicit user warning and preserve B bytes through cold C?",
+  "expected": "Retain candidate identity, actual A/B/C logs, four-file byte snapshots and independent cold-C verification; zero gate credit without independent review.",
   "owner": "windows",
-  "attempt": 10
+  "attempt": 11
 }

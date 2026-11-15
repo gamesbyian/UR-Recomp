@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does exact-source Windows QA-02 A/B/C prove stale A refusal and cold C preservation, retaining cold C exit/log diagnostics on failure?",
-  "expected": "Build ROM-free source-bound candidate, retain four-stage binary snapshots and cold C failure diagnostics; independent gate review only.",
+  "question": "Does exact-source Windows QA-02 A/B/C pass the independently unit-tested cold C byte and generation acceptance predicates?",
+  "expected": "Run focused QA-02 unit regression and real Win32 source-bound A/B/C; retain actual candidate binding, binary snapshots and failure diagnostics without gate credit.",
   "owner": "windows",
-  "attempt": 13
+  "attempt": 14
 }

@@ -35,6 +35,16 @@ class NativeTwoRealGameProcessTests(unittest.TestCase):
         self.assertIn("12016101293", source)
         self.assertIn("tools/qa02_exact_owner_two_games.py", source)
 
+    def test_romfree_candidate_retained_before_fault_probe(self):
+        workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text("utf-8")
+        upload = workflow.index("name: Retain ROM-free Windows candidate before QA-02 fault execution")
+        fault = workflow.index("name: QA-02 source-bound candidate two-game overlap")
+        self.assertLess(upload, fault)
+        self.assertIn("name: qa02-pre-fault-romfree-candidate", workflow[upload:fault])
+        self.assertIn("if-no-files-found: error", workflow[upload:fault])
+        self.assertIn("baldosa-candidate-binding/candidate-binding.json", workflow[upload:fault])
+        self.assertIn("UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip", workflow[upload:fault])
+
     def test_source_bound_candidate_rejects_wrong_host_checkout(self):
         receipt = SimpleNamespace(source_sha="a" * 40)
         qa.verify_checkout_identity(receipt, "a" * 40)

@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Do adjacent native diagnostic dumps produce genuinely consecutive guest frames after the confirmed successful +2 capture at run 43727755197?",
-  "expected": "Build real USA native product and retain two adjacent native frames, framebuffers, WRAM, tile changes, or a bounded failure; no input-held or parity claim.",
+  "question": "Do two adjacent native diagnostic dump commands at the actual USA race checkpoint preserve the same guest frame and framebuffer, confirming zero-frame dump cadence observed in run 43732933000?",
+  "expected": "Native real-product evidence at source SHA, exact guest frame indices, hashes, pixel-change grid and WRAM changes; require zero guest-frame delta, preserve observed differences, no parity or course credit.",
   "owner": "fidelity",
-  "attempt": 6
+  "attempt": 7
 }

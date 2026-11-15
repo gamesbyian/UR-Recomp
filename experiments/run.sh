@@ -131,7 +131,8 @@ frame=[m.get('frame') for m in meta]
 assert all(isinstance(x,int) for x in frame) and frame[1]-frame[0]==2, f'UNEXPECTED_NATIVE_DUMP_CADENCE {frame}'
 result={'schema':'wide07-native-postscroll-pair/1','source_sha':os.environ['UR_EXPERIMENT_SOURCE_SHA'],
  'host':'github-hosted-ubuntu','input_right_frames':[899,900],
- 'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0],\n 'native_capture_interval':'two guest frames; scripted dump advances one frame',
+ 'native_framebuffer_width':wa,'native_guest_frames':frame,'native_frame_delta':frame[1]-frame[0],
+ 'native_capture_interval':'two guest frames; scripted dump advances one frame',
  'framebuffer_changed_pixels':len(changed),'changed_pixels_16x16_tiles':tiles,
  'first_changed_xy':([changed[0]%wa,changed[0]//wa] if changed else None),
  'wram_changed_bytes':sum(x!=y for x,y in zip(*wram)),

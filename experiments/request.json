@@ -1,0 +1,8 @@
+{
+  "schema": "ur-agent-experiment-request/1",
+  "kind": "windows_candidate",
+  "question": "Does fresh main 6f44f6ba yield a ROM-free Windows x64 candidate with exact-source independent QA-02 recovery and genuine controller, persistence, multiplayer witnesses?",
+  "expected": "Run actual Windows build and A/B/C overlap, retain candidate ZIP and SHA receipt, inspect independently; no release gate credit without exact candidate verifier.",
+  "owner": "windows",
+  "attempt": 1
+}

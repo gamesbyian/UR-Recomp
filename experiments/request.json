@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the WIDE-07 genuine-frame BGRX/BMP channel diagnostic correctly detect per-channel ±1 differences and bottom-up BMP orientation without silently accepting malformed input?",
-  "expected": "Hosted py_compile and deterministic pixel regression pass; retain source-bound receipt. Next feed independently retained original/native frame bytes and diagnose green conversion before proposing a renderer patch.",
+  "question": "Does hardened WIDE-07 BGRX/BMP comparison reject malformed DIB headers and BMP pixel offsets that overlap the header while preserving channel and orientation checks?",
+  "expected": "Hosted py_compile and selftest pass including header-overlap rejection, with source-bound artifact receipt; no original/native parity claim without genuine paired frame files.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

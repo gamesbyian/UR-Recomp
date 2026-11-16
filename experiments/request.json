@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
+  "kind": "script_linux",
+  "question": "Does PR #3364 exact Windows candidate nomination pass the authoritative ledger integrity checker and reject false QA-12 promotion?",
+  "expected": "Retain exact source-bound structural audit JSON and prove a deliberately unbound QA-12 pass fails closed; no gate credit.",
   "owner": "windows",
-  "attempt": 24
+  "attempt": 1
 }

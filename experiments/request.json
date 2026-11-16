@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Do genuine retained original-USA and native WIDE-07 moving-course frame bytes agree spatially and in RGB, with registered guest clocks?",
+  "question": "Renewed authenticated original-USA/native WIDE-07 artifact handoffs: do actual frame bytes agree, and what exact pixels differ?",
   "expected": "Download independently produced original/native GitHub artifacts, report exact RGB and motion mismatches with coordinates and provenance, or retain first acquisition failure.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

@@ -1,6 +1,6 @@
 {
   "schema": "UR-EXECUTION-QUEUE/1",
-  "updated": "2026-11-13",
+  "updated": "2026-11-15",
   "instructions": "Two workstreams, real execution first. Source-controlled script_linux is available on the standing GHA experiment service for any bounded hosted Linux experiment; inspect newest exact-source runs and artifacts before retry. No historic board scanning, no fabricated acceptance.",
   "acceptance": {
     "usa_courses": "0/45 until independent complete original/native USA event qualification",
@@ -53,11 +53,11 @@
       "owner": "UR Windows Delivery",
       "execution_location": "GitHub Actions Windows acceptance and independent artifact verifier",
       "experiment_kind": "existing_gate_specific_runner",
-      "next_action": "Reverify exact current Windows hosted run 43545814590 primary artifact 14094547287 and real Win32 NTFS artifact 14095050009, compare against 12 existing gate L4/L5 conditions. Execute nearest QA02/QA12 missing real positive/negative on a nominated exact source/candidate. Do not repeat previously positive NTFS full-volume and 1P/2P path proofs. Human physical testing remains a separate explicit unverified gate and should not block hosted acceptance of independent tests.",
+      "next_action": "Do not repeat proven exact-candidate A/B/C or generic journal fault runs. Independently download and inspect Win32 failure artifact 14180146488 and original NTFS postraw typed artifact 14180236188 from run 43758547511; cross-check source f88c599feaf7066dd1f78a47eb46f167e98298bb and candidate binding artifact 14180500364, then compare actual interruption timing, raw/typed/selector/catalog snapshots, cold boot and original-event behavior to QA-02 L4. If an unproven predicate requires a distinct hosted fault, implement the smallest executable test on a fresh experiments/* branch; if physical-only, pursue QA-12 independent package verification instead.",
       "completion_condition": "At least one QA-01..QA-12 gate independently judged fully passed on exact nominated Windows candidate; only then ledger count increases.",
       "on_blocker": "Name precisely missing positive/negative evidence, executable test, expected result and owner; do another gate while waiting.",
-      "evidence_observation": "Independent original-archive inspection of run 43533114491 shows actual NTFS VHDX exhaustion, original CMD exit8, postraw recovery intent, two cold Windows boots, exact source-member SHA receipts; electrical power cut or human physical packaged recovery not observed. QA-02 still lacks complete L4 witness. ZIP candidate and binding exact SHA/PE verified; this is evidence towards QA-12, not acceptance.",
-      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43545814590"
+      "evidence_observation": "Post-merge Windows run 43758547511 succeeded on source f88c599f. Exact-candidate A/B/C overlap artifact 14180560123 proves B generation advancement, stale A explicit refusal and cold C preservation of four canonical save files; prior independent audit matched candidate ZIP/executable receipt. Same run retained actual Win32 journal/fault archive 14180146488 and original NTFS postraw/typed artifact 14180236188, but their full QA-02 L4 predicate and exact executable binding remain to be independently judged. No physical controllers, electrical power cut or complete original native event acceptance inferred. 0/12.",
+      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43758547511"
     }
   ]
 }

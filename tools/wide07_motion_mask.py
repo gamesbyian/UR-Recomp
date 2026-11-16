@@ -97,7 +97,7 @@ def main():
         p.error("four real frame paths and positive dimensions required")
     w,h=a.width,a.height
     report=measure(bgrx(a.original_before.read_bytes(),w,h),bgrx(a.original_after.read_bytes(),w,h),bmp(a.native_before.read_bytes(),w,h),bmp(a.native_after.read_bytes(),w,h))
-    output=json.dumps(report,sort_keys=True,indent=2)+"\\n"
+    output=json.dumps(report,sort_keys=True,indent=2)+"\n"
     if a.json_out:a.json_out.write_text(output)
     print(output,end="")
 if __name__=="__main__":main()

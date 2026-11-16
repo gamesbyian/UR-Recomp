@@ -72,9 +72,9 @@ def rank(original, native, max_shift=2):
 
 def selftest():
     def f(k, green=10):
-        return bytes((k,green,k+1, k+2,green,k+3))
-    o = [f(k) for k in (0, 4, 12, 18, 27)]
-    n = [f(99, 200)] + [f(k, 240) for k in (0,4,12,18,27)]
+        return bytes(v for bit in (1,2,4,8) for v in ((20 if k & bit else 0), green, (30 if k & bit else 0)))
+    o = [f(k) for k in (0,1,3,7,15)]
+    n = [f(15,200)] + [f(k,240) for k in (0,1,3,7,15)]
     r = rank(o,n)
     assert r["best_shift"] == 1 and not r["ambiguous"] and r["informative"], r
     static = rank([f(0)]*4, [f(0,200)]*4)

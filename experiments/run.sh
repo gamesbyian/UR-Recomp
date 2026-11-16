@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python3 tests/unit/test_qa02_candidate_identity.py
-python3 -m py_compile tools/qa02_candidate_identity.py tools/qa02_exact_owner_win32_seam.py tools/qa02_exact_owner_two_games.py
-printf 'QA02_IDENTITY_UNIT_PASS source=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" | tee "$UR_EXPERIMENT_OUTPUT_DIR/identity-unit.txt"
+mkdir -p "$UR_EXPERIMENT_OUTPUT_DIR"
+python3 -m py_compile tools/wide07_real_frame_lut.py
+python3 tools/wide07_real_frame_lut.py --selftest | tee "$UR_EXPERIMENT_OUTPUT_DIR/real-frame-lut-selftest.log"
+printf 'SOURCE_SHA=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" > "$UR_EXPERIMENT_OUTPUT_DIR/receipt.txt"

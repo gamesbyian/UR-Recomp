@@ -5,7 +5,7 @@ mkdir -p "$OUT"
 # Temporary read-only transfers of authenticated GitHub Actions artifact ZIPs.
 # These URLs expire 2026-11-16 20:07Z; rerun requires renewed source handoff.
 curl -fLsS --retry 2 --max-time 60 'https://sdmntpreastus3.oaiusercontent.com/files/00000000-24a4-8212-9c62-ccead1052a0e/raw?se=2026-11-16T20%3A07%3A27Z&sp=r&sv=2026-06-06&sr=b&scid=981bca0b-2ae2-5afa-a4e7-e6bf7856c438&skoid=732f244e-db13-47c3-bcc7-7ee02a9397bc&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-16T13%3A16%3A26Z&ske=2026-11-17T13%3A16%3A26Z&sks=b&skv=2026-06-06&sig=AO4WjJnnnMjUBe2kE6qiWfXCRJ5aAxdWZl4JHQbKlTQ%3D' -o /tmp/o.zip
-curl -fLsS --retry 2 --max-time 60 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-9fc0-81f5-903c-5c38e9decd0a/raw?se=2026-11-16T20%3A07%3A31Z&sp=r&sv=2026-06-06&sr=b&scid=ccb1e83a-6de1-5048-aa22-8bd0052cf0de&skoid=732f244e-db13-47c3-bcc7-7ee02a9397bc&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&sks=b&skv=2026-06-06&sig=fXsHtecy4Wgpr58Rptjr6UeIFS3JgWbY77/oMA82wJk%3D' -o /tmp/n.zip
+curl -fLsS --retry 2 --max-time 60 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-9fc0-81f5-903c-5c38e9decd0a/raw?se=2026-11-16T20%3A07%3A31Z&sp=r&sv=2026-06-06&sr=b&scid=ccb1e83a-6de1-5048-aa22-8bd0052cf0de&skoid=732f244e-db13-47c3-bcc7-7ee02a9397bc&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-16T19%3A53%3A19Z&ske=2026-11-17T19%3A53%3A19Z&sks=b&skv=2026-06-06&sig=fXsHtecy4Wgpr58Rptjr6UeIFS3JgWbY77/oMA82wJk%3D' -o /tmp/n.zip
 sha256sum /tmp/o.zip /tmp/n.zip > "$OUT/zip-sha256.txt"
 python3 - "$OUT" <<'PY'
 import hashlib,json,struct,sys,zipfile

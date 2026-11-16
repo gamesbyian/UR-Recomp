@@ -1,9 +1,9 @@
 {
   "schema": "UR-RELEASE-QUALITY-LEDGER/1",
-  "updated": "2026-10-22",
+  "updated": "2026-11-16",
   "candidate": {
-    "commit_sha": "11501a15dea38fa912335cfc63103ce3a7208001",
-    "zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "commit_sha": "1484525fb82c9442611bd472b87d12c38f230a27",
+    "zip_sha256": "32c3b8679fdf5c598e14a356f49715fc88a1569d4b26adadee1f3835267bd19f",
     "physical_hardware_verified": false,
     "release_decision": "not_assessed"
   },
@@ -466,17 +466,18 @@
     "product_root_implementation_issue": "https://github.com/gamesbyian/UR-Recomp/issues/1053"
   },
   "candidate_context": {
-    "nomination_status": "historical pinned candidate; no new candidate nominated",
+    "nomination_status": "proposed exact hosted Windows experiment candidate; pending independent QA-12 J-20 adjudication and physical hardware; no gate accepted",
     "latest_observed_windows_ci": {
-      "source_commit": "3250a3762bdedea53793f4eed0789cab6ea43495",
-      "workflow_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39822833034",
+      "source_commit": "1484525fb82c9442611bd472b87d12c38f230a27",
+      "product_base_commit": "9a27af82f4eb063c0d9145b30d6d3dea44abdee3",
+      "workflow_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43852308484",
       "conclusion": "success",
-      "completed_at": "2026-10-22T17:37:39Z",
-      "artifacts": [
-        "ur-recomp-windows-x64-portable",
-        "windows-native-smoke"
-      ],
-      "qualification": "hosted CI build/boot only; inner shipping ZIP SHA256 not independently nominated; cannot transfer QA gates"
+      "completed_at": "2026-11-16T11:09:39Z",
+      "candidate_artifact_id": 14219573620,
+      "identity_artifact_id": 14219578312,
+      "inner_zip_sha256": "32c3b8679fdf5c598e14a356f49715fc88a1569d4b26adadee1f3835267bd19f",
+      "exe_sha256": "377642def3e9141d85b45fbc90490ed5b5f5363f5efcba81de480fe20bf66840",
+      "qualification": "Source-bound hosted candidate and static package audit; independent J-20 release qualification, physical observation, and gate witnesses outstanding. Experiment request commit differs from product base only by experiments/request.json."
     },
     "latest_observed_live_operations": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39834033064",
     "release_gate_count": {
@@ -484,6 +485,12 @@
       "in_progress": 5,
       "unverified": 7
     },
-    "operating_note": "2026-10-22 source snapshot; retain historical nominated candidate until an independent exact inner ZIP SHA, build SHA and hardware/QA review nominate a replacement."
+    "operating_note": "2026-11-16 proposal: preserve prior October candidate in historical_candidate; do not transfer historical gate evidence or claim QA-12 passed. Verify candidate bytes, release J-20 requirements and checker before independent approval.",
+    "historical_candidate": {
+      "commit_sha": "11501a15dea38fa912335cfc63103ce3a7208001",
+      "zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+      "physical_hardware_verified": false,
+      "release_decision": "not_assessed"
+    }
   }
 }

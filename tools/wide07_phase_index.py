@@ -2,7 +2,25 @@
 """Bounded WIDE-07 phase-index discriminator. No frame-time equivalence inferred."""
 import argparse
 import json
+import struct
 from pathlib import Path
+
+def decode_original(data, width, height):
+    if len(data) != width * height * 4:
+        raise ValueError('ORIGINAL_BRGX_LENGTH')
+    return bytes(c for i in range(0, len(data), 4) for c in (data[i+2],data[i+1],data[i]))
+
+def decode_native(data, width, height):
+    if len(data) < 54 or data[:2] != b'BM':
+        raise ValueError('BMP_HEADER')
+    size = struct.unpack_from('<I', data, 2)[0]
+    offset = struct.unpack_from('<I', data, 10)[0]
+    dib = struct.unpack_from('<I', data, 14)[0]
+    w,h,planes,bpp,compression = struct.unpack_from('<iiHHI', data, 18)
+    stride = (width*3+3)&~3
+    if dib < 40 or offset < 14+dib or w != width or abs(h) != height or h == 0 or planes != 1 or bpp != 24 or compression != 0 or size != len(data) or offset + stride*height > len(data):
+        raise ValueError('BMP_FORMAT')
+    return bytes(c for y in range(height) for x in range(width) for c in (data[offset+(y if h<0 else height-1-y)*stride+x*3+2], data[offset+(y if h<0 else height-1-y)*stride+x*3+1], data[offset+(y if h<0 else height-1-y)*stride+x*3]))
 
 def compare_sequences(original, native, max_shift=2):
     if not original or not native or max_shift < 0:
@@ -45,6 +63,8 @@ def main():
     p.add_argument("--original", nargs="+", type=Path)
     p.add_argument("--native", nargs="+", type=Path)
     p.add_argument("--max-shift", type=int, default=2)
+    p.add_argument("--width", type=int, default=256)
+    p.add_argument("--height", type=int, default=224)
     p.add_argument("--json-out", type=Path)
     a = p.parse_args()
     if a.selftest:
@@ -52,7 +72,9 @@ def main():
         return
     if not a.original or not a.native:
         p.error("ordered original and native frame paths required")
-    result = compare_sequences([x.read_bytes() for x in a.original], [x.read_bytes() for x in a.native], a.max_shift)
+    if a.width <= 0 or a.height <= 0:
+        p.error("positive dimensions required")
+    result = compare_sequences([decode_original(x.read_bytes(), a.width, a.height) for x in a.original], [decode_native(x.read_bytes(), a.width, a.height) for x in a.native], a.max_shift)
     output = json.dumps(result, indent=2, sort_keys=True)+"\n"
     if a.json_out:
         a.json_out.write_text(output)

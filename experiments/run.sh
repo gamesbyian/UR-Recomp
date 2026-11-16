@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python3 tests/unit/test_qa02_candidate_identity.py
-python3 -m py_compile tools/qa02_candidate_identity.py tools/qa02_exact_owner_win32_seam.py tools/qa02_exact_owner_two_games.py
-printf 'QA02_IDENTITY_UNIT_PASS source=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" | tee "$UR_EXPERIMENT_OUTPUT_DIR/identity-unit.txt"
+mkdir -p "$UR_EXPERIMENT_OUTPUT_DIR"
+python3 -m py_compile tools/wide07_green_lut.py
+python3 tools/wide07_green_lut.py --selftest | tee "$UR_EXPERIMENT_OUTPUT_DIR/green-lut-selftest.log"
+printf '[[105,107],[134,132],[166,165],[105,107]]\n' > "$UR_EXPERIMENT_OUTPUT_DIR/known-pairs.json"
+python3 tools/wide07_green_lut.py --pairs-json "$UR_EXPERIMENT_OUTPUT_DIR/known-pairs.json" --json-out "$UR_EXPERIMENT_OUTPUT_DIR/known-pairs-result.json"
+printf 'SOURCE_SHA=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" > "$UR_EXPERIMENT_OUTPUT_DIR/receipt.txt"

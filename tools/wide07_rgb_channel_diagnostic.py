@@ -23,10 +23,13 @@ def native_pixels(path):
     if data[:2] != b"BM" or len(data) < 54:
         raise ValueError("NATIVE_BMP_HEADER")
     offset = struct.unpack_from("<I", data, 10)[0]
+    dib_size = struct.unpack_from("<I", data, 14)[0]
+    planes = struct.unpack_from("<H", data, 26)[0]
     width, height = struct.unpack_from("<ii", data, 18)
     depth = struct.unpack_from("<H", data, 28)[0]
     compression = struct.unpack_from("<I", data, 30)[0]
-    if (width, abs(height), depth, compression) != (256, 224, 24, 0):
+    if (dib_size < 40 or planes != 1 or offset < 14 + dib_size or
+            (width, abs(height), depth, compression) != (256, 224, 24, 0)):
         raise ValueError("NATIVE_BMP_GEOMETRY")
     stride = (width * 3 + 3) & ~3
     if len(data) < offset + stride * abs(height):
@@ -97,6 +100,16 @@ def selftest():
         raw[54:57] = bytes([1, 2, 3])
         (d / "native.bmp").write_bytes(raw)
         assert native_pixels(d / "native.bmp")[-256] == (3, 2, 1)
+        # A malicious offset into the BMP header must not be read as pixels.
+        malformed = bytearray((d / "native.bmp").read_bytes())
+        struct.pack_into("<I", malformed, 10, 0)
+        (d / "bad-offset.bmp").write_bytes(malformed)
+        try:
+            native_pixels(d / "bad-offset.bmp")
+        except ValueError as exc:
+            assert str(exc) == "NATIVE_BMP_GEOMETRY"
+        else:
+            raise AssertionError("BMP_HEADER_OVERLAP_ACCEPTED")
         try:
             native_pixels(d / "original.bgrx")
         except ValueError as exc:

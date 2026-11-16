@@ -4,8 +4,8 @@ OUT="${UR_EXPERIMENT_OUTPUT_DIR:?}"
 mkdir -p "$OUT"
 # Temporary read-only transfers of authenticated GitHub Actions artifact ZIPs.
 # These URLs expire 2026-11-16 20:07Z; rerun requires renewed source handoff.
-curl -fLsS --retry 2 --max-time 60 'https://sdmntpreastus3.oaiusercontent.com/files/00000000-24a4-8212-9c62-ccead1052a0e/raw?se=2026-11-16T20%3A07%3A27Z&sp=r&sv=2026-06-06&sr=b&scid=981bca0b-2ae2-5afa-a4e7-e6bf7856c438&skoid=732f244e-db13-47c3-bcc7-7ee02a9397bc&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-16T13%3A16%3A26Z&ske=2026-11-17T13%3A16%3A26Z&sks=b&skv=2026-06-06&sig=AO4WjJnnnMjUBe2kE6qiWfXCRJ5aAxdWZl4JHQbKlTQ%3D' -o /tmp/o.zip
-curl -fLsS --retry 2 --max-time 60 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-9fc0-81f5-903c-5c38e9decd0a/raw?se=2026-11-16T20%3A07%3A31Z&sp=r&sv=2026-06-06&sr=b&scid=ccb1e83a-6de1-5048-aa22-8bd0052cf0de&skoid=732f244e-db13-47c3-bcc7-7ee02a9397bc&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-16T19%3A53%3A19Z&ske=2026-11-17T19%3A53%3A19Z&sks=b&skv=2026-06-06&sig=fXsHtecy4Wgpr58Rptjr6UeIFS3JgWbY77/oMA82wJk%3D' -o /tmp/n.zip
+curl -fLsS --retry 2 --max-time 60 'https://sdmntpreastus3.oaiusercontent.com/files/00000000-f244-8212-894a-9c1dee553787/raw?se=2026-11-16T21%3A03%3A59Z&sp=r&sv=2026-06-06&sr=b&scid=72f524e0-894a-5e54-b930-26178b69ddcc&skoid=04233560-0ad7-493e-8bf0-1347c317d021&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-16T15%3A58%3A34Z&ske=2026-11-17T15%3A58%3A34Z&sks=b&skv=2026-06-06&sig=nR0SdXaXZCLBqFIKdYo0Zvc2iizZKSGXtoCKh81XuAY%3D' -o /tmp/o.zip
+curl -fLsS --retry 2 --max-time 60 'https://sdmntpreastus3.oaiusercontent.com/files/00000000-af9c-8212-a38e-a70d95e89d86/raw?se=2026-11-16T21%3A03%3A59Z&sp=r&sv=2026-06-06&sr=b&scid=3941d8f3-ccfd-5926-a2e4-ca73135810a2&skoid=04233560-0ad7-493e-8bf0-1347c317d021&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-16T14%3A51%3A53Z&ske=2026-11-17T14%3A51%3A53Z&sks=b&skv=2026-06-06&sig=Sod58e%2BQcyYbMbb1s0m/JiMymknpZKbD6XG9sefLur0%3D' -o /tmp/n.zip
 sha256sum /tmp/o.zip /tmp/n.zip > "$OUT/zip-sha256.txt"
 python3 - "$OUT" <<'PY'
 import hashlib,json,struct,sys,zipfile

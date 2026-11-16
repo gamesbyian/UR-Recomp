@@ -73,7 +73,7 @@ def selftest():
     import struct
     def encode(rows,topdown):
         h=len(rows);w=len(rows[0]);stride=(w*3+3)&~3
-        body=b"".join(b"".join(bytes((b,g,r)) for r,g,b in row).ljust(stride,b"\\0") for row in (rows if topdown else reversed(rows)))
+        body=b"".join(b"".join(bytes((b,g,r)) for r,g,b in row).ljust(stride,bytes([0])) for row in (rows if topdown else reversed(rows)))
         return b"BM"+struct.pack("<IHHI",54+len(body),0,0,54)+struct.pack("<IiiHHIIiiII",40,w,-h if topdown else h,1,24,0,len(body),0,0,0,0)+body
     rows=[[(1,2,3),(4,5,6)],[(7,8,9),(10,11,12)]]
     for topdown in (True,False):

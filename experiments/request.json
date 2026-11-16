@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Which RGB channels differ in authentic WIDE-07 original-USA/native captures, and what do their exact guest clocks show?",
+  "expected": "Acquire original artifact 14184488104 and native artifact 14181849776, compare genuine 256x224 frames, retain per-channel mismatch and clock metadata; never infer phase parity.",
+  "owner": "fidelity",
+  "attempt": 1
 }

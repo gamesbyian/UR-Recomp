@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Can green-independent per-frame moving masks distinguish one-frame original/native capture offsets without assuming clock equivalence?",
+  "expected": "Distinctive-transition fixtures select shift +1, aligned shift 0, reject static evidence; retain source-bound receipt. Genuine ordered frame sequences still required.",
+  "owner": "fidelity",
+  "attempt": 1
 }

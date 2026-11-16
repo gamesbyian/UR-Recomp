@@ -66,7 +66,7 @@ def selftest():
         width = len(rows[0])
         stride = (width * 3 + 3) & ~3
         pixel_rows = rows if top_down else list(reversed(rows))
-        payload = b"".join(b"".join(bytes((b,g,r)) for r,g,b in row).ljust(stride, b"\\0") for row in pixel_rows)
+        payload = b"".join(b"".join(bytes((b,g,r)) for r,g,b in row).ljust(stride, bytes([0])) for row in pixel_rows)
         return (b"BM" + struct.pack("<IHHI", 54 + len(payload), 0, 0, 54)
                 + struct.pack("<IiiHHIIiiII", 40, width, -height if top_down else height, 1, 24, 0, len(payload), 0, 0, 0, 0)
                 + payload)
@@ -103,7 +103,7 @@ def main():
         parser.error("real original/native files and positive dimensions required")
     report = compare(original_bgrx(args.original.read_bytes(), args.width, args.height),
                      native_bmp(args.native.read_bytes(), args.width, args.height))
-    text = json.dumps(report, indent=2, sort_keys=True) + "\\n"
+    text = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.json_out:
         args.json_out.write_text(text)
     print(text, end="")

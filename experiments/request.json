@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Can a deterministic off-by-one capture index be distinguished from static ambiguous evidence before original/native phase qualification?",
+  "expected": "Hosted BGRX/BMP-capable phase-index discriminator selftest passes and retains exact source receipt; genuine sequence inputs still required.",
+  "owner": "fidelity",
+  "attempt": 1
 }

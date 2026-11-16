@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the corrected single-byte BMP row-padding fixture pass the WIDE-07 motion-mask regression on the exact hosted source?",
+  "question": "Does WIDE-07 four-frame motion-mask decoder pass hosted tests and emit valid newline-terminated JSON on exact source?",
   "expected": "Hosted deterministic tests pass with exact SHA receipt; no real frame parity or USA acceptance claimed until original/native evidence is supplied.",
   "owner": "fidelity",
-  "attempt": 2
+  "attempt": 3
 }

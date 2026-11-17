@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import zipfile
@@ -105,8 +106,11 @@ def inspect_seam(seam: Path) -> dict:
 
 def main() -> int:
     p = argparse.ArgumentParser()
-    for name in ("retained", "rom", "script", "fixture", "out"):
+    for name in ("rom", "script", "fixture", "out"):
         p.add_argument("--" + name, required=True, type=Path)
+    p.add_argument("--retained", type=Path)
+    p.add_argument("--candidate-zip", type=Path)
+    p.add_argument("--candidate-receipt", type=Path)
     a = p.parse_args()
     # The real native game runs in a disposable child working directory.
     # Resolve ROM, input script and fixture before changing cwd, otherwise
@@ -114,14 +118,34 @@ def main() -> int:
     a.rom = a.rom.resolve(strict=True)
     a.script = a.script.resolve(strict=True)
     a.fixture = a.fixture.resolve(strict=True)
-    a.retained = a.retained.resolve(strict=True)
+    if (a.candidate_zip is None) != (a.candidate_receipt is None):
+        p.error("candidate ZIP and receipt must be supplied together")
+    if a.retained is None and a.candidate_zip is None:
+        p.error("historical --retained or source-bound candidate pair required")
+    if a.retained is not None and a.candidate_zip is not None:
+        p.error("historical and source-bound candidate modes are exclusive")
     a.out = a.out.resolve()
     if a.out.exists():
         raise ValueError("Refusing prior data root or overwritten crash evidence")
     if digest(a.rom) != USA_SHA256:
         raise ValueError("Reference USA ROM identity differs")
     a.out.mkdir(parents=True)
-    exe = extract_original(a.retained, a.out)
+    identity = None
+    if a.candidate_receipt is not None:
+        from qa02_candidate_identity import CandidateIdentity
+        identity = CandidateIdentity.from_receipt(a.candidate_receipt.resolve(strict=True))
+        hosted_sha = os.environ.get("GITHUB_SHA")
+        if os.environ.get("GITHUB_ACTIONS") == "true" and not hosted_sha:
+            raise ValueError("hosted crash seam missing checkout SHA")
+        if hosted_sha and identity.source_sha != hosted_sha:
+            raise ValueError("crash seam candidate differs from hosted checkout")
+        exe = extract_source_bound(a.candidate_zip.resolve(strict=True), a.out,
+                                   a.candidate_receipt.resolve(strict=True))
+    else:
+        exe = extract_original(a.retained.resolve(strict=True), a.out)
+    expected_exe = identity.exe_sha256 if identity else EXE_SHA256
+    if digest(exe) != expected_exe:
+        raise ValueError("crash seam executable hash differs from candidate")
     work = a.out / "run"
     work.mkdir()
     run_route(exe, a.rom, a.script, work, pause=False, video="windows", timeout=120)
@@ -138,10 +162,10 @@ def main() -> int:
         raise ValueError("Did not reproduce the unresolved actual guest crash P0")
     receipt = {
         "schema": "qa02-nominated-owner-real-win32-crash-byte-receipt/1",
-        "tested_source": SOURCE_COMMIT,
-        "original_candidate_zip_sha256": CANDIDATE_SHA256,
-        "original_candidate_exe_sha256": EXE_SHA256,
-        "same_original_executable_executed": digest(exe) == EXE_SHA256,
+        "tested_source": identity.source_sha if identity else SOURCE_COMMIT,
+        "original_candidate_zip_sha256": identity.zip_sha256 if identity else CANDIDATE_SHA256,
+        "original_candidate_exe_sha256": expected_exe,
+        "same_original_executable_executed": digest(exe) == expected_exe,
         "fixture_sha256": digest(a.fixture),
         "source_script_sha256": digest(a.script),
         "reference_rom_sha256": digest(a.rom),
@@ -154,7 +178,7 @@ def main() -> int:
     (seam / "qa02-exact-owner-receipt.json").write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print("QA02_EXACT_NOMINATED_WIN32_P0 " + json.dumps({
-        "original_exe": EXE_SHA256,
+        "original_exe": expected_exe,
         "raw_changed": files["raw-sram"]["changed_byte_count"],
         "typed_unchanged": files["typed-profile"]["changed_byte_count"] == 0,
         "cold_restart_rejected": True,

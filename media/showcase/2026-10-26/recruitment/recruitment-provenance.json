@@ -1,0 +1,70 @@
+{
+  "edition": "2026-10-26 targeted-contributor recruitment",
+  "film": "ur-recomp-recruit-contributors-95s-1080p.mp4",
+  "sha256": "0b616efea5192da0c5658e21818e17fd621bb38c94b594425f9c1d47606512a9",
+  "duration_seconds": 95,
+  "fps": 60,
+  "frames": 5700,
+  "size": [
+    1920,
+    1080
+  ],
+  "source": {
+    "path": "media/showcase/2026-10-20/graphpaper-final/ur-recomp-graphpaper-action-80s-1080p.mp4",
+    "sha256": "367375ef998ca951eca45a1383ffa33014d4975780eb21988d5a7a19f945888b",
+    "selected_first_frames": 4260,
+    "source_film_original_frames": 4800
+  },
+  "new_editorial_panels": [
+    {
+      "name": "playtest",
+      "start_seconds": 71,
+      "duration_seconds": 6,
+      "classification": "editorial, not game capture"
+    },
+    {
+      "name": "artists",
+      "start_seconds": 77,
+      "duration_seconds": 6,
+      "classification": "editorial, not game capture"
+    },
+    {
+      "name": "agent_hours",
+      "start_seconds": 83,
+      "duration_seconds": 6,
+      "classification": "editorial, not game capture"
+    },
+    {
+      "name": "join",
+      "start_seconds": 89,
+      "duration_seconds": 6,
+      "classification": "editorial, not game capture"
+    }
+  ],
+  "artwork_sha256": {
+    "logo": "489b45ccf5d8d6da4d25b34e841ba9dded96814444a5f06c78325ff45be379a9",
+    "track": "f5948a2af00352c56169c5059e3f24178b0e6e5ef486ced6a85e048f50091032"
+  },
+  "witnesses_sha256": {
+    "review-06s.png": "007ba23b5d4c5029ffa8b1eee95cbb5364922a70f3955e962bf1c9a2e96326f1",
+    "review-13s.png": "95dacc2c6f03ff1a3c190984c8acd9317cd09d8a2393ba20e549a05e7f8dac60",
+    "review-22s.png": "8cd0df5aa0e0be32f6c7d0a53feb47d80562bfca98d582e9f527b6ee7253fa7a",
+    "review-37s.png": "6b3df5157fc4e2443a19ceb1254a9165e590ef4b9b533c750305b17be35e8a1d",
+    "review-52s.png": "4ed695bd64c653a5570bfc8903ba2dabd17f340db050f3cf5f3935e4bf98f98a",
+    "review-66s.png": "4c6d2c8d8bbb3756757eacd65f2e662ac9a6f56594ea0e34760218bc21f02037",
+    "review-73s.png": "1a239bfccdae3bc6cf9997c2097c2e1d498376e17a032bc8b3c3aa1ee6493c0f",
+    "review-79s.png": "727d8b11989bbb5cb58f0b1ab70ac0a5df7da2ce9412baf7f77f22ad23005a1f",
+    "review-85s.png": "c158252a400dfb245f0f57ab3ff6fbdf5465f32bc7b8c76112c140d1833450c2",
+    "review-91s.png": "8f354e61017178681f99e8f60872e26d98a10ea3c4f25724526fbe2d12b9419a",
+    "review-94s.png": "e4ea68ac9fe368ecc390ba8047b1f620d109f86e0634cba892bf1765e1b81104"
+  },
+  "boundaries": [
+    "No newly captured 1P or Modern native menu footage; original film's 1994 title/menu remains.",
+    "Original 4K framebuffer measurement is not native authored 4K racer art.",
+    "4x procedural racer studies are not approved for likeness.",
+    "No independently admitted full USA original/native event or certified physical Windows release.",
+    "Three action courses in existing film are three independent authentic 2P sessions, not one race.",
+    "New contributor cards are illustrated editorial, never synthetic gameplay.",
+    "A visible editorial corrective label disambiguates historical art technical approval from current character-likeness rejection."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "UR-TARGETED-SOCIAL-20261026/1",
+  "film": "ur-recomp-recruit-contributors-34s-vertical.mp4",
+  "sha256": "1864bc28012f899df50cc8763bac786953435d431c699b3f89f2ed392170bfd6",
+  "fps": 60,
+  "frames": 2040,
+  "duration_seconds": 34,
+  "dimensions": [
+    1080,
+    1920
+  ],
+  "poster": "ur-recomp-targeted-recruitment-poster-1080p.png",
+  "poster_sha256": "ebbfd66e69c7804c1c51c2ca926325c2921ebfc98e5fbab501d4cb447ecd1d86",
+  "sources": {
+    "original_vertical": "5d61045a5f4cf4fa1c305953003bbc7c893e3f304dc65bd5e89097d067a2e8e1",
+    "targeted_flagship_score": "0b616efea5192da0c5658e21818e17fd621bb38c94b594425f9c1d47606512a9",
+    "original_logo": "489b45ccf5d8d6da4d25b34e841ba9dded96814444a5f06c78325ff45be379a9",
+    "original_track": "f5948a2af00352c56169c5059e3f24178b0e6e5ef486ced6a85e048f50091032"
+  },
+  "source_video_first_frames": 1260,
+  "final_editorial_plates": [
+    {
+      "name": "playtest",
+      "start_seconds": 21.0,
+      "duration_seconds": 3.0
+    },
+    {
+      "name": "artists",
+      "start_seconds": 24.0,
+      "duration_seconds": 3.0
+    },
+    {
+      "name": "agent_hours",
+      "start_seconds": 27.0,
+      "duration_seconds": 3.0
+    },
+    {
+      "name": "join",
+      "start_seconds": 30.0,
+      "duration_seconds": 4.0
+    }
+  ],
+  "decoded_witnesses": {
+    "social-review-03s.png": "b8b487546daf33c19096d6c2b641eb4599f16fe61514c8568f79d8212c902b52",
+    "social-review-10s.png": "48c5f917545a53c553cf05e6973ae597fe72de138db1bb16a33128f87dac4a28",
+    "social-review-16s.png": "3cb7b136d018ffdd3cd14795ee1a9d1a3ddd9e31d9c05e6b8172c6077b69b131",
+    "social-review-21s.png": "6c8d670fe9c0f74e5c681df24e6887d4b2cc10d2802a7b610646e0eac47bc5b3",
+    "social-review-23s.png": "6aa7908f510d6237e88f5255dda54dcac77e72ed714c3ecca44f485f75679503",
+    "social-review-26s.png": "c8a9d3de86536eb80fa65d5bed37d0be344fd7553a03b2489ca17899a569c94e",
+    "social-review-29s.png": "9152d256a6fcd2e361b34ad795e7e09521445173b3d97417325396d3b9dd85f7",
+    "social-review-31s.png": "7701d2dcf462d8b3d8de1eca662f587fe1c3e4978b430832aadcce4a7b9ba35d",
+    "social-review-33s.png": "008663882eab0618372db4b07e3bf756c42923435a3242ba2f70d65b9ab45178"
+  },
+  "limitations": [
+    "21s of original source film has genuine independently captured native 2P course footage; no newly generated gameplay",
+    "The additional four vertical plates are illustrated recruitment information, not gameplay",
+    "No newly captured current 1P, 4K Modern menus, or final artistically approved 4x racer characters",
+    "This companion requires independent visual, audio and rights screening before public distribution"
+  ]
+}

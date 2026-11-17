@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Do real WIDE-07 original/native green bytes follow RGB565 bit replication or rounded scaling?",
-  "expected": "Download exact retained source artifacts; report per-producer green mapping membership, 32 real pixel witnesses and original/native clock metadata. No phase or course acceptance.",
+  "question": "Measure authentic original/native RGB565 green mapping using renewed artifact handoffs, and preserve exact pixel witnesses",
+  "expected": "Produce green-expansion.json from original-USA artifact 14184488104 and native artifact 14181849776, or retain first acquisition/decoding failure.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

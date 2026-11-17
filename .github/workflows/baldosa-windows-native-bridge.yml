@@ -1372,6 +1372,63 @@ jobs:
             --revision "$GITHUB_SHA" \
             --out "$RUNNER_TEMP/baldosa-candidate-binding/candidate-binding.json" | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # Source-bound packaged-PE regression on every opt-in candidate export.
+      # Retain the exact package BEFORE the expected raw/typed crash; a
+      # red test must not hide the executable or its independent binding.
+      - name: Retain QA-02 packaged PE candidate before crash seam
+        if: ${{ inputs.export_campaign_inputs == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-packaged-pe-pre-crash-candidate
+          path: |
+            ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
+            ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: QA-02 source-bound packaged PE crash seam
+        if: ${{ inputs.export_campaign_inputs == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"])
+          binding = json.loads((root / "baldosa-candidate-binding/candidate-binding.json").read_text(encoding="utf-8"))
+          if binding["source_revision"] != os.environ["GITHUB_SHA"]:
+              raise ValueError("packaged crash seam binding differs from checkout")
+          receipt = {
+              "source_sha": binding["source_revision"],
+              "zip_sha256": binding["zip_sha256"],
+              "exe_sha256": binding["journey_and_packaged_executable_sha256"],
+          }
+          (root / "qa02-packaged-crash-identity.json").write_text(
+              json.dumps(receipt, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+          python tools/qa02_exact_owner_win32_seam.py \
+            --candidate-zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --candidate-receipt "$RUNNER_TEMP/qa02-packaged-crash-identity.json" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-packaged-pe-crash" \
+            2>&1 | tee "$RUNNER_TEMP/qa02-packaged-pe-crash.log"
+          echo "Source-bound packaged Windows PE reached actual post-raw/pre-typed crash seam; no hardware, power cut or QA gate credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain QA-02 packaged PE crash seam evidence
+        if: ${{ always() && inputs.export_campaign_inputs == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-packaged-pe-crash-seam-evidence
+          path: |
+            ${{ runner.temp }}/qa02-packaged-crash-identity.json
+            ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
+            ${{ runner.temp }}/qa02-packaged-pe-crash.log
+            ${{ runner.temp }}/qa02-packaged-pe-crash/run/native_post_raw_pre_typed_crash/seam/
+          if-no-files-found: warn
+          retention-days: 14
+
       # Retain the playable exact-source candidate BEFORE the fault probe.
       # QA-02 can legitimately fail, but that must not suppress the ROM-free
       # ZIP needed for independent review and the next bounded reproduction.

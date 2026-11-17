@@ -356,6 +356,13 @@ def main() -> int:
         "fresh_third_game_cold_loaded_B_SRAM": True,
         "fresh_third_game_preserved_B_SRAM_bytes": True,
         "cold_C_typed_generation": cold_generation,
+        "cold_C_after_B_file_sha256": {
+            key: {"after_B": digest(saved_b[key]), "after_C": digest(saved_c[key])}
+            for key in FILES
+        },
+        "cold_C_after_B_byte_identical": {
+            key: saved_b[key] == saved_c[key] for key in FILES
+        },
         "before_B_after_B_after_A": comparison,
         "third_game_process_exit": c_exit,
         "release_gate_credit": 0,

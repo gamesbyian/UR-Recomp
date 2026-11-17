@@ -304,6 +304,10 @@ def analyze(original_zip: Path, native_zip: Path, *, require_memory: bool = Fals
         wide_bytes = native["evidence/16x9/" + tag + ".fb.bmp"]
         if sha(original_bytes) != orig["checkpoints"][tag]["framebuffer_sha256"]:
             raise ValueError("Original emulator BMP disagrees with its receipt")
+        # Race and moving checkpoints must carry independently checkable native
+        # producer hashes. Historical menu-only captures may lack a pair.
+        if tag != "ws-product-main-menu" and tag not in nat["frame_pairs"]:
+            raise ValueError("Missing native frame-pair producer receipt: " + tag)
         if tag in nat["frame_pairs"]:
             if (sha(fixed_bytes) != nat["frame_pairs"][tag]["original_sha256"]
                     or sha(wide_bytes) != nat["frame_pairs"][tag]["wide_sha256"]):

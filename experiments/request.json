@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Do real WIDE-07 original/native green bytes follow RGB565 bit replication or rounded scaling?",
+  "expected": "Download exact retained source artifacts; report per-producer green mapping membership, 32 real pixel witnesses and original/native clock metadata. No phase or course acceptance.",
+  "owner": "fidelity",
+  "attempt": 1
 }

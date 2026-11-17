@@ -326,6 +326,15 @@ def main() -> int:
             json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
             encoding="utf-8")
         raise
+    # Observe complete committed bytes without assuming whether a legitimate
+    # cold-load canonicalization is permitted by the QA-02 contract.
+    cold_diagnostics["after_C_vs_after_B_equal"] = {
+        key: saved_c[key] == saved_b[key] for key in FILES}
+    cold_diagnostics["after_C_sha256"] = {
+        key: digest(value) for key, value in saved_c.items()}
+    (evidence / "cold-C-diagnostics.json").write_text(
+        json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8")
     try:
         cold_generation = verify_cold_recovery(
             saved_b, saved_a, saved_c, comparison["generation_after_B"])

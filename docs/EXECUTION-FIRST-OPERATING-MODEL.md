@@ -105,6 +105,42 @@ open Actions > Agent bounded experiment execution > branch run, inspect all
 failed jobs and download their artifacts before changing source/request.
 Use the failed command and its exact output as the next question.
 
+### Finding the exact experiment run, including push-triggered runs
+
+**Do not use the commit-specific workflow-run lookup to prove a push-triggered
+experiment did not run.** Some GitHub connector commit-run lookups return only
+pull-request-triggered runs. For an `experiments/*` request commit, fetch
+`https://api.github.com/repos/gamesbyian/UR-Recomp/actions/runs?per_page=100`
+through the GitHub connector, filter `workflow_runs` by **exact**
+`head_sha`, `event == "push"`, and workflow name
+`Agent bounded experiment execution`. Paginate with `&page=2`, etc. if
+needed. Read the returned run ID, its jobs, full failed-step logs, and
+retained artifacts. A run's `success` confirms script execution only:
+independently inspect the uploaded scientific result before claiming parity.
+If a just-pushed revision has not appeared yet, use the next scheduled
+invocation to check the same SHA before dispatching an overlapping run.
+
+Concrete previous discovery failure: WIDE-07 attempt at
+`a31ec269a0034a8e4412ab8c438583a012a2f6a2` **did execute** as
+[run 44121842871](https://github.com/gamesbyian/UR-Recomp/actions/runs/44121842871),
+with successful `script_linux` and diagnostic artifact `14344434792`.
+An empty commit-run lookup would have concealed this real execution.
+
+### Retention-sensitive authentic evidence
+
+GitHub Actions evidence is temporary. RF095 source-bound original/native
+Zoo artifact `14088083271` (run `43532930092`, wrapper SHA-256
+`c7397a2ebf08db8d8eefa050fd88ab2ebea62f592d10f59a02c988e2ab91c163`)
+and paired reference/native binaries artifact `14088581780` expire
+**2026-11-21 UTC**. Before that date, preserve their necessary non-ROM
+measurement traces/metadata using an authorized durable evidence store, or
+repeat the source-controlled genuine acquisition to obtain a new retained
+witness. Never commit a source ROM or other copyrighted original-game binary
+to this public repository. Distinguish a regenerated witness from byte-for-byte
+preservation of the original, and preserve exact artifact/run provenance.
+A different pipeline or a passing synthetic test is not a substitute for
+the original source-bound audio evidence.
+
 The initial service is a **real-compute capability**, not an automatic
 research conclusion. A dispatched experiment does not qualify a course or
 release gate. Evidence must be compared, reproduced when needed and judged

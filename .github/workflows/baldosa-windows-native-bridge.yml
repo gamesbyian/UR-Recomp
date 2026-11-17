@@ -1372,11 +1372,11 @@ jobs:
             --revision "$GITHUB_SHA" \
             --out "$RUNNER_TEMP/baldosa-candidate-binding/candidate-binding.json" | tee -a "$GITHUB_STEP_SUMMARY"
 
-      # One source-bound packaged-PE regression for PR #3369 only.
+      # Source-bound packaged-PE regression on every opt-in candidate export.
       # Retain the exact package BEFORE the expected raw/typed crash; a
       # red test must not hide the executable or its independent binding.
       - name: Retain QA-02 packaged PE candidate before crash seam
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'experiments/qa02-source-bound-crash-seam-20261117' }}
+        if: ${{ inputs.export_campaign_inputs == true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-packaged-pe-pre-crash-candidate
@@ -1387,7 +1387,7 @@ jobs:
           retention-days: 14
 
       - name: QA-02 source-bound packaged PE crash seam
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'experiments/qa02-source-bound-crash-seam-20261117' }}
+        if: ${{ inputs.export_campaign_inputs == true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -1417,7 +1417,7 @@ jobs:
           echo "Source-bound packaged Windows PE reached actual post-raw/pre-typed crash seam; no hardware, power cut or QA gate credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain QA-02 packaged PE crash seam evidence
-        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'experiments/qa02-source-bound-crash-seam-20261117' }}
+        if: ${{ always() && inputs.export_campaign_inputs == true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-packaged-pe-crash-seam-evidence

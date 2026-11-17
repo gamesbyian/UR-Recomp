@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
+  "question": "On post-merge main eb718609, does the reusable opt-in native Win32 packaged candidate export produce an independently source-bound QA-02 crash seam with real raw/typed/cold-restart receipts and A/B/C overlap?",
+  "expected": "Build and retain ROM-free AMD64 candidate before deliberate fault; run hosted native Win32 A/B/C and packaged crash-seam probe, retain four-file SHA receipts and exact source/candidate identities; gate credit zero pending independent review.",
   "owner": "windows",
-  "attempt": 24
+  "attempt": 1
 }

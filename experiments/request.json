@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Trace actual WIDE-07 green conversion producer including native source tree omitted in attempt 1",
+  "question": "Recover real original/native WIDE-07 capture producer conversion paths after hosted attempt 2 exit 127; install ripgrep explicitly",
   "expected": "Source-path and conversion-expression witnesses tied to real WIDE-07 framebuffer mismatch runs 44027943031 and 43975730959; identify narrow producer correction or prove capture-format normalization only.",
   "owner": "fidelity",
-  "attempt": 2
+  "attempt": 3
 }

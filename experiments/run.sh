@@ -1,27 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
-OUT="${UR_EXPERIMENT_OUTPUT_DIR:?}"
-mkdir -p "$OUT"
-# The stripped hosted environment does not guarantee ripgrep; fail with an explicit diagnostic.
-if ! command -v rg >/dev/null 2>&1; then
-  echo "ripgrep absent on hosted runner; installing before source inspection" >&2
-  sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
-fi
-command -v rg
-
-printf 'source_sha=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" > "$OUT/producer-trace.txt"
-printf '\n=== capture producer references ===\n' >> "$OUT/producer-trace.txt"
-rg -n -i --glob '*.{c,cc,cpp,h,hpp,py,sh}' 'bgrx8888|rgb565|rgb555|state\.fb\.bmp|fb\.bgrx|snes9x|snesrecomp' tools src native tests experiments 2>/dev/null | head -n 500 >> "$OUT/producer-trace.txt" || true
-printf '\n=== candidate conversion source excerpts ===\n' >> "$OUT/producer-trace.txt"
-rg -l -i --glob '*.{c,cc,cpp,h,hpp,py,sh}' 'bgrx8888|rgb565|state\.fb\.bmp|fb\.bgrx' tools src native tests experiments 2>/dev/null | head -n 45 | while IFS= read -r file; do
- printf '\nFILE %s\n' "$file" >> "$OUT/producer-trace.txt"
- rg -n -C 8 -i 'bgrx8888|rgb565|state\.fb\.bmp|fb\.bgrx' "$file" | head -n 160 >> "$OUT/producer-trace.txt" || true
-done
-printf '\n=== pinned external source dependencies ===\n' >> "$OUT/producer-trace.txt"
-rg -n -i 'snes9x|snesrecomp' .github tools native scripts CMakeLists.txt 2>/dev/null | head -n 130 >> "$OUT/producer-trace.txt" || true
-printf '\n=== native conversion and output references ===\n' >> "$OUT/producer-trace.txt"
-rg -n -i --glob '*.{c,cc,cpp,h,hpp,py,sh}' 'green|pixel|bmp|framebuffer|rgb|bgr' native 2>/dev/null | head -n 220 >> "$OUT/producer-trace.txt" || true
-printf '\n=== relevant source filenames ===\n' >> "$OUT/producer-trace.txt"
-find . -type f \( -iname '*capture*' -o -iname '*framebuffer*' -o -iname '*bmp*' -o -iname '*snes9x*' \) -not -path './.git/*' | head -n 150 >> "$OUT/producer-trace.txt"
-wc -lc "$OUT/producer-trace.txt"
-test -s "$OUT/producer-trace.txt"
+python3 - <<'PY'
+import os, pathlib, re
+out = pathlib.Path(os.environ["UR_EXPERIMENT_OUTPUT_DIR"])
+out.mkdir(parents=True, exist_ok=True)
+roots = ["tools", "src", "native", "tests", "experiments", "scripts", ".github"]
+extensions = {".c", ".cc", ".cpp", ".h", ".hpp", ".py", ".sh", ".yml", ".yaml", ".json"}
+pattern = re.compile(r"bgrx8888|rgb565|rgb555|state\\.fb\\.bmp|fb\\.bgrx|snes9x|snesrecomp|framebuffer|color.convert|colour.convert", re.I)
+lines = ["source_sha=" + os.environ["UR_EXPERIMENT_SOURCE_SHA"], "method=stdlib source scan, existing directories only"]
+matched = 0
+for root in roots:
+    base = pathlib.Path(root)
+    if not base.is_dir():
+        lines.append("missing_optional_root=" + root)
+        continue
+    for path in sorted(base.rglob("*")):
+        if not path.is_file() or path.suffix.lower() not in extensions or path.stat().st_size > 2000000:
+            continue
+        try:
+            source = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        hits = [i for i, line in enumerate(source) if pattern.search(line)]
+        if not hits:
+            continue
+        matched += len(hits)
+        lines.append("FILE " + str(path) + " hits=" + str(len(hits)))
+        selected = set()
+        for i in hits[:24]:
+            selected.update(range(max(0,i-3), min(len(source),i+4)))
+        for i in sorted(selected):
+            lines.append(f"{i+1}: {source[i][:300]}")
+        if len(lines) > 6000:
+            lines.append("TRUNCATED after 6000 lines")
+            break
+    if len(lines) > 6000:
+        break
+lines.append("matched_lines=" + str(matched))
+(out / "producer-trace.txt").write_text("\n".join(lines)+"\n")
+print("producer-trace matched_lines=",matched,"output_lines=",len(lines))
+if matched == 0:
+    raise SystemExit("No source matches: acquisition failed")
+PY

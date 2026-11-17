@@ -2,6 +2,13 @@
 set -euo pipefail
 OUT="${UR_EXPERIMENT_OUTPUT_DIR:?}"
 mkdir -p "$OUT"
+# The stripped hosted environment does not guarantee ripgrep; fail with an explicit diagnostic.
+if ! command -v rg >/dev/null 2>&1; then
+  echo "ripgrep absent on hosted runner; installing before source inspection" >&2
+  sudo apt-get update -qq && sudo apt-get install -y -qq ripgrep
+fi
+command -v rg
+
 printf 'source_sha=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" > "$OUT/producer-trace.txt"
 printf '\n=== capture producer references ===\n' >> "$OUT/producer-trace.txt"
 rg -n -i --glob '*.{c,cc,cpp,h,hpp,py,sh}' 'bgrx8888|rgb565|rgb555|state\.fb\.bmp|fb\.bgrx|snes9x|snesrecomp' tools src native tests experiments 2>/dev/null | head -n 500 >> "$OUT/producer-trace.txt" || true

@@ -36,7 +36,10 @@ inspect_baldosa_native_two_player_records_archive(
     std::vector<StoredMultiplayerMatch> admitted;
     admitted.reserve(inspected.size());
     for (auto& item : inspected) {
-        if (item.loaded())
+        // The generic pair codec accepts any syntactically valid game ID.
+        // Only genuine Uniracers 2P results belong in this native Records UI.
+        if (item.loaded() &&
+            item.stored->run.provenance.game_id == "uniracers-usa")
             admitted.push_back(std::move(*item.stored));
         else
             ++out.unavailable_pairs;

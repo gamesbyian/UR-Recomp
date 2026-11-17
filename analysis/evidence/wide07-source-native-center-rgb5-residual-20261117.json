@@ -1,0 +1,72 @@
+{
+  "schema": "UR-WIDE07-INDEPENDENT-CENTER-RGB5/1",
+  "observed_date_utc": "2026-11-17",
+  "original": {
+    "run_id": 43539425650,
+    "artifact_id": 14090194177,
+    "wrapper_sha256": "fd8faa2bf09fd2dcc89e860a9d0ff75edf5465380032361e176fc7e9ea3dad78",
+    "image_paths": [
+      "evidence/frames/ws-product-race.fb.bmp",
+      "evidence/frames/ws-product-after-scroll.fb.bmp"
+    ],
+    "size": [
+      256,
+      224
+    ]
+  },
+  "native": {
+    "run_id": 43540488054,
+    "artifact_id": 14091441914,
+    "wrapper_sha256": "4cdad8847df27145ba256494586ddddf9bccc13307356b9b8acac0fe408284d7",
+    "image_paths": [
+      "evidence/16x9/ws-product-race.fb.bmp",
+      "evidence/16x9/ws-product-after-scroll.fb.bmp"
+    ],
+    "size": [
+      342,
+      224
+    ]
+  },
+  "method": "Decode actual retained BMP images RGB8; compare Snes9x original 256x224 with central 256x224 strip native x=43..298 inclusive, RGB5 by right-shifting each R,G,B component 3 bits. Independently verified original snesref BMP corresponds exactly to original .fb.bgrx (BGRX8888) decoded as RGB.",
+  "results": [
+    {
+      "checkpoint": "ws-product-race",
+      "total_pixels": 57344,
+      "rgb5_equal": 56882,
+      "rgb5_unequal": 462,
+      "bbox_xyxy": [
+        29,
+        54,
+        225,
+        175
+      ],
+      "most_populated_mismatch_rows": [
+        {
+          "y": 97,
+          "pixels": 128
+        },
+        {
+          "y": 132,
+          "pixels": 128
+        }
+      ],
+      "rgb5_mismatched_by_channel": {
+        "r": 450,
+        "g": 453,
+        "b": 447
+      },
+      "first_mismatch_xy": [
+        165,
+        54
+      ]
+    },
+    {
+      "checkpoint": "ws-product-after-scroll",
+      "total_pixels": 57344,
+      "rgb5_equal": 57344,
+      "rgb5_unequal": 0
+    }
+  ],
+  "limitations": "This is two named source/native artifacts, not verified identical guest-frame clock/input phase. The race-entry graphic edge residual may be timing/capture phase rather than native renderer error. Does not validate widened margins, physical hardware, full moving course, or complete USA event. No 0/45 acceptance.",
+  "next_discriminator": "Determine original/native guest frame and input timeline for entry capture; inspect source OBJ/arrow edge placement and compare one-frame shifted captures before modifying rasterizer."
+}

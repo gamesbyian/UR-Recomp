@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "qa01_rf095_pcm",
+  "question": "Reacquire genuine USA Zoo original/native stereo PCM before November 21 expiry of original artifacts.",
+  "expected": "Retain new source-bound original/native PCM and authentic event measurements, inspect sample/frame origin and artifact IDs, or isolate first exact producer failure. No course credit.",
+  "owner": "fidelity",
+  "attempt": 1
 }

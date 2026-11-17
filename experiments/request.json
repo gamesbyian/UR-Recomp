@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Recover real original/native WIDE-07 capture producer conversion paths after hosted attempt 2 exit 127; install ripgrep explicitly",
-  "expected": "Source-path and conversion-expression witnesses tied to real WIDE-07 framebuffer mismatch runs 44027943031 and 43975730959; identify narrow producer correction or prove capture-format normalization only.",
+  "question": "Attempt 3 run 44079887857 exited 2 after ripgrep installed: missing optional source directory in rg pipeline under pipefail. Switch tactics to dependency-free stdlib source scan of existing directories.",
+  "expected": "Produce source-registered producer-trace.txt with real capture/colour conversion references, or precise bounded source-acquisition failure; no synthetic parity claim.",
   "owner": "fidelity",
-  "attempt": 3
+  "attempt": 4
 }

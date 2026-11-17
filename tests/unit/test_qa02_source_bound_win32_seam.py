@@ -69,7 +69,8 @@ class SourceBoundCrashSeamTests(unittest.TestCase):
         self.assertIn("--candidate-zip", workflow[seam:archive])
         self.assertIn("--candidate-receipt", workflow[seam:archive])
         self.assertIn('--rom "reference/roms/retail/Uniracers_USA.sfc"', workflow[seam:archive])
-        self.assertIn("qa02-source-bound-crash-seam-20261117", workflow[seam:archive])
+        self.assertIn("if: ${{ inputs.export_campaign_inputs == true }}", workflow[binding:seam])
+        self.assertIn("if: ${{ always() && inputs.export_campaign_inputs == true }}", workflow[archive:archive + 250])
         self.assertIn("native_post_raw_pre_typed_crash/seam", workflow[archive:archive + 800])
 
 

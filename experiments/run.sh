@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 OUT="${UR_EXPERIMENT_OUTPUT_DIR:?}"; mkdir -p "$OUT"
-curl -fLsS --retry 2 --max-time 90 'https://sdmntpraustraliaeast.oaiusercontent.com/files/00000000-f47c-81fa-ac55-30ab16c26bd1/raw?se=2026-11-17T02%3A00%3A54Z&sp=r&sv=2026-06-06&sr=b&scid=63ca9e7a-2105-5772-9245-f26651c43898&skoid=f8b66c09-1aa0-4801-9884-173c5cef2b8c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-17T00%3A55%3A10Z&ske=2026-11-18T00%3A55%3A10Z&sks=b&skv=2026-06-06&sig=V/AMZ61aBs01WF0CEBbMiE3ktGCO9hhdUbQaBL5xv44%3D' -o /tmp/o.zip
-curl -fLsS --retry 2 --max-time 90 'https://sdmntpraustraliaeast.oaiusercontent.com/files/00000000-54cc-81fa-8afe-5f0561bae23d/raw?se=2026-11-17T02%3A00%3A53Z&sp=r&sv=2026-06-06&sr=b&scid=3631ab53-f210-5c88-b51c-1f944c55a527&skoid=f8b66c09-1aa0-4801-9884-173c5cef2b8c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-17T00%3A57%3A09Z&ske=2026-11-18T00%3A57%3A09Z&sks=b&skv=2026-06-06&sig=uSgc5r0IQvGdzdcQgaL7XWn0FP8DBZ%2B1jKSlDPoJqYI%3D' -o /tmp/n.zip
+curl -fLsS --retry 2 --max-time 90 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-def4-81f5-a747-364b0fd7aa16/raw?se=2026-11-17T03%3A02%3A40Z&sp=r&sv=2026-06-06&sr=b&scid=8f935cb2-f1f6-59b3-8152-c959c44a1911&skoid=de71a0d5-fb02-4fce-be69-9296aced242b&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-17T00%3A12%3A25Z&ske=2026-11-18T00%3A12%3A25Z&sks=b&skv=2026-06-06&sig=y7kfrnFxDo0rfKRpM3az4lJ8PUnB3q96OJVU2NObZMs%3D' -o /tmp/o.zip
+curl -fLsS --retry 2 --max-time 90 'https://sdmntprcentralus.oaiusercontent.com/files/00000000-66c4-81f5-b618-17e025cf1c78/raw?se=2026-11-17T03%3A02%3A40Z&sp=r&sv=2026-06-06&sr=b&scid=253d4d75-e24c-553d-9c5c-b0ff7a21e2ba&skoid=de71a0d5-fb02-4fce-be69-9296aced242b&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-17T00%3A00%3A06Z&ske=2026-11-18T00%3A00%3A06Z&sks=b&skv=2026-06-06&sig=ZpNkrWXYncANm3TyVMgjlVo1iuVjhoF90CvKqOXSkEM%3D' -o /tmp/n.zip
 sha256sum /tmp/o.zip /tmp/n.zip > "$OUT/input-zip-hashes.txt"
 python3 - "$OUT" <<'PY'
 import json,struct,zipfile,os,sys

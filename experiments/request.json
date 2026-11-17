@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Do genuine original-USA WIDE-07 green bytes equal normalized native five-bit green after RGB565 six-bit intermediate conversion?",
+  "expected": "Exact five-bit membership, normalized residual count and coordinates on two real frame pairs, with source provenance and phase caveat.",
+  "owner": "fidelity",
+  "attempt": 1
 }

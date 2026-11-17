@@ -130,6 +130,23 @@ class Wide07OriginalNativeTests(unittest.TestCase):
                 cmp.analyze(original,native)
 
 
+    def test_missing_moving_native_frame_receipt_is_refused(self):
+        with tempfile.TemporaryDirectory() as d:
+            original = Path(d) / "original.zip"
+            native = Path(d) / "native.zip"
+            fixtures(original, native)
+            with zipfile.ZipFile(native) as z:
+                members = {name: z.read(name) for name in z.namelist()}
+            observation_path = "evidence/matched-centre-observation.json"
+            observation = json.loads(members[observation_path])
+            del observation["frame_pairs"]["ws-product-race"]
+            members[observation_path] = json.dumps(observation).encode()
+            with zipfile.ZipFile(native, "w", compression=zipfile.ZIP_DEFLATED) as z:
+                for name, data in members.items():
+                    z.writestr(name, data)
+            with self.assertRaisesRegex(ValueError, "Missing native frame-pair producer receipt"):
+                cmp.analyze(original, native)
+
     def test_full_memory_comparison_recovers_real_value_correspondence(self):
         tag = "ws-product-race"
         original = {}

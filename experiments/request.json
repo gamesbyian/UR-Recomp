@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does the source-bound C04 post-target-SRAM/pre-selector hard-exit seam compile and preserve existing real Win32 journeys without activation?",
-  "expected": "Compile and exercise existing packaged Windows journeys with C04 env unset; retain exact-source candidate for a separate two-profile fault-injection test. No gate credit.",
+  "question": "Does explicit test-build isolation keep the C04 hard-exit seam absent from normal packaged Win32 builds while existing native Windows journeys pass?",
+  "expected": "Compile and run source-bound Windows candidate with UR_C04_FAULT_INJECTION_TEST_BUILD undefined; preserve candidate receipts. This does not exercise C04 termination or earn gate credit.",
   "owner": "windows",
-  "attempt": 25
+  "attempt": 26
 }

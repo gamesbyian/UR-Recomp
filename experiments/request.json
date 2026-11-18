@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Which exact checked-out source expressions produce WIDE-07 original RGB565/native BGRX8888 pixels and frame/input phase?",
-  "expected": "Emit bounded exact source line contexts to hosted logs and source-bound JSON; do not claim frame parity.",
+  "question": "Locate exact native and original producer RGB565/BGRX8888 conversions and guest/input frame boundaries; previous successful trace printed test fixtures first.",
+  "expected": "Rank production source contexts and print them to hosted logs; no synthetic parity inference.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

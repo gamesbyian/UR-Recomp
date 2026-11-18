@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "What do genuine original-USA Snes9x race-entry framebuffer, PPU and guest-frame metadata show at the adjacent minus-one, baseline, plus-one frames?",
-  "expected": "Retain source-bound three adjacent original guest frames and clocks for subsequent exact native arrow-phase comparison; no fidelity credit.",
+  "question": "How many authentic original-USA RGB pixels change between adjacent race-entry frames, and where?",
+  "expected": "Produce source-bound row histograms and bounding boxes for both adjacent frame transitions in job logs and artifact, to test arrow-phase hypothesis without changing native renderer.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

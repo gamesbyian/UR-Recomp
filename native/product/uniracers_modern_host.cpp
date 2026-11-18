@@ -2123,6 +2123,17 @@ bool activate_profile_id(const std::string& profile_id) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_SRAM_WRITE_FAILED");
         return restore_previous();
     }
+    // C04 hosted fault-injection seam. Opt-in is deliberately exact and inert
+    // for normal players. A hard exit skips in-process compensating recovery,
+    // allowing an independent cold process to adjudicate durable on-disk
+    // selector, roster, and both racer SRAM roots after target publication.
+    // This must never be interpreted as a successful release-gate result.
+    const char* c04_crash = std::getenv("UR_C04_TEST_KILL_AFTER_TARGET_SRAM");
+    if (c04_crash && std::strcmp(c04_crash, "C04_POST_SRAM_PRE_SELECTOR_V1") == 0) {
+        product_diagnostic("UR_C04_FAULT POST_TARGET_SRAM_PRE_SELECTOR");
+        std::fflush(nullptr);
+        std::_Exit(86);
+    }
     // This is the only identity publication. A stale concurrent host-state
     // writer makes CAS fail without undoing their selection or claiming ours
     // applied. The target SRAM is already valid if the next attempt retries.

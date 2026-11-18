@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Can exact push-run discovery paginate and identify known genuine WIDE-07 experiments, rather than falsely reporting no runs?",
+  "expected": "Five mocked regression tests pass and two exact source SHA push-run lookups return correct run IDs; retain source-bound JSON receipts.",
+  "owner": "fidelity",
+  "attempt": 1
 }

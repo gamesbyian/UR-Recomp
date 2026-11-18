@@ -76,3 +76,36 @@ print("WIDE07_ACTUAL_SNES9X_CAPTURE "+json.dumps({"source_sha":source_sha,"check
 if status!=0:
     raise SystemExit("original Snesref script failed; see log")
 PY
+
+# Compact, source-bound adjacent-frame measurement, emitted to job logs and JSON.
+python3 - "$OUT" <<'PY'
+import json, struct, sys
+from pathlib import Path
+root=Path(sys.argv[1])
+tags=["ws-product-race-minus-one","ws-product-race","ws-product-race-plus-one"]
+def read_bmp(tag):
+    data=(root/"frames"/(tag+".fb.bmp")).read_bytes()
+    offset=struct.unpack_from("<I",data,10)[0]
+    w,h=struct.unpack_from("<ii",data,18)
+    bpp=struct.unpack_from("<H",data,28)[0]
+    if (w,abs(h))!=(256,224) or bpp not in (24,32):
+        raise ValueError(f"unexpected BMP {tag}: {w}x{h} {bpp}bpp")
+    stride=((w*bpp+31)//32)*4
+    rows=[]
+    for y in range(abs(h)):
+        raw_y=abs(h)-1-y if h>0 else y
+        line=data[offset+raw_y*stride:offset+(raw_y+1)*stride]
+        rows.append([tuple(line[x*bpp//8:x*bpp//8+3]) for x in range(w)])
+    return rows,bpp
+frames={t:read_bmp(t) for t in tags}
+out={"schema":"ur-wide07-original-adjacent-raster-delta/1","source_sha":__import__("os").environ["UR_EXPERIMENT_SOURCE_SHA"],"pairs":[]}
+for a,b in zip(tags,tags[1:]):
+    A,bppa=frames[a];B,bppb=frames[b]
+    changed=[(x,y) for y in range(224) for x in range(256) if A[y][x]!=B[y][x]]
+    xs=[x for x,y in changed];ys=[y for x,y in changed]
+    row_counts={str(y):sum(1 for x,yy in changed if yy==y) for y in sorted(set(ys))}
+    item={"from":a,"to":b,"changed_pixels":len(changed),"bbox":[min(xs),min(ys),max(xs),max(ys)] if changed else None,"row_counts":row_counts,"bmp_bits_per_pixel":[bppa,bppb]}
+    out["pairs"].append(item)
+    print("WIDE07_ADJACENT_RASTER_DELTA "+json.dumps(item,sort_keys=True))
+(root/"original-adjacent-raster-delta.json").write_text(json.dumps(out,indent=2,sort_keys=True)+"\n")
+PY

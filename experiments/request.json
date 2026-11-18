@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
+  "question": "Does the source-bound C04 post-target-SRAM/pre-selector hard-exit seam compile and preserve existing real Win32 journeys without activation?",
+  "expected": "Compile and exercise existing packaged Windows journeys with C04 env unset; retain exact-source candidate for a separate two-profile fault-injection test. No gate credit.",
   "owner": "windows",
-  "attempt": 24
+  "attempt": 25
 }

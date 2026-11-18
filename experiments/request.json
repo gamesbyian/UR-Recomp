@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Locate exact native and original producer RGB565/BGRX8888 conversions and guest/input frame boundaries; previous successful trace printed test fixtures first.",
-  "expected": "Rank production source contexts and print them to hosted logs; no synthetic parity inference.",
+  "question": "Final minimized source investigation: identify production C/C++ pixel packing and input/guest clock boundaries, excluding all test/tool fixture matches.",
+  "expected": "Print actual native/source production expressions and exact file:line contexts; if insufficient, switch to direct instrumentation rather than a fourth scanner.",
   "owner": "fidelity",
-  "attempt": 2
+  "attempt": 3
 }

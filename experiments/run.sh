@@ -1,28 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 python3 - <<'PY'
-import os,pathlib,re,json
+import json,os,pathlib,re
 out=pathlib.Path(os.environ["UR_EXPERIMENT_OUTPUT_DIR"]);out.mkdir(parents=True,exist_ok=True)
-roots=[pathlib.Path(x) for x in ("native","research","tools","src","scripts","experiments") if pathlib.Path(x).exists()]
-terms=re.compile(r"RGB565|BGRX8888|RGB555|rgb5|rgb565|bgrx|frame_pairs|master_clock|guest_frame|frame_counter|input_timeline|snes9x",re.I)
-records=[]
-for root in roots:
- for p in root.rglob("*"):
-  if not p.is_file() or p.suffix.lower() not in {".c",".cc",".cpp",".h",".hpp",".py",".sh"} or p.stat().st_size>400000 or any(x in p.parts for x in (".git","build","vendor","node_modules")):continue
-  lines=p.read_text(errors="replace").splitlines()
-  hits=[i for i,l in enumerate(lines) if terms.search(l)]
-  if not hits:continue
-  weight=sum(3 for i in hits if re.search(r"RGB565|BGRX8888|rgb565|bgrx",lines[i],re.I))
-  records.append((weight,len(hits),str(p),lines,hits))
-records.sort(key=lambda x:(-x[0],-x[1],x[2]))
-print("SOURCE",os.environ["UR_EXPERIMENT_SOURCE_SHA"],"MATCHING_FILES",len(records))
-result=[]
-for weight,count,path,lines,hits in records[:45]:
- print("FILE",path,"HITS",count,"COLOUR_WEIGHT",weight)
- for i in hits[:5]:
-  context="\n".join(f"{j+1}: {lines[j][:180]}" for j in range(max(0,i-3),min(len(lines),i+4)))
-  print(context)
-  result.append({"file":path,"line":i+1,"context":context})
-(out/"focused-producer-source.json").write_text(json.dumps({"source_sha":os.environ["UR_EXPERIMENT_SOURCE_SHA"],"records":result},indent=2)+"\n")
-if not any(weight for weight,*_ in records):raise SystemExit("NO_COLOUR_PRODUCER_SOURCE_FOUND")
+# Third and final source-scan tactic: production C/C++ only, never test fixtures.
+roots=[pathlib.Path(p) for p in ("native","src","research") if pathlib.Path(p).exists()]
+patterns={"pixel_pack":re.compile(r"(rgb565|rgb555|bgrx|rgb888|0xf800|0x07e0|0x001f|<<\s*11|>>\s*11)",re.I),
+"clock_input":re.compile(r"(master_clock|guest_frame|frame_counter|input_timeline|joypad|controller|frame_tick|vblank|nmi)",re.I)}
+results={}
+for label,pattern in patterns.items():
+ matches=[]
+ for root in roots:
+  for path in root.rglob("*"):
+   if path.suffix.lower() not in (".c",".cc",".cpp",".h",".hpp") or not path.is_file() or path.stat().st_size>500000:continue
+   if any(part in ("test","tests","fixtures","build","vendor","third_party") for part in path.parts):continue
+   lines=path.read_text(errors="replace").splitlines()
+   for i,line in enumerate(lines):
+    if pattern.search(line):
+     context="\n".join(f"{j+1}: {lines[j][:220]}" for j in range(max(0,i-2),min(len(lines),i+3)))
+     matches.append({"path":str(path),"line":i+1,"context":context})
+ results[label]=matches
+ print("PRODUCTION",label,"MATCHES",len(matches),"FILES",len(set(x["path"] for x in matches)))
+ for item in matches[:65]:
+  print("SOURCE",item["path"],"LINE",item["line"])
+  print(item["context"])
+(out/"production-only-producer-clock.json").write_text(json.dumps({"source_sha":os.environ["UR_EXPERIMENT_SOURCE_SHA"],"matches":results},indent=2)+"\n")
+if not results["pixel_pack"] or not results["clock_input"]:raise SystemExit("PRODUCTION_PRODUCER_OR_CLOCK_NOT_LOCATED")
 PY

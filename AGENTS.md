@@ -36,6 +36,60 @@ observable completion condition**. Then work the next independent task.
 Repeated identical blockers without an attempted fix are failure of the
 development operation.
 
+## Delivery-first selection rule (2026-11-18)
+
+The Nov 11–13 versus Nov 14–16 comparison showed **2 versus 15 merges**
+and the new experiment service working, but **zero completed USA courses,
+zero complete Windows release gates, and no merged player-facing runtime
+implementation in the latest 72-hour window**. Optimize the next 72 hours
+for **working game source and independently exercised player journeys**, not
+another increase in CI or evidence documents.
+
+At the beginning of each invocation, choose the smallest *player-observable*
+missing or defective behavior supported by current evidence. The order is:
+
+1. **Fix a reproduced game defect** in `native/product/`, `native/title/`,
+   or the relevant runtime sources; add a test that fails on the prior
+   behavior, execute a genuine run, then merge a qualified PR.
+2. **Finish a real player journey or complete a release/course criterion**
+   using already existing compiled games, scripts and original witnesses.
+   If it fails, trace the first causal product defect and return to (1).
+3. **Make one bounded original/native discriminator** only when a concrete
+   implementation decision still depends on it. State beforehand which
+   result would cause which source change; inspect real output before retry.
+4. **Repair essential tooling** only if (1)–(3) cannot run because of the
+   named defect. Stop when the dependency works; do not keep polishing it.
+
+After **two consecutive sessions on the same question** that produce only
+measurement, documentation or harness changes without a new source fix,
+new player behavior or formal qualification, switch to the smallest
+reproducible game-level test or another ready independent gameplay target.
+Exceptions are allowed for an objectively necessary original-data or
+security discriminator; explicitly state what remains unknown and the
+exact pass/fail test, rather than reporting another general investigation.
+Never introduce an unjustified renderer or physics modification just to
+satisfy a quota. Unknown original/native phase differences are reasons to
+measure first, not to alter working gameplay speculatively.
+
+A `green` Action is a completed execution, **not a completed feature**.
+At each stop classify the actual result as (a) merged product/runtime fix,
+(b) genuine verified player journey or accepted gate, (c) independently
+observed source divergence that changes a concrete next edit, or
+(d) infrastructure/evidence-only. Report (d) plainly; do not call it
+product delivery. Prioritize (a) and (b) in subsequent runs. Do not add
+another scorecard, workflow or meeting merely to report these categories.
+
+Windows: finish the already-started C04 opt-in crash/cold-boot discriminator
+on [draft #3372](https://github.com/gamesbyian/UR-Recomp/pull/3372), then
+fix the actual broken persistent-state behavior if demonstrated. If it
+passes or becomes blocked, **advance QA-03 multi-leg tournament gameplay**
+using a real guest/controller path and exact Windows build rather than
+collecting another general package receipt. Fidelity: compare authentic
+adjacent original/native WIDE-07 frames against the same native phase,
+resolve source clock alignment, and fix the first demonstrated compositor
+or game defect. If no defect is proved, advance authentic Zoo complete-event
+behavior. 3D racer model recreation remains on owner hold.
+
 ## Current known positive executable evidence
 
 - Real source-bound Zoo original/native RF095 PCM: GHA

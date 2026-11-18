@@ -1,7 +1,7 @@
 {
   "schema": "UR-EXECUTION-QUEUE/1",
-  "updated": "2026-11-15",
-  "instructions": "Two workstreams, real execution first. Source-controlled script_linux is available on the standing GHA experiment service for any bounded hosted Linux experiment; inspect newest exact-source runs and artifacts before retry. No historic board scanning, no fabricated acceptance.",
+  "updated": "2026-11-18",
+  "instructions": "Delivery-first autonomous execution. Prefer tested native runtime fixes and genuinely completed original/native or Windows player journeys. Do not repeat generic build/evidence tooling. Two consecutive measurement-only sessions on one question require either the next game-level test/repair or a switch to a different ready player route. Preserve strict 0/45 and 0/12 acceptance; report unmerged/unknown honestly.",
   "acceptance": {
     "usa_courses": "0/45 until independent complete original/native USA event qualification",
     "windows_release": "0/12 until independently accepted exact-candidate gate evidence"
@@ -10,38 +10,38 @@
     {
       "id": "FIDELITY-FIRST-USA",
       "stream": "fidelity",
-      "rank": 1,
+      "rank": 2,
       "owner": "UR Fidelity Execution",
       "execution_location": "GitHub Actions hosted ubuntu via agent-bounded-experiments",
       "experiment_kind": "qa01_rf095_pcm",
       "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43532930092",
-      "next_action": "Reopen actual RF095 artifact 14088083271 and the merged source-bound waveform comparator PR #3353. Expanded original 6445..6457 versus native 6447..6457 gives Pearson 0.99464/0.99583 at +76 original sample lag; producer origins and output stages differ. Register equivalent semantic voice-7 KON and frame/sample clocks, then repair any causally established audible/native discrepancy and qualify full Zoo event. Do not rebuild identical PCM to rediscover capture or claim audio equivalence from correlation alone.",
+      "next_action": "After the current source-registered WIDE-07 adjacent-frame comparison, run a full authentic original-USA Zoo race through scored result and subsequent progression, compare native guest clocks/output using RF095 evidence where decisive, then fix the first independently reproduced game-source defect and rerun. Original RF095 PCM sample correlation is not audio parity; don't commission another duplicate correlation experiment. Source event is 0/45 until complete original/native event accepted.",
       "completion_condition": "One independently reproduced original USA course from authentic source race through result, progression and cold save, satisfying explicit observed behavior, audio and visual criteria. Audio onset mismatch must be investigated with clock/output-boundary registration, not dismissed as a stack-byte technicality.",
-      "on_blocker": "Own missing emulator/toolchain/runner fix and rerun. If external, write command, input, location, expected output and move to WIDE-07.",
+      "on_blocker": "One bounded original/native discriminator if it changes a specific runtime edit. If unable to resolve in two evidence-only sessions, switch to the WIDE-07 concrete mismatch/capture phase or another real course completion instead of maintaining an investigation thread.",
       "evidence_observation": "RF095 original/native source-pinned captured sound from run 43532930092; case artifact 14088083271. Merged PR #3353 offers a hash-bound waveform comparator. High measured correlation is diagnostic, not audio parity. Source original/native startup offset and output stage remain unproven; 0/45."
     },
     {
       "id": "WIDE07-MOVING-USA",
       "stream": "fidelity",
-      "rank": 2,
+      "rank": 1,
       "owner": "UR Fidelity Execution",
       "execution_location": "GitHub Actions hosted Ubuntu through reusable script_linux experiment profile",
       "experiment_kind": "script_linux",
-      "next_action": "First inspect actual source-bound evidence analysis/evidence/wide07-source-native-center-rgb5-residual-20261117.json, original GHA 43539425650 artifact 14090194177, native GHA 43540488054 artifact 14091441914. Independent review of REAL 256x224 original BMP vs center x=43..298 of 342x224 native BMP gives after-scroll 57,344/57,344 RGB5 pixels identical; race-entry 56,882/57,344 with 462 RGB5 mismatches, mostly blue-arrow edge boundaries, 128 mismatch pixels each in y=97 and y=132. Guest-frame/input phase is NOT yet proved aligned; identify source/native frame-clock difference and OBJ/arrow edge semantics before game renderer changes. Further authentic moving frames and source sprite/HDMA boundaries needed; no complete USA course credit. Source-derived full-margin code PR #3359 still available; do not rerun unchanged synthetic-only self-tests.",
+      "next_action": "Use genuine three adjacent original-USA WIDE-07 frames from exact successful GHA 44406657832, artifact 14474454797 (9,829 and 10,053 original consecutive-frame changed pixels), and capture matching native adjacent frames. Register guest frame/input phase, compare RGB5 to actual original bytes; race-entry 462-pixel arrow-edge residual and after-scroll full 57,344/57,344 match are already documented. A one-frame offset is NOT established and must not trigger speculative renderer edits. When a causal compositor/OBJ bug is proven, patch native source, add authentic regression and merge; otherwise stop this evidence loop and finish another authentic course event.",
       "completion_condition": "Independent source-registered original-USA-derived 342-wide moving-scene composition across representative camera positions and a real sprite/HDMA boundary, with source-vs-native frame phase and remaining transient blue-arrow mismatch resolved or first actual defect isolated. A source-derived two-frame all-margin BG1/BG2 pass is necessary evidence, not full WIDE-07 or USA course credit.",
-      "on_blocker": "Use generic hosted script_linux route to install or compile missing emulator/tools, collect exact failure output and retry same experiments/* branch; if waiting on external physical data, proceed with the separate PCM course.",
-      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43540488054",
+      "on_blocker": "Do one minimal exact missing native frame capture or producer-phase fix; do not re-run existing self-tests or resummarize previous pixels. After two evidence-only attempts without a new discriminator, switch to authentic Zoo whole-course/event work.",
+      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/44406657832",
       "evidence_observation": "Full 342-wide left/right source-derived raster: BG1 original opaque margin 2,403/2,403 pixels, BG2 original VRAM tilemap-derived fill 36,125/36,125 pixels; aggregate 38,528/38,528 source RGB5 matches, no unknown margin pixels at race and after 900 motion frames (original GHA 43539425650, native GHA 43540488054). This is two-point source-derived margin evidence, not an original 342-wide hardware screenshot, exact CPU frame equivalence, other-course or complete visual/gameplay acceptance. Original/native centre at after-scroll 57,344/57,344 RGB5. 0/45 and 0/12 unchanged. Independent 2026-11-17 source/native center RGB5 residual computed from REAL original Snes9x and native retained BMPs, 0 differences after 900 movement frames, 462 race-entry blue-arrow-boundary differences; exact source refs and limitations in analysis/evidence/wide07-source-native-center-rgb5-residual-20261117.json. Stage names do not prove exact guest-clock phase."
     },
     {
       "id": "WINDOWS-FRESH-CANDIDATE",
       "stream": "windows",
-      "rank": 1,
+      "rank": 2,
       "owner": "UR Windows Delivery",
       "execution_location": "GitHub Actions windows-2022 via agent-bounded-experiments",
       "experiment_kind": "windows_candidate",
-      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43545814590",
-      "next_action": "Current-main-product-equivalent experiment-branch source 513bc5ad (main parent 3f612489; only experiments/request.json differs) completed native Win32 hosted candidate run 43545814590. ROM-free nested candidate artifact 14094547287 SHA256 f7d7bcc90d6a8e95b075faf774aa8dd905f294710109e215cf3ff5b61ea44de6, AMD64 PE SHA256 9db3822e984c039e5c6cf928b9a52fb6474ef63420327c36537ad47614b838c2, manifest verified and no ROM. Follow through with actual physical player observations or run exact-main workflow_nomination for independent QA12 when available; do not claim main exact SHA or a gate from an experiment request branch.",
+      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/44411983934",
+      "next_action": "Current Windows candidate builds and real 1P/2P/NTFS journeys exist, most recently successful 44411983934 from test PR #3372 with C04 fault feature compiled OFF. Do not rebuild a generic candidate without product source changes or a distinct required test. The next build must exercise opt-in fault-enabled C04 process or a concrete complete tournament player journey. New ROM-free exact package identity is needed before physical release assessment but cannot substitute for behavior.",
       "completion_condition": "Source-exact tested Windows x64 ROM-free artifact and reproducible hosted player journeys; no physical sign-off inferred.",
       "on_blocker": "Repair build, fixture, toolchain or hosted runner; if physical hardware required switch to an independent hosted gate.",
       "evidence_observation": "Hosted exact experiment 43545814590 succeeded: signed-by-receipt current-main-product-based Win32 candidate, source 513bc5ad, native 1P/2P and controller journey evidence, ROM-free package 14094547287, real NTFS full-volume recovery artifact 14095050009. Inner ZIP and all 3 manifest file sha256 verified independently, x64 PE header and no ROM checked. No hardware, exact-main SHA or release gate accepted."
@@ -49,15 +49,15 @@
     {
       "id": "WINDOWS-NEXT-GATE",
       "stream": "windows",
-      "rank": 2,
+      "rank": 1,
       "owner": "UR Windows Delivery",
       "execution_location": "GitHub Actions Windows acceptance and independent artifact verifier",
       "experiment_kind": "existing_gate_specific_runner",
-      "next_action": "Do not repeat proven exact-candidate A/B/C or generic journal fault runs. Independently download and inspect Win32 failure artifact 14180146488 and original NTFS postraw typed artifact 14180236188 from run 43758547511; cross-check source f88c599feaf7066dd1f78a47eb46f167e98298bb and candidate binding artifact 14180500364, then compare actual interruption timing, raw/typed/selector/catalog snapshots, cold boot and original-event behavior to QA-02 L4. If an unproven predicate requires a distinct hosted fault, implement the smallest executable test on a fresh experiments/* branch; if physical-only, pursue QA-12 independent package verification instead.",
+      "next_action": "First finish draft PR #3372 C04 test-only hard-exit recovery: build fault-enabled PE, play two real racer profiles, interrupt after target SRAM exit 86, cold-start separate Windows game and check 8192-byte raw/typed identities, selector/catalog, competing writer. Previous successful run 44411983934 only tested fault-disabled build; don't merge as verified C04 recovery. If test exposes true product fault, change native/product runtime and rerun. If the experiment passes or becomes genuinely blocked, make QA-03 full multi-leg tournament (leg 2/3 plus 3+ entrants) the next product-delivery target, checking actual scored results, standings, Records, History and P2 across game processes; fix and merge any runtime failure. Do not spend the session updating the generic QA-12 nomination or general receipt tooling. Physical-only gate predicates are acknowledged but not blockers to QA-03 engineering.",
       "completion_condition": "At least one QA-01..QA-12 gate independently judged fully passed on exact nominated Windows candidate; only then ledger count increases.",
-      "on_blocker": "Name precisely missing positive/negative evidence, executable test, expected result and owner; do another gate while waiting.",
+      "on_blocker": "Own actual C04 or QA-03 game-level test source and first failure. No repeated generic candidate builds; choose independent hosted game route if truly waiting for physical hardware. Formal gate count 0/12 absent complete independent exact-source evidence.",
       "evidence_observation": "Post-merge Windows run 43758547511 succeeded on source f88c599f. Exact-candidate A/B/C overlap artifact 14180560123 proves B generation advancement, stale A explicit refusal and cold C preservation of four canonical save files; prior independent audit matched candidate ZIP/executable receipt. Same run retained actual Win32 journal/fault archive 14180146488 and original NTFS postraw/typed artifact 14180236188, but their full QA-02 L4 predicate and exact executable binding remain to be independently judged. No physical controllers, electrical power cut or complete original native event acceptance inferred. 0/12.",
-      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/43758547511"
+      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/44411983934"
     }
   ]
 }

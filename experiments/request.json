@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Which exact checked-out source expressions produce WIDE-07 original RGB565/native BGRX8888 pixels and frame/input phase?",
+  "expected": "Emit bounded exact source line contexts to hosted logs and source-bound JSON; do not claim frame parity.",
+  "owner": "fidelity",
+  "attempt": 1
 }

@@ -149,19 +149,45 @@ differences are causal leads rather than automatic vetoes or automatic waivers.
 
 ## Work selection and actual delivery
 
-Priority A: execute RF095 stereo PCM on a source-pinned original/native
-USA Zoom Zoo case, fix instrument/producer faults, determine behavioral
-effect, finish one complete course, then replicate the course procedure.
+**The next unit of progress is verified game behavior, not experiment volume.**
+Use the delivery-first selection rule in AGENTS.md. Prefer a demonstrated
+runtime defect repair and a complete, genuine player journey over another
+self-test, evidence narrative or generic candidate rebuild. A measurement is
+valuable only if it falsifies a plausible explanation, changes an imminent
+source edit, or establishes an independently reviewable acceptance predicate.
+Do not lower standards or patch games based on unsynchronized captures.
 
-Priority B: produce a fresh tested Windows ROM-free candidate, audit all
-12 existing gate conditions against current sources and actual evidence,
-and close the least expensive independently satisfied gate. Physical tests
-are owner-supplied when unavoidable; hosted tests must not impersonate them.
+**Fidelity:** finish phase registration of actual adjacent original-USA and
+native WIDE-07 moving frames, using the source-bound WIDE07 original run
+44406657832 and earlier actual original/native images. Find the first real
+source compositor/game mismatch, implement a narrow fix if justified and
+run its authentic regression. If there is no mismatch beyond capture phase,
+return to the original Zoo complete-event/audio comparison and finish a
+fully played race/result/progression observation. Do not rerun identical
+self-tests or another waveform-correlation calculation.
 
-WIDE-07 requires its own moving-course adapter if no current reusable
-workflow produces the demanded evidence. Do not misidentify draft PR #2873
-as WIDE-07: it is an independent native voice-7 audio extractor. Keep its
-experiment distinct from RF095's paired stereo output.
+**Windows:** close the current C04 real two-racer crash/restart path from
+PR #3372 with an opt-in fault-enabled PE, distinct cold process and exact
+source/four-file evidence, then fix the actual game save/selector defect if
+one is demonstrated. When C04 passes or is temporarily blocked, prioritize
+**QA-03 multi-leg tournament behavior**: complete legs 2/3 and a 3+ entrant
+round robin on one source-bound Windows game; assert actual terminal results,
+standings, Records, History and distinct P2 state across cold game processes.
+Use existing journeys and fixtures; change runtime code when a real route
+fails. Hosted proof can advance the game and qualify its own scope, but
+physical-only release conditions remain pending owner-supplied evidence.
+
+**Delivery assessment:** report which of these actually happened: new merged
+runtime behavior; completed authentic player journey; first independent
+accepted course/gate; or only a bounded experiment/tool fix. After two
+consecutive evidence-only sessions on the same question, either identify an
+actual game patch or switch to a different independently executable player
+journey. Exception: an explicitly identified original-source/safety
+prerequisite with a concrete falsifiable next test. Avoid patch-count quotas,
+false gate credit and further CI infrastructure merely for process metrics.
+
+Draft #2873 is separate voice-7 audio work, not WIDE-07. The human-created
+3D racer model remains paused pending contributors.
 
 Do not claim metric movement for a tool test, source-only fixture, receipt,
 synthetic-only Windows test or absence of a reproduced failure. The 0/45

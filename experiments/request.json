@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does the opt-in C04 fault-enabled Windows executable build without assembling or publishing any candidate ZIP, and can its real crash/restart path be exercised?",
-  "expected": "Windows native build executes with test-only macro; candidate assembly and candidate artifact steps skipped; exit-86 recovery still requires a separate real game driver.",
+  "question": "C04 fault-only Windows build after packaged-CMD isolation: does native build finish without candidate ZIP dependency?",
+  "expected": "Hosted Win32 fault-enabled PE builds; packaged CMD tests skipped, no candidate ZIP exported; then execute genuine exit-86 two-racer recovery.",
   "owner": "windows",
-  "attempt": 28
+  "attempt": 29
 }

@@ -1357,6 +1357,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/explicit-healthy-selection.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/fresh-healthy-guest.log
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/baldosa-native-romless"
@@ -1374,6 +1375,7 @@ jobs:
       # arithmetic only; a separate tiny artifact keeps the candidate and the
       # strict QA-12 evidence archives byte-for-byte as before.
       - name: Bind journeys to the nominated ZIP and executable hashes
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/baldosa-candidate-binding"
@@ -1665,6 +1667,7 @@ jobs:
           "PASS: genuine isolated NTFS VHDX Win32 112, real source-play original game CMD save refusal exit8, unchanged previous canonical SRAM and two original cold Windows boots. Source product only; not power cut, short write, human or release QA." | Out-File "$env:GITHUB_STEP_SUMMARY" -Append
 
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
+        if: ${{ inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-modern-windows-x64-romless-candidate
@@ -1675,6 +1678,7 @@ jobs:
             ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
 
       - name: Retain candidate hash binding receipt separately
+        if: ${{ inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-candidate-binding

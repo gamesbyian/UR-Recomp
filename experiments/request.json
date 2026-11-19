@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does explicit test-build isolation keep the C04 hard-exit seam absent from normal packaged Win32 builds while existing native Windows journeys pass?",
-  "expected": "Compile and run source-bound Windows candidate with UR_C04_FAULT_INJECTION_TEST_BUILD undefined; preserve candidate receipts. This does not exercise C04 termination or earn gate credit.",
+  "question": "Does the opt-in disposable native Windows C04 build compile with the crash hook present, without exporting a release candidate?",
+  "expected": "Run actual Windows native game regression using a separate fault-enabled CXX build, retain logs; no C04 recovery claim until exit-86 and cold restart driver executes.",
   "owner": "windows",
-  "attempt": 26
+  "attempt": 27
 }

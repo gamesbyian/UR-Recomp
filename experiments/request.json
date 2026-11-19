@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "qa01_zoo",
+  "question": "Does the authentic original-USA Zoo scored result survive a distinct cold original/native guest process and yield the same ranked-record persistence, and where is the first game-state divergence?",
+  "expected": "Execute original/native Zoo race, result, Bowl progression and actual cold guest reload; report first differing ranked-record or lifecycle predicate without awarding course credit on incomplete event phase.",
+  "owner": "fidelity",
+  "attempt": 1
 }

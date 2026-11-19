@@ -260,6 +260,11 @@ on:
         required: false
         type: boolean
         default: false
+      c04_fault_test_build:
+        description: "Explicitly compile the C04 exit-86 seam into a disposable test-only PE; never export it as a candidate"
+        required: false
+        type: boolean
+        default: false
       run_on_draft:
         description: "Preserve explicitly called Windows computation even when caller event is a draft pull_request"
         required: false
@@ -413,8 +418,15 @@ jobs:
           [[ "$SOURCE_DATE_EPOCH" =~ ^[0-9]{10}$ ]] || {
             echo "::error::source commit timestamp invalid"; exit 1;
           }
+          # The default candidate never contains the C04 process-kill hook.
+          # Only the explicit reusable test invocation may compile it in.
+          c04_flags=()
+          if [[ "${{ inputs.c04_fault_test_build }}" == "true" ]]; then
+            c04_flags+=("-DCMAKE_CXX_FLAGS=-DUR_C04_FAULT_INJECTION_TEST_BUILD")
+            echo "C04_TEST_ONLY_PE=1; forbidden from release export" >> "$GITHUB_STEP_SUMMARY"
+          fi
           cmake -S baldosa -B baldosa/build-ur-win -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF "${c04_flags[@]}"
           cmake --build baldosa/build-ur-win --target UniracersSNESRecomp -j 3
           cmake --build baldosa/build-ur-win --target ur-baldosa-modern-profile-fixture -j 3
           test -s baldosa/build-ur-win/UniracersSNESRecomp.exe
@@ -1290,7 +1302,7 @@ jobs:
       # demonstrates consumer schema agreement on exact source-produced
       # bytes, not independent QA qualification or release ledger credit.
       - name: Validate journaled Win32 evidence against independent QA02 reader
-        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true || inputs.export_campaign_inputs == true }}
+        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true || inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip"
@@ -1376,7 +1388,7 @@ jobs:
       # Retain the exact package BEFORE the expected raw/typed crash; a
       # red test must not hide the executable or its independent binding.
       - name: Retain QA-02 packaged PE candidate before crash seam
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-packaged-pe-pre-crash-candidate
@@ -1387,7 +1399,7 @@ jobs:
           retention-days: 14
 
       - name: QA-02 source-bound packaged PE crash seam
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -1417,7 +1429,7 @@ jobs:
           echo "Source-bound packaged Windows PE reached actual post-raw/pre-typed crash seam; no hardware, power cut or QA gate credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain QA-02 packaged PE crash seam evidence
-        if: ${{ always() && inputs.export_campaign_inputs == true }}
+        if: ${{ always() && inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-packaged-pe-crash-seam-evidence
@@ -1433,7 +1445,7 @@ jobs:
       # QA-02 can legitimately fail, but that must not suppress the ROM-free
       # ZIP needed for independent review and the next bounded reproduction.
       - name: Retain ROM-free Windows candidate before QA-02 fault execution
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-pre-fault-romfree-candidate
@@ -1447,7 +1459,7 @@ jobs:
       # assembled and hash-bound in THIS job. Historical owner probes above stay
       # immutable and branch-scoped. Evidence is retained even on failure.
       - name: QA-02 source-bound candidate two-game overlap
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -1474,7 +1486,7 @@ jobs:
             --out "$RUNNER_TEMP/qa02-current-two-games"
 
       - name: Retain QA-02 exact-candidate A/B/C evidence on failure
-        if: ${{ always() && inputs.export_campaign_inputs == true }}
+        if: ${{ always() && inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-current-candidate-two-game-evidence
@@ -2012,7 +2024,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/ordinary_idle_boot_2_control/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/boundary-receipts.json
       - name: Export verified shared Windows inputs for bounded manual reliability campaigns
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -2027,7 +2039,7 @@ jobs:
           echo "Prepared one exact ROM-free Windows binary/launcher cohort for independent guest and CMD routes." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload exact reusable Windows candidate only for requested campaign
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa-baldosa-native-export

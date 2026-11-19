@@ -1501,6 +1501,7 @@ jobs:
           retention-days: 14
 
       - name: Prove extracted CMD launcher, ROM gates and isolated user SRAM
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/verify_baldosa_windows_extracted_launcher.py \
@@ -1517,6 +1518,7 @@ jobs:
       # kernel KEY_EVENT Q, not a scripted --recovery-action shortcut.
       # The profile is a disposable original-format legacy mismatch.
       - name: Prove interactive original CMD recovery Q leaves data untouched
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_q.py \
@@ -1530,6 +1532,7 @@ jobs:
       # Distinct product-owned R/T proof. Preserve the previously qualified
       # Q and fixed independent QA02/extracted CMD archive contracts.
       - name: Prove original CMD interactive R and T recovery and cold boots
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_rt.py \
@@ -1544,6 +1547,7 @@ jobs:
       # Real original packaged Windows R must refuse without touching ANY
       # canonical bytes; a separate source CMD T must archive and restore.
       - name: Prove original CMD short raw R refusal and archived T recovery
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_short_raw_rt.py \
@@ -1557,6 +1561,7 @@ jobs:
       # Explicit malformed-intent T witness; not the historical unjournaled
       # RT contract, which remains independently rehashable and untouched.
       - name: Prove original CMD T archives corrupt pending intent before typed restore
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_bad_intent_t.py \
@@ -1571,6 +1576,7 @@ jobs:
       # typed T has restored canonical raw. The original CMD must disclose
       # partial completion, retain archives and refuse unsafe relaunch.
       - name: Prove original CMD T partial rollback warns on real journal-delete denial
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_t_pending_delete_denial.py \
@@ -1585,6 +1591,7 @@ jobs:
       # noncanonical typed-save file. The original malformed-intent-T artifact
       # is unchanged; do not conflate the two 25-member envelopes.
       - name: Prove original CMD T preserves noncanonical typed file verbatim
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_bad_intent_t.py \
@@ -1600,6 +1607,7 @@ jobs:
       # a valid noncanonical typed file through the typed CAS (not the
       # committed-typed T branch). Never alter the existing R/T evidence.
       - name: Prove original CMD R archives noncanonical typed before native raw promotion
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_rt.py \
@@ -1614,6 +1622,7 @@ jobs:
       # S is the real original no-argument CMD menu with literal profile
       # ID input, not an environment repair shortcut or a simulated roster.
       - name: Prove original CMD interactive S switches only healthy racer
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_s.py \
@@ -1628,6 +1637,7 @@ jobs:
       # a different racer or fix the damaged one. This negative witness has
       # a separate artifact; fixed 36-member S and Q/R/T contracts stay sealed.
       - name: Prove original CMD S nonexistent racer refuses without mutation
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_s_reject.py \
@@ -1642,6 +1652,7 @@ jobs:
       # original CMD S must refuse a registered racer whose raw does not
       # equal independently authenticated typed SRAM, preserving all bytes.
       - name: Prove original CMD S rejects registered corrupt target
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_s_reject.py \
@@ -1658,6 +1669,7 @@ jobs:
       # W: is ever formatted, and all durable source evidence lives outside
       # the VHD. This is source evidence, NOT a human QA release gate.
       - name: Prove original packaged CMD save on actual full NTFS volume
+        if: ${{ inputs.c04_fault_test_build != true }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'

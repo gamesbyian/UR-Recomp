@@ -65,6 +65,7 @@ jobs:
       selected: zoom-zoo
       source_followthrough: true
       zoo_next_bowl: true
+      qa01_cold_guest_reload: true
 
   qa01_pcm:
     if: needs.validate.outputs.kind == 'qa01_rf095_pcm'

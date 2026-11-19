@@ -91,7 +91,9 @@ jobs:
     # Native Win32 journeys and exact-ROM-free candidate export; no gate claimed.
     uses: ./.github/workflows/baldosa-windows-native-bridge.yml
     with:
-      export_campaign_inputs: true
+      # Disposable fault-enabled binary is never a distributable candidate.
+      export_campaign_inputs: false
+      c04_fault_test_build: true
 
   script_linux:
     if: needs.validate.outputs.kind == 'script_linux'

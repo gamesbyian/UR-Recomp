@@ -746,6 +746,7 @@ jobs:
               raise SystemExit("cold guest requires valid source-classified Zoo evidence")
           PY
             python3 tools/qa01_cold_result_record.py \
+              --investigative \
               --producer-report "$ROOT/producer-report.json" \
               --replay "$ROOT/work/zoom-zoo/replay" \
               --snesref "$BIN/snesref" \

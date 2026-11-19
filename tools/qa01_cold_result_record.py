@@ -68,7 +68,7 @@ def ranked(data: bytes) -> dict:
     }
 
 
-def validate_source(producer: dict, replay: Path) -> dict:
+def validate_source(producer: dict, replay: Path, investigative: bool = False) -> dict:
     if (producer.get("schema_version") != 1
             or producer.get("name") != "zoom-zoo"
             or producer.get("course_id") != "course:02"
@@ -85,11 +85,11 @@ def validate_source(producer: dict, replay: Path) -> dict:
                 or producer.get("original_movie_window_sha256") !=
                 NEXT_BOWL_MOVIE_WINDOW_SHA
                 or not isinstance(handoff, dict)
-                or handoff.get("source_next_bowl_active_entry_offset") != 267
-                or handoff.get("fresh_reference_next_bowl_entry_offset") != 267
-                or handoff.get("fresh_native_next_bowl_entry_offset") != 267
-                or handoff.get("next_bowl_entry_triple_equal") is not True
-                or handoff.get("all_original_native_full_sram_pairs_equal") is not True
+                or (not investigative and handoff.get("source_next_bowl_active_entry_offset") != 267)
+                or (not investigative and handoff.get("fresh_reference_next_bowl_entry_offset") != 267)
+                or (not investigative and handoff.get("fresh_native_next_bowl_entry_offset") != 267)
+                or (not investigative and handoff.get("next_bowl_entry_triple_equal") is not True)
+                or (not investigative and handoff.get("all_original_native_full_sram_pairs_equal") is not True)
                 or handoff.get("release_complete_event_credit") != 0):
             raise ColdProofError("extended Zoo source movie/window/handoff not pinned")
         if input_sha == COMPOSITE_MESH_NEXT_BOWL_INPUT_SHA:
@@ -142,9 +142,9 @@ def validate_source(producer: dict, replay: Path) -> dict:
         raise ColdProofError("unknown original Zoo controller replay script SHA256")
     cmp = producer.get("comparison")
     if (not isinstance(cmp, dict)
-            or cmp.get("terminal_result_guest_frame") != {
-                "reference_relative": 5163, "native_relative": 5163}
-            or cmp.get("terminal_result_frame_matched") is not True
+            or (not investigative and cmp.get("terminal_result_guest_frame") != {
+                "reference_relative": 5163, "native_relative": 5163})
+            or (not investigative and cmp.get("terminal_result_frame_matched") is not True)
             or cmp.get("rendered_result_and_score_text_matched") is not True
             or cmp.get("circuit_multiple_lap_decrements_sampled") is not True):
         raise ColdProofError("missing true corrected original/native completed Circuit")
@@ -225,7 +225,7 @@ def execute(args) -> dict:
             or digest(args.core.read_bytes()) != producer.get("reference_core_sha256")
             or digest(args.native.read_bytes()) != producer.get("native_executable_sha256")):
         raise ColdProofError("cold replay binary or ROM differs from source-qualified producer")
-    seeds = validate_source(producer, args.replay)
+    seeds = validate_source(producer, args.replay, args.investigative)
     if args.work.exists():
         raise ColdProofError("cold reload requires an unused output root")
     args.work.mkdir(parents=True)
@@ -246,6 +246,9 @@ def execute(args) -> dict:
             if original.observed_dump_frame(log, f"cold-{frame:03d}") != frame:
                 raise ColdProofError(f"unanchored fresh {side} boot frame")
     result = evaluate_cold(seeds, args.work)
+    result["investigative_only_unqualified_event"] = bool(args.investigative)
+    result["source_handoff_observed"] = producer.get("zoo_next_bowl_handoff")
+    result["source_terminal_comparison_observed"] = producer.get("comparison")
     result["source_identity"] = {
         k: producer[k] for k in ("rom_sha256", "original_movie_sha256",
                                 "input_sha256", "reference_core_sha256",
@@ -260,6 +263,7 @@ def main() -> int:
     for name in ("producer-report", "replay", "snesref", "core", "native",
                  "rom", "work", "out"):
         p.add_argument("--" + name, required=True, type=Path)
+    p.add_argument("--investigative", action="store_true", help="Run genuine cold guests despite unqualified event timing/handoff; zero event credit")
     a = p.parse_args()
     for key in ("producer_report", "replay", "snesref", "core", "native", "rom", "work", "out"):
         setattr(a, key, getattr(a, key).resolve())

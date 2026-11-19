@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does the opt-in disposable native Windows C04 build compile with the crash hook present, without exporting a release candidate?",
-  "expected": "Run actual Windows native game regression using a separate fault-enabled CXX build, retain logs; no C04 recovery claim until exit-86 and cold restart driver executes.",
+  "question": "Does the opt-in C04 fault-enabled Windows executable build without assembling or publishing any candidate ZIP, and can its real crash/restart path be exercised?",
+  "expected": "Windows native build executes with test-only macro; candidate assembly and candidate artifact steps skipped; exit-86 recovery still requires a separate real game driver.",
   "owner": "windows",
-  "attempt": 27
+  "attempt": 28
 }

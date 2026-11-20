@@ -2,7 +2,7 @@
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
   "question": "Does the fault-enabled original Win32 game actually exit 86 between target SRAM and selector publication, then cold-select B without losing either racer?",
-  "expected": "Execute two-racer source-bound CMD S process kill and cold process restart, retain raw/typed 8192-byte and selector/catalog before/after SHA256; competing-writer remains separate acceptance.",
+  "expected": "Execute real exit-86 Windows CMD and cold B selection; fail on any unexpected A/B raw or typed mutation, selector/catalog change, or missing complete byte receipts. Competing writer still pending.",
   "owner": "windows",
-  "attempt": 30
+  "attempt": 31
 }

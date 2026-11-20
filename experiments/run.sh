@@ -1,5 +1,45 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python3 tests/unit/test_qa02_candidate_identity.py
-python3 -m py_compile tools/qa02_candidate_identity.py tools/qa02_exact_owner_win32_seam.py tools/qa02_exact_owner_two_games.py
-printf 'QA02_IDENTITY_UNIT_PASS source=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" | tee "$UR_EXPERIMENT_OUTPUT_DIR/identity-unit.txt"
+OUT="${UR_EXPERIMENT_OUTPUT_DIR:?}"
+mkdir -p "$OUT"
+printf 'source=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" > "$OUT/receipt.txt"
+sudo apt-get -o Acquire::Retries=3 update
+sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends pkg-config libgl-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev xvfb xauth
+python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+FRAMEWORK="$PWD/.tools/src/snesrecomp"
+TMP="$(mktemp -d)"
+SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" --rom "$PWD/reference/roms/retail/Uniracers_USA.sfc" --dir "$TMP" --name Uniracers --players 2 --yes --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay --no-github --no-submodules --no-generate --no-build
+ROOT="$TMP/UniracersSNESRecomp"
+python3 tools/prepare_native_widescreen_product.py --framework "$FRAMEWORK" --project "$ROOT" --rom "$PWD/reference/roms/retail/Uniracers_USA.sfc" --json-out "$OUT/prepare.json"
+python3 tools/patch_modern_product_host.py "$ROOT/src/main.c" --game-rtl "$ROOT/src/game_rtl.c" --cmake "$ROOT/CMakeLists.txt"
+python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+cmake -S "$ROOT" -B "$ROOT/build" -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ROOT="$FRAMEWORK" -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$PWD/.tools/src/sdl3/SDL3-3.4.10"
+cmake --build "$ROOT/build" -j4
+EXE="$ROOT/build/UniracersSNESRecomp"
+test -x "$EXE"
+SAVE="$TMP/fresh-circuit-save"
+mkdir -p "$SAVE"
+printf '[General]\nDisableFrameDelay = 1\n' > "$SAVE/config.ini"
+# Real shipping guest/controller script. Preserve only bounded non-ROM diagnostics.
+set +e
+SNESRECOMP_USER_DATA_DIR="$SAVE" SNESRECOMP_DUMP_DIR="$TMP/dumps" SDL_AUDIODRIVER=dummy timeout 170s xvfb-run -a "$EXE" "$PWD/reference/roms/retail/Uniracers_USA.sfc" --script "$PWD/tests/input/ui-circuit-result-route.script" > "$OUT/player.log" 2>&1
+status=$?
+set -e
+printf 'route_exit=%s\n' "$status" >> "$OUT/receipt.txt"
+grep -E 'config dir anchored|script|timeout|error|result' "$OUT/player.log" | tail -100 > "$OUT/route-signals.txt" || true
+python3 - "$TMP/dumps" "$OUT" <<'PY'
+import json,sys,hashlib,pathlib
+root=pathlib.Path(sys.argv[1]); out=pathlib.Path(sys.argv[2])
+records=[]
+for f in sorted(root.glob("*.wram.bin")):
+    data=f.read_bytes()
+    records.append(dict(name=f.stem,size=len(data),sha256=hashlib.sha256(data).hexdigest(),menu=data[0x9f] if len(data)>0x9f else None, in_race=data[0x313] if len(data)>0x313 else None))
+(out/"checkpoints.json").write_text(json.dumps(records,indent=2))
+print(json.dumps(records))
+PY
+# Fail explicitly when real result checkpoint is absent. Do not confuse the terminal
+# driving dump with scored result or progression.
+test -s "$TMP/dumps/ui-circuit-results.wram.bin" || { echo "PLAYER_RESULT_NOT_REACHED" | tee -a "$OUT/receipt.txt"; exit 21; }
+test -s "$TMP/dumps/ui-circuit-result-after-advance.wram.bin" || exit 22
+echo "RESULT_AND_ADVANCE_OBSERVED_COLD_SAVE_STILL_UNQUALIFIED" | tee -a "$OUT/receipt.txt"

@@ -64,6 +64,8 @@ jobs:
     with:
       selected: zoom-zoo
       source_followthrough: true
+      zoo_race_mesh: true
+      zoo_dp_window: true
       zoo_next_bowl: true
 
   qa01_pcm:

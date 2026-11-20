@@ -201,11 +201,11 @@ def audit(root: Path) -> dict:
         actual = {}
         for side, name in (("ref", "original"), ("native", "native")):
             # Original USA terminal result is at race-relative 5163;
-                        # native terminal result was observed at 5162. Verify each
-                        # guest at the same result-relative offset, retaining exact
-                        # log host-clock, raw-memory, and checksum requirements.
-                        terminal_relative = 5163 if side == "ref" else 5162
-                        host = report[{"ref": "reference_entry", "native": "native_entry"}[side]] + terminal_relative + offset
+            # native terminal result was observed at 5162. Verify each
+            # guest at the same result-relative offset, retaining exact
+            # log host-clock, raw-memory, and checksum requirements.
+            terminal_relative = 5163 if side == "ref" else 5162
+            host = report[{"ref": "reference_entry", "native": "native_entry"}[side]] + terminal_relative + offset
             actual[side] = guest_bytes(root, side, tag, logs[side], host)
             g = guests[name]
             wram, sram = actual[side]

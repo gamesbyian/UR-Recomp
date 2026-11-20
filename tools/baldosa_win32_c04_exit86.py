@@ -44,19 +44,53 @@ def wait_for_game_window(deadline: float) -> int:
 
 
 def send_game_key(hwnd: int, vk: int):
+    """Inject hardware-style keyboard events into the foreground SDL window.
+
+    PostMessage(WM_KEYDOWN) does not update Windows keyboard state, so SDL's
+    Windows backend can discard it. Require foreground ownership and use
+    SendInput instead of silently assuming a queued window message was read.
+    """
     user32 = ctypes.windll.user32
     if not user32.IsWindow(hwnd):
         raise ValueError("Original game window disappeared before input")
     user32.ShowWindow(hwnd, 9)
     user32.SetForegroundWindow(hwnd)
-    time.sleep(0.12)
-    scan = user32.MapVirtualKeyW(vk, 0)
-    lparam = 1 | (scan << 16)
-    if not user32.PostMessageW(hwnd, 0x0100, vk, lparam):
-        raise OSError("Failed to post actual Win32 keydown to game window")
-    time.sleep(0.09)
-    if not user32.PostMessageW(hwnd, 0x0101, vk, lparam | (1 << 30) | (1 << 31)):
-        raise OSError("Failed to post actual Win32 keyup to game window")
+    deadline = time.monotonic() + 3
+    while user32.GetForegroundWindow() != hwnd and time.monotonic() < deadline:
+        time.sleep(0.05)
+    if user32.GetForegroundWindow() != hwnd:
+        raise RuntimeError("SDL game window did not acquire keyboard foreground")
+
+    class KEYBDINPUT(ctypes.Structure):
+        _fields_ = [("wVk", wintypes.WORD), ("wScan", wintypes.WORD),
+                    ("dwFlags", wintypes.DWORD), ("time", wintypes.DWORD),
+                    ("dwExtraInfo", ctypes.c_size_t)]
+
+    class MOUSEINPUT(ctypes.Structure):
+        _fields_ = [("dx", wintypes.LONG), ("dy", wintypes.LONG),
+                    ("mouseData", wintypes.DWORD), ("dwFlags", wintypes.DWORD),
+                    ("time", wintypes.DWORD), ("dwExtraInfo", ctypes.c_size_t)]
+
+    class HARDWAREINPUT(ctypes.Structure):
+        _fields_ = [("uMsg", wintypes.DWORD), ("wParamL", wintypes.WORD),
+                    ("wParamH", wintypes.WORD)]
+
+    class INPUTUNION(ctypes.Union):
+        _fields_ = [("ki", KEYBDINPUT), ("mi", MOUSEINPUT),
+                    ("hi", HARDWAREINPUT)]
+
+    class INPUT(ctypes.Structure):
+        _fields_ = [("type", wintypes.DWORD), ("u", INPUTUNION)]
+
+    user32.SendInput.argtypes = [wintypes.UINT, ctypes.POINTER(INPUT), ctypes.c_int]
+    user32.SendInput.restype = wintypes.UINT
+    for flags in (0, 0x0002):  # down, KEYEVENTF_KEYUP
+        event = INPUT()
+        event.type = 1  # INPUT_KEYBOARD
+        event.u.ki = KEYBDINPUT(vk, 0, flags, 0, 0)
+        if user32.SendInput(1, ctypes.byref(event), ctypes.sizeof(INPUT)) != 1:
+            raise ctypes.WinError()
+        time.sleep(0.12)
 
 
 def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):

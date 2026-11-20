@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does the fault-enabled original Win32 game actually exit 86 between target SRAM and selector publication, then cold-select B without losing either racer?",
-  "expected": "Execute exit-86 original Win32 crash, cold B selection and a second independent cold B boot with unchanged full SRAM/typed/selector/catalog SHA-256 receipts; competing writer still pending; no gate credit.",
+  "question": "Does real Win32 F2/Down/Enter chooser reach the post-target-SRAM exit-86 seam with two healthy racer roots?",
+  "expected": "Require actual exit 86 and fault marker after real SDL game-window input, preserve both full 8192-byte SRAM/typed files and selector/catalog, verify two cold A reentries; competing writer pending; no release credit.",
   "owner": "windows",
-  "attempt": 32
+  "attempt": 33
 }

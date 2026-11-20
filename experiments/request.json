@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does real Win32 F2/Down/Enter chooser reach the post-target-SRAM exit-86 seam with two healthy racer roots?",
+  "question": "Does foreground SendInput F2/Down/Enter reach the real SDL chooser and trigger C04 exit 86?",
   "expected": "Require actual exit 86 and fault marker after real SDL game-window input, preserve both full 8192-byte SRAM/typed files and selector/catalog, verify two cold A reentries; competing writer pending; no release credit.",
   "owner": "windows",
-  "attempt": 33
+  "attempt": 34
 }

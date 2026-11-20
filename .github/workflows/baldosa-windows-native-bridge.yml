@@ -1357,7 +1357,6 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/explicit-healthy-selection.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/fresh-healthy-guest.log
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
-        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/baldosa-native-romless"
@@ -1501,7 +1500,6 @@ jobs:
           retention-days: 14
 
       - name: Prove extracted CMD launcher, ROM gates and isolated user SRAM
-        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/verify_baldosa_windows_extracted_launcher.py \
@@ -1513,6 +1511,31 @@ jobs:
             --save-fault-seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
             --save-fault-script "baldosa/tests/routes/race_2p_split.txt"
            echo "PASS: actual extracted source Windows CMD launcher, fresh first racer, real frame-1952 share-denied typed save reported as exit 8 with warning, and two exact fresh cold recoveries; no ROM or personal files uploaded, no release gate credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Disposable fault-enabled PE is locally assembled only for the actual
+      # Win32 process-kill witness. Never upload or nominate this ZIP.
+      - name: C04 real post-SRAM exit 86 and cold racer recovery
+        if: ${{ inputs.c04_fault_test_build == true }}
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_c04_exit86.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/C04 Win32 Exit86" --timeout 120
+
+      - name: Retain C04 real-process crash evidence even on failure
+        if: ${{ always() && inputs.c04_fault_test_build == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: c04-real-exit86-source-evidence
+          path: |
+            ${{ runner.temp }}/C04 Win32 Exit86/*.json
+            ${{ runner.temp }}/C04 Win32 Exit86/*.log
+            ${{ runner.temp }}/C04 Win32 Exit86/source-bytes/**
+          if-no-files-found: warn
+          retention-days: 14
 
       # Real Windows CMD choice.exe input on a standalone console with
       # kernel KEY_EVENT Q, not a scripted --recovery-action shortcut.

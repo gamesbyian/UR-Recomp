@@ -72,8 +72,19 @@ def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):
         raise ValueError("Cold recovery lost or modified racer data")
     if recovered["selector"] == after["selector"]:
         raise ValueError("Cold recovery did not publish B selector")
+    # A second independent process must boot the selected B without a recovery
+    # prompt or any silent rewrite of the canonical racer authorities.
+    log2, injected2 = launch_until_first_frame(
+        launcher, user, out, "cold-reentry-B", key=None, timeout=timeout)
+    if injected2 or "first frame simulated" not in log2:
+        raise ValueError("Second cold B boot did not reach an original game frame")
+    reentered = canonical_two(user)
+    keep(evidence, "after-second-cold-boot", reentered, receipts)
+    if reentered != recovered:
+        raise ValueError("Second cold B boot rewrote selector, roster or racer data")
     result = dict(schema="ur-c04-win32-real-exit86/1", actual_exit=86,
-                  cold_B_selected=True, competing_writer_tested=False,
+                  cold_B_selected=True, second_cold_boot=True,
+                  competing_writer_tested=False,
                   sha256_receipts=receipts, release_gate_credit=0)
     (out / "c04-result.json").write_text(json.dumps(result, indent=2, sort_keys=True)+"\n")
     return result

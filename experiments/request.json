@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "C04 fault-only Windows build after packaged-CMD isolation: does native build finish without candidate ZIP dependency?",
-  "expected": "Hosted Win32 fault-enabled PE builds; packaged CMD tests skipped, no candidate ZIP exported; then execute genuine exit-86 two-racer recovery.",
+  "question": "Does the fault-enabled original Win32 game actually exit 86 between target SRAM and selector publication, then cold-select B without losing either racer?",
+  "expected": "Execute two-racer source-bound CMD S process kill and cold process restart, retain raw/typed 8192-byte and selector/catalog before/after SHA256; competing-writer remains separate acceptance.",
   "owner": "windows",
-  "attempt": 29
+  "attempt": 30
 }

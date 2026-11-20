@@ -19,7 +19,7 @@ cmake --build "$ROOT/build" -j4
 EXE="$ROOT/build/UniracersSNESRecomp"
 test -x "$EXE"
 SAVE="$TMP/fresh-circuit-save"
-mkdir -p "$SAVE"
+mkdir -p "$SAVE" "$TMP/dumps"
 printf '[General]\nDisableFrameDelay = 1\n' > "$SAVE/config.ini"
 # Real shipping guest/controller script. Preserve only bounded non-ROM diagnostics.
 set +e

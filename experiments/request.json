@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Does the shipping Modern native Circuit controller route reach a real scored result and advancement, or where does it first fail?",
+  "expected": "Real guest result and advance WRAM checkpoints, or a bounded failing route log and authentic last reached checkpoint; no course credit without cold-save and original comparison.",
+  "owner": "fidelity",
+  "attempt": 1
 }

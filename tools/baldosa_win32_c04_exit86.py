@@ -4,6 +4,8 @@ Evidence is intentionally not a release gate. No source ROM is retained.
 """
 from __future__ import annotations
 import argparse
+import ctypes
+from ctypes import wintypes
 import json
 import os
 from pathlib import Path
@@ -16,6 +18,47 @@ from baldosa_win32_interactive_recovery_rt import forced_stop_tree, launch_until
 from baldosa_win32_interactive_recovery_s import A, B, canonical, keep
 from baldosa_win32_interactive_recovery_s_reject import spawn, wait_for, inject
 
+def wait_for_game_window(deadline: float) -> int:
+    """Find the hosted game's real visible Win32 SDL window."""
+    user32 = ctypes.windll.user32
+    callback = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    while time.monotonic() < deadline:
+        windows = []
+        def inspect(hwnd, unused):
+            if not user32.IsWindowVisible(hwnd):
+                return True
+            size = user32.GetWindowTextLengthW(hwnd)
+            if size:
+                title = ctypes.create_unicode_buffer(size + 1)
+                user32.GetWindowTextW(hwnd, title, size + 1)
+                if "uniracer" in title.value.lower() or "unirally" in title.value.lower():
+                    windows.append(hwnd)
+            return True
+        user32.EnumWindows(callback(inspect), 0)
+        if len(windows) == 1:
+            return windows[0]
+        if len(windows) > 1:
+            raise ValueError("Ambiguous game windows; refusing unbound keyboard input")
+        time.sleep(0.05)
+    raise TimeoutError("No visible original Win32 SDL game window")
+
+
+def send_game_key(hwnd: int, vk: int):
+    user32 = ctypes.windll.user32
+    if not user32.IsWindow(hwnd):
+        raise ValueError("Original game window disappeared before input")
+    user32.ShowWindow(hwnd, 9)
+    user32.SetForegroundWindow(hwnd)
+    time.sleep(0.12)
+    scan = user32.MapVirtualKeyW(vk, 0)
+    lparam = 1 | (scan << 16)
+    if not user32.PostMessageW(hwnd, 0x0100, vk, lparam):
+        raise OSError("Failed to post actual Win32 keydown to game window")
+    time.sleep(0.09)
+    if not user32.PostMessageW(hwnd, 0x0101, vk, lparam | (1 << 30) | (1 << 31)):
+        raise OSError("Failed to post actual Win32 keyup to game window")
+
+
 def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):
     out.mkdir()
     user = out / "Two Original Racer Roots With Spaces"
@@ -23,12 +66,8 @@ def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):
     for extra in ([], ["--add-second-keep-first"]):
         subprocess.run([str(fixture), str(user), str(seed), *extra],
                        check=True, capture_output=True, timeout=timeout)
-    # The actual CMD recovery S route requires an invalid currently selected
-    # racer; corrupt only A's raw while retaining its independently valid typed.
-    a = user / ("saves/profile-" + A) / "save.srm"
-    raw = bytearray(a.read_bytes())
-    raw[0x0711] ^= 0x35
-    a.write_bytes(raw)
+    # Healthy startup is essential: CMD emergency S bypasses the in-game
+    # activate_profile_id() fault boundary and cannot witness exit 86.
     before = canonical_two(user)
     if before["a-raw"] == before["b-raw"]:
         raise ValueError("Racer roots are not independent")
@@ -36,16 +75,18 @@ def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):
     evidence = out / "source-bytes"
     keep(evidence, "before-crash", before, receipts)
     proc, transcript = spawn(launcher, user, out, "c04-crash")
-    # Only the crashing child inherits the exact opt-in token. The wrapper
-    # must set it BEFORE launching the native executable.
-    # spawn() inherits this process environment.
     try:
         deadline = time.monotonic() + timeout
-        wait_for(proc, transcript, "Explicit recovery choice [R/T/S/Q]:", deadline)
-        inject(proc.pid, out, "c04-S", ["--inject-console-key", "S", str(proc.pid)])
-        wait_for(proc, transcript, "Healthy registered profile ID:", deadline)
-        inject(proc.pid, out, "c04-target", ["--inject-console-text", str(proc.pid), B])
-        proc.wait(timeout=timeout)
+        wait_for(proc, transcript, "first frame simulated", deadline)
+        hwnd = wait_for_game_window(deadline)
+        # Real Win32 keyboard messages enter SDL's event pump, then the Modern
+        # F2 chooser. Never call the product's acceptance/test-key shortcut.
+        send_game_key(hwnd, 0x71)  # VK_F2
+        time.sleep(0.4)
+        send_game_key(hwnd, 0x28)  # VK_DOWN: A -> B
+        time.sleep(0.25)
+        send_game_key(hwnd, 0x0D)  # VK_RETURN: activate_profile_id(B)
+        proc.wait(timeout=max(1, deadline - time.monotonic()))
         log = transcript.read_text(encoding="utf-8", errors="replace")
         if proc.returncode != 86 or "UR_C04_FAULT POST_TARGET_SRAM_PRE_SELECTOR" not in log:
             raise ValueError(f"Fault not reached: exit={proc.returncode}, tail={log[-1500:]}")
@@ -59,31 +100,29 @@ def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):
         raise ValueError("Crash mutated original racer A")
     if after["b-typed"] != before["b-typed"] or after["b-raw"] != before["b-raw"]:
         raise ValueError("Crash mutated healthy target B raw SRAM or typed metadata")
-    # Cold S must recover the still-invalid A selector by explicitly choosing B.
+    # After the crash, A remains healthy; cold boot must retain its selector.
     # Disable the fault hook in the parent before spawning this new process.
     os.environ.pop("UR_C04_TEST_KILL_AFTER_TARGET_SRAM", None)
     log, injected = launch_until_first_frame(
-        launcher, user, out, "cold-select-B", key="S", profile_id=B, timeout=timeout)
-    if not injected or "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=" + B not in log:
-        raise ValueError("Cold process failed to select healthy B")
+        launcher, user, out, "cold-select-A", key=None, timeout=timeout)
+    if injected or "first frame simulated" not in log:
+        raise ValueError("Cold process failed to retain original A")
     recovered = canonical_two(user)
     keep(evidence, "after-cold-select", recovered, receipts)
-    if any(recovered[k] != after[k] for k in after if k != "selector"):
-        raise ValueError("Cold recovery lost or modified racer data")
-    if recovered["selector"] == after["selector"]:
-        raise ValueError("Cold recovery did not publish B selector")
+    if recovered != after:
+        raise ValueError("Cold boot mutated the interrupted selector or racer data")
     # A second independent process must boot the selected B without a recovery
     # prompt or any silent rewrite of the canonical racer authorities.
     log2, injected2 = launch_until_first_frame(
-        launcher, user, out, "cold-reentry-B", key=None, timeout=timeout)
+        launcher, user, out, "cold-reentry-A", key=None, timeout=timeout)
     if injected2 or "first frame simulated" not in log2:
-        raise ValueError("Second cold B boot did not reach an original game frame")
+        raise ValueError("Second cold A boot did not reach an original game frame")
     reentered = canonical_two(user)
     keep(evidence, "after-second-cold-boot", reentered, receipts)
     if reentered != recovered:
-        raise ValueError("Second cold B boot rewrote selector, roster or racer data")
+        raise ValueError("Second cold A boot rewrote selector, roster or racer data")
     result = dict(schema="ur-c04-win32-real-exit86/1", actual_exit=86,
-                  cold_B_selected=True, second_cold_boot=True,
+                  cold_A_preserved=True, second_cold_boot=True,
                   competing_writer_tested=False,
                   sha256_receipts=receipts, release_gate_credit=0)
     (out / "c04-result.json").write_text(json.dumps(result, indent=2, sort_keys=True)+"\n")

@@ -57,8 +57,8 @@ def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):
         raise ValueError("Crash published selector or changed roster prematurely")
     if after["a-raw"] != before["a-raw"] or after["a-typed"] != before["a-typed"]:
         raise ValueError("Crash mutated original racer A")
-    if after["b-typed"] != before["b-typed"]:
-        raise ValueError("Crash mutated target B typed metadata")
+    if after["b-typed"] != before["b-typed"] or after["b-raw"] != before["b-raw"]:
+        raise ValueError("Crash mutated healthy target B raw SRAM or typed metadata")
     # Cold S must recover the still-invalid A selector by explicitly choosing B.
     # Disable the fault hook in the parent before spawning this new process.
     os.environ.pop("UR_C04_TEST_KILL_AFTER_TARGET_SRAM", None)
@@ -75,7 +75,7 @@ def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):
     result = dict(schema="ur-c04-win32-real-exit86/1", actual_exit=86,
                   cold_B_selected=True, competing_writer_tested=False,
                   sha256_receipts=receipts, release_gate_credit=0)
-    (out / "c04-result.json").write_text(json.dumps(result, indent=2, sort_keys=True)+"\\n")
+    (out / "c04-result.json").write_text(json.dumps(result, indent=2, sort_keys=True)+"\n")
     return result
 
 def canonical_two(root: Path):

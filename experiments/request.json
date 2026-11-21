@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the exact upstream Start/Down/Start Zoom Zoo selection reach source guest state 0053/0054=8610, then real post-result 0053/0054=F60C, where the previous A-button route failed?",
-  "expected": "Check pinned source initial F60C, reach verified 8610 GO and original post-result F60C using native byte predicates, with real guest dumps; if failure identify exact first missing state, no course credit.",
+  "question": "When using the authentic upstream Start/Down/Start Zoo selection and 8610 GO state, does the real native circuit progress through laps/track or remain in race after 7972 leftward input frames?",
+  "expected": "Actual native guest-state-word, track ID, DP C6/C8 and in-race snapshots at GO, 300/900/6000 left presses, postdrive, compared with retained original Zoo race-entry states; a decisive route/physics lead or real result, no credit without complete parity.",
   "owner": "fidelity",
-  "attempt": 4
+  "attempt": 5
 }

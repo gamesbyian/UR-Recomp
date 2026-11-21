@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does upstream GO-state-registered leftward Zoom Zoo controller input reach the actual native Circuit result where two unregistered policies failed?",
-  "expected": "Real native GO checkpoint and scored 0xBC result, or explicit failure to reach GO/result; no acceptance credit without original/native completion, progression and cold save.",
+  "question": "Does the source-pinned upstream Mike/Crawler Tour/Zoom Zoo start-button selection reach native GO and a scored result, unlike the previous A-button Circuit selection?",
+  "expected": "Native 0053/0054 pre-GO checkpoint, actual GO checkpoint and terminal result or first explicit timeout; no course credit without independent original/native progression and cold save.",
   "owner": "fidelity",
-  "attempt": 3
+  "attempt": 4
 }

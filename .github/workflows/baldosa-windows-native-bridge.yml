@@ -260,6 +260,11 @@ on:
         required: false
         type: boolean
         default: false
+      c04_fault_test_build:
+        description: "Explicitly compile the C04 exit-86 seam into a disposable test-only PE; never export it as a candidate"
+        required: false
+        type: boolean
+        default: false
       run_on_draft:
         description: "Preserve explicitly called Windows computation even when caller event is a draft pull_request"
         required: false
@@ -413,8 +418,15 @@ jobs:
           [[ "$SOURCE_DATE_EPOCH" =~ ^[0-9]{10}$ ]] || {
             echo "::error::source commit timestamp invalid"; exit 1;
           }
+          # The default candidate never contains the C04 process-kill hook.
+          # Only the explicit reusable test invocation may compile it in.
+          c04_flags=()
+          if [[ "${{ inputs.c04_fault_test_build }}" == "true" ]]; then
+            c04_flags+=("-DCMAKE_CXX_FLAGS=-DUR_C04_FAULT_INJECTION_TEST_BUILD")
+            echo "C04_TEST_ONLY_PE=1; forbidden from release export" >> "$GITHUB_STEP_SUMMARY"
+          fi
           cmake -S baldosa -B baldosa/build-ur-win -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF "${c04_flags[@]}"
           cmake --build baldosa/build-ur-win --target UniracersSNESRecomp -j 3
           cmake --build baldosa/build-ur-win --target ur-baldosa-modern-profile-fixture -j 3
           test -s baldosa/build-ur-win/UniracersSNESRecomp.exe
@@ -1290,7 +1302,7 @@ jobs:
       # demonstrates consumer schema agreement on exact source-produced
       # bytes, not independent QA qualification or release ledger credit.
       - name: Validate journaled Win32 evidence against independent QA02 reader
-        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true || inputs.export_campaign_inputs == true }}
+        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true || inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip"
@@ -1362,6 +1374,7 @@ jobs:
       # arithmetic only; a separate tiny artifact keeps the candidate and the
       # strict QA-12 evidence archives byte-for-byte as before.
       - name: Bind journeys to the nominated ZIP and executable hashes
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/baldosa-candidate-binding"
@@ -1376,7 +1389,7 @@ jobs:
       # Retain the exact package BEFORE the expected raw/typed crash; a
       # red test must not hide the executable or its independent binding.
       - name: Retain QA-02 packaged PE candidate before crash seam
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-packaged-pe-pre-crash-candidate
@@ -1387,7 +1400,7 @@ jobs:
           retention-days: 14
 
       - name: QA-02 source-bound packaged PE crash seam
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -1417,7 +1430,7 @@ jobs:
           echo "Source-bound packaged Windows PE reached actual post-raw/pre-typed crash seam; no hardware, power cut or QA gate credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain QA-02 packaged PE crash seam evidence
-        if: ${{ always() && inputs.export_campaign_inputs == true }}
+        if: ${{ always() && inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-packaged-pe-crash-seam-evidence
@@ -1433,7 +1446,7 @@ jobs:
       # QA-02 can legitimately fail, but that must not suppress the ROM-free
       # ZIP needed for independent review and the next bounded reproduction.
       - name: Retain ROM-free Windows candidate before QA-02 fault execution
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-pre-fault-romfree-candidate
@@ -1447,7 +1460,7 @@ jobs:
       # assembled and hash-bound in THIS job. Historical owner probes above stay
       # immutable and branch-scoped. Evidence is retained even on failure.
       - name: QA-02 source-bound candidate two-game overlap
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -1474,7 +1487,7 @@ jobs:
             --out "$RUNNER_TEMP/qa02-current-two-games"
 
       - name: Retain QA-02 exact-candidate A/B/C evidence on failure
-        if: ${{ always() && inputs.export_campaign_inputs == true }}
+        if: ${{ always() && inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa02-current-candidate-two-game-evidence
@@ -1499,10 +1512,36 @@ jobs:
             --save-fault-script "baldosa/tests/routes/race_2p_split.txt"
            echo "PASS: actual extracted source Windows CMD launcher, fresh first racer, real frame-1952 share-denied typed save reported as exit 8 with warning, and two exact fresh cold recoveries; no ROM or personal files uploaded, no release gate credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Disposable fault-enabled PE is locally assembled only for the actual
+      # Win32 process-kill witness. Never upload or nominate this ZIP.
+      - name: C04 real post-SRAM exit 86 and cold racer recovery
+        if: ${{ inputs.c04_fault_test_build == true }}
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_c04_exit86.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/C04 Win32 Exit86" --timeout 120
+
+      - name: Retain C04 real-process crash evidence even on failure
+        if: ${{ always() && inputs.c04_fault_test_build == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: c04-real-exit86-source-evidence
+          path: |
+            ${{ runner.temp }}/C04 Win32 Exit86/*.json
+            ${{ runner.temp }}/C04 Win32 Exit86/*.log
+            ${{ runner.temp }}/C04 Win32 Exit86/source-bytes/**
+          if-no-files-found: warn
+          retention-days: 14
+
       # Real Windows CMD choice.exe input on a standalone console with
       # kernel KEY_EVENT Q, not a scripted --recovery-action shortcut.
       # The profile is a disposable original-format legacy mismatch.
       - name: Prove interactive original CMD recovery Q leaves data untouched
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_q.py \
@@ -1516,6 +1555,7 @@ jobs:
       # Distinct product-owned R/T proof. Preserve the previously qualified
       # Q and fixed independent QA02/extracted CMD archive contracts.
       - name: Prove original CMD interactive R and T recovery and cold boots
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_rt.py \
@@ -1530,6 +1570,7 @@ jobs:
       # Real original packaged Windows R must refuse without touching ANY
       # canonical bytes; a separate source CMD T must archive and restore.
       - name: Prove original CMD short raw R refusal and archived T recovery
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_short_raw_rt.py \
@@ -1543,6 +1584,7 @@ jobs:
       # Explicit malformed-intent T witness; not the historical unjournaled
       # RT contract, which remains independently rehashable and untouched.
       - name: Prove original CMD T archives corrupt pending intent before typed restore
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_bad_intent_t.py \
@@ -1557,6 +1599,7 @@ jobs:
       # typed T has restored canonical raw. The original CMD must disclose
       # partial completion, retain archives and refuse unsafe relaunch.
       - name: Prove original CMD T partial rollback warns on real journal-delete denial
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_t_pending_delete_denial.py \
@@ -1571,6 +1614,7 @@ jobs:
       # noncanonical typed-save file. The original malformed-intent-T artifact
       # is unchanged; do not conflate the two 25-member envelopes.
       - name: Prove original CMD T preserves noncanonical typed file verbatim
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_bad_intent_t.py \
@@ -1586,6 +1630,7 @@ jobs:
       # a valid noncanonical typed file through the typed CAS (not the
       # committed-typed T branch). Never alter the existing R/T evidence.
       - name: Prove original CMD R archives noncanonical typed before native raw promotion
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_rt.py \
@@ -1600,6 +1645,7 @@ jobs:
       # S is the real original no-argument CMD menu with literal profile
       # ID input, not an environment repair shortcut or a simulated roster.
       - name: Prove original CMD interactive S switches only healthy racer
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_s.py \
@@ -1614,6 +1660,7 @@ jobs:
       # a different racer or fix the damaged one. This negative witness has
       # a separate artifact; fixed 36-member S and Q/R/T contracts stay sealed.
       - name: Prove original CMD S nonexistent racer refuses without mutation
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_s_reject.py \
@@ -1628,6 +1675,7 @@ jobs:
       # original CMD S must refuse a registered racer whose raw does not
       # equal independently authenticated typed SRAM, preserving all bytes.
       - name: Prove original CMD S rejects registered corrupt target
+        if: ${{ inputs.c04_fault_test_build != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_win32_interactive_recovery_s_reject.py \
@@ -1644,6 +1692,7 @@ jobs:
       # W: is ever formatted, and all durable source evidence lives outside
       # the VHD. This is source evidence, NOT a human QA release gate.
       - name: Prove original packaged CMD save on actual full NTFS volume
+        if: ${{ inputs.c04_fault_test_build != true }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -1653,6 +1702,7 @@ jobs:
           "PASS: genuine isolated NTFS VHDX Win32 112, real source-play original game CMD save refusal exit8, unchanged previous canonical SRAM and two original cold Windows boots. Source product only; not power cut, short write, human or release QA." | Out-File "$env:GITHUB_STEP_SUMMARY" -Append
 
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
+        if: ${{ inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-modern-windows-x64-romless-candidate
@@ -1663,6 +1713,7 @@ jobs:
             ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
 
       - name: Retain candidate hash binding receipt separately
+        if: ${{ inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-candidate-binding
@@ -2012,7 +2063,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/ordinary_idle_boot_2_control/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/boundary-receipts.json
       - name: Export verified shared Windows inputs for bounded manual reliability campaigns
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -2027,7 +2078,7 @@ jobs:
           echo "Prepared one exact ROM-free Windows binary/launcher cohort for independent guest and CMD routes." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload exact reusable Windows candidate only for requested campaign
-        if: ${{ inputs.export_campaign_inputs == true }}
+        if: ${{ inputs.export_campaign_inputs == true && inputs.c04_fault_test_build != true }}
         uses: actions/upload-artifact@v4
         with:
           name: qa-baldosa-native-export

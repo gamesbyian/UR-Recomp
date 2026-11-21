@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does restoring alternating stock controller press/release input after fixture 1 is armed allow the actual guest to finish and commit leg 2?",
-  "expected": "Attempt 4 at c83bfd0a1faf284767f850cd265f2afb46a9748e reached fixture 1 ARMED but no second capture by frame 110000. Driver had held 081 continuously for ~100k frames, unlike proven alternating 081/080 first-leg input. Require genuine second capture, fixture receipt and process exit.",
+  "question": "Does stock Results actually transition to fixture-1 race after tournament panel arms it?",
+  "expected": "Guest screen/race/capture witness at 120/1800 frames; fail fast if still Results, otherwise require genuine second result",
   "owner": "windows",
-  "attempt": 5
+  "attempt": 6
 }

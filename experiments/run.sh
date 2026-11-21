@@ -88,6 +88,21 @@ if observed["next-race-entered"]["in_race"]!=1: raise SystemExit("NEXT_EVENT_RAC
 if observed["next-race-entered"]["track"]==observed["after-results-ack"]["track"]:
     raise SystemExit("NEXT_EVENT_TRACK_NOT_ADVANCED")
 PY
-echo "DRAGSTER_RESULT_ACK_AND_COLD_PROCESS_OBSERVED_ORIGINAL_PARITY_PENDING" | tee -a "$OUT/receipt.txt"
+test -s "$TMP/dumps/second-race-results.wram.bin" || { echo "SECOND_RACE_RESULT_NOT_REACHED" | tee -a "$OUT/receipt.txt"; exit 25; }
+test -s "$TMP/dumps/after-second-results-ack.wram.bin" || { echo "SECOND_RESULT_ACK_ABSENT" | tee -a "$OUT/receipt.txt"; exit 26; }
+python3 - "$TMP/dumps" "$OUT" <<'PY'
+import json,pathlib,sys,hashlib
+root=pathlib.Path(sys.argv[1]);out=pathlib.Path(sys.argv[2])
+names=["race-results","next-race-entered","second-race-results","after-second-results-ack"]
+v={}
+for name in names:
+ b=(root/(name+".wram.bin")).read_bytes()
+ v[name]={"menu":b[0x9f],"track":b[0xce],"in_race":b[0x313],"sha256":hashlib.sha256(b).hexdigest()}
+(out/"two-races.json").write_text(json.dumps(v,indent=2))
+assert v["second-race-results"]["menu"]==0x99 and v["second-race-results"]["in_race"]==0
+assert v["second-race-results"]["track"]!=v["race-results"]["track"]
+assert v["after-second-results-ack"]["menu"]!=0x99
+PY
+echo "DRAGSTER_TWO_NATIVE_RESULTS_OBSERVED_ORIGINAL_PARITY_PENDING" | tee -a "$OUT/receipt.txt"
 
 echo "DRAGSTER_RESULT_OBSERVED_SOURCE_AND_COLD_SAVE_UNQUALIFIED" | tee -a "$OUT/receipt.txt"

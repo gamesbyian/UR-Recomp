@@ -116,7 +116,9 @@ def run(launcher: Path, fixture: Path, seed: Path, out: Path, timeout: int):
         # Real Win32 keyboard messages enter SDL's event pump, then the Modern
         # F2 chooser. Never call the product's acceptance/test-key shortcut.
         send_game_key(hwnd, 0x71)  # VK_F2
-        time.sleep(0.4)
+        # An SDL frame is not evidence that F2 was eligible. Require the
+        # actual native product's chooser-open discriminator before selection.
+        wait_for(proc, transcript, "UR_PROFILE_UI OPENED", min(deadline, time.monotonic() + 12))
         send_game_key(hwnd, 0x28)  # VK_DOWN: A -> B
         time.sleep(0.25)
         send_game_key(hwnd, 0x0D)  # VK_RETURN: activate_profile_id(B)

@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the shipping Modern native Circuit controller route reach a real scored result and advancement, or where does it first fail?",
-  "expected": "Real guest result and advance WRAM checkpoints, or a bounded failing route log and authentic last reached checkpoint; no course credit without cold-save and original comparison.",
+  "question": "Does the source-pinned Baldosa Zoo leftward controller route reach actual Circuit results in the shipping Modern guest after the failed rightward policy?",
+  "expected": "Observe real 0xBC Circuit results checkpoint or preserve first actual failed native guest step; no original/native course credit without advancement and cold save.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

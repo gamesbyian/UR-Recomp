@@ -79,12 +79,15 @@ observed source divergence that changes a concrete next edit, or
 product delivery. Prioritize (a) and (b) in subsequent runs. Do not add
 another scorecard, workflow or meeting merely to report these categories.
 
-Windows: finish the already-started C04 opt-in crash/cold-boot discriminator
-on [draft #3372](https://github.com/gamesbyian/UR-Recomp/pull/3372), then
-fix the actual broken persistent-state behavior if demonstrated. If it
-passes or becomes blocked, **advance QA-03 multi-leg tournament gameplay**
-using a real guest/controller path and exact Windows build rather than
-collecting another general package receipt. Fidelity: compare authentic
+Windows: **prioritize QA-03 multi-leg tournament gameplay now**.
+Exercise real guest/controller legs 2/3, standings and cross-process
+persistence; fix the first reproduced game-source defect and test it on
+Windows. Preserve [draft #3372](https://github.com/gamesbyian/UR-Recomp/pull/3372)
+as an unmerged C04 test prototype. Its attempt 35 (Actions run 44875961788)
+failed before the profile chooser opened, so no real exit-86/cold-restart
+witness exists. Do not start further C04 iterations until a minimal F2
+event-to-chooser test is demonstrated and QA-03 has received direct game
+execution. Source/CI artifacts remain available; never call C04 accepted. Fidelity: compare authentic
 adjacent original/native WIDE-07 frames against the same native phase,
 resolve source clock alignment, and fix the first demonstrated compositor
 or game defect. If no defect is proved, advance authentic Zoo complete-event

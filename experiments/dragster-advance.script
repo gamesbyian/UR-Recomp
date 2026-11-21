@@ -135,4 +135,83 @@ press a 2
 until 0313 == 01 1800
 wait 60
 dump next-race-entered
+# Continue the second genuine course with the same previously successful player input rhythm.
+# A new result is required; entering the next race alone does not qualify progression.
+press right 30
+press right 30
+press right 30
+press right 30
+press right 60
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump second-finish-probe-05
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump second-finish-probe-10
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump second-finish-probe-15
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump second-finish-probe-20
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump second-finish-probe-25
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump second-finish-probe-30
+until 009F == 99 600
+wait 30
+dump second-race-results
+press a 2
+wait 180
+dump after-second-results-ack
 quit

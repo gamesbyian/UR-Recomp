@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does foreground SendInput F2/Down/Enter reach the real SDL chooser and trigger C04 exit 86?",
-  "expected": "Require actual exit 86 and fault marker after real SDL game-window input, preserve both full 8192-byte SRAM/typed files and selector/catalog, verify two cold A reentries; competing writer pending; no release credit.",
+  "question": "Does native UR_PROFILE_UI OPENED occur before C04 exit-86 selection on actual hosted Win32?",
+  "expected": "Require real chooser-open diagnostic and exit 86; if chooser never opens, fail at the game-level discriminator instead of hanging; no release gate credit.",
   "owner": "windows",
-  "attempt": 34
+  "attempt": 35
 }

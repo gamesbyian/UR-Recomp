@@ -5762,9 +5762,12 @@ void complete_multiplayer_run_record_capture() {
     }
     const char* panel_mode = std::getenv("UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE");
     if (joined_capture) {
-        // The legs route keeps running to arm leg 2 from the results screen.
-        acceptance_should_quit =
-            !panel_mode || std::strcmp(panel_mode, "legs") != 0;
+        // Both multi-leg acceptance routes must survive the first genuine
+        // guest result. The continuation route quits only after fixture 1
+        // has independently committed through the ordinary result writer.
+        acceptance_should_quit = !panel_mode ||
+            (std::strcmp(panel_mode, "legs") != 0 &&
+             std::strcmp(panel_mode, "legs_continue") != 0);
         product_diagnostic(
             "UR_MULTIPLAYER_MATCH REAL_JOIN_CAPTURE_COMPLETE");
     }

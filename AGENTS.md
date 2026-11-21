@@ -36,6 +36,47 @@ observable completion condition**. Then work the next independent task.
 Repeated identical blockers without an attempted fix are failure of the
 development operation.
 
+## Failed tests are owned engineering tasks (2026-11-21)
+
+Both scheduled agents are **explicitly authorized and required** to diagnose,
+repair and rerun failing tests, including the tests themselves. Never assume
+that a red test means the game is broken or that a green test proves the game
+correct. Read the exact failed job, command, first causal error, input
+fixtures, actual application behavior and source SHA before changing code.
+Choose the correction by evidence:
+
+- **Game defect:** fix runtime behavior; preserve or strengthen the test
+  that exposed it. Prove the test fails before and passes after the fix.
+- **Test/fixture/driver defect:** fix erroneous expectations, scripts, frame
+  clocks, mocks, probes, selectors, test inputs or assertions; establish the
+  authoritative intended behavior independently and add a regression that
+  would reject the old mistake. Do not modify game physics or progression
+  to satisfy a faulty test.
+- **Runner/transport/CI defect:** repair the environment or infrastructure
+  only as far as necessary to execute the relevant test, then inspect its
+  actual game/evidence result. Treat artifact expiry, missing inputs and
+  cancelled workflows separately from genuine assertion failures.
+- **Unresolved source semantics:** minimize the case and obtain one real
+  original/native or product observation distinguishing hypotheses before
+  choosing either fix. Avoid speculative controller, clock or renderer edits.
+
+The agent may change, replace or delete obsolete test logic **only with a
+specific justification and an equivalent or stronger retained behavioral
+assertion**. Never weaken or skip required coverage to get a green check,
+change expected values solely to match an incorrect implementation, mask
+genuine mismatches, accept an unauthenticated artifact, or claim qualification
+from a passing harness. For a revised assertion document the source of
+truth (original witness, explicit product contract or independent valid
+capture), demonstrate how the prior assertion was wrong, and test both
+the valid case and an invalid/tampered case.
+
+The repair is not complete until the relevant exact-head CI is green **and**
+the real behavior/evidence has been examined. When red, iterate on the first
+causal failure rather than treating failure reports as handoffs. If the exact
+test cannot run, record why and use the next executable independent task.
+Test repairs count as legitimate engineering progress but are not automatically
+player-facing feature delivery or release/course acceptance.
+
 ## Delivery-first selection rule (2026-11-18)
 
 The Nov 11–13 versus Nov 14–16 comparison showed **2 versus 15 merges**

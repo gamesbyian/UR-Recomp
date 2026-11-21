@@ -71,6 +71,23 @@ w=pathlib.Path(sys.argv[1]).read_bytes();save=pathlib.Path(sys.argv[2]);out=path
 files=[{"path":str(p.relative_to(save)),"size":p.stat().st_size,"sha256":hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(save.rglob("*")) if p.is_file() and p.name!="config.ini"]
 (out/"cold.json").write_text(json.dumps({"cold_menu":w[0x9f],"cold_wram_sha256":hashlib.sha256(w).hexdigest(),"persistent_files":files},indent=2))
 PY
+python3 - "$TMP/dumps" "$OUT" <<'PY'
+import json,pathlib,sys
+root=pathlib.Path(sys.argv[1]);out=pathlib.Path(sys.argv[2])
+names=["after-results-ack","next-track-highlight","next-now-playing","next-race-entered"]
+observed={}
+for name in names:
+    p=root/(name+".wram.bin")
+    if p.exists():
+        b=p.read_bytes()
+        observed[name]={"menu":b[0x9f],"track":b[0xce],"in_race":b[0x313]}
+(out/"next-event.json").write_text(json.dumps(observed,indent=2))
+print("NEXT_EVENT_WITNESS",json.dumps(observed))
+if len(observed)!=len(names): raise SystemExit("NEXT_EVENT_CHECKPOINT_MISSING")
+if observed["next-race-entered"]["in_race"]!=1: raise SystemExit("NEXT_EVENT_RACE_NOT_ENTERED")
+if observed["next-race-entered"]["track"]==observed["after-results-ack"]["track"]:
+    raise SystemExit("NEXT_EVENT_TRACK_NOT_ADVANCED")
+PY
 echo "DRAGSTER_RESULT_ACK_AND_COLD_PROCESS_OBSERVED_ORIGINAL_PARITY_PENDING" | tee -a "$OUT/receipt.txt"
 
 echo "DRAGSTER_RESULT_OBSERVED_SOURCE_AND_COLD_SAVE_UNQUALIFIED" | tee -a "$OUT/receipt.txt"

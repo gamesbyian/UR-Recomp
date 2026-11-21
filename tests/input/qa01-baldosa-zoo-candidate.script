@@ -21,8 +21,10 @@ until 009F == 16 1200
 wait 60
 press a 2
 until 0313 == 01 1800
-wait 60
-dump baldosa-zoo-entry
+# Original upstream route begins inputs only after the GO-state byte becomes nonzero.
+# This replaces the arbitrary 60-frame race-relative delay used by attempts 1-2.
+until 0E1F != 00 1800
+dump baldosa-zoo-go-phase
 press left 300
 press left+up 20
 press left 200

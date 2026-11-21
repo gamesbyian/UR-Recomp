@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does upstream GO-state-registered leftward Zoom Zoo controller input reach the actual native Circuit result where two unregistered policies failed?",
-  "expected": "Real native GO checkpoint and scored 0xBC result, or explicit failure to reach GO/result; no acceptance credit without original/native completion, progression and cold save.",
+  "question": "Does the exact upstream Start/Down/Start Zoom Zoo selection reach source guest state 0053/0054=8610, then real post-result 0053/0054=F60C, where the previous A-button route failed?",
+  "expected": "Check pinned source initial F60C, reach verified 8610 GO and original post-result F60C using native byte predicates, with real guest dumps; if failure identify exact first missing state, no course credit.",
   "owner": "fidelity",
-  "attempt": 3
+  "attempt": 4
 }

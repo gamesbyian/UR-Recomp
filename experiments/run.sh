@@ -27,9 +27,11 @@ with open(sys.argv[1],"w") as f:
         # 081 word after the first Results screen cannot generate a new edge.
         # The host Return was unhandled on stock 2P Results.
         # Deliver real guest Start edges through the controller movie.
+        # The input parser rejects all-zero controller events; retain the
+        # established 080 baseline on both pulse and release frames.
         # No synthetic tournament result or direct store mutation.
         if 38500 <= frame < 39500:
-            word = "100" if index % 2 == 0 else "000"
+            word = "180" if index % 2 == 0 else "080"
         else:
             word = "081" if index % 2 == 0 else "080"
         f.write(f"{frame}:24:{word}:000\n")

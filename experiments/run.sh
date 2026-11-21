@@ -23,7 +23,7 @@ mkdir -p "$SAVE" "$TMP/dumps"
 printf '[General]\nDisableFrameDelay = 1\n' > "$SAVE/config.ini"
 # Real shipping guest/controller script. Preserve only bounded non-ROM diagnostics.
 set +e
-SNESRECOMP_USER_DATA_DIR="$SAVE" SNESRECOMP_DUMP_DIR="$TMP/dumps" SDL_AUDIODRIVER=dummy timeout 170s xvfb-run -a "$EXE" "$PWD/reference/roms/retail/Uniracers_USA.sfc" --script "$PWD/tests/input/ui-circuit-result-route.script" > "$OUT/player.log" 2>&1
+SNESRECOMP_USER_DATA_DIR="$SAVE" SNESRECOMP_DUMP_DIR="$TMP/dumps" SDL_AUDIODRIVER=dummy timeout 170s xvfb-run -a "$EXE" "$PWD/reference/roms/retail/Uniracers_USA.sfc" --script "$PWD/tests/input/qa01-baldosa-zoo-candidate.script" > "$OUT/player.log" 2>&1
 status=$?
 set -e
 printf 'route_exit=%s\n' "$status" >> "$OUT/receipt.txt"
@@ -40,6 +40,6 @@ print(json.dumps(records))
 PY
 # Fail explicitly when real result checkpoint is absent. Do not confuse the terminal
 # driving dump with scored result or progression.
-test -s "$TMP/dumps/ui-circuit-results.wram.bin" || { echo "PLAYER_RESULT_NOT_REACHED" | tee -a "$OUT/receipt.txt"; exit 21; }
-test -s "$TMP/dumps/ui-circuit-result-after-advance.wram.bin" || exit 22
-echo "RESULT_AND_ADVANCE_OBSERVED_COLD_SAVE_STILL_UNQUALIFIED" | tee -a "$OUT/receipt.txt"
+test -s "$TMP/dumps/baldosa-zoo-result-candidate.wram.bin" || { echo "PLAYER_RESULT_NOT_REACHED" | tee -a "$OUT/receipt.txt"; exit 21; }
+echo "CIRCUIT_RESULT_OBSERVED_ADVANCE_AND_COLD_SAVE_PENDING" | tee -a "$OUT/receipt.txt"
+echo "RESULT_OBSERVED_ADVANCE_AND_COLD_SAVE_STILL_UNQUALIFIED" | tee -a "$OUT/receipt.txt"

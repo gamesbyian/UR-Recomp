@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the real joined 2P tournament stay alive after fixture 0, arm fixture 1 and complete its guest race?",
-  "expected": "Prior attempt 2 proved fixture 0 genuinely committed but acceptance requested SDL_QUIT; prevent premature acceptance quit, observe exact guest fixture 1 and inspect any next failure.",
+  "question": "After actual fixture 0 and fixture 1 arm, can the stock guest continue to score fixture 1 before an extended frame horizon?",
+  "expected": "Attempt 3 proved fixture 0 committed and fixture 1 armed; its inherited 50000-frame single-race script quit before the second guest result. Extend to 110000 frames and input to 105000; require real fixture 1 receipt.",
   "owner": "windows",
-  "attempt": 3
+  "attempt": 4
 }

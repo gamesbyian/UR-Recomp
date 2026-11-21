@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does stock Results actually transition to fixture-1 race after tournament panel arms it?",
-  "expected": "Guest screen/race/capture witness at 120/1800 frames; fail fast if still Results, otherwise require genuine second result",
+  "question": "Does the source-bound tournament Results Return enter a host-owned navigation route, get consumed, or reach stock guest input?",
+  "expected": "Exact guest Results state plus selected host Results action, handled flag, guest suppression and bounded 120/1800-frame transition witness",
   "owner": "windows",
-  "attempt": 6
+  "attempt": 7
 }

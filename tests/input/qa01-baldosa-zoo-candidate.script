@@ -1,28 +1,27 @@
-# QA-01 external-route candidate, not a release-gating fixture.
-# Source of driving rhythm: baldosa/uniracers-recomp tests/routes/zoomzoo_1p.txt
-# commit 10b864b9d14a7b7416dd909eb7b054c88faef101.
-# Entry sequence uses our established ui-circuit-result-route.script grammar.
-# No complete native/reference result is claimed by adding this file.
-until 009F == D7 3600
-wait 60
-press a 2
-until 009F == 3C 1200
-wait 60
-press a 2
-until 009F == 6D 1200
-wait 60
-press a 2
-until 009F == F6 1200
-wait 60
-press down 1
+# QA-01 source-menu discriminator, NOT a course acceptance or gameplay fix.
+# Faithful selection to gamesbyian/uniracers-recomp
+# tests/routes/zoomzoo_1p.txt @ 10b864b9d14a7b7416dd909eb7b054c88faef101.
+# Upstream uses until16 0053 == F60C / 8610. Two little-endian
+# byte predicates here retain the existing native script's until syntax.
+# Do not substitute A-button menu navigation for upstream Start semantics.
+until 0053 == 0C 3600
+until 0054 == F6 1200
+dump baldosa-zoo-upstream-menu-ready
+wait 300
+press start 2
+wait 200
+dump baldosa-zoo-upstream-first-start
+press start 2
+wait 200
+press start 2
+wait 200
+press down 2
 wait 30
-press a 2
-until 009F == 16 1200
-wait 60
-press a 2
-until 0313 == 01 1800
-# Original upstream route begins inputs only after the GO-state byte becomes nonzero.
-# This replaces the arbitrary 60-frame race-relative delay used by attempts 1-2.
+press start 2
+wait 200
+press start 2
+until 0053 == 10 1800
+until 0054 == 86 1800
 until 0E1F != 00 1800
 dump baldosa-zoo-go-phase
 press left 300
@@ -38,9 +37,11 @@ press left 900
 press left+x 20
 press left 6000
 dump baldosa-zoo-after-drive
-# The upstream script waits for the menu NMI handler; our stronger
-# candidate checks the original circuit result screen, 009F == BC.
-until 009F == BC 12000
+# Upstream ends at the 16-bit post-result F60C menu state.
+# Reconstruct the independent source condition; this checkpoint alone
+# does not establish a scored result, progression, or a cold-save witness.
+until 0053 == 0C 12000
+until 0054 == F6 1200
 wait 60
 dump baldosa-zoo-result-candidate
 quit

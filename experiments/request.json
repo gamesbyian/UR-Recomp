@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does a parser-valid real guest Start press/release after arming fixture 1 leave stock VS Results and finish a second scored tournament race?",
+  "question": "Does a isolated stock guest Start (100) press/release after arming fixture 1 leave stock VS Results and finish a second scored tournament race?",
   "expected": "Second guest capture and fixture-1 persisted receipt, or an early source-bound stuck Results witness; no synthetic results.",
   "owner": "windows",
-  "attempt": 9
+  "attempt": 10
 }

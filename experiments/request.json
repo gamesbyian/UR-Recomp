@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "After actual fixture 0 and fixture 1 arm, can the stock guest continue to score fixture 1 before an extended frame horizon?",
-  "expected": "Attempt 3 proved fixture 0 committed and fixture 1 armed; its inherited 50000-frame single-race script quit before the second guest result. Extend to 110000 frames and input to 105000; require real fixture 1 receipt.",
+  "question": "Does restoring alternating stock controller press/release input after fixture 1 is armed allow the actual guest to finish and commit leg 2?",
+  "expected": "Attempt 4 at c83bfd0a1faf284767f850cd265f2afb46a9748e reached fixture 1 ARMED but no second capture by frame 110000. Driver had held 081 continuously for ~100k frames, unlike proven alternating 081/080 first-leg input. Require genuine second capture, fixture receipt and process exit.",
   "owner": "windows",
-  "attempt": 4
+  "attempt": 5
 }

@@ -5068,6 +5068,36 @@ void run_local_tournament_panel_acceptance() {
     const int last_step = continue_legs ? 7 : legs ? 9 : 3;
     if (g_local_tournament_panel_acceptance_step >= last_step) return;
     const int step = g_local_tournament_panel_acceptance_step;
+    // Source-bound discriminator: after Confirm on the first stock Results,
+    // require the guest to leave Results before waiting for a second finish.
+    // A stuck Results surface is a transition failure, not a slow race.
+    static unsigned second_leg_transition_frames = 0;
+    if (continue_legs && step == 6) {
+        ++second_leg_transition_frames;
+        if (second_leg_transition_frames == 120u ||
+            second_leg_transition_frames == 1800u) {
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(stderr,
+                    "UR_LOCAL_TOURNAMENT SECOND_LEG_TRANSITION frames=%u screen=%02X race=%02X surface=%d results=%d capture=%d\n",
+                    second_leg_transition_frames,
+                    g_ram ? static_cast<unsigned>(g_ram[0x009F]) : 0u,
+                    g_ram ? static_cast<unsigned>(g_ram[0x0313]) : 0u,
+                    static_cast<int>(g_surface),
+                    local_tournament_results_surface() ? 1 : 0,
+                    g_multiplayer_capture_tournament_attempt.has_value() ? 1 : 0);
+                std::fflush(stderr);
+            }
+        }
+        if (second_leg_transition_frames == 1800u &&
+            local_tournament_results_surface() &&
+            !g_multiplayer_capture_tournament_attempt) {
+            product_diagnostic("UR_LOCAL_TOURNAMENT SECOND_LEG_STUCK_RESULTS");
+            (void)request_desktop_quit();
+            return;
+        }
+    } else {
+        second_leg_transition_frames = 0;
+    }
     // Leg 2 is armed from the results screen, so that step waits for it.
     if ((!continue_legs || step != 6) &&
         (!local_tournament_panel_context_valid() ||

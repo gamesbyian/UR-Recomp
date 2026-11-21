@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does an independent source-derived Dragster driving route reach the genuine native 0x99 scored result, unlike stalled Zoom Zoo, and what is the first actual failed gameplay predicate?",
-  "expected": "Build actual shipping native game on hosted Linux, execute tests/input/race-finish-dragster.script, retain guest WRAM result checkpoint or first failure. No original/native parity, progression, cold-save, or course credit inferred.",
+  "question": "Does the successful native Dragster result acknowledge through real controller input, and what actual state and persistent files survive a separate cold process?",
+  "expected": "Native scored result plus post-ack WRAM and independently restarted cold-process WRAM and saved-file hashes; no progression or original-USA equivalence claimed without authentic paired witnesses.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

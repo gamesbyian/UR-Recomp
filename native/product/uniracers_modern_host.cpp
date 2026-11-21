@@ -5063,13 +5063,15 @@ void run_local_tournament_panel_acceptance() {
     // "legs": create a two-leg event, race leg 1, then arm leg 2 from the
     // ordinary 2P results screen and quit.
     const bool reopen = std::strcmp(mode, "reopen") == 0;
-    const bool legs = std::strcmp(mode, "legs") == 0;
-    const int last_step = legs ? 9 : 3;
+    const bool continue_legs = std::strcmp(mode, "legs_continue") == 0;
+    const bool legs = std::strcmp(mode, "legs") == 0 || continue_legs;
+    const int last_step = continue_legs ? 7 : legs ? 9 : 3;
     if (g_local_tournament_panel_acceptance_step >= last_step) return;
     const int step = g_local_tournament_panel_acceptance_step;
     // Leg 2 is armed from the results screen, so that step waits for it.
-    if (!local_tournament_panel_context_valid() ||
-        (legs && step >= 3 && !local_tournament_results_surface())) {
+    if ((!continue_legs || step != 6) &&
+        (!local_tournament_panel_context_valid() ||
+         (legs && step >= 3 && !local_tournament_results_surface()))) {
         g_local_tournament_panel_acceptance_frames = 0;
         return;
     }
@@ -5104,6 +5106,16 @@ void run_local_tournament_panel_acceptance() {
         expected = !g_local_tournament_panel_visible &&
             g_local_tournament_session &&
             g_local_tournament_session->launch.pending.has_value();
+    } else if (step == 6 && continue_legs) {
+        // Only the actual stock guest result writer can credit fixture 1.
+        if (!g_local_tournament_session ||
+            g_local_tournament_session->results.results.size() < 2 ||
+            !g_local_tournament_session->results.results[1]) {
+            g_local_tournament_panel_acceptance_frames = 0;
+            return;
+        }
+        expected = !g_local_tournament_panel_visible &&
+            !g_local_tournament_session->launch.pending;
     } else if (step == 6) {
         expected = g_local_tournament_panel_visible &&
             panel.page == Page::Fixtures;
@@ -5139,7 +5151,13 @@ void run_local_tournament_panel_acceptance() {
         // First confirm asks, second ends the unfinished event.
         (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
     }
-    const int key = step == 0 || step == 3 || step == 5 ? SDLK_F4
+    if (continue_legs && step == 6) {
+        product_diagnostic("UR_LOCAL_TOURNAMENT GUEST_SECOND_LEG_COMMITTED");
+        (void)request_desktop_quit();
+        return;
+    }
+    const int key = continue_legs && step == 5 ? SDLK_RETURN
+        : step == 0 || step == 3 || step == 5 ? SDLK_F4
         : reopen ? (step == 1 ? SDLK_LEFT : SDLK_ESCAPE)
         : legs && step == 6 ? SDLK_LEFT
         : SDLK_RETURN;

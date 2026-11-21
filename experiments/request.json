@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "script_linux",
+  "question": "Does an independent source-derived Dragster driving route reach the genuine native 0x99 scored result, unlike stalled Zoom Zoo, and what is the first actual failed gameplay predicate?",
+  "expected": "Build actual shipping native game on hosted Linux, execute tests/input/race-finish-dragster.script, retain guest WRAM result checkpoint or first failure. No original/native parity, progression, cold-save, or course credit inferred.",
+  "owner": "fidelity",
+  "attempt": 1
 }

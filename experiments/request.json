@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
-  "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
-  "owner": "windows",
-  "attempt": 24
+  "kind": "qa01_zoo",
+  "question": "Renew authentic original-USA/native Zoom Zoo complete race result and Bowl followthrough witnesses, inspect missing progression and cold-save acceptance.",
+  "expected": "Real original/native source-pinned event and result/followthrough artifact; no automatic course credit.",
+  "owner": "fidelity",
+  "attempt": 1
 }

@@ -166,16 +166,17 @@ return to the original Zoo complete-event/audio comparison and finish a
 fully played race/result/progression observation. Do not rerun identical
 self-tests or another waveform-correlation calculation.
 
-**Windows:** close the current C04 real two-racer crash/restart path from
-PR #3372 with an opt-in fault-enabled PE, distinct cold process and exact
-source/four-file evidence, then fix the actual game save/selector defect if
-one is demonstrated. When C04 passes or is temporarily blocked, prioritize
-**QA-03 multi-leg tournament behavior**: complete legs 2/3 and a 3+ entrant
-round robin on one source-bound Windows game; assert actual terminal results,
-standings, Records, History and distinct P2 state across cold game processes.
-Use existing journeys and fixtures; change runtime code when a real route
-fails. Hosted proof can advance the game and qualify its own scope, but
-physical-only release conditions remain pending owner-supplied evidence.
+**Windows:** the immediate delivery target is **QA-03 multi-leg
+tournament behavior**, starting with an actually scored second and third
+leg and advancing to a 3+ entrant round robin on a source-bound Windows game.
+Inspect standings, Records, History and distinct P2 state on a real cold
+process. Reuse established controller journeys and change runtime code when
+a real player route fails. The 24-commit C04 test branch #3372 is on HOLD:
+hosted attempt 35 (run 44875961788) never opened the profile chooser, so
+its hard-exit recovery is unobserved and cannot be called an implementation
+fault. Preserve it for a minimal verified F2/SDL input route after QA-03
+has received executable investigation; no source evidence is discarded.
+Hosted tests do not substitute for owner-provided physical signoff.
 
 **Delivery assessment:** report which of these actually happened: new merged
 runtime behavior; completed authentic player journey; first independent

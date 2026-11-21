@@ -5191,7 +5191,25 @@ void run_local_tournament_panel_acceptance() {
         : reopen ? (step == 1 ? SDLK_LEFT : SDLK_ESCAPE)
         : legs && step == 6 ? SDLK_LEFT
         : SDLK_RETURN;
-    (void)ur_uniracers_modern_system_key_down(key, 0, 0);
+    if (continue_legs && step == 5 && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        const bool nav = results_navigation_active();
+        const auto selected = nav
+            ? ur::product::selected_modern_results_action(g_results_navigation_menu)
+            : ur::product::ModernResultsAction::None;
+        std::fprintf(stderr,
+            "UR_LOCAL_TOURNAMENT SECOND_LEG_CONFIRM_ROUTE results_nav=%d selected=%d panel=%d guest_screen=%02X\n",
+            nav ? 1 : 0, static_cast<int>(selected),
+            g_local_tournament_panel_visible ? 1 : 0,
+            g_ram ? static_cast<unsigned>(g_ram[0x009F]) : 0u);
+        std::fflush(stderr);
+    }
+    const int handled = ur_uniracers_modern_system_key_down(key, 0, 0);
+    if (continue_legs && step == 5 && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(stderr,
+            "UR_LOCAL_TOURNAMENT SECOND_LEG_CONFIRM_DISPATCH handled=%d suppress_guest=%d\n",
+            handled, g_suppress_human_input_once ? 1 : 0);
+        std::fflush(stderr);
+    }
     if ((step == 2 || step == 4) && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(stderr,
             "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=%s step=%d armed=%d fixture=%zu visible=%d\n",

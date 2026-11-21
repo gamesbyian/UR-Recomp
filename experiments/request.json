@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does a isolated stock guest Start (100) press/release after arming fixture 1 leave stock VS Results and finish a second scored tournament race?",
-  "expected": "Second guest capture and fixture-1 persisted receipt, or an early source-bound stuck Results witness; no synthetic results.",
+  "question": "Does releasing and repressing the previously continuously held 080 guest action on stock VS Results permit actual fixture 1 gameplay?",
+  "expected": "Real second capture and fixture-1 receipt, or bounded stuck-Results witness; no synthetic results.",
   "owner": "windows",
-  "attempt": 10
+  "attempt": 11
 }

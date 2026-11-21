@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "After real native Dragster scored results and acknowledgement, can the player select a different course and enter its race through actual controller inputs?",
-  "expected": "Retain actual next-course menu/track/in-race checkpoints plus separate cold-process and save evidence; require changed track identity; original-USA parity and course credit remain pending.",
+  "question": "Does the native game finish a second distinct course through genuine driving and results acknowledgement after the first completed race?",
+  "expected": "Two distinct genuine race-result checkpoints and acknowledgements, cold-process persistence witness; original-USA equivalence and formal course credit still pending.",
   "owner": "fidelity",
-  "attempt": 3
+  "attempt": 4
 }

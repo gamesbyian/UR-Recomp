@@ -23,16 +23,13 @@ original=pathlib.Path("tests/input/two-player-joined-records-acceptance.input").
 with open(sys.argv[1],"w") as f:
     f.write(original)
     for index, frame in enumerate(range(4200,105000,24)):
-        # Preserve the proven stock-race press/release cadence. A continuous
-        # 081 word after the first Results screen cannot generate a new edge.
-        # The host Return was unhandled on stock 2P Results.
-        # Deliver real guest Start edges through the controller movie.
-        # The stock joined-input fixture uses 100 for guest Start and 080
-        # for its established baseline. Do not combine Start with 080:
-        # that holds an additional action through the confirm edge.
-        # No synthetic tournament result or direct store mutation.
+        # The earlier 081/080 cadence held the 080 action continuously,
+        # while 100/080 pulsed Start but still never released that action.
+        # On stock VS Results, test a genuine 080 release/repress edge:
+        # 001 is a nonzero, parser-valid release word (000 is rejected).
+        # No result or store mutation is synthesized.
         if 38500 <= frame < 39500:
-            word = "100" if index % 2 == 0 else "080"
+            word = "001" if index % 2 == 0 else "080"
         else:
             word = "081" if index % 2 == 0 else "080"
         f.write(f"{frame}:24:{word}:000\n")

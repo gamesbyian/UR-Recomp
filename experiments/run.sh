@@ -22,7 +22,7 @@ original=pathlib.Path("tests/input/two-player-joined-records-acceptance.input").
 # beyond the first result instead of injecting a synthetic fixture result.
 with open(sys.argv[1],"w") as f:
     f.write(original)
-    for frame in range(4200,15000,24):
+    for frame in range(4200,22000,24):
         f.write(f"{frame}:24:081:000\n")
 PY
 WORK="$HOME/qa03"
@@ -32,7 +32,7 @@ printf 'UR-PROFILE-CATALOG/1\njoin.alpha|0|MIKE\njoin.bravo|1|ANDREW\n' >"$PREF/
 printf 'seen-v1\n' >"$PREF/onboarding-v1.seen"
 printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' >"$WORK/host-state.txt"
 set +e
-env -u UR_MULTIPLAYER_MATCH_ACCEPTANCE -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE SDL_AUDIODRIVER=dummy XDG_DATA_HOME="$WORK/prefs" UR_HOST_STATE_PATH="$WORK/host-state.txt" UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$WORK/multiplayer-runs" UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE=capture UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=legs_continue UR_PRODUCT_DIAGNOSTICS=1 SNESRECOMP_INPUT_FILE="$OUT/qa03-second-leg.input" timeout 200s xvfb-run -a "$ROOT/build/UniracersSNESRecomp" "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" --script "$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.script" >"$OUT/qa03-game.log" 2>&1
+env -u UR_MULTIPLAYER_MATCH_ACCEPTANCE -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE SDL_AUDIODRIVER=dummy XDG_DATA_HOME="$WORK/prefs" UR_HOST_STATE_PATH="$WORK/host-state.txt" UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$WORK/multiplayer-runs" UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE=capture UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=legs_continue UR_PRODUCT_DIAGNOSTICS=1 SNESRECOMP_INPUT_FILE="$OUT/qa03-second-leg.input" timeout 390s xvfb-run -a "$ROOT/build/UniracersSNESRecomp" "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" --script "$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.script" >"$OUT/qa03-game.log" 2>&1
 RC=$?
 set -e
 printf 'exit=%s source=%s\n' "$RC" "$UR_EXPERIMENT_SOURCE_SHA" >"$OUT/status.txt"

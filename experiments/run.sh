@@ -28,7 +28,7 @@ with open(sys.argv[1],"w") as f:
         # The host Return was unhandled on stock 2P Results.
         # Deliver real guest Start edges through the controller movie.
         # No synthetic tournament result or direct store mutation.
-        if 42000 <= frame < 45000:
+        if 38500 <= frame < 39500:
             word = "100" if index % 2 == 0 else "000"
         else:
             word = "081" if index % 2 == 0 else "080"

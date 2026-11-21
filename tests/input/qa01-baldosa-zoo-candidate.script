@@ -3,27 +3,27 @@
 # commit 10b864b9d14a7b7416dd909eb7b054c88faef101.
 # Entry sequence uses our established ui-circuit-result-route.script grammar.
 # No complete native/reference result is claimed by adding this file.
-until 009F == D7 3600
-wait 60
-press a 2
-until 009F == 3C 1200
-wait 60
-press a 2
-until 009F == 6D 1200
-wait 60
-press a 2
-until 009F == F6 1200
-wait 60
-press down 1
+# Follow upstream Mike / Crawler Tour / Zoom Zoo menu input order.
+# Upstream 16-bit state 0053 == F60C (little-endian bytes 0C F6).
+until 0053 == 0C 3600
+until 0054 == F6 3600
+wait 300
+press start 2
+wait 200
+press start 2
+wait 200
+press start 2
+wait 200
+press down 2
 wait 30
-press a 2
-until 009F == 16 1200
-wait 60
-press a 2
-until 0313 == 01 1800
-# Original upstream route begins inputs only after the GO-state byte becomes nonzero.
-# This replaces the arbitrary 60-frame race-relative delay used by attempts 1-2.
-until 0E1F != 00 1800
+press start 2
+wait 200
+press start 2
+# Upstream GO precondition: 0053 == 8610 (bytes 10 86).
+until 0053 == 10 18000
+until 0054 == 86 18000
+dump baldosa-zoo-before-go
+until 0E1F != 00 18000
 dump baldosa-zoo-go-phase
 press left 300
 press left+up 20

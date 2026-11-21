@@ -123,4 +123,16 @@ dump race-results
 press a 2
 wait 180
 dump after-results-ack
+# Attempt the next actual event from the observed F6 track menu, without guest-state injection.
+press down 2
+wait 60
+dump next-track-highlight
+press a 2
+until 009F == 16 1200
+wait 60
+dump next-now-playing
+press a 2
+until 0313 == 01 1800
+wait 60
+dump next-race-entered
 quit

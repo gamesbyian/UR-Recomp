@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the successful native Dragster result acknowledge through real controller input, and what actual state and persistent files survive a separate cold process?",
-  "expected": "Native scored result plus post-ack WRAM and independently restarted cold-process WRAM and saved-file hashes; no progression or original-USA equivalence claimed without authentic paired witnesses.",
+  "question": "After real native Dragster scored results and acknowledgement, can the player select a different course and enter its race through actual controller inputs?",
+  "expected": "Retain actual next-course menu/track/in-race checkpoints plus separate cold-process and save evidence; require changed track identity; original-USA parity and course credit remain pending.",
   "owner": "fidelity",
-  "attempt": 2
+  "attempt": 3
 }

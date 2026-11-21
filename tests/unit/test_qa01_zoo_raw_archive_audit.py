@@ -29,7 +29,7 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
         (self.root / name).write_text(
             json.dumps(obj, indent=2) + "\n", encoding="utf-8")
 
-    def make(self, *, mesh_byte_difference=False):
+    def make(self, *, mesh_byte_difference=False, native_terminal_relative=5162):
         self.assertEqual(len(OFFSETS), target.CHECKPOINT_COUNT)
         original = bytes(131072)
         modified = bytearray(original)
@@ -68,10 +68,12 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
             for side, label in (("ref", "original"), ("native", "native")):
                 (self.base / side / (tag + ".wram.bin")).write_bytes(original)
                 (self.base / side / (tag + ".sram.bin")).write_bytes(sram)
-                logs[side].append(f"script f={1017 + 5163 + off} dump {tag} ok")
+                terminal_relative = 5163 if side == "ref" else native_terminal_relative
+                host = 1017 + terminal_relative + off
+                logs[side].append(f"script f={host} dump {tag} ok")
                 guests[label] = {
                     "menu": 0, "track": 0, "in_race": 0,
-                    "actual_host_frame": 1017 + 5163 + off,
+                    "actual_host_frame": host,
                     "full_wram_bytes": 131072,
                     "wram_sha256": target.digest(original),
                     "sram_sha256": target.digest(sram),
@@ -129,6 +131,13 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
             "native_backend": "pinned-baldosa",
             "reference_entry": 1017,
             "native_entry": 1017,
+            "comparison": {
+                "terminal_result_guest_frame": {
+                    "reference_relative": 5163,
+                    "native_relative": native_terminal_relative,
+                },
+                "terminal_result_frame_matched": native_terminal_relative == 5163,
+            },
             "original_source_event": {
                 "original_entry_frame": 3190,
                 "original_result_frame": 8353,
@@ -268,6 +277,47 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
         result = target.audit(self.root)
         self.assertEqual(result["full_zoo_mesh_unmasked_differing_byte_occurrences"], 1)
         self.assertEqual(result["independent_usa_event_adjudication"], "HOLD")
+
+    def test_native_next_bowl_clock_must_match_observed_native_result_phase(self):
+        self.make()
+        path = self.base / "native.log"
+        original = path.read_text(encoding="utf-8")
+        self.assertIn("script f=6442 dump zoo-next-bowl-263 ok", original)
+        path.write_text(original.replace(
+            "script f=6442 dump zoo-next-bowl-263 ok",
+            "script f=6443 dump zoo-next-bowl-263 ok"), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "authentic guest dump host clock"):
+            target.audit(self.root)
+
+    def test_archived_equal_phase_and_new_early_native_phase_both_keep_real_clocks(self):
+        # RF076 retained original/native archive: both phases 5163.
+        # Later genuine Zoo capture: original 5163, native 5162.
+        # Both retain raw/log identity; neither is silently phase-shifted.
+        for native_phase in (5163, 5162):
+            with self.subTest(native_phase=native_phase):
+                self.make(native_terminal_relative=native_phase)
+                result = target.audit(self.root)
+                self.assertEqual(result["accepted_usa_events"], 0)
+                self.assertEqual(result["next_bowl_full_wram_and_sram_pairs_rehashed"], 11)
+
+    def test_forged_native_result_phase_is_not_an_automatic_frame_waiver(self):
+        report = self.make(native_terminal_relative=5162)
+        report["comparison"]["terminal_result_guest_frame"]["native_relative"] = 5163
+        report["comparison"]["terminal_result_frame_matched"] = True
+        self.save_report(report)
+        with self.assertRaisesRegex(ValueError, "authentic guest dump host clock"):
+            target.audit(self.root)
+        report = self.make(native_terminal_relative=5162)
+        report["comparison"]["terminal_result_frame_matched"] = True
+        self.save_report(report)
+        with self.assertRaisesRegex(ValueError, "observed Zoo terminal phase"):
+            target.audit(self.root)
+        report = self.make(native_terminal_relative=5162)
+        report["comparison"]["terminal_result_guest_frame"]["native_relative"] = 5161
+        report["comparison"]["terminal_result_frame_matched"] = False
+        self.save_report(report)
+        with self.assertRaisesRegex(ValueError, "observed Zoo terminal phase"):
+            target.audit(self.root)
 
     def test_rank_checksum_uses_complete_original_150_word_table(self):
         battery = bytearray(8192)

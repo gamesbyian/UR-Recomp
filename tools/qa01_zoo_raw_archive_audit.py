@@ -186,6 +186,29 @@ def audit(root: Path) -> dict:
             isinstance(handoff.get("samples"), list) and
             len(handoff["samples"]) == len(BOWL_OFFSETS),
             "source-authentic Zoo next Bowl proof absent")
+    # Independently observed result phase differs among genuine retained
+    # captures. Original USA is always 5163; the native result has been
+    # observed at 5162 (2026 producer) and 5163 (earlier pinned 2014 replay).
+    # The producer must name the phase, and both the native script host-clock
+    # and rehashed raw guest bytes must agree. Never normalize away a frame
+    # disagreement or silently force either producer to the other's phase.
+    comparison = report.get("comparison")
+    phase = comparison.get("terminal_result_guest_frame") if isinstance(comparison, dict) else None
+    require(isinstance(phase, dict) and
+            set(phase) == {"reference_relative", "native_relative"} and
+            type(phase["reference_relative"]) is int and
+            type(phase["native_relative"]) is int and
+            phase["reference_relative"] == 5163 and
+            phase["native_relative"] in (5162, 5163) and
+            comparison.get("terminal_result_frame_matched") is
+                (phase["reference_relative"] == phase["native_relative"]),
+            "missing/contradictory independently observed Zoo terminal phase")
+    terminal = report.get("zoo_terminal_host_phase")
+    if isinstance(terminal, dict):
+        require(terminal.get("primary_until_result_relative_frames") ==
+                {"reference": phase["reference_relative"],
+                 "native": phase["native_relative"]},
+                "fixed-window Zoo terminal trace contradicts result phase")
     unequal_sram = []
     handoff_wram_unequal = []
     earned_valid = []
@@ -200,7 +223,10 @@ def audit(root: Path) -> dict:
                 "incomplete two-guest Zoo next-Bowl evidence")
         actual = {}
         for side, name in (("ref", "original"), ("native", "native")):
-            host = report[{"ref": "reference_entry", "native": "native_entry"}[side]] + 5163 + offset
+            # Use this source-bound run's observed terminal clock for each
+            # guest; the host log and raw WRAM/SRAM are then verified below.
+            terminal_relative = phase["reference_relative" if side == "ref" else "native_relative"]
+            host = report[{"ref": "reference_entry", "native": "native_entry"}[side]] + terminal_relative + offset
             actual[side] = guest_bytes(root, side, tag, logs[side], host)
             g = guests[name]
             wram, sram = actual[side]

@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does real guest input complete QA-03 fixture 1 after first result and fixture 1 arming without End Event?",
-  "expected": "Use established 390s genuine stock 2P race budget; determine whether fixture 0 reaches Results, then whether fixture 1 completes without End Event. Retain diagnostics on failure.",
+  "question": "Does the real joined 2P tournament stay alive after fixture 0, arm fixture 1 and complete its guest race?",
+  "expected": "Prior attempt 2 proved fixture 0 genuinely committed but acceptance requested SDL_QUIT; prevent premature acceptance quit, observe exact guest fixture 1 and inspect any next failure.",
   "owner": "windows",
-  "attempt": 2
+  "attempt": 3
 }

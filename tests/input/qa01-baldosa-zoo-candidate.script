@@ -25,6 +25,7 @@ until 0054 == 86 1800
 until 0E1F != 00 1800
 dump baldosa-zoo-go-phase
 press left 300
+dump zoo-left-300
 press left+up 20
 press left 200
 press left+down 20
@@ -34,8 +35,10 @@ press left 200
 press left+r 40
 press left+y 20
 press left 900
+dump zoo-left-900-complete
 press left+x 20
 press left 6000
+dump zoo-left-6000-complete
 dump baldosa-zoo-after-drive
 # Upstream ends at the 16-bit post-result F60C menu state.
 # Reconstruct the independent source condition; this checkpoint alone

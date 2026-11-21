@@ -34,7 +34,14 @@ root=pathlib.Path(sys.argv[1]); out=pathlib.Path(sys.argv[2])
 records=[]
 for f in sorted(root.glob("*.wram.bin")):
     data=f.read_bytes()
-    records.append(dict(name=f.stem,size=len(data),sha256=hashlib.sha256(data).hexdigest(),menu=data[0x9f] if len(data)>0x9f else None, in_race=data[0x313] if len(data)>0x313 else None))
+    def u16(addr): return int.from_bytes(data[addr:addr+2], "little") if len(data) >= addr+2 else None
+    records.append(dict(
+        name=f.stem, size=len(data), sha256=hashlib.sha256(data).hexdigest(),
+        menu=data[0x9f], track=data[0xce], in_race=data[0x313],
+        guest_state_word_0053=u16(0x53),
+        direct_page_c6=u16(0xc6), direct_page_c8=u16(0xc8),
+        direct_page_c0_cf=data[0xc0:0xd0].hex(),
+    ))
 (out/"checkpoints.json").write_text(json.dumps(records,indent=2))
 print(json.dumps(records))
 PY

@@ -2,7 +2,7 @@
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
   "question": "Does real guest input complete QA-03 fixture 1 after first result and fixture 1 arming without End Event?",
-  "expected": "Build native source-bound game, drive actual second leg; preserve game log and first failed transition, fail unless second fixture really credited.",
+  "expected": "Use established 390s genuine stock 2P race budget; determine whether fixture 0 reaches Results, then whether fixture 1 completes without End Event. Retain diagnostics on failure.",
   "owner": "windows",
-  "attempt": 1
+  "attempt": 2
 }

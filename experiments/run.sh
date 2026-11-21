@@ -22,8 +22,11 @@ original=pathlib.Path("tests/input/two-player-joined-records-acceptance.input").
 # beyond the first result instead of injecting a synthetic fixture result.
 with open(sys.argv[1],"w") as f:
     f.write(original)
-    for frame in range(4200,105000,24):
-        f.write(f"{frame}:24:081:000\n")
+    for index, frame in enumerate(range(4200,105000,24)):
+        # Preserve the proven stock-race press/release cadence. A continuous
+        # 081 word after the first Results screen cannot generate a new edge.
+        word = "081" if index % 2 == 0 else "080"
+        f.write(f"{frame}:24:{word}:000\n")
 PY
 printf 'turbo on\nwait 110000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
 WORK="$HOME/qa03"

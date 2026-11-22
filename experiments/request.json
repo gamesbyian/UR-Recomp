@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Which stock VS Results guest RAM state remains unchanged while resolved controller input is delivered after fixture 0?",
-  "expected": "Capture corrected stock-menu and race-state labels plus nearby RAM state alongside resolved controller words; identify a specific game/driver transition defect or complete real second fixture.",
+  "question": "Can the real F4/Enter tournament helper arm fixture 1 without End Event, then can guest controls finish the second race?",
+  "expected": "Existing acceptance helper recognizes legs_continue, preserves event after fixture 1 is armed, and actual guest gameplay commits fixture 1; otherwise report first stock Results transition failure.",
   "owner": "windows",
-  "attempt": 15
+  "attempt": 16
 }

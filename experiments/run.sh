@@ -27,7 +27,7 @@ s=path.read_text()
 # inert host action in the ephemeral experiment, leaving actual guest input
 # responsible for navigation and fixture result capture.
 old_confirm = "const int key = continue_legs && step == 5 ? SDLK_RETURN\n        : step == 0 || step == 3 || step == 5 ? SDLK_F4"
-new_confirm = "const int key = step == 0 || step == 3 || step == 5 ? SDLK_F4"
+new_confirm = "if (continue_legs && step == 5) {\\n        product_diagnostic(\\\"UR_LOCAL_TOURNAMENT SECOND_LEG_HOST_ACTION_SKIPPED\\\");\\n        return;\\n    }\\n    const int key = step == 0 || step == 3 || step == 5 ? SDLK_F4"
 assert s.count(old_confirm) == 1, "stock Results host key route changed"
 s = s.replace(old_confirm, new_confirm, 1)
 anchor="    g_surface = decision.surface;\n"

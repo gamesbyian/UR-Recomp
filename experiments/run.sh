@@ -30,12 +30,20 @@ trace='''    if (stats && stats->frame >= 38000 && stats->frame <= 41000 &&
          stats->controller_word != g_qa03_previous_controller_word ||
          g_surface != g_qa03_previous_surface)) {
         std::fprintf(stderr,
-            "QA03_RESOLVED_INPUT frame=%llu word=%06X screen=%02X race=%02X surface=%d\\n",
+            "QA03_RESOLVED_INPUT frame=%llu word=%06X stock_menu=%02X race_state=%02X surface=%d selection_ram_0090_00A7=%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X\\n",
             static_cast<unsigned long long>(stats->frame),
             static_cast<unsigned>(stats->controller_word),
             static_cast<unsigned>(g_ram[0x0313]),
             static_cast<unsigned>(g_ram[0x009F]),
-            static_cast<int>(g_surface));
+            static_cast<int>(g_surface),
+            static_cast<unsigned>(g_ram[0x0090]),
+            static_cast<unsigned>(g_ram[0x0094]),
+            static_cast<unsigned>(g_ram[0x0098]),
+            static_cast<unsigned>(g_ram[0x009C]),
+            static_cast<unsigned>(g_ram[0x00A0]),
+            static_cast<unsigned>(g_ram[0x00A4]),
+            static_cast<unsigned>(g_ram[0x00A6]),
+            static_cast<unsigned>(g_ram[0x00A7]));
     }
     if (stats) {
         g_qa03_previous_controller_word = stats->controller_word;

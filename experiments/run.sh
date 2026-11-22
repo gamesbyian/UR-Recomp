@@ -111,3 +111,27 @@ print('NATIVE_FRAME_INVENTORY',json.dumps({'status':status,'frames':len(frames)}
 if status: raise SystemExit('NATIVE_EXECUTION_FAILED')
 if not frames: raise SystemExit('NATIVE_FRAMES_MISSING')
 PY_NATIVE
+
+# Keep phase-relevant source frames and native hashes, not unbounded raw dumps.
+# The hosted evidence service enforces a strict 64 MiB ceiling.
+python3 - "$OUT" <<'PY_BOUND'
+from pathlib import Path
+import hashlib,json,shutil,sys
+root=Path(sys.argv[1]); dumps=root/'native/dumps'
+manifest=[]
+if dumps.exists():
+    for p in sorted(dumps.rglob('*')):
+        if p.is_file():
+            manifest.append({'path':str(p.relative_to(dumps)),'bytes':p.stat().st_size,
+                             'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
+(root/'native/dump-hashes.json').write_text(json.dumps(manifest,indent=2)+'\n')
+shutil.rmtree(dumps,ignore_errors=True)
+# Preserve exact original inventory/hashes and the source RGB frames and OAM,
+# but omit bulky original WRAM/VRAM and PPU write payloads after hashing.
+for p in (root/'frames').iterdir():
+    if p.name.endswith(('.wram.bin','.vram.bin','.sram.bin','.ppuw.tsv','.regs.json')):
+        p.unlink()
+total=sum(p.stat().st_size for p in root.rglob('*') if p.is_file())
+print('BOUNDED_EVIDENCE_BYTES',total)
+if total > 60*1024*1024: raise SystemExit('BOUNDED_EVIDENCE_TOO_LARGE')
+PY_BOUND

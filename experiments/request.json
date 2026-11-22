@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Can actual native WIDE-07 execution on the identical route produce phase-adjacent BMP frames to compare with ten pinned original-USA OAM/PPU checkpoints?",
-  "expected": "Build native with existing widescreen hooks, retain native frame hashes and nearby 300/301, 450/451, 600/601, 750/751 BMPs, report genuine native run status without awarding parity or course credit.",
+  "question": "Does native WIDE-07 capture build and run after disabling unavailable SDL3 XTEST dependency?",
+  "expected": "Native frame evidence or next exact build/runtime failure; no phase parity or course credit inferred.",
   "owner": "fidelity",
-  "attempt": 2
+  "attempt": 3
 }

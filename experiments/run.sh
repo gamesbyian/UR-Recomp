@@ -23,16 +23,7 @@ path=Path("native/product/uniracers_modern_host.cpp")
 if not path.is_file():
     raise SystemExit(f"missing repository-owned product host: {path}")
 s=path.read_text()
-# Acceptance "legs_continue" was previously unrecognized by product host:
-# activate the real F4/Enter tournament journey, but do not End Event.
-old='''    const bool legs = std::strcmp(mode, "legs") == 0;
-    const int last_step = legs ? 9 : 3;'''
-new='''    const bool continue_legs = std::strcmp(mode, "legs_continue") == 0;
-    const bool legs = std::strcmp(mode, "legs") == 0 || continue_legs;
-    const int last_step = continue_legs ? 5 : (legs ? 9 : 3);'''
-assert s.count(old)==1, "acceptance source changed"
-s=s.replace(old,new,1)
-anchor="    g_surface = decision.surface;\n"
+# The branch-owned native product host already implements legs_continue and\n# its stock Results confirmation; do not patch a stale duplicate here.\nanchor="    g_surface = decision.surface;\n"
 assert s.count(anchor)==1, "missing or duplicate game-surface anchor"
 trace='''    if (stats && stats->frame >= 38000 && stats->frame <= 41000 &&
         (stats->frame % 24 == 0 ||

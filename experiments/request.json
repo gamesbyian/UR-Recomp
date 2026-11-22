@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the compiled post-resolution controller trace show a guest action on stock VS Results during fixture 1 continuation?",
-  "expected": "Observe frame-bound controller word and Results transition, then obtain genuine fixture 1 result or first causal source failure.",
+  "question": "Which stock VS Results guest RAM state remains unchanged while resolved controller input is delivered after fixture 0?",
+  "expected": "Capture corrected stock-menu and race-state labels plus nearby RAM state alongside resolved controller words; identify a specific game/driver transition defect or complete real second fixture.",
   "owner": "windows",
-  "attempt": 14
+  "attempt": 15
 }

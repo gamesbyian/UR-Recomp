@@ -52,3 +52,61 @@ print('WIDE07_OBJ_PHASE',json.dumps(result,sort_keys=True))
 if status: raise SystemExit('ORIGINAL_EXECUTION_FAILED')
 if not any('oam' in k.lower() for v in result['checkpoints'].values() for k in v['files']): raise SystemExit('OAM_NOT_EMITTED: inspect source snesref dump adapter and extend it')
 PY
+
+
+# Capture corresponding native guest checkpoints on the same input route.
+# A native host-frame number is NOT presumed equivalent to an original guest frame.
+NATIVE_ROOT="/tmp/ur-wide07-native"
+PROJECT="$NATIVE_ROOT/UniracersSNESRecomp"
+mkdir -p "$NATIVE_ROOT" "$OUT/native/frames" "$OUT/native/dumps"
+python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2 >"$OUT/native/bootstrap.log" 2>&1
+FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+ --rom "$ROM" --dir "$NATIVE_ROOT" --name Uniracers --players 2 --yes \
+ --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay --no-github \
+ --no-submodules --generate --no-build >"$OUT/native/setup.log" 2>&1
+python3 tools/seed_native_widescreen_aot.py "$PROJECT/recomp" >"$OUT/native/seed.log" 2>&1
+python3 "$FRAMEWORK/snesrecomp_cli.py" generate --rom "$ROM" \
+ --project-root "$PROJECT" --cfg-dir recomp --out-dir src/gen \
+ --funcs-h recomp/funcs.h --cfg-roots >"$OUT/native/generate.log" 2>&1
+python3 tools/patch_widescreen_probe_host.py "$PROJECT/src/main.c" >"$OUT/native/patch.log" 2>&1
+python3 tools/apply_native_widescreen_hook.py "$PROJECT/src/gen" \
+ --json-out "$OUT/native/hook.json" >"$OUT/native/hook.log" 2>&1
+python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only >"$OUT/native/sdl3.log" 2>&1
+cmake -S "$PROJECT" -B "$PROJECT/build" -G Ninja \
+ -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ROOT="$FRAMEWORK" \
+ -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON \
+ -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
+ >"$OUT/native/cmake.log" 2>&1
+cmake --build "$PROJECT/build" -j2 >"$OUT/native/build.log" 2>&1
+EXE_NATIVE="$PROJECT/build/UniracersSNESRecomp"
+sha256sum "$EXE_NATIVE" >>"$OUT/provenance.sha256"
+set +e
+SDL_AUDIODRIVER=dummy URRECOMP_WS_MARGIN=48 URRECOMP_WS_NATIVE_TRACE=1 \
+ SNESRECOMP_DUMP_DIR="$OUT/native/dumps" \
+ SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+ SNESRECOMP_FRAMEDUMP_START=1 SNESRECOMP_FRAMEDUMP_END=1200 \
+ timeout --signal=TERM --kill-after=10s 480s xvfb-run -a \
+ "$EXE_NATIVE" "$ROM" --script "$SCRIPT" --framedump "$OUT/native/frames" \
+ >"$OUT/native/run.log" 2>&1
+native_status=$?
+set -e
+printf '%s\\n' "$native_status" >"$OUT/native/exit.txt"
+python3 - "$OUT" "$native_status" <<'PY_NATIVE'
+import hashlib,json,pathlib,sys
+root=pathlib.Path(sys.argv[1]); status=int(sys.argv[2])
+frames=sorted((root/'native/frames').glob('frame_*.bmp'))
+# Retain bounded representative frames; keep full hashes and original guest inventory.
+inventory={'schema':'ur-wide07-native-frame-inventory/1','native_exit':status,
+           'native_frame_count':len(frames),'native_frames':[
+           {'name':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
+           for p in frames]}
+(root/'native/inventory.json').write_text(json.dumps(inventory,indent=2)+'\\n')
+for p in frames:
+    frame=int(p.stem.split('_')[-1])
+    if frame not in (299,300,301,302,449,450,451,452,599,600,601,602,749,750,751,752,899,900,901,902):
+        p.unlink()
+print('NATIVE_FRAME_INVENTORY',json.dumps({'status':status,'frames':len(frames)}))
+if status: raise SystemExit('NATIVE_EXECUTION_FAILED')
+if not frames: raise SystemExit('NATIVE_FRAMES_MISSING')
+PY_NATIVE

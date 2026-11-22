@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does actual post-resolution controller input reach the stock VS Results guest on fixture 1 continuation?",
+  "question": "Does the compiled post-resolution controller trace show a guest action on stock VS Results during fixture 1 continuation?",
   "expected": "Observe frame-bound controller word and Results transition, then obtain genuine fixture 1 result or first causal source failure.",
   "owner": "windows",
-  "attempt": 13
+  "attempt": 14
 }

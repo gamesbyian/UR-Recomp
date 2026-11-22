@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Can the real F4/Enter tournament helper arm fixture 1 without End Event, then can guest controls finish the second race?",
-  "expected": "Existing acceptance helper recognizes legs_continue, preserves event after fixture 1 is armed, and actual guest gameplay commits fixture 1; otherwise report first stock Results transition failure.",
+  "question": "Does the branch-native stock Results confirmation advance actual second-leg gameplay after removing the stale experiment patch?",
+  "expected": "Run the existing game to genuine fixture 1 result or report the first causal Results transition failure; no synthetic award.",
   "owner": "windows",
-  "attempt": 16
+  "attempt": 17
 }

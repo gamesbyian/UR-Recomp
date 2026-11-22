@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Can genuine release/repress guest-controller edges leave stock 2P Results and score second tournament fixture, with inert host Enter removed?",
-  "expected": "Actual guest transition and persisted fixture 1, otherwise precise Results/input failure; no synthetic results.",
+  "question": "Can stock VS Results advance to a genuinely scored second tournament fixture when the experiment stops reopening the host panel?",
+  "expected": "Observe guest transition and second fixture receipt, or isolate the first game-level failure without synthetic results.",
   "owner": "windows",
-  "attempt": 19
+  "attempt": 20
 }

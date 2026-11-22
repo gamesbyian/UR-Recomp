@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does native WIDE-07 capture build and run after disabling unavailable SDL3 XTEST dependency?",
-  "expected": "Native frame evidence or next exact build/runtime failure; no phase parity or course credit inferred.",
+  "question": "Can bounded original/native WIDE-07 adjacent frame evidence survive artifact retention?",
+  "expected": "Capture real native frames and source hashes, retaining <64 MiB without altering game acceptance.",
   "owner": "fidelity",
-  "attempt": 3
+  "attempt": 4
 }

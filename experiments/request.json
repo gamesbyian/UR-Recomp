@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does corrected experiment instrumentation now execute stock two-player Results confirmation and genuinely score fixture 1?",
-  "expected": "Require guest-raced second fixture commit, otherwise retain first causal game/driver failure; no synthetic result.",
+  "question": "Can genuine release/repress guest-controller edges leave stock 2P Results and score second tournament fixture, with inert host Enter removed?",
+  "expected": "Actual guest transition and persisted fixture 1, otherwise precise Results/input failure; no synthetic results.",
   "owner": "windows",
-  "attempt": 18
+  "attempt": 19
 }

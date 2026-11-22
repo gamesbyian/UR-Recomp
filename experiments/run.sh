@@ -44,7 +44,7 @@ trace='''    if (stats && stats->frame >= 38000 && stats->frame <= 41000 &&
 '''
 # Local function statics avoid changing exported interfaces or game state.
 trace=trace.replace("g_qa03_previous_controller_word", "qa03_previous_controller_word").replace("g_qa03_previous_surface", "qa03_previous_surface")
-trace="    static uint32_t qa03_previous_controller_word = 0;\\n    static int qa03_previous_surface = -1;\\n".replace("\\\\n","\\n")+trace
+trace="    static uint32_t qa03_previous_controller_word = 0;\n    static int qa03_previous_surface = -1;\n".replace("\\n", "\n")+trace
 s=s.replace(anchor,anchor+trace,1)
 path.write_text(s)
 print(f"QA03 instrumented source: {path}")

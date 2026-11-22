@@ -80,12 +80,12 @@ with open(sys.argv[1],"w") as f:
     for index, frame in enumerate(range(4200,105000,24)):
         # The earlier 081/080 cadence held the 080 action continuously,
         # while 100/080 pulsed Start but still never released that action.
-        # On stock VS Results, test a genuine 080 release/repress edge:
+        # Source-bound VS route tests Start (100) as confirmation, with release edges:
         # 001 is a nonzero, parser-valid release word (000 is rejected).
         # No result or store mutation is synthesized.
-        # Release the stock guest button between presses from the first
-        # continuation frame. 081/080 never released bit 080.
-        word = "001" if index % 2 == 0 else "080"
+        # Release Start between presses from the first
+        # continuation frame. Prior 081/080 never tested Start.
+        word = "001" if index % 2 == 0 else "100"
         f.write(f"{frame}:24:{word}:000\n")
 PY
 printf 'turbo on\nwait 110000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"

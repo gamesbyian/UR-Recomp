@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Do adjacent original-USA moving-course frames reveal a one-frame OBJ/PPU phase transition explaining the transient blue-arrow boundary?",
-  "expected": "Ten source-bound original frame/OAM/PPU checkpoints at race, 300/301, 450/451, 600/601, 750/751 and 900 right-input frames; classify genuine adjacent phase transitions, retain hashes and logs.",
+  "question": "Can actual native WIDE-07 execution on the identical route produce phase-adjacent BMP frames to compare with ten pinned original-USA OAM/PPU checkpoints?",
+  "expected": "Build native with existing widescreen hooks, retain native frame hashes and nearby 300/301, 450/451, 600/601, 750/751 BMPs, report genuine native run status without awarding parity or course credit.",
   "owner": "fidelity",
-  "attempt": 1
+  "attempt": 2
 }

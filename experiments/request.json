@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does releasing and repressing the previously continuously held 080 guest action on stock VS Results permit actual fixture 1 gameplay?",
-  "expected": "Real second capture and fixture-1 receipt, or bounded stuck-Results witness; no synthetic results.",
+  "question": "Does the resolved RtlRunFrame controller word reach the stock VS Results screen during fixture-1 continuation, and what guest transition follows?",
+  "expected": "Exact resolved controller words correlated with screen F9 and the first attempted transition; require genuine second result, no synthetic store mutation.",
   "owner": "windows",
-  "attempt": 11
+  "attempt": 12
 }

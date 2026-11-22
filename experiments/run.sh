@@ -19,11 +19,9 @@ python3 - "$ROOT" <<'PY'
 from pathlib import Path
 import sys
 root=Path(sys.argv[1])
-path=root/"src"/"uniracers_modern_host.cpp"
-if not path.exists():
-    candidates=list(root.rglob("uniracers_modern_host.cpp"))
-    if len(candidates)!=1: raise SystemExit(f"expected one host source: {candidates}")
-    path=candidates[0]
+path=Path("native/product/uniracers_modern_host.cpp")
+if not path.is_file():
+    raise SystemExit(f"missing repository-owned product host: {path}")
 s=path.read_text()
 anchor="    g_surface = decision.surface;\n"
 assert s.count(anchor)==1, "missing or duplicate game-surface anchor"

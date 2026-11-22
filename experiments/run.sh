@@ -76,6 +76,7 @@ python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only >"$OUT/n
 cmake -S "$PROJECT" -B "$PROJECT/build" -G Ninja \
  -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ROOT="$FRAMEWORK" \
  -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON \
+ -DSDL_X11_XTEST=OFF \
  -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
  >"$OUT/native/cmake.log" 2>&1
 cmake --build "$PROJECT/build" -j2 >"$OUT/native/build.log" 2>&1

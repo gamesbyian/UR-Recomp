@@ -13,6 +13,44 @@ SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" 
 ROOT="$TMP/UniracersSNESRecomp"
 python3 tools/prepare_native_widescreen_product.py --framework "$FRAMEWORK" --project "$ROOT" --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" --json-out "$OUT/prepare.json"
 python3 tools/patch_modern_product_host.py "$ROOT/src/main.c" --game-rtl "$ROOT/src/game_rtl.c" --cmake "$ROOT/CMakeLists.txt"
+# Opt-in, experiment-branch-only observation of the actual word delivered by
+# RtlRunFrame and the stock guest screen, without changing game behavior.
+python3 - "$ROOT" <<'PY'
+from pathlib import Path
+import sys
+root=Path(sys.argv[1])
+path=root/"src"/"uniracers_modern_host.cpp"
+if not path.exists():
+    candidates=list(root.rglob("uniracers_modern_host.cpp"))
+    if len(candidates)!=1: raise SystemExit(f"expected one host source: {candidates}")
+    path=candidates[0]
+s=path.read_text()
+anchor="    g_surface = decision.surface;\n"
+assert s.count(anchor)==1, "missing or duplicate game-surface anchor"
+trace='''    if (stats && stats->frame >= 38000 && stats->frame <= 41000 &&
+        (stats->frame % 24 == 0 ||
+         stats->controller_word != g_qa03_previous_controller_word ||
+         g_surface != g_qa03_previous_surface)) {
+        std::fprintf(stderr,
+            "QA03_RESOLVED_INPUT frame=%llu word=%06X screen=%02X race=%02X surface=%d\\n",
+            static_cast<unsigned long long>(stats->frame),
+            static_cast<unsigned>(stats->controller_word),
+            static_cast<unsigned>(g_ram[0x0313]),
+            static_cast<unsigned>(g_ram[0x009F]),
+            static_cast<int>(g_surface));
+    }
+    if (stats) {
+        g_qa03_previous_controller_word = stats->controller_word;
+        g_qa03_previous_surface = g_surface;
+    }
+'''
+# Local function statics avoid changing exported interfaces or game state.
+trace=trace.replace("g_qa03_previous_controller_word", "qa03_previous_controller_word").replace("g_qa03_previous_surface", "qa03_previous_surface")
+trace="    static uint32_t qa03_previous_controller_word = 0;\\n    static int qa03_previous_surface = -1;\\n".replace("\\\\n","\\n")+trace
+s=s.replace(anchor,anchor+trace,1)
+path.write_text(s)
+print(f"QA03 instrumented source: {path}")
+PY
 cmake -S "$ROOT" -B "$ROOT/build" -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ROOT="$FRAMEWORK" -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
 cmake --build "$ROOT/build" -j"$(nproc)"
 python3 - "$OUT/qa03-second-leg.input" <<'PY'
@@ -46,7 +84,7 @@ env -u UR_MULTIPLAYER_MATCH_ACCEPTANCE -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE 
 RC=$?
 set -e
 printf 'exit=%s source=%s\n' "$RC" "$UR_EXPERIMENT_SOURCE_SHA" >"$OUT/status.txt"
-grep -E 'UR_LOCAL_TOURNAMENT|UR_MULTIPLAYER_MATCH|UR_PROFILE_UI|first frame simulated' "$OUT/qa03-game.log" | tail -n 100 >"$OUT/qa03-markers.txt" || true
+grep -E 'UR_LOCAL_TOURNAMENT|UR_MULTIPLAYER_MATCH|UR_PROFILE_UI|QA03_RESOLVED_INPUT|first frame simulated' "$OUT/qa03-game.log" | tail -n 100 >"$OUT/qa03-markers.txt" || true
 grep -q 'UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED' "$OUT/qa03-game.log"
 grep -q 'UR_LOCAL_TOURNAMENT ARMED fixture=1' "$OUT/qa03-game.log"
 grep -q 'UR_LOCAL_TOURNAMENT GUEST_SECOND_LEG_COMMITTED' "$OUT/qa03-game.log"

@@ -23,7 +23,9 @@ path=Path("native/product/uniracers_modern_host.cpp")
 if not path.is_file():
     raise SystemExit(f"missing repository-owned product host: {path}")
 s=path.read_text()
-# The branch-owned native product host already implements legs_continue and\n# its stock Results confirmation; do not patch a stale duplicate here.\nanchor="    g_surface = decision.surface;\n"
+# The branch-owned native product host already implements legs_continue and
+# its stock Results confirmation; do not patch a stale duplicate here.
+anchor="    g_surface = decision.surface;\n"
 assert s.count(anchor)==1, "missing or duplicate game-surface anchor"
 trace='''    if (stats && stats->frame >= 38000 && stats->frame <= 41000 &&
         (stats->frame % 24 == 0 ||

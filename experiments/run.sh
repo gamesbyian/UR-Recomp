@@ -126,12 +126,22 @@ if dumps.exists():
                              'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
 (root/'native/dump-hashes.json').write_text(json.dumps(manifest,indent=2)+'\n')
 shutil.rmtree(dumps,ignore_errors=True)
-# Preserve exact original inventory/hashes and the source RGB frames and OAM,
-# but omit bulky original WRAM/VRAM and PPU write payloads after hashing.
-for p in (root/'frames').iterdir():
-    if p.name.endswith(('.wram.bin','.vram.bin','.sram.bin','.ppuw.tsv','.regs.json')):
+# Keep only phase-relevant image/OAM/PPU metadata, with hashes for all
+# original and native outputs already recorded in their inventories.
+# Frame dumpers can produce additional non-BMP payloads; prune by allowlist,
+# not by a handful of known suffixes.
+keep_native={f'frame_{n:06d}.bmp' for n in
+    (299,300,301,302,449,450,451,452,599,600,601,602,749,750,751,752,899,900,901,902)}
+native_frames=root/'native/frames'
+for p in native_frames.iterdir():
+    if p.is_file() and p.name not in keep_native:
         p.unlink()
-total=sum(p.stat().st_size for p in root.rglob('*') if p.is_file())
+for p in (root/'frames').iterdir():
+    if p.is_file() and not p.name.endswith(('.fb.bmp','.oam.bin','.info.json','.ppu.json')):
+        p.unlink()
+sizes={str(p.relative_to(root)):p.stat().st_size for p in root.rglob('*') if p.is_file()}
+(root/'retained-sizes.json').write_text(json.dumps(sizes,indent=2)+'\\n')
+total=sum(sizes.values())
 print('BOUNDED_EVIDENCE_BYTES',total)
 if total > 60*1024*1024: raise SystemExit('BOUNDED_EVIDENCE_TOO_LARGE')
 PY_BOUND

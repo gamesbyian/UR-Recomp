@@ -23,8 +23,13 @@ path=Path("native/product/uniracers_modern_host.cpp")
 if not path.is_file():
     raise SystemExit(f"missing repository-owned product host: {path}")
 s=path.read_text()
-# The branch-owned native product host already implements legs_continue and
-# its stock Results confirmation; do not patch a stale duplicate here.
+# Host Enter was observed as handled=0 on stock 2P Results. Remove this
+# inert host action in the ephemeral experiment, leaving actual guest input
+# responsible for navigation and fixture result capture.
+old_confirm = "const int key = continue_legs && step == 5 ? SDLK_RETURN\\n        : step == 0 || step == 3 || step == 5 ? SDLK_F4"
+new_confirm = "const int key = step == 0 || step == 3 || step == 5 ? SDLK_F4"
+assert s.count(old_confirm) == 1, "stock Results host key route changed"
+s = s.replace(old_confirm, new_confirm, 1)
 anchor="    g_surface = decision.surface;\n"
 assert s.count(anchor)==1, "missing or duplicate game-surface anchor"
 trace='''    if (stats && stats->frame >= 38000 && stats->frame <= 41000 &&
@@ -74,10 +79,9 @@ with open(sys.argv[1],"w") as f:
         # On stock VS Results, test a genuine 080 release/repress edge:
         # 001 is a nonzero, parser-valid release word (000 is rejected).
         # No result or store mutation is synthesized.
-        if 38500 <= frame < 39500:
-            word = "001" if index % 2 == 0 else "080"
-        else:
-            word = "081" if index % 2 == 0 else "080"
+        # Release the stock guest button between presses from the first
+        # continuation frame. 081/080 never released bit 080.
+        word = "001" if index % 2 == 0 else "080"
         f.write(f"{frame}:24:{word}:000\n")
 PY
 printf 'turbo on\nwait 110000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"

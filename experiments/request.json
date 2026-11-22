@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does the branch-native stock Results confirmation advance actual second-leg gameplay after removing the stale experiment patch?",
-  "expected": "Run the existing game to genuine fixture 1 result or report the first causal Results transition failure; no synthetic award.",
+  "question": "Does corrected experiment instrumentation now execute stock two-player Results confirmation and genuinely score fixture 1?",
+  "expected": "Require guest-raced second fixture commit, otherwise retain first causal game/driver failure; no synthetic result.",
   "owner": "windows",
-  "attempt": 17
+  "attempt": 18
 }

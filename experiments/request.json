@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Can stock VS Results advance to a genuinely scored second tournament fixture when the experiment stops reopening the host panel?",
-  "expected": "Observe guest transition and second fixture receipt, or isolate the first game-level failure without synthetic results.",
+  "question": "Does stock VS Start (100) with release edges exit F9 Results and produce the actual second fixture?",
+  "expected": "Second guest race scored and persisted, or exact guest transition failure with no fabricated receipt",
   "owner": "windows",
-  "attempt": 20
+  "attempt": 21
 }

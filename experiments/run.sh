@@ -26,7 +26,7 @@ s=path.read_text()
 # Host Enter was observed as handled=0 on stock 2P Results. Remove this
 # inert host action in the ephemeral experiment, leaving actual guest input
 # responsible for navigation and fixture result capture.
-old_confirm = "const int key = continue_legs && step == 5 ? SDLK_RETURN\\n        : step == 0 || step == 3 || step == 5 ? SDLK_F4"
+old_confirm = "const int key = continue_legs && step == 5 ? SDLK_RETURN\n        : step == 0 || step == 3 || step == 5 ? SDLK_F4"
 new_confirm = "const int key = step == 0 || step == 3 || step == 5 ? SDLK_F4"
 assert s.count(old_confirm) == 1, "stock Results host key route changed"
 s = s.replace(old_confirm, new_confirm, 1)

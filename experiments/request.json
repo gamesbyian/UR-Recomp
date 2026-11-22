@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Can bounded original/native WIDE-07 adjacent frame evidence survive artifact retention?",
-  "expected": "Capture real native frames and source hashes, retaining <64 MiB without altering game acceptance.",
+  "question": "Does explicit native/source frame-format pruning retain the real WIDE-07 captures below the hosted 64 MiB limit?",
+  "expected": "Retain original OAM/PPU metadata and representative native BMPs plus full hashes; no parity or course credit assumed.",
   "owner": "fidelity",
-  "attempt": 4
+  "attempt": 5
 }

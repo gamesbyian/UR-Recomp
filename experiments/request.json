@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "With the original joined first-race inputs preserved until frame 60000, does the actual first fixture commit before Start continuation, and does guest leg 2 then race and persist?",
-  "expected": "First guest fixture receipt and armed second fixture before Start pulses, then real second guest receipt or bounded transition evidence",
+  "question": "After first fixture commits near frame 36k, does delayed frame-60k Start input leave Results when the experiment-only 1800-frame watchdog no longer terminates at frame 39937?",
+  "expected": "Real guest fixture 0 receipt and fixture 1 arm, then observed Start-delivered transition and actual fixture 1 receipt or precise stuck state; no synthetic result",
   "owner": "windows",
-  "attempt": 22
+  "attempt": 23
 }

@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "After first fixture commits near frame 36k, does delayed frame-60k Start input leave Results when the experiment-only 1800-frame watchdog no longer terminates at frame 39937?",
-  "expected": "Real guest fixture 0 receipt and fixture 1 arm, then observed Start-delivered transition and actual fixture 1 receipt or precise stuck state; no synthetic result",
+  "question": "After proven guest Results F9 to menu 01 exit, does replaying the original source-controlled stock race-entry controller sequence launch and score fixture 1?",
+  "expected": "Require actual fixture 0 commit and fixture 1 arm; then genuine guest second capture and fixture receipt, or first observed menu/state failure; no synthetic results",
   "owner": "windows",
-  "attempt": 23
+  "attempt": 24
 }

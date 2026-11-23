@@ -25,9 +25,12 @@ the needed hosted execution route and retry. The standing nonprivileged
 `experiments/request.json` on `experiments/*` branches. New bounded Linux
 experiments use `kind=script_linux` and `experiments/run.sh`; specialized
 original/native and Windows profiles are also available. No new PR, workflow
-or owner intervention per experiment retry. The owner's physical HP PC and
-Desktop Commander are not ordinary CI compute; do not use either to avoid
-normal hosted development.
+or owner intervention per experiment retry. The owner's Windows PC, its GitHub integration and Desktop Commander are
+available as an **exception-based diagnostic/acceptance station**, never as
+routine CI compute. Use hosted Actions by default; escalate only when a
+specific interactive Windows, GPU/audio, input, process or filesystem question
+is more efficiently or decisively tested on the PC. See the escalation rules
+below. Do not make the PC a required dependency for hourly progress.
 
 On a genuinely external dependency, write the **exact source SHA, owning
 workstream, attempted commands and GHA run/artifact, observed failure,
@@ -133,6 +136,56 @@ adjacent original/native WIDE-07 frames against the same native phase,
 resolve source clock alignment, and fix the first demonstrated compositor
 or game defect. If no defect is proved, advance authentic Zoo complete-event
 behavior. 3D racer model recreation remains on owner hold.
+
+## Diagnostic discipline and owner-PC escalation (2026-11-23)
+
+**Pass labels are contracts, not print statements.** Inspect the production
+behavior and the assertions that actually caused a workflow to pass. For QA-03
+a test claiming `SECOND_GUEST_LEG=PASS` MUST demonstrate a genuinely guest-
+raced second fixture, source-bound scored result, a distinct committed fixture
+receipt, correct standings and (for complete QA-03) a cold reopen. First-leg
+`FIXTURE_COMMITTED`, `ARMED fixture=1`, controller traces and a green
+`script_linux` job are **diagnostic-only**. Specifically, run 45259968883
+was green because of those weaker assertions while stock `race_state=00`
+persisted; no second scored race was established. Fix the assertion/driver,
+not the acceptance threshold. Failed assertions are useful evidence.
+
+For every bounded measurement, declare the hypothesis, contrasting possible
+outcomes, and the next action each outcome would trigger. After **at most
+two consecutive measurement/harness-only sessions on the same question**,
+either execute a source-level gameplay repair justified by evidence or switch
+to a genuinely different independently executable player journey. A new
+timestamp, trace field, script syntax fix or repeat run does not reset that
+counter. Do not change native gameplay to silence a faulty fixture; the
+existing failed-test root-cause instructions still apply. At the end of
+each run, identify actual code changed, source SHA, run/artifact, whether a
+second fixture/event actually finished, and whether there was a product fix,
+complete journey, decisive difference or evidence-only outcome.
+
+The owner explicitly authorizes GitHub integration on the Windows PC and the
+connected Desktop Commander plugin as a **specialist escalation path**.
+Use GitHub-hosted runners for build/test loops, then the PC when direct native
+Windows execution would resolve a live blocker faster than more scripted
+guesswork. Verify device availability/capabilities before use; Desktop
+Commander exposes command/process/file tools, but **dedicated GUI clicking,
+screenshots and controller injection must not be presumed**. Explore only
+safe, bounded supported access. Prefer one targeted batched PowerShell
+inspection/repro rather than repeated inventory or hourly polling. Do not
+install persistent agents, self-hosted runners, startup services or scheduled
+PC jobs, and do not kill unrelated processes, change machine configuration,
+delete private files, expose credentials or copy private ROMs to public
+artifacts. Use a dedicated repo/test directory and non-destructive actions;
+ask the owner only when a disruptive operation is genuinely required. Record
+reproducible nonsecret findings/sha in GitHub and validate the eventual
+source change via hosted CI. A PC witness must not be called physical
+acceptance without the exact actual test and independent criteria.
+
+**Retention:** before November 28, 2026, preserve the necessary non-ROM
+original/native Zoo source-bound evidence from run 44954472753, artifacts
+14727143188 and 14726528257, in an authorized durable location with
+hashes and provenance. Do not copy proprietary binaries into public GitHub.
+If safe preservation is unavailable, record that explicitly and arrange a
+source-exact rerun before expiration; no fabricated retention claims.
 
 ## Current known positive executable evidence
 

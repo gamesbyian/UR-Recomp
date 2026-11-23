@@ -44,7 +44,7 @@ s = s.replace(old_watchdog, 'if (second_leg_transition_frames == 60000u &&', 1)
 
 anchor="    g_surface = decision.surface;\n"
 assert s.count(anchor)==1, "missing or duplicate game-surface anchor"
-trace='''    if (stats && stats->frame >= 59000 && stats->frame <= 62000 &&
+trace='''    if (stats && stats->frame >= 59000 && stats->frame <= 70000 &&
         (stats->frame % 24 == 0 ||
          stats->controller_word != g_qa03_previous_controller_word ||
          g_surface != g_qa03_previous_surface)) {
@@ -85,16 +85,31 @@ original=pathlib.Path("tests/input/two-player-joined-records-acceptance.input").
 # beyond the first result instead of injecting a synthetic fixture result.
 with open(sys.argv[1],"w") as f:
     f.write(original)
-    for index, frame in enumerate(range(60000,100000,24)):
-        # The earlier 081/080 cadence held the 080 action continuously,
-        # while 100/080 pulsed Start but still never released that action.
-        # Source-bound VS route tests Start (100) as confirmation, with release edges:
-        # 001 is a nonzero, parser-valid release word (000 is rejected).
-        # No result or store mutation is synthesized.
-        # Release Start between presses from the first
-        # continuation frame. Prior 081/080 never tested Start.
-        word = "001" if index % 2 == 0 else "100"
-        f.write(f"{frame}:24:{word}:000\n")
+    # Attempt 23 reached the stock menu (01) after Results but continued
+    # Start-only pulses. Reuse the actual source-controlled first-race menu
+    # entry sequence, shifted past the observed F9->01 transition, then the
+    # already-proven joined race steering cadence. No synthetic result writes.
+    menu = []
+    race = []
+    for line in original.splitlines():
+        if not line or line.startswith("#"):
+            continue
+        start, duration, p1, p2 = line.split(":")
+        start = int(start)
+        if 500 <= start < 1614:
+            menu.append((start, duration, p1, p2))
+        elif 1614 <= start <= 4038:
+            race.append((start, duration, p1, p2))
+    # First release the Results selection, then replay original stock menu
+    # controls at the post-Results menu. Only the genuine guest can score.
+    f.write("60000:24:001:000\\n")
+    for start, duration, p1, p2 in menu:
+        f.write(f"{61000 + start - 500}:{duration}:{p1}:{p2}\\n")
+    for start, duration, p1, p2 in race:
+        f.write(f"{63000 + start - 1614}:{duration}:{p1}:{p2}\\n")
+    # Sustain ordinary race movement as in the successful first fixture.
+    for index, frame in enumerate(range(65500,100000,24)):
+        f.write(f"{frame}:24:{'081' if index % 2 == 0 else '080'}:000\\n")
 PY
 printf 'turbo on\nwait 105000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
 WORK="$HOME/qa03"

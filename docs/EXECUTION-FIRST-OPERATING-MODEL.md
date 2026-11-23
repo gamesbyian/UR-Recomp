@@ -241,11 +241,15 @@ Keep the existing original/native source-truth and failed-test repair rules.
 CI success, a trace, first fixture, or a simulated backend fixture do not
 advance 0/12 or 0/45.
 
-Retain the non-ROM Zoo source-bound artifacts from run 44954472753,
-including 14727143188 and 14726528257, **before November 28, 2026**
-with exact hashes and provenance in a private/authorized durable store.
-Do not publicly publish original-game ROMs or proprietary binaries; if
-preservation is not possible, record inability and arrange re-acquisition.
+**Preserved on 2026-11-23:** the owner's authenticated Windows GitHub CLI
+downloaded run 44954472753 artifacts 14727143188 and 14726528257
+into private `%LOCALAPPDATA%\\UR-Recomp\\private-evidence\\zoo-20261121-run-44954472753`.
+The download process completed successfully: 322 files, 49,435,318 bytes,
+with `manifest.json` containing source SHA, artifact identities and each
+file's SHA-256. The source may still expire on GitHub November 28; private
+local retention is recorded, not independently replicated off-device and
+not course qualification. Do not trigger redundant remote downloads or
+publish any original ROM or other proprietary game binaries.
 
 ## Verified migration status, 2026-11-13
 

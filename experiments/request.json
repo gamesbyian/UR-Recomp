@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does stock VS Start (100) with release edges exit F9 Results and produce the actual second fixture?",
-  "expected": "Second guest race scored and persisted, or exact guest transition failure with no fabricated receipt",
+  "question": "With the original joined first-race inputs preserved until frame 60000, does the actual first fixture commit before Start continuation, and does guest leg 2 then race and persist?",
+  "expected": "First guest fixture receipt and armed second fixture before Start pulses, then real second guest receipt or bounded transition evidence",
   "owner": "windows",
-  "attempt": 21
+  "attempt": 22
 }

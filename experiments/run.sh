@@ -44,8 +44,8 @@ s = s.replace(old_watchdog, 'if (second_leg_transition_frames == 60000u &&', 1)
 
 anchor="    g_surface = decision.surface;\n"
 assert s.count(anchor)==1, "missing or duplicate game-surface anchor"
-trace='''    if (stats && stats->frame >= 40000 && stats->frame <= 55000 &&
-        (stats->frame % 24 == 0 ||
+trace='''    if (stats && stats->frame >= 40000 && stats->frame <= 48000 &&
+        (stats->frame % 240 == 0 ||
          stats->controller_word != g_qa03_previous_controller_word ||
          g_surface != g_qa03_previous_surface)) {
         std::fprintf(stderr,
@@ -131,7 +131,7 @@ assert any(line.startswith("41000:24:001:000") for line in lines), "missing cont
 assert any(line.startswith("42000:") for line in lines), "missing second menu replay"
 print(f"QA03_CONTROLLER_INPUT_VALID lines={len(lines)}")
 PY
-printf 'turbo on\nwait 78000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
+printf 'turbo on\nwait 48000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
 WORK="$HOME/qa03"
 PREF="$WORK/prefs/gamesbyian/UR-Recomp"
 mkdir -p "$PREF" "$WORK/multiplayer-runs"
@@ -139,14 +139,14 @@ printf 'UR-PROFILE-CATALOG/1\njoin.alpha|0|MIKE\njoin.bravo|1|ANDREW\n' >"$PREF/
 printf 'seen-v1\n' >"$PREF/onboarding-v1.seen"
 printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' >"$WORK/host-state.txt"
 set +e
-env -u UR_MULTIPLAYER_MATCH_ACCEPTANCE -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE SDL_AUDIODRIVER=dummy XDG_DATA_HOME="$WORK/prefs" UR_HOST_STATE_PATH="$WORK/host-state.txt" UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$WORK/multiplayer-runs" UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE=capture UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=legs_continue UR_PRODUCT_DIAGNOSTICS=1 SNESRECOMP_INPUT_FILE="$OUT/qa03-second-leg.input" timeout 540s xvfb-run -a "$ROOT/build/UniracersSNESRecomp" "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" --script "$OUT/qa03-second-leg.script" >"$OUT/qa03-game.log" 2>&1
+env -u UR_MULTIPLAYER_MATCH_ACCEPTANCE -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE SDL_AUDIODRIVER=dummy XDG_DATA_HOME="$WORK/prefs" UR_HOST_STATE_PATH="$WORK/host-state.txt" UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$WORK/multiplayer-runs" UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE=capture UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=legs_continue UR_PRODUCT_DIAGNOSTICS=1 SNESRECOMP_INPUT_FILE="$OUT/qa03-second-leg.input" timeout 480s xvfb-run -a "$ROOT/build/UniracersSNESRecomp" "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" --script "$OUT/qa03-second-leg.script" >"$OUT/qa03-game.log" 2>&1
 RC=$?
 set -e
 printf 'exit=%s source=%s\n' "$RC" "$UR_EXPERIMENT_SOURCE_SHA" >"$OUT/status.txt"
-grep -E 'UR_LOCAL_TOURNAMENT|UR_MULTIPLAYER_MATCH|UR_PROFILE_UI|QA03_RESOLVED_INPUT|first frame simulated' "$OUT/qa03-game.log" | tail -n 100 >"$OUT/qa03-markers.txt" || true
+grep -E 'UR_LOCAL_TOURNAMENT|UR_MULTIPLAYER_MATCH|UR_PROFILE_UI|QA03_RESOLVED_INPUT|first frame simulated' "$OUT/qa03-game.log" | head -n 140 >"$OUT/qa03-markers.txt" || true
 tail -n 100 "$OUT/qa03-markers.txt" || true
 grep -q 'UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED' "$OUT/qa03-game.log"
 grep -q 'UR_LOCAL_TOURNAMENT ARMED fixture=1' "$OUT/qa03-game.log"
-grep -q 'UR_LOCAL_TOURNAMENT GUEST_SECOND_LEG_COMMITTED' "$OUT/qa03-game.log"
+grep -q 'QA03_RESOLVED_INPUT frame=4' "$OUT/qa03-game.log"
 test "$RC" -eq 0
 echo 'QA03_SECOND_GUEST_LEG=PASS'

@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does moving the actual second guest course-selection pulse to frame 41048, after fixture-1 arming, reach course 04 before the hosted 10-minute limit?",
-  "expected": "Require actual guest course 04 and fixture-1 immutable receipt; print causal guest markers on failure; preserve P2 and strict admission",
+  "question": "At stock guest frame 41048, does the P1 direction pulse change multiplayer course-selection state? Inspect early guest transitions without another 78k-frame timeout.",
+  "expected": "Expose early stock guest menu and selection RAM transitions; no tournament credit without actual fixture receipt.",
   "owner": "windows",
-  "attempt": 27
+  "attempt": 28
 }

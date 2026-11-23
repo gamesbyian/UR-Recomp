@@ -34,6 +34,14 @@ new_confirm = """if (continue_legs && step == 5) {
     const int key = step == 0 || step == 3 || step == 5 ? SDLK_F4"""
 assert s.count(old_confirm) == 1, "stock Results host key route changed"
 s = s.replace(old_confirm, new_confirm, 1)
+# The stock first fixture commits around frame 36k and the second arms around
+# 38k. A 1,800-frame watchdog quits near frame 39,937, before this experiment's
+# deliberately delayed frame-60k Start pulses can execute. Extend only the
+# experiment copy of the observer, never the production watchdog.
+old_watchdog = 'if (second_leg_transition_frames == 1800u &&'
+assert s.count(old_watchdog) == 1, 'expected exactly one Results watchdog'
+s = s.replace(old_watchdog, 'if (second_leg_transition_frames == 60000u &&', 1)
+
 anchor="    g_surface = decision.surface;\n"
 assert s.count(anchor)==1, "missing or duplicate game-surface anchor"
 trace='''    if (stats && stats->frame >= 59000 && stats->frame <= 62000 &&
@@ -77,7 +85,7 @@ original=pathlib.Path("tests/input/two-player-joined-records-acceptance.input").
 # beyond the first result instead of injecting a synthetic fixture result.
 with open(sys.argv[1],"w") as f:
     f.write(original)
-    for index, frame in enumerate(range(60000,165000,24)):
+    for index, frame in enumerate(range(60000,100000,24)):
         # The earlier 081/080 cadence held the 080 action continuously,
         # while 100/080 pulsed Start but still never released that action.
         # Source-bound VS route tests Start (100) as confirmation, with release edges:
@@ -88,7 +96,7 @@ with open(sys.argv[1],"w") as f:
         word = "001" if index % 2 == 0 else "100"
         f.write(f"{frame}:24:{word}:000\n")
 PY
-printf 'turbo on\nwait 170000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
+printf 'turbo on\nwait 105000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
 WORK="$HOME/qa03"
 PREF="$WORK/prefs/gamesbyian/UR-Recomp"
 mkdir -p "$PREF" "$WORK/multiplayer-runs"

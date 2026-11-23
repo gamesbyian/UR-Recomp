@@ -180,12 +180,16 @@ reproducible nonsecret findings/sha in GitHub and validate the eventual
 source change via hosted CI. A PC witness must not be called physical
 acceptance without the exact actual test and independent criteria.
 
-**Retention:** before November 28, 2026, preserve the necessary non-ROM
-original/native Zoo source-bound evidence from run 44954472753, artifacts
-14727143188 and 14726528257, in an authorized durable location with
-hashes and provenance. Do not copy proprietary binaries into public GitHub.
-If safe preservation is unavailable, record that explicitly and arrange a
-source-exact rerun before expiration; no fabricated retention claims.
+**Retention CONFIRMED 2026-11-23:** GitHub CLI authenticated on the
+owner's Windows PC downloaded original/native Zoo run 44954472753
+artifacts 14727143188 and 14726528257 to private local
+`%LOCALAPPDATA%\\UR-Recomp\\private-evidence\\zoo-20261121-run-44954472753`.
+The resulting 322 files total 49,435,318 bytes; `manifest.json` records
+the source SHA, artifact IDs and SHA-256 of each recovered file. The
+retrieval process exited 0. **Do not repeatedly redownload** during hourly
+agent runs or upload any original ROM/proprietary binaries to public GitHub.
+This is private PC preservation, not qualification; verify local availability
+before depending on it, and use hosted CI for reproducible game tests.
 
 ## Current known positive executable evidence
 

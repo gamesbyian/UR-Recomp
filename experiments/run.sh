@@ -152,5 +152,17 @@ test "$RC" -eq 0
 # This experiment establishes first-fixture continuity and observes the
 # later stock-menu input path only. A green script_linux job is not a scored
 # second guest race, a second result receipt, or QA-03 acceptance.
-echo 'QA03_COURSE_SELECTION_DIAGNOSTIC=PASS'
-echo 'QA03_SECOND_GUEST_LEG=NOT_PROVEN'
+echo 'QA03_COURSE_SELECTION_DIAGNOSTIC=COMPLETE'
+# A second armed fixture and a trace are not a completed player journey.
+# Require two independently observed product commits, not a successful
+# script exit. This deliberately fails the known false-green attempt.
+committed=$(grep -c 'UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED' "$OUT/qa03-game.log" || true)
+tagged=$(grep -c 'UR_LOCAL_TOURNAMENT CAPTURE_TAGGED' "$OUT/qa03-game.log" || true)
+printf 'QA03_GUEST_COMMIT_COUNT=%s TAG_COUNT=%s\\n' "$committed" "$tagged"
+if [ "$committed" -lt 2 ] || [ "$tagged" -lt 2 ]; then
+    echo 'QA03_SECOND_GUEST_LEG=FAIL_NO_SECOND_GUEST_RESULT' >&2
+    exit 1
+fi
+# Two commit markers alone do not yet prove distinct persisted fixture IDs,
+# cold-process History or an independently qualified Windows gate.
+echo 'QA03_SECOND_GUEST_LEG=UNVERIFIED_RECEIPT_ID'

@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "With malformed literal-newline controller replay repaired and validated, does genuine guest leg 2 launch and commit after stock Results exit?",
-  "expected": "Require real fixture 0 receipt, fixture 1 arm, guest second capture and immutable receipt; preserve actual guest result provenance and fail on missing progress",
+  "question": "Does a single 12-frame P1 080 directional pulse at frame 60048 change the genuine stock multiplayer second-race course from 01 to scheduled 04?",
+  "expected": "Compare actual guest-selected course and immutable fixture-1 receipt against attempt 25; require real fixture 0 receipt, independent P2 input and genuine second fixture admission; do not relax course checks",
   "owner": "windows",
-  "attempt": 25
+  "attempt": 26
 }

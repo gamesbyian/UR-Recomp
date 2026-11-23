@@ -149,4 +149,8 @@ grep -q 'UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED' "$OUT/qa03-game.log"
 grep -q 'UR_LOCAL_TOURNAMENT ARMED fixture=1' "$OUT/qa03-game.log"
 grep -q 'QA03_RESOLVED_INPUT frame=4' "$OUT/qa03-game.log"
 test "$RC" -eq 0
-echo 'QA03_SECOND_GUEST_LEG=PASS'
+# This experiment establishes first-fixture continuity and observes the
+# later stock-menu input path only. A green script_linux job is not a scored
+# second guest race, a second result receipt, or QA-03 acceptance.
+echo 'QA03_COURSE_SELECTION_DIAGNOSTIC=PASS'
+echo 'QA03_SECOND_GUEST_LEG=NOT_PROVEN'

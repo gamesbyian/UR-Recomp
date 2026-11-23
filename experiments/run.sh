@@ -103,6 +103,9 @@ with open(sys.argv[1],"w") as f:
     # First release the Results selection, then replay original stock menu
     # controls at the post-Results menu. Only the genuine guest can score.
     f.write("60000:24:001:000\n")
+    # Single isolated P1 directional pulse before the known first-race menu replay.
+    # Observe the stock menu/guest course; do not alter P2 or receipt admission.
+    f.write("60048:12:080:000\n")
     for start, duration, p1, p2 in menu:
         f.write(f"{61000 + start - 500}:{duration}:{p1}:{p2}\n")
     for start, duration, p1, p2 in race:

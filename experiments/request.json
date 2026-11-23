@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "After proven guest Results F9 to menu 01 exit, does replaying the original source-controlled stock race-entry controller sequence launch and score fixture 1?",
-  "expected": "Require actual fixture 0 commit and fixture 1 arm; then genuine guest second capture and fixture receipt, or first observed menu/state failure; no synthetic results",
+  "question": "With malformed literal-newline controller replay repaired and validated, does genuine guest leg 2 launch and commit after stock Results exit?",
+  "expected": "Require real fixture 0 receipt, fixture 1 arm, guest second capture and immutable receipt; preserve actual guest result provenance and fail on missing progress",
   "owner": "windows",
-  "attempt": 24
+  "attempt": 25
 }

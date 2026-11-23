@@ -36,7 +36,7 @@ assert s.count(old_confirm) == 1, "stock Results host key route changed"
 s = s.replace(old_confirm, new_confirm, 1)
 anchor="    g_surface = decision.surface;\n"
 assert s.count(anchor)==1, "missing or duplicate game-surface anchor"
-trace='''    if (stats && stats->frame >= 38000 && stats->frame <= 41000 &&
+trace='''    if (stats && stats->frame >= 59000 && stats->frame <= 62000 &&
         (stats->frame % 24 == 0 ||
          stats->controller_word != g_qa03_previous_controller_word ||
          g_surface != g_qa03_previous_surface)) {
@@ -77,7 +77,7 @@ original=pathlib.Path("tests/input/two-player-joined-records-acceptance.input").
 # beyond the first result instead of injecting a synthetic fixture result.
 with open(sys.argv[1],"w") as f:
     f.write(original)
-    for index, frame in enumerate(range(4200,105000,24)):
+    for index, frame in enumerate(range(60000,165000,24)):
         # The earlier 081/080 cadence held the 080 action continuously,
         # while 100/080 pulsed Start but still never released that action.
         # Source-bound VS route tests Start (100) as confirmation, with release edges:
@@ -88,7 +88,7 @@ with open(sys.argv[1],"w") as f:
         word = "001" if index % 2 == 0 else "100"
         f.write(f"{frame}:24:{word}:000\n")
 PY
-printf 'turbo on\nwait 110000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
+printf 'turbo on\nwait 170000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
 WORK="$HOME/qa03"
 PREF="$WORK/prefs/gamesbyian/UR-Recomp"
 mkdir -p "$PREF" "$WORK/multiplayer-runs"

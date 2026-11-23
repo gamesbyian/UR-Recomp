@@ -194,6 +194,59 @@ Do not claim metric movement for a tool test, source-only fixture, receipt,
 synthetic-only Windows test or absence of a reproduced failure. The 0/45
 and 0/12 counters change only upon evidence-backed qualification.
 
+## Windows PC as a specialist station (2026-11-23)
+
+The owner has made the Windows PC, its GitHub integration and Remote Desktop
+Commander available to this project. **GitHub-hosted Actions remains the
+default execution environment.** The hosted experiment dispatcher itself
+remains intentionally unprivileged and never gains local PC credentials.
+When a specific native Windows interaction, controller/menu sequence, real
+display/GPU/audio behavior, cold process restart or filesystem witness
+cannot be resolved efficiently by hosted scripts, an execution agent may
+escalate one **bounded** investigation to the owner's online PC.
+
+Before an escalation: state the exact source SHA/question, the failed hosted
+run IDs, the specific interaction the PC can prove, success/failure evidence
+and a command-count budget. Verify the connected plugin's current device and
+tools. Desktop Commander offers terminal/process/file operations; it does
+not guarantee screenshots, keyboard injection, controller emulation or
+complete graphical access. Do not use the PC if the necessary capability is
+absent, and do not waste repeated hourly sessions discovering that limitation.
+Prefer a prepared artifact/checkout and one short batch of safe commands;
+use a dedicated test directory. Keep source ROMs, secrets and personal
+machine data private; prohibit persistent runner installation, startup
+services, destructive cleanup, modification of unrelated files, and
+exposing private contents in Actions. The goal is a reproducible diagnosis,
+followed by a production code fix and hosted exact-source regression.
+The PC must never become a blocking dependency or a substituted source of
+formal course/release acceptance without the actual independently reviewed
+requirements.
+
+### Meaningful QA-03 progress and the known false positive
+
+[Run 45259968883](https://github.com/gamesbyian/UR-Recomp/actions/runs/45259968883)
+reported script success and printed `QA03_SECOND_GUEST_LEG=PASS`. Its script
+only required first fixture commit, next fixture arm, a trace and zero process
+exit; traces continued to show stock menu 01 / race state 00. **Second
+scored fixture, its receipt, and complete tournament were NOT proven.**
+Repair the test labels and require a real second-leg result/receipt before
+claiming that result. A useful trace capture may pass as a diagnostic
+experiment but cannot be called player-journey completion.
+
+At most two consecutive **measurement-only** attempts on one question:
+produce a causal product change and prove a genuine journey, or pivot to
+another ready gameplay target. If new evidence has not changed the proposed
+source edit or falsified an explanation, stop iterating cosmetic probes.
+Keep the existing original/native source-truth and failed-test repair rules.
+CI success, a trace, first fixture, or a simulated backend fixture do not
+advance 0/12 or 0/45.
+
+Retain the non-ROM Zoo source-bound artifacts from run 44954472753,
+including 14727143188 and 14726528257, **before November 28, 2026**
+with exact hashes and provenance in a private/authorized durable store.
+Do not publicly publish original-game ROMs or proprietary binaries; if
+preservation is not possible, record inability and arrange re-acquisition.
+
 ## Verified migration status, 2026-11-13
 
 1. **Hosted service operational:** Specialized actual original/native stereo PCM

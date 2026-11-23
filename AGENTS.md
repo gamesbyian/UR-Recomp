@@ -25,9 +25,12 @@ the needed hosted execution route and retry. The standing nonprivileged
 `experiments/request.json` on `experiments/*` branches. New bounded Linux
 experiments use `kind=script_linux` and `experiments/run.sh`; specialized
 original/native and Windows profiles are also available. No new PR, workflow
-or owner intervention per experiment retry. The owner's physical HP PC and
-Desktop Commander are not ordinary CI compute; do not use either to avoid
-normal hosted development.
+or owner intervention per experiment retry. The owner's Windows PC, its GitHub integration and Desktop Commander are
+available as an **exception-based diagnostic/acceptance station**, never as
+routine CI compute. Use hosted Actions by default; escalate only when a
+specific interactive Windows, GPU/audio, input, process or filesystem question
+is more efficiently or decisively tested on the PC. See the escalation rules
+below. Do not make the PC a required dependency for hourly progress.
 
 On a genuinely external dependency, write the **exact source SHA, owning
 workstream, attempted commands and GHA run/artifact, observed failure,
@@ -35,6 +38,47 @@ blocker owner, next executable command/location, prerequisite and
 observable completion condition**. Then work the next independent task.
 Repeated identical blockers without an attempted fix are failure of the
 development operation.
+
+## Failed tests are owned engineering tasks (2026-11-21)
+
+Both scheduled agents are **explicitly authorized and required** to diagnose,
+repair and rerun failing tests, including the tests themselves. Never assume
+that a red test means the game is broken or that a green test proves the game
+correct. Read the exact failed job, command, first causal error, input
+fixtures, actual application behavior and source SHA before changing code.
+Choose the correction by evidence:
+
+- **Game defect:** fix runtime behavior; preserve or strengthen the test
+  that exposed it. Prove the test fails before and passes after the fix.
+- **Test/fixture/driver defect:** fix erroneous expectations, scripts, frame
+  clocks, mocks, probes, selectors, test inputs or assertions; establish the
+  authoritative intended behavior independently and add a regression that
+  would reject the old mistake. Do not modify game physics or progression
+  to satisfy a faulty test.
+- **Runner/transport/CI defect:** repair the environment or infrastructure
+  only as far as necessary to execute the relevant test, then inspect its
+  actual game/evidence result. Treat artifact expiry, missing inputs and
+  cancelled workflows separately from genuine assertion failures.
+- **Unresolved source semantics:** minimize the case and obtain one real
+  original/native or product observation distinguishing hypotheses before
+  choosing either fix. Avoid speculative controller, clock or renderer edits.
+
+The agent may change, replace or delete obsolete test logic **only with a
+specific justification and an equivalent or stronger retained behavioral
+assertion**. Never weaken or skip required coverage to get a green check,
+change expected values solely to match an incorrect implementation, mask
+genuine mismatches, accept an unauthenticated artifact, or claim qualification
+from a passing harness. For a revised assertion document the source of
+truth (original witness, explicit product contract or independent valid
+capture), demonstrate how the prior assertion was wrong, and test both
+the valid case and an invalid/tampered case.
+
+The repair is not complete until the relevant exact-head CI is green **and**
+the real behavior/evidence has been examined. When red, iterate on the first
+causal failure rather than treating failure reports as handoffs. If the exact
+test cannot run, record why and use the next executable independent task.
+Test repairs count as legitimate engineering progress but are not automatically
+player-facing feature delivery or release/course acceptance.
 
 ## Delivery-first selection rule (2026-11-18)
 
@@ -92,6 +136,56 @@ adjacent original/native WIDE-07 frames against the same native phase,
 resolve source clock alignment, and fix the first demonstrated compositor
 or game defect. If no defect is proved, advance authentic Zoo complete-event
 behavior. 3D racer model recreation remains on owner hold.
+
+## Diagnostic discipline and owner-PC escalation (2026-11-23)
+
+**Pass labels are contracts, not print statements.** Inspect the production
+behavior and the assertions that actually caused a workflow to pass. For QA-03
+a test claiming `SECOND_GUEST_LEG=PASS` MUST demonstrate a genuinely guest-
+raced second fixture, source-bound scored result, a distinct committed fixture
+receipt, correct standings and (for complete QA-03) a cold reopen. First-leg
+`FIXTURE_COMMITTED`, `ARMED fixture=1`, controller traces and a green
+`script_linux` job are **diagnostic-only**. Specifically, run 45259968883
+was green because of those weaker assertions while stock `race_state=00`
+persisted; no second scored race was established. Fix the assertion/driver,
+not the acceptance threshold. Failed assertions are useful evidence.
+
+For every bounded measurement, declare the hypothesis, contrasting possible
+outcomes, and the next action each outcome would trigger. After **at most
+two consecutive measurement/harness-only sessions on the same question**,
+either execute a source-level gameplay repair justified by evidence or switch
+to a genuinely different independently executable player journey. A new
+timestamp, trace field, script syntax fix or repeat run does not reset that
+counter. Do not change native gameplay to silence a faulty fixture; the
+existing failed-test root-cause instructions still apply. At the end of
+each run, identify actual code changed, source SHA, run/artifact, whether a
+second fixture/event actually finished, and whether there was a product fix,
+complete journey, decisive difference or evidence-only outcome.
+
+The owner explicitly authorizes GitHub integration on the Windows PC and the
+connected Desktop Commander plugin as a **specialist escalation path**.
+Use GitHub-hosted runners for build/test loops, then the PC when direct native
+Windows execution would resolve a live blocker faster than more scripted
+guesswork. Verify device availability/capabilities before use; Desktop
+Commander exposes command/process/file tools, but **dedicated GUI clicking,
+screenshots and controller injection must not be presumed**. Explore only
+safe, bounded supported access. Prefer one targeted batched PowerShell
+inspection/repro rather than repeated inventory or hourly polling. Do not
+install persistent agents, self-hosted runners, startup services or scheduled
+PC jobs, and do not kill unrelated processes, change machine configuration,
+delete private files, expose credentials or copy private ROMs to public
+artifacts. Use a dedicated repo/test directory and non-destructive actions;
+ask the owner only when a disruptive operation is genuinely required. Record
+reproducible nonsecret findings/sha in GitHub and validate the eventual
+source change via hosted CI. A PC witness must not be called physical
+acceptance without the exact actual test and independent criteria.
+
+**Retention:** before November 28, 2026, preserve the necessary non-ROM
+original/native Zoo source-bound evidence from run 44954472753, artifacts
+14727143188 and 14726528257, in an authorized durable location with
+hashes and provenance. Do not copy proprietary binaries into public GitHub.
+If safe preservation is unavailable, record that explicitly and arrange a
+source-exact rerun before expiration; no fabricated retention claims.
 
 ## Current known positive executable evidence
 

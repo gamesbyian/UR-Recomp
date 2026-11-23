@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "script_linux",
-  "question": "Does a single 12-frame P1 080 directional pulse at frame 60048 change the genuine stock multiplayer second-race course from 01 to scheduled 04?",
-  "expected": "Compare actual guest-selected course and immutable fixture-1 receipt against attempt 25; require real fixture 0 receipt, independent P2 input and genuine second fixture admission; do not relax course checks",
+  "question": "Does moving the actual second guest course-selection pulse to frame 41048, after fixture-1 arming, reach course 04 before the hosted 10-minute limit?",
+  "expected": "Require actual guest course 04 and fixture-1 immutable receipt; print causal guest markers on failure; preserve P2 and strict admission",
   "owner": "windows",
-  "attempt": 26
+  "attempt": 27
 }

@@ -102,14 +102,31 @@ with open(sys.argv[1],"w") as f:
             race.append((start, duration, p1, p2))
     # First release the Results selection, then replay original stock menu
     # controls at the post-Results menu. Only the genuine guest can score.
-    f.write("60000:24:001:000\\n")
+    f.write("60000:24:001:000\n")
     for start, duration, p1, p2 in menu:
-        f.write(f"{61000 + start - 500}:{duration}:{p1}:{p2}\\n")
+        f.write(f"{61000 + start - 500}:{duration}:{p1}:{p2}\n")
     for start, duration, p1, p2 in race:
-        f.write(f"{63000 + start - 1614}:{duration}:{p1}:{p2}\\n")
+        f.write(f"{63000 + start - 1614}:{duration}:{p1}:{p2}\n")
     # Sustain ordinary race movement as in the successful first fixture.
     for index, frame in enumerate(range(65500,100000,24)):
-        f.write(f"{frame}:24:{'081' if index % 2 == 0 else '080'}:000\\n")
+        f.write(f"{frame}:24:{'081' if index % 2 == 0 else '080'}:000\n")
+PY
+# Reject malformed generated controller input before spending a gameplay run.
+python3 - "$OUT/qa03-second-leg.input" <<'PY'
+from pathlib import Path
+import sys
+lines = Path(sys.argv[1]).read_text().splitlines()
+assert len(lines) > 100, f"unexpectedly short controller fixture: {len(lines)} lines"
+assert not any(r"\\n" in line for line in lines), "literal escaped newline in controller fixture"
+for line in lines:
+    if not line or line.startswith("#"):
+        continue
+    fields = line.split(":")
+    assert len(fields) == 4, f"malformed controller line: {line[:120]!r}"
+    assert all(field.isdigit() for field in fields), f"invalid controller fields: {line[:120]!r}"
+assert any(line.startswith("60000:24:001:000") for line in lines), "missing continuation release"
+assert any(line.startswith("61000:") for line in lines), "missing second menu replay"
+print(f"QA03_CONTROLLER_INPUT_VALID lines={len(lines)}")
 PY
 printf 'turbo on\nwait 105000\ndump qa03-second-leg-unresolved\nquit\n' >"$OUT/qa03-second-leg.script"
 WORK="$HOME/qa03"

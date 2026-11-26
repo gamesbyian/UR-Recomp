@@ -1,12 +1,25 @@
 {
   "schema": "UR-EXECUTION-QUEUE/1",
-  "updated": "2026-11-23",
-  "instructions": "Delivery-first autonomous execution. Prefer merged native runtime fixes and genuinely completed original/native or Windows player journeys, not green experiment volume. Green GHA script with first fixture plus arm/trace is diagnostics, not completed QA-03. After at most two measurement-only sessions on the same question, patch proven product fault or pivot. GitHub Actions is default; owner's Windows PC/GitHub integration/Desktop Commander permitted as a focused, bounded diagnostic station, not an hourly polling or persistent runner dependency. Preserve strict 0/45 and 0/12 acceptance; report unmerged/unknown honestly.",
+  "updated": "2026-11-25",
+  "instructions": "Operational anti-stall pivot. Exact GHA Dragster original result run 45293798231 is the immediate fidelity next step: pair and compare actual native guest result/progression rather than another old WIDE07 data collection. Windows QA03 had false-green first-fixture-only results and is capped at one additional decisive attempt before pivot to an independent Windows QA-02/QA-05 gameplay or persistence journey. On each scheduled run attempt meaningful code execution/repair, never a 10-second main-status-only report; when tools fail record exact error and use another available execution route. No fake 0/45 or 0/12. GitHub-hosted Actions default; owner PC allowed for bounded targeted diagnostics without hourly polling.",
   "acceptance": {
     "usa_courses": "0/45 until independent complete original/native USA event qualification",
     "windows_release": "0/12 until independently accepted exact-candidate gate evidence"
   },
   "tasks": [
+    {
+      "id": "FIDELITY-DRAGSTER-PAIRED-COMPLETE",
+      "stream": "fidelity",
+      "rank": 1,
+      "owner": "UR Fidelity Execution",
+      "execution_location": "GitHub Actions hosted source-controlled script_linux experiment, optional bounded owner-PC only if Windows-specific reproduction warranted",
+      "experiment_kind": "script_linux",
+      "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/45293798231",
+      "next_action": "Source-pinned original-USA Dragster run 45293798231 at SHA 102f59a9cad91b8b1851187b8bb4e4786f3ca3cc reached genuine 'race-results' checkpoint with exit 0 using tests/input/race-finish-dragster.script. Read exact artifact and route first. Immediately replay identical source-controlled route against native product with same input and a paired original/native result, clock/state/progression/receipt comparison. Distinguish checkpoint from independently authenticated complete course. If native fails, prove first causal difference, fix native game or wrong input/driver and test failing-before/passing-after. After at most two evidence-only attempts, switch to authentic Zoom Zoo native result-to-Bowl continuation. This task outranks WIDE-07 for now.",
+      "completion_condition": "Independently authentic original USA Dragster full race plus scored result, native same guest-raced result and progression/cold save, explicit audio/visual/other acceptance as required; only then may 0/45 change through independent verification.",
+      "on_blocker": "Fix first demonstrated source, fixture, or runner defect; do not claim course credit from result checkpoint alone. Choose a different executable original/native player route after two noncausal probes.",
+      "evidence_observation": "November 23 2026 GHA 45293798231 (branch experiments/dragster-original-complete-20261123, SHA 102f59a9cad91b8b1851187b8bb4e4786f3ca3cc) succeeded. Log DRAGSTER_ORIGINAL_RESULT exit=0, checkpoints include 'race-results'; script explicitly marks Dessyreqt-derived provenance unverified and usa_course_credit=0. No native pairing or complete course acceptance yet."
+    },
     {
       "id": "FIDELITY-FIRST-USA",
       "stream": "fidelity",
@@ -23,7 +36,7 @@
     {
       "id": "WIDE07-MOVING-USA",
       "stream": "fidelity",
-      "rank": 1,
+      "rank": 3,
       "owner": "UR Fidelity Execution",
       "execution_location": "GitHub Actions hosted Ubuntu through reusable script_linux experiment profile",
       "experiment_kind": "script_linux",
@@ -53,9 +66,9 @@
       "owner": "UR Windows Delivery",
       "execution_location": "Default: GitHub Actions Windows/Linux test runners; conditional targeted Windows PC investigation through authorized Desktop Commander",
       "experiment_kind": "existing_gate_specific_runner",
-      "next_action": "IMMEDIATE: run a genuine second scored guest/controller QA-03 fixture with an independently observable terminal race state, committed fixture=1 receipt and standings before claiming a second-leg success. Green run 45259968883 was diagnostic-only: first fixture committed, second armed, controller traces, but stock race_state=00/menu 01; existing script's QA03_SECOND_GUEST_LEG=PASS is a false positive and needs corrected assertions/label. After two same-question measurement-only attempts change tactics: prefer source-bound native/product repair or switch to another independently playable Windows route. Escalate to owner's Windows PC through Desktop Commander/GitHub only for a specific interactive Windows failure that can't be cheaply resolved on GHA; no repeated PC inventory or persistent runner. Continue subsequent real third leg, 3+ entrant tournament, Records/History cold process, P2 isolation. C04 #3372 remains HOLD pending minimal F2/SDL reproducible chooser witness.",
+      "next_action": "ONE final causal QA03 second-race probe, not another trace-only run: the latest experiment branch has corrected false SECOND_GUEST_LEG=PASS assertion but has not produced a second scored guest result. Verify first-vs-second guest menu/controller ownership, repair product or driver if evidence shows fault; require second distinct committed fixture and cold record proof. If no genuinely new causal evidence in ONE further bounded QA03 attempt, immediately switch to QA02 real packaged Windows two-process persistence/recovery, QA05 controller restart/return, or another independently executable Windows journey. Owner Windows PC and Desktop Commander available once for a specific safe diagnostic, but no GUI control assumed, no hourly PC polling. Do not rerun unchanged script or simply report INFRA ONLY.",
       "completion_condition": "At least one QA-01..QA-12 gate independently judged fully passed on exact nominated Windows candidate; only then ledger count increases.",
-      "on_blocker": "Use early menu and controller traces to identify first causal failure; repair native game, fixture, driver or test assertions according to actual source of truth. No second-leg PASS until scored guest result and separate committed receipt. After two evidence-only sessions choose a different route or justified code fix; PC is a bounded specialist option, not routine compute.",
+      "on_blocker": "A 10-second status-only run is not productive. Use a meaningful GitHub/GHA code/test action or a safe concrete Windows PC repro; when one tool unavailable use another and report exact limitation. After one QA03 causal attempt without progress, pivot to an independent Windows route and implement/test the next missing acceptance predicate. No false gate credit.",
       "evidence_observation": "Post-merge Windows run 43758547511 succeeded on source f88c599f. Exact-candidate A/B/C overlap artifact 14180560123 proves B generation advancement, stale A explicit refusal and cold C preservation of four canonical save files; prior independent audit matched candidate ZIP/executable receipt. Same run retained actual Win32 journal/fault archive 14180146488 and original NTFS postraw/typed artifact 14180236188, but their full QA-02 L4 predicate and exact executable binding remain to be independently judged. No physical controllers, electrical power cut or complete original native event acceptance inferred. 0/12. 2026-11-23 QA03 run 45259968883 green script_linux actually ended in stock menu state 01 and race state 00; its PASS label checked first committed fixture/armed second/trace/exit only; no completed fixture 1 evidence. Correct assertion/label before future claims.",
       "existing_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/44411983934"
     }

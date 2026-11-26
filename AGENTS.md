@@ -191,6 +191,42 @@ agent runs or upload any original ROM/proprietary binaries to public GitHub.
 This is private PC preservation, not qualification; verify local availability
 before depending on it, and use hosted CI for reproducible game tests.
 
+## Immediate anti-stall priorities, November 25, 2026
+
+Both existing hourly agents have been reporting no new source changes despite
+functional scheduled GitHub tooling tests. **Do not finish an invocation with
+only a main-SHA audit when an executable game task is available.** The
+automation prompt and the queue's newest executable priority supersede
+older prose about repeatedly inspecting the same WIDE-07 and Zoo traces.
+
+**Fidelity:** exact source-controlled original-USA Dragster result was
+captured by [run 45293798231](https://github.com/gamesbyian/UR-Recomp/actions/runs/45293798231),
+SHA `102f59a9cad91b8b1851187b8bb4e4786f3ca3cc`, using
+`tests/input/race-finish-dragster.script`. The original emitted a
+`race-results` checkpoint and exit 0. This is **not** original/native
+whole-course parity: input provenance, native paired result and progression
+remain unproven. Immediately attempt native replay and exact state/output
+comparison. A checkpoint named `race-results` is insufficient qualification.
+After two fruitless noncausal probes switch to Zoo native result-to-Bowl or
+another actual course. The historic WIDE-07 phase question is lower priority
+until it controls a specific source edit.
+
+**Windows:** run 45259968883 only established one committed fixture and
+the next armed fixture. A corrected diagnostic branch now rejects its
+misleading SECOND_GUEST_LEG label, but that correction alone is not
+player-facing progress. Permit one more decisive guest menu/controller
+causal test; if it produces no distinct second scored result or demonstrable
+root cause, move to another independently executable Windows QA-02 or QA-05
+journey instead of producing another input trace. The owner PC/Desktop
+Commander is authorized for a bounded native-Windows diagnostic, subject to
+real plugin input capabilities, no persistent runner or hourly polling.
+
+Both streams must record source SHA, execution attempt and inspected
+result; classify genuine runtime improvement separately from diagnostic
+success. Repair erroneous game code, test fixtures or CI when evidence
+supports it, without weakening original/Windows gates. Preserve 0/45
+and 0/12 until independently qualified.
+
 ## Current known positive executable evidence
 
 - Real source-bound Zoo original/native RF095 PCM: GHA

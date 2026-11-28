@@ -1,8 +1,8 @@
 {
   "schema": "ur-agent-experiment-request/1",
   "kind": "windows_candidate",
-  "question": "Does exact-source Windows A/B/C cold recovery pass, and is the playable ROM-free candidate retained before any QA-02 fault failure?",
-  "expected": "Run QA-02 preflight and real Win32 A/B/C; independently retain ROM-free candidate and binding before fault probe, preserve four-file diagnostics and report no gate credit without verifier.",
+  "question": "Does a fourth independent Windows game cold-load the recovered B save after C without mutating any canonical file?",
+  "expected": "Real A/B overlap, stale A refusal, cold C and independent cold D with boot SRAM witness, all four post-C/post-D files identical; no gate credit.",
   "owner": "windows",
-  "attempt": 24
+  "attempt": 25
 }

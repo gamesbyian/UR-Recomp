@@ -29,7 +29,7 @@ FILES = {
     "selector": "host-state-v1.txt",
     "catalog": "profiles-v1.txt",
 }
-STAGES = ("before_A", "after_B", "after_A", "after_C")
+STAGES = ("before_A", "after_B", "after_A", "after_C", "after_D")
 ARMED = "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1"
 QUIT = "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0"
 
@@ -202,7 +202,7 @@ def main() -> int:
         raise ValueError("invalid original seeded typed generation")
     config = case / "config.ini"
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
-    dirs = [case / x for x in ("game_A", "game_B", "game_C")]
+    dirs = [case / x for x in ("game_A", "game_B", "game_C", "game_D")]
     for directory in dirs:
         directory.mkdir()
     gate = case / "game_B_committed.ready"
@@ -339,6 +339,20 @@ def main() -> int:
             json.dumps(cold_diagnostics, indent=2, sort_keys=True) + "\n",
             encoding="utf-8")
         raise
+    # A separate process must load the recovered state again without losing
+    # the committed guest bytes or regressing the typed generation.
+    d_exit, log_d = game(
+        exe, a.rom, cold, config, dirs[3], environment(root, pause=False),
+        evidence / "game-D.log",
+    )
+    saved_d = snapshot(root, evidence, "after_D")
+    if d_exit or "UR-BALDOSA-SAVE-MISMATCH" in log_d:
+        raise ValueError("repeat cold Windows game rejected recovered SRAM")
+    verify_named_profile_boot_bytes(log_d, saved_c["raw"])
+    repeat_generation = verify_cold_recovery(
+        saved_b, saved_c, saved_d, cold_generation)
+    if saved_d != saved_c:
+        raise ValueError("repeat cold launch mutated recovered canonical files")
     if any(path for ext in ("*.urrun", "*.urmatch", "*.urghost") for path in root.rglob(ext)):
         raise ValueError("invented earned result on Pause/Quit")
     report = {
@@ -365,6 +379,9 @@ def main() -> int:
         },
         "before_B_after_B_after_A": comparison,
         "third_game_process_exit": c_exit,
+        "fourth_game_process_exit": d_exit,
+        "repeat_cold_generation": repeat_generation,
+        "repeat_cold_all_four_identical": True,
         "release_gate_credit": 0,
         "physical_gamepads": False,
         "crash_mid_write_or_power_loss": False,

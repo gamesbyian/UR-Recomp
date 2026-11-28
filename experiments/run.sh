@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python3 tests/unit/test_qa02_candidate_identity.py
-python3 -m py_compile tools/qa02_candidate_identity.py tools/qa02_exact_owner_win32_seam.py tools/qa02_exact_owner_two_games.py
-printf 'QA02_IDENTITY_UNIT_PASS source=%s\n' "$UR_EXPERIMENT_SOURCE_SHA" | tee "$UR_EXPERIMENT_OUTPUT_DIR/identity-unit.txt"
+mkdir -p "$UR_EXPERIMENT_OUTPUT_DIR"
+bash experiments/dragster-original.sh
+bash experiments/dragster-native.sh
+python3 - "$UR_EXPERIMENT_OUTPUT_DIR" <<'PY'
+import pathlib,json,sys
+p=pathlib.Path(sys.argv[1])
+native=json.loads((p/'native/checkpoints.json').read_text())
+for tag in ('race-results','result-ack-one','result-ack-two'):
+ f=p/'original/dumps'/ (tag+'.wram.bin')
+ if not f.exists(): raise SystemExit('Missing original '+tag)
+ b=f.read_bytes()
+ n=next((x for x in native if x['name']==tag+'.wram'),None)
+ print(tag, 'original', b[0x9f],b[0xce],b[0x313], 'native',n)
+ if n is None: raise SystemExit('Missing native '+tag)
+ if (b[0x9f],b[0xce],b[0x313]) != (n['menu'],n['track'],n['in_race']): raise SystemExit('State divergence '+tag)
+PY
